@@ -5,6 +5,8 @@ import type { NextRequest } from "next/server";
 const publicRoutes = ["/login", "/register", "/pending-approval", "/mfa-setup", "/mfa-verify"];
 // Routes that should redirect TO dashboard if user is already authenticated
 const redirectIfAuthenticated = ["/login", "/register"];
+// Routes that require full authentication (dashboard)
+const protectedRoutes = ["/dashboard"];
 const authApiRoutes = ["/api/auth"];
 
 export function middleware(request: NextRequest) {
