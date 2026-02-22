@@ -1,61 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateReportHTML } from '@/lib/pdf/generate-report';
 
-/**
- * GET /api/reports/[assessmentId]/download
- * Generate and return PDF report as downloadable HTML/PDF
- */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { assessmentId: string } }
+  { params }: { params: Promise<{ assessmentId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { assessmentId } = await params;
 
-    const assessmentId = params.assessmentId;
-
-    // Fetch assessment with all related data
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId },
-      include: {
-        worker: true,
-        psychologist: true,
-      },
+      include: { worker: true, psychologist: true },
     });
-
-    if (!assessment) {
-      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
-    }
-
-    // Verify ownership
+    if (!assessment) return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
     if (assessment.psychologistId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch scored result
-    const scoredResult = await prisma.scoredResult.findUnique({
-      where: { assessmentId },
-    });
+    const scoredResult = await prisma.scoredResult.findUnique({ where: { assessmentId } });
+    if (!scoredResult) return NextResponse.json({ error: 'No scored result' }, { status: 404 });
 
-    if (!scoredResult) {
-      return NextResponse.json(
-        { error: 'Scored result not found' },
-        { status: 404 }
-      );
-    }
-
-    // Fetch or create report
-    let report = await prisma.report.findUnique({
-      where: { assessmentId },
-    });
-
+    let report = await prisma.report.findFirst({ where: { assessmentId } });
     if (!report) {
       report = await prisma.report.create({
         data: {
@@ -68,59 +38,38 @@ export async function GET(
       });
     }
 
-    // Fetch psychologist's signature
-    const psychologist = await prisma.psychologist.findUnique({
-      where: { id: assessment.psychologistId },
-      include: { signatures: true },
+    // Get psychologist signature (prefer drawn, fallback to uploaded)
+    const db = prisma as any;
+    const signatures = await db.psychologistSignature.findMany({
+      where: { psychologistId: assessment.psychologistId },
     });
+    const signatureImage =
+      signatures.find((s: any) => s.signatureType === 'drawn')?.dataUrl ??
+      signatures.find((s: any) => s.signatureType === 'uploaded')?.imageUrl ??
+      undefined;
 
-    if (!psychologist) {
-      return NextResponse.json(
-        { error: 'Psychologist not found' },
-        { status: 404 }
-      );
-    }
-
-    // Get best available signature (prefer drawn, fallback to uploaded)
-    const drawnSig = psychologist.signatures.find((s) => s.signatureType === 'drawn');
-    const uploadedSig = psychologist.signatures.find(
-      (s) => s.signatureType === 'uploaded'
-    );
-    const signatureImage = drawnSig?.dataUrl || uploadedSig?.imageUrl || undefined;
-
-    // Generate HTML
     const html = generateReportHTML({
-      assessment,
-      scoredResult,
-      report,
-      signatureImage,
+      assessment: assessment as any,
+      scoredResult: scoredResult as any,
+      report: report as any,
+      signatureImage: signatureImage ?? undefined,
     });
 
-    // Update report with signature image and mark as finalized if signing
-    if (signatureImage && !report.isFinalized) {
+    // Mark as signed if signature present and not finalized
+    if (signatureImage && !(report as any).isFinalized) {
       await prisma.report.update({
         where: { id: report.id },
         data: {
-          signatureImage,
-          signedBy: psychologist.email,
+          signedBy: assessment.psychologist.email,
           signedAt: new Date(),
-          isFinalized: true,
           status: 'SIGNED',
-        },
+        } as any,
       });
     }
 
-    // Return HTML for client-side PDF generation using html2pdf
-    return NextResponse.json({
-      html,
-      assessmentId,
-      workerName: assessment.worker.fullName,
-    });
+    return NextResponse.json({ html, assessmentId, workerName: assessment.worker.fullName });
   } catch (error) {
-    console.error('GET /api/reports/[assessmentId]/download error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('GET /api/reports/download:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

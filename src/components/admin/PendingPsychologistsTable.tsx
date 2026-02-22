@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Psychologist } from '@prisma/client';
+import { Psychologist } from '@/generated/prisma';
 import { Table, Button, Modal } from '@/components/ui';
 import { Check, X, Eye, Loader2 } from 'lucide-react';
 

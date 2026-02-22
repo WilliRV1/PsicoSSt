@@ -1,170 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateRecommendations } from '@/lib/ai/openrouter-client';
 
-/**
- * POST /api/ai/recommendations
- * Generate AI recommendations for a specific assessment
- * Body: { assessmentId: string }
- */
+/** POST /api/ai/recommendations */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { assessmentId } = await req.json();
+    const body = await req.json();
+    const { assessmentId, overrideText } = body;
 
     if (!assessmentId) {
-      return NextResponse.json(
-        { error: 'assessmentId is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'assessmentId is required' }, { status: 400 });
     }
 
-    // Fetch assessment with related data
+    // Verify assessment ownership
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId },
-      include: {
-        psychologist: true,
-        worker: true,
-      },
+      include: { worker: true },
     });
-
-    if (!assessment) {
-      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
-    }
-
-    // Verify ownership
+    if (!assessment) return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
     if (assessment.psychologistId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch scored result
-    const scoredResult = await prisma.scoredResult.findUnique({
-      where: { assessmentId },
-    });
-
-    if (!scoredResult) {
-      return NextResponse.json(
-        { error: 'Scored result not found. Please complete the assessment first.' },
-        { status: 400 }
-      );
+    // If manual override — just save it
+    if (overrideText !== undefined) {
+      const report = await prisma.report.findFirst({ where: { assessmentId } });
+      if (report) {
+        await prisma.report.update({
+          where: { id: report.id },
+          data: { recommendationsAI: overrideText } as any,
+        });
+      }
+      return NextResponse.json({ success: true, recommendations: overrideText, assessmentId });
     }
 
-    // Generate recommendations using OpenRouter AI
+    // Generate with AI
+    const scoredResult = await prisma.scoredResult.findUnique({ where: { assessmentId } });
+    if (!scoredResult) {
+      return NextResponse.json({ error: 'Scored result not found. Complete the assessment first.' }, { status: 400 });
+    }
+
     const recommendations = await generateRecommendations({
       overallRiskCategory: scoredResult.overallRiskCategory,
       totalScores: scoredResult.totalScores,
       dimensionScores: scoredResult.dimensionScores,
       workerProfile: {
-        jobTitle: assessment.worker.jobTitle || undefined,
+        jobTitle: assessment.worker.jobTitle ?? undefined,
         jobLevel: assessment.worker.jobLevel,
-        yearsInPosition: assessment.worker.yearsInPosition || undefined,
+        yearsInPosition: assessment.worker.yearsInPosition ?? undefined,
       },
     });
 
-    // Update report with AI-generated recommendations
-    const report = await prisma.report.findUnique({
-      where: { assessmentId },
-    });
-
+    // Save to report
+    const report = await prisma.report.findFirst({ where: { assessmentId } });
     if (report) {
       await prisma.report.update({
         where: { id: report.id },
-        data: {
-          recommendationsAI: recommendations,
-        },
+        data: { recommendationsAI: recommendations } as any,
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      recommendations,
-      assessmentId,
-    });
+    return NextResponse.json({ success: true, recommendations, assessmentId });
   } catch (error) {
-    console.error('POST /api/ai/recommendations error:', error);
-
-    // Check if it's an OpenRouter API key error
-    if (error instanceof Error) {
-      if (error.message.includes('OPENROUTER_API_KEY')) {
-        return NextResponse.json(
-          {
-            error: 'AI service not configured. Please set OPENROUTER_API_KEY in environment variables.',
-          },
-          { status: 503 }
-        );
-      }
-
-      if (error.message.includes('OpenRouter')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: 503 }
-        );
-      }
+    console.error('POST /api/ai/recommendations:', error);
+    if (error instanceof Error && error.message.includes('OPENROUTER_API_KEY')) {
+      return NextResponse.json(
+        { error: 'IA no configurada. Agrega OPENROUTER_API_KEY en .env.local' },
+        { status: 503 }
+      );
     }
-
-    return NextResponse.json(
-      { error: 'Failed to generate recommendations' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error al generar recomendaciones' }, { status: 500 });
   }
 }
 
-/**
- * GET /api/ai/recommendations?assessmentId=...
- * Get AI recommendations for an assessment (if already generated)
- */
+/** GET /api/ai/recommendations?assessmentId=... */
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const assessmentId = req.nextUrl.searchParams.get('assessmentId');
+    if (!assessmentId) return NextResponse.json({ error: 'assessmentId required' }, { status: 400 });
 
-    if (!assessmentId) {
-      return NextResponse.json(
-        { error: 'assessmentId query parameter is required' },
-        { status: 400 }
-      );
-    }
-
-    // Fetch assessment to verify ownership
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-    });
-
-    if (!assessment) {
-      return NextResponse.json({ error: 'Assessment not found' }, { status: 404 });
-    }
-
+    const assessment = await prisma.assessment.findUnique({ where: { id: assessmentId } });
+    if (!assessment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (assessment.psychologistId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch report with recommendations
-    const report = await prisma.report.findUnique({
-      where: { assessmentId },
-    });
-
+    const report = await prisma.report.findFirst({ where: { assessmentId } });
     return NextResponse.json({
       success: true,
-      recommendations: report?.recommendationsAI || null,
+      recommendations: (report as any)?.recommendationsAI ?? null,
       assessmentId,
     });
   } catch (error) {
-    console.error('GET /api/ai/recommendations error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('GET /api/ai/recommendations:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

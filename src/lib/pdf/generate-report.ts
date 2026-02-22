@@ -1,4 +1,4 @@
-import { ScoredResult, Report, Assessment, Worker, Psychologist } from '@prisma/client';
+import { ScoredResult, Report, Assessment, Worker, Psychologist } from '@/generated/prisma';
 
 interface ReportData {
   assessment: Assessment & { worker: Worker; psychologist: Psychologist };

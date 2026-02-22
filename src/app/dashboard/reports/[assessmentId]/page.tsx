@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { DimensionScore, DomainScore, TotalScore, RiskCategory } from "@/types/battery";
+import AIRecommendationsSection from "@/components/reports/AIRecommendationsSection";
 import "./report.css";
 
 const riskLabels: Record<string, string> = {
@@ -502,14 +503,13 @@ export default async function ReportPage({ params }: PageProps) {
                                 )}
                             </div>
                         </div>
-                        <div className="analysis-box" style={{ marginTop: "1.5rem" }}>
-                            <label>Sugerencias de Intervención</label>
-                            <div className="analysis-content">
-                                {(report?.reportData as any)?.recommendations || (
-                                    <span className="placeholder no-print">Acciones recomendadas para la gestión del riesgo.</span>
-                                )}
-                            </div>
-                        </div>
+
+                        {/* IA RECOMMENDATIONS — Client Component */}
+                        <AIRecommendationsSection
+                            assessmentId={assessmentId}
+                            initialRecommendations={report?.recommendationsAI ?? (report?.reportData as any)?.recommendations ?? null}
+                            isSigned={isSigned}
+                        />
                     </section>
 
                     {/* ═══════════════ RISK LEGEND ═══════════════ */}

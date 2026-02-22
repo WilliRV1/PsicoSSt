@@ -2,242 +2,371 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import SignaturePad from "signature_pad";
+import { Upload, Trash2, Save, Loader2, User, FileSignature } from "lucide-react";
 
 export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [sigSaving, setSigSaving] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
+    const [signatureMessage, setSignatureMessage] = useState({ text: "", type: "" });
+    const [activeSignatureTab, setActiveSignatureTab] = useState<"draw" | "upload">("draw");
     const [profile, setProfile] = useState({
         fullName: "",
         licenseNumber: "",
         professionalCard: "",
         sstCredential: "",
-        signature: ""
     });
+    const [savedSignatures, setSavedSignatures] = useState<{
+        drawn?: { dataUrl?: string | null; uploadedAt?: string } | null;
+        uploaded?: { imageUrl?: string | null; fileName?: string | null; uploadedAt?: string } | null;
+    }>({});
 
+    // Draw
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [isDrawing, setIsDrawing] = useState(false);
+    const signaturePadRef = useRef<SignaturePad | null>(null);
+    const canvasInitialized = useRef(false);
 
+    // Upload
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadPreview, setUploadPreview] = useState<string>("");
+
+    // Load profile + signatures
     useEffect(() => {
-        fetchProfile();
+        const load = async () => {
+            try {
+                const [profileRes, sigRes] = await Promise.all([
+                    fetch("/api/profile"),
+                    fetch("/api/profile/signature"),
+                ]);
+                if (profileRes.ok) {
+                    const data = await profileRes.json();
+                    setProfile({
+                        fullName: data.fullName || "",
+                        licenseNumber: data.licenseNumber || "",
+                        professionalCard: data.professionalCard || "",
+                        sstCredential: data.sstCredential || "",
+                    });
+                }
+                if (sigRes.ok) {
+                    const sigData = await sigRes.json();
+                    setSavedSignatures(sigData);
+                    if (sigData.uploaded?.imageUrl) {
+                        setUploadPreview(sigData.uploaded.imageUrl);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     }, []);
 
-    const fetchProfile = async () => {
-        try {
-            const res = await fetch("/api/profile");
-            const data = await res.json();
-            if (res.ok) {
-                setProfile(data);
-                // If signature exists, we could draw it, but for simplicity we'll just show it below or allow clearing
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Canvas Logic
+    // Initialize signature pad when draw tab is active
     useEffect(() => {
-        if (!canvasRef.current || loading) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            ctx.lineCap = "round";
+        if (activeSignatureTab === "draw" && canvasRef.current && !canvasInitialized.current) {
+            const canvas = canvasRef.current;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width || 680;
+            canvas.height = 200;
+            const pad = new SignaturePad(canvas, {
+                backgroundColor: "rgb(255, 255, 255)",
+                penColor: "rgb(0, 81, 186)",
+            });
+            signaturePadRef.current = pad;
+            canvasInitialized.current = true;
+            if (savedSignatures.drawn?.dataUrl) {
+                pad.fromDataURL(savedSignatures.drawn.dataUrl);
+            }
         }
-    }, [loading]);
-
-    const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-        setIsDrawing(true);
-        draw(e);
-    };
-
-    const stopDrawing = () => {
-        setIsDrawing(false);
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const ctx = canvas.getContext("2d");
-            if (ctx) ctx.beginPath();
-        }
-    };
-
-    const draw = (e: React.MouseEvent | React.TouchEvent) => {
-        if (!isDrawing || !canvasRef.current) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        const rect = canvas.getBoundingClientRect();
-        let x, y;
-
-        if ("touches" in e) {
-            x = e.touches[0].clientX - rect.left;
-            y = e.touches[0].clientY - rect.top;
-        } else {
-            x = e.clientX - rect.left;
-            y = e.clientY - rect.top;
-        }
-
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-    };
-
-    const clearCanvas = () => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const ctx = canvas.getContext("2d");
-            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-    };
+    }, [activeSignatureTab, savedSignatures.drawn?.dataUrl]);
 
     const saveProfile = async () => {
         setSaving(true);
         setMessage({ text: "", type: "" });
-
-        let signatureBase64 = profile.signature;
-        const canvas = canvasRef.current;
-
-        // Only update signature if canvas is not blank (simplified check)
-        // In a real app we'd check if drawing happened
-        if (canvas) {
-            const blank = document.createElement('canvas');
-            blank.width = canvas.width;
-            blank.height = canvas.height;
-            if (canvas.toDataURL() !== blank.toDataURL()) {
-                signatureBase64 = canvas.toDataURL("image/png");
-            }
-        }
-
         try {
             const res = await fetch("/api/profile", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...profile, signature: signatureBase64 })
+                body: JSON.stringify(profile),
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ text: "Perfil actualizado correctamente.", type: "success" });
-                setProfile(prev => ({ ...prev, signature: signatureBase64 }));
+                setMessage({ text: "✓ Perfil actualizado correctamente.", type: "success" });
             } else {
                 setMessage({ text: data.error || "Error al actualizar.", type: "error" });
             }
-        } catch (error) {
+        } catch {
             setMessage({ text: "Error de conexión.", type: "error" });
         } finally {
             setSaving(false);
         }
     };
 
+    const saveDrawnSignature = async () => {
+        if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
+            setSignatureMessage({ text: "Dibuja tu firma antes de guardar.", type: "error" });
+            return;
+        }
+        setSigSaving(true);
+        setSignatureMessage({ text: "", type: "" });
+        try {
+            const dataUrl = signaturePadRef.current.toDataURL("image/png");
+            const res = await fetch("/api/profile/signature", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ signatureType: "drawn", dataUrl }),
+            });
+            if (res.ok) {
+                setSavedSignatures(prev => ({ ...prev, drawn: { dataUrl, uploadedAt: new Date().toISOString() } }));
+                setSignatureMessage({ text: "✓ Firma guardada correctamente.", type: "success" });
+            } else {
+                setSignatureMessage({ text: "Error al guardar la firma.", type: "error" });
+            }
+        } catch {
+            setSignatureMessage({ text: "Error de conexión.", type: "error" });
+        } finally {
+            setSigSaving(false);
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!["image/jpeg", "image/png"].includes(file.type)) {
+            setSignatureMessage({ text: "Solo se permiten archivos JPG o PNG.", type: "error" });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setSignatureMessage({ text: "El archivo no puede superar 5 MB.", type: "error" });
+            return;
+        }
+        setSigSaving(true);
+        setSignatureMessage({ text: "", type: "" });
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const base64 = reader.result as string;
+            setUploadPreview(base64);
+            try {
+                const res = await fetch("/api/profile/signature", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ signatureType: "uploaded", imageUrl: base64, fileName: file.name }),
+                });
+                if (res.ok) {
+                    setSavedSignatures(prev => ({
+                        ...prev,
+                        uploaded: { imageUrl: base64, fileName: file.name, uploadedAt: new Date().toISOString() },
+                    }));
+                    setSignatureMessage({ text: "✓ Firma subida correctamente.", type: "success" });
+                } else {
+                    setSignatureMessage({ text: "Error al subir la firma.", type: "error" });
+                }
+            } catch {
+                setSignatureMessage({ text: "Error de conexión.", type: "error" });
+            } finally {
+                setSigSaving(false);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const deleteSignature = async (type: "drawn" | "uploaded") => {
+        if (!confirm(`¿Eliminar la firma ${type === "drawn" ? "dibujada" : "subida"}?`)) return;
+        try {
+            const res = await fetch(`/api/profile/signature?signatureType=${type}`, { method: "DELETE" });
+            if (res.ok) {
+                setSavedSignatures(prev => ({ ...prev, [type]: null }));
+                if (type === "drawn") {
+                    signaturePadRef.current?.clear();
+                } else {
+                    setUploadPreview("");
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                }
+                setSignatureMessage({ text: "Firma eliminada.", type: "success" });
+            }
+        } catch {
+            setSignatureMessage({ text: "Error al eliminar la firma.", type: "error" });
+        }
+    };
+
     if (loading) {
         return (
-            <div style={{ minHeight: "100vh", background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ color: "white", fontSize: "1.2rem" }}>Cargando perfil...</div>
+            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+                <div className="flex items-center gap-3 text-[#666666]">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#0051BA]" />
+                    <span>Cargando perfil...</span>
+                </div>
             </div>
         );
     }
 
     return (
-        <div style={{ minHeight: "100vh", background: "#0f172a", color: "white", padding: "40px" }}>
-            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                <Link href="/dashboard" style={{ color: "#6366f1", textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px", fontWeight: 600 }}>
+        <div className="min-h-screen bg-[#F5F5F5]">
+            <div className="max-w-3xl mx-auto px-4 py-10">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#0051BA] font-semibold mb-8 hover:underline text-sm">
                     ← Volver al Dashboard
                 </Link>
 
-                <div style={{ background: "rgba(30,41,59,0.5)", border: "1px solid rgba(148,163,184,0.1)", borderRadius: "24px", padding: "40px" }}>
-                    <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "8px" }}>Mi Perfil Profesional</h1>
-                    <p style={{ color: "#94a3b8", marginBottom: "32px" }}>Gestiona tus credenciales y firma digital para los informes legales.</p>
-
-                    {message.text && (
-                        <div style={{ padding: "16px", borderRadius: "12px", marginBottom: "24px", background: message.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: message.type === "success" ? "#4ade80" : "#f87171", border: `1px solid ${message.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}` }}>
-                            {message.text}
-                        </div>
-                    )}
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "32px" }}>
-                        <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", marginBottom: "8px" }}>Nombre Completo</label>
-                            <input
-                                type="text"
-                                value={profile.fullName}
-                                onChange={e => setProfile({ ...profile, fullName: e.target.value })}
-                                style={{ width: "100%", padding: "12px 16px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", color: "white", outline: "none" }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", marginBottom: "8px" }}>Número de Licencia</label>
-                            <input
-                                type="text"
-                                value={profile.licenseNumber}
-                                onChange={e => setProfile({ ...profile, licenseNumber: e.target.value })}
-                                style={{ width: "100%", padding: "12px 16px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", color: "white", outline: "none" }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", marginBottom: "8px" }}>Tarjeta Profesional</label>
-                            <input
-                                type="text"
-                                value={profile.professionalCard}
-                                onChange={e => setProfile({ ...profile, professionalCard: e.target.value })}
-                                style={{ width: "100%", padding: "12px 16px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", color: "white", outline: "none" }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", marginBottom: "8px" }}>Credencial SST</label>
-                            <input
-                                type="text"
-                                value={profile.sstCredential}
-                                onChange={e => setProfile({ ...profile, sstCredential: e.target.value })}
-                                style={{ width: "100%", padding: "12px 16px", background: "rgba(15,23,42,0.8)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "12px", color: "white", outline: "none" }}
-                            />
-                        </div>
+                {/* ─── DATOS DEL PERFIL ─── */}
+                <div className="bg-white rounded-xl border border-[#E8E8E8] shadow-sm mb-8">
+                    <div className="flex items-center gap-3 px-6 py-4 border-b border-[#E8E8E8]">
+                        <User className="w-5 h-5 text-[#0051BA]" />
+                        <h2 className="text-lg font-semibold text-[#212121]">Datos Profesionales</h2>
                     </div>
-
-                    <div style={{ marginBottom: "32px" }}>
-                        <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", marginBottom: "8px" }}>Firma Digital (Trazar abajo)</label>
-                        <div style={{ background: "rgba(15,23,42,0.8)", border: "2px dashed rgba(99,102,241,0.3)", borderRadius: "16px", overflow: "hidden", position: "relative" }}>
-                            <canvas
-                                ref={canvasRef}
-                                width={720}
-                                height={200}
-                                onMouseDown={startDrawing}
-                                onMouseUp={stopDrawing}
-                                onMouseMove={draw}
-                                onMouseOut={stopDrawing}
-                                onTouchStart={startDrawing}
-                                onTouchEnd={stopDrawing}
-                                onTouchMove={draw}
-                                style={{ width: "100%", height: "200px", cursor: "crosshair", display: "block" }}
-                            />
-                            <button
-                                onClick={clearCanvas}
-                                style={{ position: "absolute", bottom: "12px", right: "12px", padding: "6px 12px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", borderRadius: "8px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer" }}
-                            >
-                                Limpiar Firma
-                            </button>
-                        </div>
-                    </div>
-
-                    {profile.signature && (
-                        <div style={{ marginBottom: "32px" }}>
-                            <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", marginBottom: "12px" }}>Firma Actual en Sistema:</label>
-                            <div style={{ background: "white", padding: "10px", borderRadius: "12px", display: "inline-block" }}>
-                                <img src={profile.signature} alt="Firma" style={{ maxHeight: "80px", display: "block" }} />
+                    <div className="px-6 py-6">
+                        {message.text && (
+                            <div className={`mb-5 px-4 py-3 rounded-lg text-sm font-medium ${message.type === "success" ? "bg-[#C8E6C9] text-[#2E7D32]" : "bg-[#FFCDD2] text-[#B71C1C]"}`}>
+                                {message.text}
                             </div>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                            {[
+                                { label: "Nombre Completo", key: "fullName" },
+                                { label: "Número de Licencia", key: "licenseNumber" },
+                                { label: "Tarjeta Profesional", key: "professionalCard" },
+                                { label: "Credencial SST", key: "sstCredential" },
+                            ].map(({ label, key }) => (
+                                <div key={key}>
+                                    <label className="block text-xs font-semibold text-[#0051BA] uppercase tracking-wide mb-1.5">{label}</label>
+                                    <input
+                                        type="text"
+                                        value={profile[key as keyof typeof profile]}
+                                        onChange={e => setProfile(p => ({ ...p, [key]: e.target.value }))}
+                                        className="w-full px-4 py-2.5 border border-[#E8E8E8] rounded-lg text-[#212121] text-sm focus:outline-none focus:border-[#0051BA] focus:ring-2 focus:ring-[#0051BA]/20 transition"
+                                    />
+                                </div>
+                            ))}
                         </div>
-                    )}
+                        <button
+                            onClick={saveProfile}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#0051BA] text-white rounded-lg text-sm font-semibold hover:bg-[#003D8A] disabled:opacity-60 transition"
+                        >
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {saving ? "Guardando..." : "Guardar Perfil"}
+                        </button>
+                    </div>
+                </div>
 
-                    <button
-                        onClick={saveProfile}
-                        disabled={saving}
-                        style={{ width: "100%", padding: "16px", background: "#6366f1", border: "none", borderRadius: "16px", color: "white", fontWeight: 800, fontSize: "1rem", cursor: "pointer", transition: "all 0.2s" }}
-                    >
-                        {saving ? "Guardando..." : "Guardar Perfil y Firma"}
-                    </button>
+                {/* ─── FIRMA DIGITAL ─── */}
+                <div className="bg-white rounded-xl border border-[#E8E8E8] shadow-sm">
+                    <div className="flex items-center gap-3 px-6 py-4 border-b border-[#E8E8E8]">
+                        <FileSignature className="w-5 h-5 text-[#0051BA]" />
+                        <h2 className="text-lg font-semibold text-[#212121]">Firma Digital</h2>
+                        <span className="ml-auto text-xs text-[#666666]">Se incluirá en todos tus informes</span>
+                    </div>
+                    <div className="px-6 py-6">
+                        {signatureMessage.text && (
+                            <div className={`mb-5 px-4 py-3 rounded-lg text-sm font-medium ${signatureMessage.type === "success" ? "bg-[#C8E6C9] text-[#2E7D32]" : "bg-[#FFCDD2] text-[#B71C1C]"}`}>
+                                {signatureMessage.text}
+                            </div>
+                        )}
+
+                        {/* Tabs */}
+                        <div className="flex gap-1 border-b border-[#E8E8E8] mb-6">
+                            {(["draw", "upload"] as const).map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveSignatureTab(tab)}
+                                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${activeSignatureTab === tab ? "border-[#0051BA] text-[#0051BA]" : "border-transparent text-[#666666] hover:text-[#212121]"}`}
+                                >
+                                    {tab === "draw" ? "✏️ Dibujar" : "📤 Subir imagen"}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* ─── DIBUJAR ─── */}
+                        {activeSignatureTab === "draw" && (
+                            <div className="space-y-4">
+                                <p className="text-xs text-[#666666]">Dibuja tu firma con el cursor o dedo (dispositivo táctil)</p>
+                                <div className="border-2 border-dashed border-[#0051BA]/40 rounded-lg overflow-hidden bg-white">
+                                    <canvas
+                                        ref={canvasRef}
+                                        className="w-full cursor-crosshair block"
+                                        style={{ height: "180px", touchAction: "none" }}
+                                    />
+                                </div>
+                                <div className="flex gap-3 flex-wrap">
+                                    <button
+                                        onClick={() => { signaturePadRef.current?.clear(); }}
+                                        className="px-4 py-2 text-sm border border-[#E8E8E8] rounded-lg text-[#666666] hover:bg-[#F5F5F5] transition"
+                                    >
+                                        Borrar
+                                    </button>
+                                    <button
+                                        onClick={saveDrawnSignature}
+                                        disabled={sigSaving}
+                                        className="flex items-center gap-2 px-4 py-2 bg-[#0051BA] text-white text-sm rounded-lg font-medium hover:bg-[#003D8A] disabled:opacity-60 transition"
+                                    >
+                                        {sigSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        {sigSaving ? "Guardando..." : "Guardar firma dibujada"}
+                                    </button>
+                                    {savedSignatures.drawn?.dataUrl && (
+                                        <button
+                                            onClick={() => deleteSignature("drawn")}
+                                            className="flex items-center gap-2 px-4 py-2 bg-[#FFCDD2] text-[#B71C1C] text-sm rounded-lg font-medium hover:bg-[#EF9A9A] transition"
+                                        >
+                                            <Trash2 className="w-4 h-4" /> Eliminar
+                                        </button>
+                                    )}
+                                </div>
+                                {savedSignatures.drawn?.dataUrl && (
+                                    <div className="p-3 bg-[#F5F5F5] rounded-lg">
+                                        <p className="text-xs text-[#666666] mb-2 font-medium">Firma guardada actualmente:</p>
+                                        <img src={savedSignatures.drawn.dataUrl} alt="Firma guardada" className="max-h-16 border border-[#E8E8E8] rounded bg-white p-1" />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ─── SUBIR IMAGEN ─── */}
+                        {activeSignatureTab === "upload" && (
+                            <div className="space-y-4">
+                                <p className="text-xs text-[#666666]">Sube una imagen de tu firma (JPG o PNG, máx. 5 MB)</p>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/jpeg,image/png"
+                                    onChange={handleFileUpload}
+                                    className="hidden"
+                                />
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={sigSaving}
+                                    className="w-full py-10 border-2 border-dashed border-[#0051BA]/40 rounded-lg hover:bg-[#F5F5F5] transition flex flex-col items-center gap-2 disabled:opacity-60"
+                                >
+                                    <Upload className="w-6 h-6 text-[#0051BA]" />
+                                    <span className="text-sm font-medium text-[#0051BA]">Haz clic para seleccionar archivo</span>
+                                    <span className="text-xs text-[#999999]">JPG o PNG · máx. 5 MB</span>
+                                </button>
+
+                                {uploadPreview && (
+                                    <div className="p-4 bg-[#F5F5F5] rounded-lg space-y-3">
+                                        <p className="text-xs text-[#666666] font-medium">
+                                            Vista previa{savedSignatures.uploaded?.fileName ? ` — ${savedSignatures.uploaded.fileName}` : ""}:
+                                        </p>
+                                        <img src={uploadPreview} alt="Vista previa firma" className="max-h-24 border border-[#E8E8E8] rounded bg-white p-1" />
+                                        <button
+                                            onClick={() => deleteSignature("uploaded")}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#FFCDD2] text-[#B71C1C] text-xs rounded-lg font-medium hover:bg-[#EF9A9A] transition"
+                                        >
+                                            <Trash2 className="w-3 h-3" /> Eliminar firma
+                                        </button>
+                                    </div>
+                                )}
+
+                                {!uploadPreview && (
+                                    <div className="text-xs text-[#999999] bg-[#FFFDE7] border border-[#FFE082] rounded-lg p-3">
+                                        💡 <strong>Consejo:</strong> Firma en papel blanco con tinta negra, toma una foto y recórtala antes de subir.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
