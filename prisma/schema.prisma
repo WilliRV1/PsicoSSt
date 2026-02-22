@@ -33,7 +33,31 @@ model Psychologist {
   organizations Organization[]
   reports       Report[]
 
+  // Relations
+  signatures       PsychologistSignature[]
+
   @@map("psychologists")
+}
+
+/// Psychologist's digital signature (drawn or uploaded image)
+model PsychologistSignature {
+  id              String       @id @default(cuid())
+  psychologistId  String       @map("psychologist_id") @db.Uuid
+  psychologist    Psychologist @relation(fields: [psychologistId], references: [id], onDelete: Cascade)
+
+  signatureType   String       @map("signature_type") // "drawn" | "uploaded"
+  /// Base64 encoded image for drawn signatures
+  dataUrl         String?      @map("data_url") @db.Text
+  /// URL for uploaded signature image
+  imageUrl        String?      @map("image_url")
+  /// Original filename for uploaded signatures
+  fileName        String?      @map("file_name")
+  uploadedAt      DateTime     @default(now()) @map("uploaded_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  /// One psychologist can have one drawn and one uploaded signature
+  @@unique([psychologistId, signatureType])
+  @@map("psychologist_signatures")
 }
 
 /// Company or organization being evaluated
@@ -175,20 +199,28 @@ model InformedConsent {
 
 /// Generated and signed reports
 model Report {
-  id             String       @id @default(uuid()) @db.Uuid
-  assessmentId   String       @unique @map("assessment_id") @db.Uuid
-  psychologistId String       @map("psychologist_id") @db.Uuid
-  reportType     String       @default("individual") @map("report_type")
+  id               String       @id @default(uuid()) @db.Uuid
+  assessmentId     String       @unique @map("assessment_id") @db.Uuid
+  psychologistId   String       @map("psychologist_id") @db.Uuid
+  reportType       String       @default("individual") @map("report_type")
   /// JSONB: complete report data including narratives, recommendations
-  reportData     Json         @map("report_data")
-  status         ReportStatus @default(DRAFT)
+  reportData       Json         @map("report_data")
+  status           ReportStatus @default(DRAFT)
   /// SHA-256 hash of report content at time of signing
-  signatureHash  String?      @map("signature_hash")
-  generatedAt    DateTime     @default(now()) @map("generated_at")
-  signedAt       DateTime?    @map("signed_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-  assessment     Assessment   @relation(fields: [assessmentId], references: [id])
-  psychologist   Psychologist @relation(fields: [psychologistId], references: [id])
+  signatureHash    String?      @map("signature_hash")
+  /// Base64 encoded signature image included in the PDF
+  signatureImage   String?      @map("signature_image") @db.Text
+  /// Email of psychologist who signed
+  signedBy         String?      @map("signed_by")
+  /// Whether the report is finalized and cannot be modified
+  isFinalized      Boolean      @default(false) @map("is_finalized")
+  /// IA-generated recommendations/next steps
+  recommendationsAI String?      @map("recommendations_ai") @db.Text
+  generatedAt      DateTime     @default(now()) @map("generated_at")
+  signedAt         DateTime?    @map("signed_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  assessment       Assessment   @relation(fields: [assessmentId], references: [id])
+  psychologist     Psychologist @relation(fields: [psychologistId], references: [id])
 
   @@index([assessmentId, status])
   @@index([psychologistId])
