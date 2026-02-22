@@ -1,0 +1,297 @@
+{
+    "formType": "B",
+    "questionnaireType": "INTRALABORAL",
+    "totalItems": 97,
+    "domains": [
+        {
+            "key": "liderazgo_relaciones",
+            "name": "Liderazgo y Relaciones Sociales en el Trabajo",
+            "dimensionKeys": [
+                "liderazgo_caracteristicas",
+                "relaciones_sociales",
+                "retroalimentacion_desempeno"
+            ]
+        },
+        {
+            "key": "control_trabajo",
+            "name": "Control sobre el Trabajo",
+            "dimensionKeys": [
+                "claridad_rol",
+                "capacitacion",
+                "participacion_cambio",
+                "oportunidades_desarrollo",
+                "control_autonomia"
+            ]
+        },
+        {
+            "key": "demandas_trabajo",
+            "name": "Demandas del Trabajo",
+            "dimensionKeys": [
+                "demandas_ambientales",
+                "demandas_emocionales",
+                "demandas_cuantitativas",
+                "influencia_trabajo_extralaboral",
+                "demandas_jornada"
+            ]
+        },
+        {
+            "key": "recompensa",
+            "name": "Recompensa",
+            "dimensionKeys": [
+                "reconocimiento_compensacion",
+                "recompensas_pertenencia"
+            ]
+        }
+    ],
+    "dimensions": [
+        {
+            "key": "liderazgo_caracteristicas",
+            "name": "Características del liderazgo",
+            "domainKey": "liderazgo_relaciones",
+            "items": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "relaciones_sociales",
+            "name": "Relaciones sociales en el trabajo",
+            "domainKey": "liderazgo_relaciones",
+            "items": [
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "retroalimentacion_desempeno",
+            "name": "Retroalimentación del desempeño",
+            "domainKey": "liderazgo_relaciones",
+            "items": [
+                26,
+                27,
+                28,
+                29,
+                30
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "claridad_rol",
+            "name": "Claridad de rol",
+            "domainKey": "control_trabajo",
+            "items": [
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "capacitacion",
+            "name": "Capacitación",
+            "domainKey": "control_trabajo",
+            "items": [
+                86,
+                87,
+                88
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "participacion_cambio",
+            "name": "Participación y manejo del cambio",
+            "domainKey": "control_trabajo",
+            "items": [
+                89,
+                90,
+                91,
+                92
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "oportunidades_desarrollo",
+            "name": "Oportunidades de desarrollo y uso de habilidades",
+            "domainKey": "control_trabajo",
+            "items": [
+                93,
+                94,
+                95,
+                96
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "control_autonomia",
+            "name": "Control y autonomía sobre el trabajo",
+            "domainKey": "control_trabajo",
+            "items": [
+                83,
+                84,
+                85
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "demandas_ambientales",
+            "name": "Demandas ambientales y de esfuerzo físico",
+            "domainKey": "demandas_trabajo",
+            "items": [
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42
+            ],
+            "invertedItems": [
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42
+            ]
+        },
+        {
+            "key": "demandas_emocionales",
+            "name": "Demandas emocionales",
+            "domainKey": "demandas_trabajo",
+            "items": [
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49
+            ],
+            "invertedItems": [
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49
+            ]
+        },
+        {
+            "key": "demandas_cuantitativas",
+            "name": "Demandas cuantitativas",
+            "domainKey": "demandas_trabajo",
+            "items": [
+                50,
+                51,
+                52,
+                53,
+                54,
+                62
+            ],
+            "invertedItems": [
+                50,
+                51,
+                52,
+                53,
+                54,
+                62
+            ]
+        },
+        {
+            "key": "influencia_trabajo_extralaboral",
+            "name": "Influencia del trabajo sobre el entorno extralaboral",
+            "domainKey": "demandas_trabajo",
+            "items": [
+                63,
+                64,
+                65,
+                66
+            ],
+            "invertedItems": [
+                63,
+                64,
+                65,
+                66
+            ]
+        },
+        {
+            "key": "demandas_jornada",
+            "name": "Demandas de la jornada de trabajo",
+            "domainKey": "demandas_trabajo",
+            "items": [
+                78,
+                79,
+                80
+            ],
+            "invertedItems": [
+                78,
+                79,
+                80
+            ]
+        },
+        {
+            "key": "reconocimiento_compensacion",
+            "name": "Reconocimiento y compensación",
+            "domainKey": "recompensa",
+            "items": [
+                97,
+                6,
+                7,
+                67,
+                68,
+                69
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "recompensas_pertenencia",
+            "name": "Recompensas de la pertenencia a la organización",
+            "domainKey": "recompensa",
+            "items": [
+                75,
+                76,
+                77,
+                81,
+                82
+            ],
+            "invertedItems": []
+        }
+    ]
+}

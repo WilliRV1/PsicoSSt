@@ -1,0 +1,161 @@
+/* Professional styles for organizational reports */
+.org-report-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 3rem;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    color: #1a202c;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    border-radius: 8px;
+}
+
+.org-report-header {
+    border-bottom: 3px solid #f3f4f6;
+    padding-bottom: 2rem;
+    margin-bottom: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.org-report-header h1 {
+    font-size: 2rem;
+    color: #1a365d;
+    margin: 0;
+}
+
+.report-section {
+    margin-bottom: 4rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #2d3748;
+    border-left: 5px solid #3182ce;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
+
+.risk-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.chart-container {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.chart-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #4a5568;
+}
+
+/* Custom CSS Bar Chart */
+.bar-row {
+    margin-bottom: 1rem;
+}
+
+.bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    color: #4a5568;
+}
+
+.bar-outer {
+    height: 12px;
+    background: #edf2f7;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.bar-inner {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+/* Risk Colors */
+.bg-sin-riesgo {
+    background: #48bb78;
+}
+
+.bg-bajo {
+    background: #81e6d9;
+}
+
+.bg-medio {
+    background: #f6e05e;
+}
+
+.bg-alto {
+    background: #ed8936;
+}
+
+.bg-muy-alto {
+    background: #f56565;
+}
+
+/* Correlation Table */
+.correlation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.correlation-table th {
+    background: #f1f5f9;
+    padding: 1rem;
+    text-align: center;
+}
+
+.correlation-table td {
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.heat-cell {
+    font-weight: bold;
+}
+
+.anonymity-notice {
+    background: #fffaf0;
+    border: 1px solid #feebc8;
+    color: #c05621;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.segment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+@media print {
+    .org-report-container {
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}

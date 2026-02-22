@@ -1,0 +1,105 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
+
+export async function POST(
+    request: NextRequest,
+    { params }: { params: Promise<{ assessmentId: string }> }
+) {
+    const { assessmentId } = await params;
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { analysis, recommendations } = body;
+
+    if (!analysis || !recommendations) {
+        return NextResponse.json({ error: "Missing analysis or recommendations" }, { status: 400 });
+    }
+
+    try {
+        const assessment = await prisma.assessment.findUnique({
+            where: { id: assessmentId },
+            include: {
+                scoredResult: true,
+                psychologist: true,
+                reports: {
+                    take: 1,
+                    where: { status: "SIGNED" }
+                }
+            }
+        });
+
+        if (!assessment || assessment.psychologistId !== session.user.id) {
+            return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
+        }
+
+        if (!assessment.scoredResult) {
+            return NextResponse.json({ error: "Assessment not scored yet" }, { status: 400 });
+        }
+
+        // We sign based on the scored results and assessment metadata
+        const dataToSign = JSON.stringify({
+            assessmentId: assessment.id,
+            workerId: assessment.workerId,
+            scoredAt: assessment.scoredResult.scoredAt,
+            dimensionScores: assessment.scoredResult.dimensionScores,
+            domainScores: assessment.scoredResult.domainScores,
+            totalScores: assessment.scoredResult.totalScores,
+            analysis,
+            recommendations
+        });
+
+        const hash = crypto.createHash('sha256').update(dataToSign).digest('hex');
+
+        if (assessment.reports.length > 0 && assessment.reports[0].status === "SIGNED") {
+            return NextResponse.json({ error: "Report already signed" }, { status: 400 });
+        }
+
+        // Upsert report record
+        const reportData = {
+            ...(assessment.scoredResult as any),
+            analysis,
+            recommendations
+        };
+
+        const report = await prisma.report.upsert({
+            where: { assessmentId: assessment.id },
+            update: {
+                status: "SIGNED",
+                signatureHash: hash,
+                signedAt: new Date(),
+                reportData
+            },
+            create: {
+                assessmentId: assessment.id,
+                psychologistId: session.user.id,
+                status: "SIGNED",
+                signatureHash: hash,
+                signedAt: new Date(),
+                reportData
+            }
+        });
+
+        await prisma.auditLog.create({
+            data: {
+                userId: session.user.id,
+                action: "SIGN_REPORT",
+                resourceType: "REPORT",
+                resourceId: report.id,
+                metadata: {
+                    assessmentId: assessment.id,
+                    hash: hash
+                }
+            }
+        });
+
+        return NextResponse.json({ success: true, reportId: report.id });
+    } catch (error) {
+        console.error("Sign Report error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}

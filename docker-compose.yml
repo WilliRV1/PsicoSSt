@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: psicosst-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-psicosst}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-psicosst_dev_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-psicosst}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U psicosst']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Next.js Application (production)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: psicosst-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-psicosst}:${POSTGRES_PASSWORD:-psicosst_dev_2026}@db:5432/${POSTGRES_DB:-psicosst}?schema=public
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-in-production}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - production
+
+volumes:
+  pgdata:
+    driver: local

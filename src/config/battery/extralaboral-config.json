@@ -1,0 +1,87 @@
+{
+    "formType": "A",
+    "questionnaireType": "EXTRALABORAL",
+    "totalItems": 31,
+    "dimensions": [
+        {
+            "key": "tiempo_fuera_trabajo",
+            "name": "Tiempo fuera del trabajo",
+            "items": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "relaciones_familiares",
+            "name": "Relaciones familiares",
+            "items": [
+                5,
+                6,
+                7
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "comunicacion_relaciones",
+            "name": "Comunicación y relaciones interpersonales",
+            "items": [
+                8,
+                9,
+                10,
+                11,
+                12
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "situacion_economica",
+            "name": "Situación económica del grupo familiar",
+            "items": [
+                13,
+                14,
+                15
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "caracteristicas_vivienda",
+            "name": "Características de la vivienda y de su entorno",
+            "items": [
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "influencia_entorno_extralaboral",
+            "name": "Influencia del entorno extralaboral sobre el trabajo",
+            "items": [
+                25,
+                26,
+                27
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "desplazamiento_vivienda",
+            "name": "Desplazamiento vivienda–trabajo–vivienda",
+            "items": [
+                28,
+                29,
+                30,
+                31
+            ],
+            "invertedItems": []
+        }
+    ]
+}

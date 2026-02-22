@@ -1,0 +1,376 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Licensed psychologist (system user)
+model Psychologist {
+  id               String        @id @default(uuid()) @db.Uuid
+  email            String        @unique
+  passwordHash     String        @map("password_hash")
+  fullName         String        @map("full_name")
+  licenseNumber    String        @unique @map("license_number")
+  professionalCard String        @map("professional_card")
+  sstCredential    String        @map("sst_credential")
+  mfaSecret        String?       @map("mfa_secret")
+  mfaEnabled       Boolean       @default(false) @map("mfa_enabled")
+  status           AccountStatus @default(PENDING)
+  isAdmin          Boolean       @default(false) @map("is_admin")
+  failedAttempts   Int           @default(0) @map("failed_attempts")
+  lockedUntil      DateTime?     @map("locked_until")
+  lastLoginAt      DateTime?     @map("last_login_at")
+  signature        String?       @map("signature") @db.Text
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  assessments   Assessment[]
+  auditLogs     AuditLog[]
+  organizations Organization[]
+  reports       Report[]
+
+  @@map("psychologists")
+}
+
+/// Company or organization being evaluated
+model Organization {
+  id                    String       @id @default(uuid()) @db.Uuid
+  name                  String
+  nit                   String       @unique
+  economicSector        String?      @map("economic_sector")
+  city                  String?
+  department            String?
+  employeeCount         Int?         @map("employee_count")
+  contactName           String?      @map("contact_name")
+  contactEmail          String?      @map("contact_email")
+  contactPhone          String?      @map("contact_phone")
+  createdByPsychologist String       @map("created_by_psychologist") @db.Uuid
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+  assessments           Assessment[]
+  psychologist          Psychologist @relation(fields: [createdByPsychologist], references: [id])
+  workers               Worker[]
+
+  @@map("organizations")
+}
+
+/// Worker/employee being assessed
+model Worker {
+  id                     String            @id @default(uuid()) @db.Uuid
+  documentType           DocumentType      @map("document_type")
+  documentId             String            @map("document_id")
+  fullName               String            @map("full_name")
+  gender                 String?
+  birthDate              DateTime?         @map("birth_date")
+  maritalStatus          String?           @map("marital_status")
+  educationLevel         EducationLevel    @map("education_level")
+  jobTitle               String?           @map("job_title")
+  jobLevel               JobLevel          @map("job_level")
+  residenceCity          String?           @map("residence_city")
+  socioeconomicStratum   Int?              @map("socioeconomic_stratum")
+  housingType            HousingType?      @map("housing_type")
+  dependentsCount        Int?              @map("dependents_count")
+  freeTimeUsage          FreeTimeUsage[]   @map("free_time_usage")
+  transportMeans         TransportMeans?   @map("transport_means")
+  displacementTime       Int?              @map("displacement_time")
+  hasCustomerInteraction Boolean           @default(true) @map("has_customer_interaction")
+  departmentArea         String?           @map("department_area")
+  yearsInCompany         Int?              @map("years_in_company")
+  yearsInPosition        Int?              @map("years_in_position")
+  contractType           String?           @map("contract_type")
+  workSchedule           String?           @map("work_schedule")
+  hoursPerWeek           Int?              @map("hours_per_week")
+  organizationId         String            @map("organization_id") @db.Uuid
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+  assessments            Assessment[]
+  consents               InformedConsent[]
+  organization           Organization      @relation(fields: [organizationId], references: [id])
+
+  @@unique([documentType, documentId, organizationId])
+  @@index([organizationId])
+  @@map("workers")
+}
+
+/// An assessment session (one battery application for one worker)
+model Assessment {
+  id                String            @id @default(uuid()) @db.Uuid
+  workerId          String            @map("worker_id") @db.Uuid
+  psychologistId    String            @map("psychologist_id") @db.Uuid
+  organizationId    String            @map("organization_id") @db.Uuid
+  formType          FormType          @map("form_type")
+  questionnaireType QuestionnaireType @map("questionnaire_type")
+  assessmentDate    DateTime          @map("assessment_date") @db.Date
+  status            AssessmentStatus  @default(DRAFT)
+  inputMethod       InputMethod       @default(MANUAL) @map("input_method")
+  notes             String?
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  completedAt       DateTime?         @map("completed_at")
+  organization      Organization      @relation(fields: [organizationId], references: [id])
+  psychologist      Psychologist      @relation(fields: [psychologistId], references: [id])
+  worker            Worker            @relation(fields: [workerId], references: [id])
+  consent           InformedConsent?
+  reports           Report[]
+  responseSet       ResponseSet?
+  scoredResult      ScoredResult?
+
+  @@index([psychologistId, status])
+  @@index([organizationId, assessmentDate])
+  @@index([workerId])
+  @@map("assessments")
+}
+
+/// Raw item responses for an assessment
+model ResponseSet {
+  id           String     @id @default(uuid()) @db.Uuid
+  assessmentId String     @unique @map("assessment_id") @db.Uuid
+  /// JSONB: { "1": 3, "2": 0, "3": 4, ... } — item number → Likert value (0-4)
+  responses    Json
+  totalItems   Int        @map("total_items")
+  isComplete   Boolean    @default(false) @map("is_complete")
+  submittedAt  DateTime?  @map("submitted_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@map("response_sets")
+}
+
+/// Scored results after running the scoring engine
+model ScoredResult {
+  id                  String       @id @default(uuid()) @db.Uuid
+  assessmentId        String       @unique @map("assessment_id") @db.Uuid
+  /// JSONB: per-dimension scores (raw, transformed, risk category, etc.)
+  dimensionScores     Json         @map("dimension_scores")
+  /// JSONB: per-domain aggregated scores
+  domainScores        Json         @map("domain_scores")
+  /// JSONB: total intralaboral/extralaboral/stress scores
+  totalScores         Json         @map("total_scores")
+  overallRiskCategory RiskCategory @map("overall_risk_category")
+  scoredAt            DateTime     @default(now()) @map("scored_at")
+  assessment          Assessment   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@map("scored_results")
+}
+
+/// Informed consent record
+model InformedConsent {
+  id             String        @id @default(uuid()) @db.Uuid
+  assessmentId   String        @unique @map("assessment_id") @db.Uuid
+  workerId       String        @map("worker_id") @db.Uuid
+  consentText    String        @map("consent_text")
+  consentGranted Boolean       @map("consent_granted")
+  consentMethod  ConsentMethod @map("consent_method")
+  consentedAt    DateTime      @default(now()) @map("consented_at")
+  assessment     Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  worker         Worker        @relation(fields: [workerId], references: [id])
+
+  @@map("informed_consents")
+}
+
+/// Generated and signed reports
+model Report {
+  id             String       @id @default(uuid()) @db.Uuid
+  assessmentId   String       @unique @map("assessment_id") @db.Uuid
+  psychologistId String       @map("psychologist_id") @db.Uuid
+  reportType     String       @default("individual") @map("report_type")
+  /// JSONB: complete report data including narratives, recommendations
+  reportData     Json         @map("report_data")
+  status         ReportStatus @default(DRAFT)
+  /// SHA-256 hash of report content at time of signing
+  signatureHash  String?      @map("signature_hash")
+  generatedAt    DateTime     @default(now()) @map("generated_at")
+  signedAt       DateTime?    @map("signed_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  assessment     Assessment   @relation(fields: [assessmentId], references: [id])
+  psychologist   Psychologist @relation(fields: [psychologistId], references: [id])
+
+  @@index([assessmentId, status])
+  @@index([psychologistId])
+  @@map("reports")
+}
+
+/// Immutable audit log (append-only)
+model AuditLog {
+  id           BigInt        @id @default(autoincrement())
+  userId       String?       @map("user_id") @db.Uuid
+  action       AuditAction
+  resourceType String        @map("resource_type")
+  resourceId   String?       @map("resource_id")
+  /// JSONB: additional context (old values, new values, request details)
+  metadata     Json?
+  ipAddress    String?       @map("ip_address")
+  userAgent    String?       @map("user_agent")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  user         Psychologist? @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([resourceType, resourceId])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+/// Bulk import job tracking
+model ImportJob {
+  id             String    @id @default(uuid()) @db.Uuid
+  psychologistId String    @map("psychologist_id") @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  fileName       String    @map("file_name")
+  totalRows      Int       @map("total_rows")
+  successRows    Int       @default(0) @map("success_rows")
+  failedRows     Int       @default(0) @map("failed_rows")
+  /// JSONB: array of { row, column, error } for each failed record
+  errors         Json?
+  status         String    @default("PENDING")
+  startedAt      DateTime? @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([psychologistId])
+  @@map("import_jobs")
+}
+
+/// Psychologist account status
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+/// Type of questionnaire form
+enum FormType {
+  A
+  B
+}
+
+/// Type of questionnaire / instrument
+enum QuestionnaireType {
+  INTRALABORAL
+  EXTRALABORAL
+  STRESS
+}
+
+/// Assessment lifecycle status
+enum AssessmentStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  SCORED
+  REVIEWED
+  SIGNED
+}
+
+/// Risk category per Colombian battery manual
+enum RiskCategory {
+  SIN_RIESGO
+  BAJO
+  MEDIO
+  ALTO
+  MUY_ALTO
+}
+
+/// Input method for responses
+enum InputMethod {
+  MANUAL
+  BULK
+}
+
+/// Report lifecycle status
+enum ReportStatus {
+  DRAFT
+  REVIEWED
+  SIGNED
+  DELIVERED
+}
+
+/// Consent method
+enum ConsentMethod {
+  VERBAL
+  WRITTEN
+  DIGITAL
+}
+
+/// Document type for identification
+enum DocumentType {
+  CC
+  CE
+  TI
+  PA
+  OTHER
+}
+
+/// Worker education level (determines Form A vs B)
+enum EducationLevel {
+  PRIMARIA
+  BACHILLERATO
+  TECNICO
+  TECNOLOGO
+  PROFESIONAL
+  ESPECIALIZACION
+  MAESTRIA
+  DOCTORADO
+}
+
+/// Job level category
+enum JobLevel {
+  JEFATURA
+  PROFESIONAL
+  TECNICO
+  AUXILIAR
+  OPERATIVO
+}
+
+/// Audit log action types
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  SCORE
+  SIGN_REPORT
+  EXPORT
+  IMPORT
+  CONSENT_RECORDED
+  MFA_SETUP
+  PASSWORD_CHANGE
+}
+
+/// Housing type
+enum HousingType {
+  PROPIA
+  ARRENDADA
+  FAMILIAR
+  OTRA
+}
+
+/// Free time usage categories
+enum FreeTimeUsage {
+  DEPORTE
+  ESTUDIO
+  FAMILIA
+  RECREACION
+  DESCANSO
+  OTRO
+}
+
+/// Transport means used by the worker
+enum TransportMeans {
+  CAMINANDO
+  BICICLETA
+  MOTOCICLETA
+  VEHICULO_PARTICULAR
+  TRANSPORTE_MASIVO
+  TRANSPORTE_PUBLICO
+  TRANSPORTE_EMPRESA
+  OTRO
+}

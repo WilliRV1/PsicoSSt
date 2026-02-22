@@ -1,0 +1,1302 @@
+{
+    "intralaboral_a": {
+        "dimensions": {
+            "liderazgo_caracteristicas": {
+                "sinRiesgo": [
+                    0,
+                    3.8
+                ],
+                "bajo": [
+                    3.9,
+                    13.5
+                ],
+                "medio": [
+                    13.6,
+                    25.0
+                ],
+                "alto": [
+                    25.1,
+                    38.5
+                ],
+                "muyAlto": [
+                    38.6,
+                    100
+                ]
+            },
+            "relaciones_sociales": {
+                "sinRiesgo": [
+                    0,
+                    5.4
+                ],
+                "bajo": [
+                    5.5,
+                    14.3
+                ],
+                "medio": [
+                    14.4,
+                    25.0
+                ],
+                "alto": [
+                    25.1,
+                    37.5
+                ],
+                "muyAlto": [
+                    37.6,
+                    100
+                ]
+            },
+            "retroalimentacion_desempeno": {
+                "sinRiesgo": [
+                    0,
+                    5.0
+                ],
+                "bajo": [
+                    5.1,
+                    15.0
+                ],
+                "medio": [
+                    15.1,
+                    30.0
+                ],
+                "alto": [
+                    30.1,
+                    45.0
+                ],
+                "muyAlto": [
+                    45.1,
+                    100
+                ]
+            },
+            "relacion_colaboradores": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    8.3
+                ],
+                "medio": [
+                    8.4,
+                    19.4
+                ],
+                "alto": [
+                    19.5,
+                    33.3
+                ],
+                "muyAlto": [
+                    33.4,
+                    100
+                ]
+            },
+            "claridad_rol": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    7.1
+                ],
+                "medio": [
+                    7.2,
+                    17.9
+                ],
+                "alto": [
+                    18.0,
+                    32.1
+                ],
+                "muyAlto": [
+                    32.2,
+                    100
+                ]
+            },
+            "capacitacion": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    8.3
+                ],
+                "medio": [
+                    8.4,
+                    25.0
+                ],
+                "alto": [
+                    25.1,
+                    41.7
+                ],
+                "muyAlto": [
+                    41.8,
+                    100
+                ]
+            },
+            "participacion_cambio": {
+                "sinRiesgo": [
+                    0,
+                    6.3
+                ],
+                "bajo": [
+                    6.4,
+                    18.8
+                ],
+                "medio": [
+                    18.9,
+                    31.3
+                ],
+                "alto": [
+                    31.4,
+                    50.0
+                ],
+                "muyAlto": [
+                    50.1,
+                    100
+                ]
+            },
+            "oportunidades_desarrollo": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    6.3
+                ],
+                "medio": [
+                    6.4,
+                    18.8
+                ],
+                "alto": [
+                    18.9,
+                    31.3
+                ],
+                "muyAlto": [
+                    31.4,
+                    100
+                ]
+            },
+            "control_autonomia": {
+                "sinRiesgo": [
+                    0,
+                    8.3
+                ],
+                "bajo": [
+                    8.4,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    41.7
+                ],
+                "alto": [
+                    41.8,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "demandas_ambientales": {
+                "sinRiesgo": [
+                    0,
+                    14.6
+                ],
+                "bajo": [
+                    14.7,
+                    22.9
+                ],
+                "medio": [
+                    23.0,
+                    31.3
+                ],
+                "alto": [
+                    31.4,
+                    41.7
+                ],
+                "muyAlto": [
+                    41.8,
+                    100
+                ]
+            },
+            "demandas_emocionales": {
+                "sinRiesgo": [
+                    0,
+                    16.7
+                ],
+                "bajo": [
+                    16.8,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    36.1
+                ],
+                "alto": [
+                    36.2,
+                    50.0
+                ],
+                "muyAlto": [
+                    50.1,
+                    100
+                ]
+            },
+            "demandas_cuantitativas": {
+                "sinRiesgo": [
+                    0,
+                    12.5
+                ],
+                "bajo": [
+                    12.6,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    37.5
+                ],
+                "alto": [
+                    37.6,
+                    54.2
+                ],
+                "muyAlto": [
+                    54.3,
+                    100
+                ]
+            },
+            "influencia_trabajo_extralaboral": {
+                "sinRiesgo": [
+                    0,
+                    18.8
+                ],
+                "bajo": [
+                    18.9,
+                    31.3
+                ],
+                "medio": [
+                    31.4,
+                    43.8
+                ],
+                "alto": [
+                    43.9,
+                    56.3
+                ],
+                "muyAlto": [
+                    56.4,
+                    100
+                ]
+            },
+            "exigencias_responsabilidad": {
+                "sinRiesgo": [
+                    0,
+                    16.7
+                ],
+                "bajo": [
+                    16.8,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    37.5
+                ],
+                "alto": [
+                    37.6,
+                    50.0
+                ],
+                "muyAlto": [
+                    50.1,
+                    100
+                ]
+            },
+            "demandas_carga_mental": {
+                "sinRiesgo": [
+                    0,
+                    25.0
+                ],
+                "bajo": [
+                    25.1,
+                    40.0
+                ],
+                "medio": [
+                    40.1,
+                    55.0
+                ],
+                "alto": [
+                    55.1,
+                    70.0
+                ],
+                "muyAlto": [
+                    70.1,
+                    100
+                ]
+            },
+            "consistencia_rol": {
+                "sinRiesgo": [
+                    0,
+                    15.0
+                ],
+                "bajo": [
+                    15.1,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    40.0
+                ],
+                "alto": [
+                    40.1,
+                    55.0
+                ],
+                "muyAlto": [
+                    55.1,
+                    100
+                ]
+            },
+            "demandas_jornada": {
+                "sinRiesgo": [
+                    0,
+                    8.3
+                ],
+                "bajo": [
+                    8.4,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    41.7
+                ],
+                "alto": [
+                    41.8,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "reconocimiento_compensacion": {
+                "sinRiesgo": [
+                    0,
+                    4.2
+                ],
+                "bajo": [
+                    4.3,
+                    16.7
+                ],
+                "medio": [
+                    16.8,
+                    29.2
+                ],
+                "alto": [
+                    29.3,
+                    45.8
+                ],
+                "muyAlto": [
+                    45.9,
+                    100
+                ]
+            },
+            "recompensas_pertenencia": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    5.0
+                ],
+                "medio": [
+                    5.1,
+                    15.0
+                ],
+                "alto": [
+                    15.1,
+                    30.0
+                ],
+                "muyAlto": [
+                    30.1,
+                    100
+                ]
+            }
+        },
+        "domains": {
+            "liderazgo_relaciones": {
+                "sinRiesgo": [
+                    0,
+                    3.7
+                ],
+                "bajo": [
+                    3.8,
+                    11.0
+                ],
+                "medio": [
+                    11.1,
+                    19.5
+                ],
+                "alto": [
+                    19.6,
+                    31.1
+                ],
+                "muyAlto": [
+                    31.2,
+                    100
+                ]
+            },
+            "control_trabajo": {
+                "sinRiesgo": [
+                    0,
+                    2.4
+                ],
+                "bajo": [
+                    2.5,
+                    9.5
+                ],
+                "medio": [
+                    9.6,
+                    19.0
+                ],
+                "alto": [
+                    19.1,
+                    32.1
+                ],
+                "muyAlto": [
+                    32.2,
+                    100
+                ]
+            },
+            "demandas_trabajo": {
+                "sinRiesgo": [
+                    0,
+                    20.0
+                ],
+                "bajo": [
+                    20.1,
+                    26.5
+                ],
+                "medio": [
+                    26.6,
+                    33.5
+                ],
+                "alto": [
+                    33.6,
+                    42.0
+                ],
+                "muyAlto": [
+                    42.1,
+                    100
+                ]
+            },
+            "recompensa": {
+                "sinRiesgo": [
+                    0,
+                    2.3
+                ],
+                "bajo": [
+                    2.4,
+                    9.1
+                ],
+                "medio": [
+                    9.2,
+                    20.5
+                ],
+                "alto": [
+                    20.6,
+                    36.4
+                ],
+                "muyAlto": [
+                    36.5,
+                    100
+                ]
+            }
+        },
+        "total": {
+            "sinRiesgo": [
+                0,
+                11.7
+            ],
+            "bajo": [
+                11.8,
+                17.5
+            ],
+            "medio": [
+                17.6,
+                23.4
+            ],
+            "alto": [
+                23.5,
+                30.5
+            ],
+            "muyAlto": [
+                30.6,
+                100
+            ]
+        }
+    },
+    "intralaboral_b": {
+        "dimensions": {
+            "liderazgo_caracteristicas": {
+                "sinRiesgo": [
+                    0,
+                    5.8
+                ],
+                "bajo": [
+                    5.9,
+                    17.3
+                ],
+                "medio": [
+                    17.4,
+                    30.8
+                ],
+                "alto": [
+                    30.9,
+                    46.2
+                ],
+                "muyAlto": [
+                    46.3,
+                    100
+                ]
+            },
+            "relaciones_sociales": {
+                "sinRiesgo": [
+                    0,
+                    10.0
+                ],
+                "bajo": [
+                    10.1,
+                    22.5
+                ],
+                "medio": [
+                    22.6,
+                    37.5
+                ],
+                "alto": [
+                    37.6,
+                    52.5
+                ],
+                "muyAlto": [
+                    52.6,
+                    100
+                ]
+            },
+            "retroalimentacion_desempeno": {
+                "sinRiesgo": [
+                    0,
+                    10.0
+                ],
+                "bajo": [
+                    10.1,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    40.0
+                ],
+                "alto": [
+                    40.1,
+                    60.0
+                ],
+                "muyAlto": [
+                    60.1,
+                    100
+                ]
+            },
+            "claridad_rol": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    10.7
+                ],
+                "medio": [
+                    10.8,
+                    25.0
+                ],
+                "alto": [
+                    25.1,
+                    42.9
+                ],
+                "muyAlto": [
+                    43.0,
+                    100
+                ]
+            },
+            "capacitacion": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    16.7
+                ],
+                "medio": [
+                    16.8,
+                    33.3
+                ],
+                "alto": [
+                    33.4,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "participacion_cambio": {
+                "sinRiesgo": [
+                    0,
+                    12.5
+                ],
+                "bajo": [
+                    12.6,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    43.8
+                ],
+                "alto": [
+                    43.9,
+                    62.5
+                ],
+                "muyAlto": [
+                    62.6,
+                    100
+                ]
+            },
+            "oportunidades_desarrollo": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    12.5
+                ],
+                "medio": [
+                    12.6,
+                    25.0
+                ],
+                "alto": [
+                    25.1,
+                    43.8
+                ],
+                "muyAlto": [
+                    43.9,
+                    100
+                ]
+            },
+            "control_autonomia": {
+                "sinRiesgo": [
+                    0,
+                    8.3
+                ],
+                "bajo": [
+                    8.4,
+                    33.3
+                ],
+                "medio": [
+                    33.4,
+                    50.0
+                ],
+                "alto": [
+                    50.1,
+                    75.0
+                ],
+                "muyAlto": [
+                    75.1,
+                    100
+                ]
+            },
+            "demandas_ambientales": {
+                "sinRiesgo": [
+                    0,
+                    16.7
+                ],
+                "bajo": [
+                    16.8,
+                    27.1
+                ],
+                "medio": [
+                    27.2,
+                    37.5
+                ],
+                "alto": [
+                    37.6,
+                    47.9
+                ],
+                "muyAlto": [
+                    48.0,
+                    100
+                ]
+            },
+            "demandas_emocionales": {
+                "sinRiesgo": [
+                    0,
+                    10.7
+                ],
+                "bajo": [
+                    10.8,
+                    21.4
+                ],
+                "medio": [
+                    21.5,
+                    35.7
+                ],
+                "alto": [
+                    35.8,
+                    53.6
+                ],
+                "muyAlto": [
+                    53.7,
+                    100
+                ]
+            },
+            "demandas_cuantitativas": {
+                "sinRiesgo": [
+                    0,
+                    12.5
+                ],
+                "bajo": [
+                    12.6,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    41.7
+                ],
+                "alto": [
+                    41.8,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "influencia_trabajo_extralaboral": {
+                "sinRiesgo": [
+                    0,
+                    18.8
+                ],
+                "bajo": [
+                    18.9,
+                    31.3
+                ],
+                "medio": [
+                    31.4,
+                    50.0
+                ],
+                "alto": [
+                    50.1,
+                    68.8
+                ],
+                "muyAlto": [
+                    68.9,
+                    100
+                ]
+            },
+            "demandas_jornada": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    16.7
+                ],
+                "medio": [
+                    16.8,
+                    33.3
+                ],
+                "alto": [
+                    33.4,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "reconocimiento_compensacion": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    8.3
+                ],
+                "medio": [
+                    8.4,
+                    20.8
+                ],
+                "alto": [
+                    20.9,
+                    37.5
+                ],
+                "muyAlto": [
+                    37.6,
+                    100
+                ]
+            },
+            "recompensas_pertenencia": {
+                "sinRiesgo": [
+                    0,
+                    0.0
+                ],
+                "bajo": [
+                    0.1,
+                    5.0
+                ],
+                "medio": [
+                    5.1,
+                    20.0
+                ],
+                "alto": [
+                    20.1,
+                    40.0
+                ],
+                "muyAlto": [
+                    40.1,
+                    100
+                ]
+            }
+        },
+        "domains": {
+            "liderazgo_relaciones": {
+                "sinRiesgo": [
+                    0,
+                    6.3
+                ],
+                "bajo": [
+                    6.4,
+                    17.0
+                ],
+                "medio": [
+                    17.1,
+                    28.6
+                ],
+                "alto": [
+                    28.7,
+                    42.0
+                ],
+                "muyAlto": [
+                    42.1,
+                    100
+                ]
+            },
+            "control_trabajo": {
+                "sinRiesgo": [
+                    0,
+                    3.6
+                ],
+                "bajo": [
+                    3.7,
+                    13.1
+                ],
+                "medio": [
+                    13.2,
+                    23.8
+                ],
+                "alto": [
+                    23.9,
+                    39.3
+                ],
+                "muyAlto": [
+                    39.4,
+                    100
+                ]
+            },
+            "demandas_trabajo": {
+                "sinRiesgo": [
+                    0,
+                    16.4
+                ],
+                "bajo": [
+                    16.5,
+                    24.2
+                ],
+                "medio": [
+                    24.3,
+                    32.8
+                ],
+                "alto": [
+                    32.9,
+                    43.0
+                ],
+                "muyAlto": [
+                    43.1,
+                    100
+                ]
+            },
+            "recompensa": {
+                "sinRiesgo": [
+                    0,
+                    2.3
+                ],
+                "bajo": [
+                    2.4,
+                    9.1
+                ],
+                "medio": [
+                    9.2,
+                    20.5
+                ],
+                "alto": [
+                    20.6,
+                    34.1
+                ],
+                "muyAlto": [
+                    34.2,
+                    100
+                ]
+            }
+        },
+        "total": {
+            "sinRiesgo": [
+                0,
+                11.1
+            ],
+            "bajo": [
+                11.2,
+                17.5
+            ],
+            "medio": [
+                17.6,
+                24.5
+            ],
+            "alto": [
+                24.6,
+                33.1
+            ],
+            "muyAlto": [
+                33.2,
+                100
+            ]
+        }
+    },
+    "extralaboral": {
+        "dimensions": {
+            "tiempo_fuera_trabajo": {
+                "sinRiesgo": [
+                    0,
+                    6.3
+                ],
+                "bajo": [
+                    6.4,
+                    18.8
+                ],
+                "medio": [
+                    18.9,
+                    31.3
+                ],
+                "alto": [
+                    31.4,
+                    50.0
+                ],
+                "muyAlto": [
+                    50.1,
+                    100
+                ]
+            },
+            "relaciones_familiares": {
+                "sinRiesgo": [
+                    0,
+                    8.3
+                ],
+                "bajo": [
+                    8.4,
+                    16.7
+                ],
+                "medio": [
+                    16.8,
+                    33.3
+                ],
+                "alto": [
+                    33.4,
+                    50.0
+                ],
+                "muyAlto": [
+                    50.1,
+                    100
+                ]
+            },
+            "comunicacion_relaciones": {
+                "sinRiesgo": [
+                    0,
+                    10.0
+                ],
+                "bajo": [
+                    10.1,
+                    20.0
+                ],
+                "medio": [
+                    20.1,
+                    35.0
+                ],
+                "alto": [
+                    35.1,
+                    50.0
+                ],
+                "muyAlto": [
+                    50.1,
+                    100
+                ]
+            },
+            "situacion_economica": {
+                "sinRiesgo": [
+                    0,
+                    8.3
+                ],
+                "bajo": [
+                    8.4,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    41.7
+                ],
+                "alto": [
+                    41.8,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "caracteristicas_vivienda": {
+                "sinRiesgo": [
+                    0,
+                    5.6
+                ],
+                "bajo": [
+                    5.7,
+                    13.9
+                ],
+                "medio": [
+                    14.0,
+                    25.0
+                ],
+                "alto": [
+                    25.1,
+                    38.9
+                ],
+                "muyAlto": [
+                    39.0,
+                    100
+                ]
+            },
+            "influencia_entorno_extralaboral": {
+                "sinRiesgo": [
+                    0,
+                    8.3
+                ],
+                "bajo": [
+                    8.4,
+                    25.0
+                ],
+                "medio": [
+                    25.1,
+                    41.7
+                ],
+                "alto": [
+                    41.8,
+                    58.3
+                ],
+                "muyAlto": [
+                    58.4,
+                    100
+                ]
+            },
+            "desplazamiento_vivienda": {
+                "sinRiesgo": [
+                    0,
+                    18.8
+                ],
+                "bajo": [
+                    18.9,
+                    37.5
+                ],
+                "medio": [
+                    37.6,
+                    56.3
+                ],
+                "alto": [
+                    56.4,
+                    75.0
+                ],
+                "muyAlto": [
+                    75.1,
+                    100
+                ]
+            }
+        },
+        "total": {
+            "sinRiesgo": [
+                0,
+                11.3
+            ],
+            "bajo": [
+                11.4,
+                16.9
+            ],
+            "medio": [
+                17.0,
+                23.4
+            ],
+            "alto": [
+                23.5,
+                31.5
+            ],
+            "muyAlto": [
+                31.6,
+                100
+            ]
+        }
+    },
+    "stress": {
+        "total": {
+            "F": {
+                "jefes_directivos": {
+                    "sinRiesgo": [
+                        0,
+                        7.8
+                    ],
+                    "bajo": [
+                        7.9,
+                        12.6
+                    ],
+                    "medio": [
+                        12.7,
+                        17.7
+                    ],
+                    "alto": [
+                        17.8,
+                        25.0
+                    ],
+                    "muyAlto": [
+                        25.1,
+                        100
+                    ]
+                },
+                "profesionales_tecnicos": {
+                    "sinRiesgo": [
+                        0,
+                        6.5
+                    ],
+                    "bajo": [
+                        6.6,
+                        11.3
+                    ],
+                    "medio": [
+                        11.4,
+                        16.1
+                    ],
+                    "alto": [
+                        16.2,
+                        23.4
+                    ],
+                    "muyAlto": [
+                        23.5,
+                        100
+                    ]
+                },
+                "auxiliares_operativos": {
+                    "sinRiesgo": [
+                        0,
+                        5.2
+                    ],
+                    "bajo": [
+                        5.3,
+                        9.4
+                    ],
+                    "medio": [
+                        9.5,
+                        14.1
+                    ],
+                    "alto": [
+                        14.2,
+                        21.4
+                    ],
+                    "muyAlto": [
+                        21.5,
+                        100
+                    ]
+                }
+            },
+            "M": {
+                "jefes_directivos": {
+                    "sinRiesgo": [
+                        0,
+                        7.8
+                    ],
+                    "bajo": [
+                        7.9,
+                        12.6
+                    ],
+                    "medio": [
+                        12.7,
+                        17.7
+                    ],
+                    "alto": [
+                        17.8,
+                        25.0
+                    ],
+                    "muyAlto": [
+                        25.1,
+                        100
+                    ]
+                },
+                "profesionales_tecnicos": {
+                    "sinRiesgo": [
+                        0,
+                        6.5
+                    ],
+                    "bajo": [
+                        6.6,
+                        11.3
+                    ],
+                    "medio": [
+                        11.4,
+                        16.1
+                    ],
+                    "alto": [
+                        16.2,
+                        23.4
+                    ],
+                    "muyAlto": [
+                        23.5,
+                        100
+                    ]
+                },
+                "auxiliares_operativos": {
+                    "sinRiesgo": [
+                        0,
+                        5.2
+                    ],
+                    "bajo": [
+                        5.3,
+                        9.4
+                    ],
+                    "medio": [
+                        9.5,
+                        14.1
+                    ],
+                    "alto": [
+                        14.2,
+                        21.4
+                    ],
+                    "muyAlto": [
+                        21.5,
+                        100
+                    ]
+                }
+            }
+        }
+    }
+}
