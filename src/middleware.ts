@@ -7,7 +7,8 @@ const publicRoutes = ["/login", "/register", "/pending-approval", "/mfa-setup", 
 const redirectIfAuthenticated = ["/login", "/register"];
 // Routes that require full authentication (dashboard)
 const protectedRoutes = ["/dashboard"];
-const authApiRoutes = ["/api/auth"];
+// API routes that bypass authentication entirely (auth handler + dev tools)
+const authApiRoutes = ["/api/auth", "/api/dev"];
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
