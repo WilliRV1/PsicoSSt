@@ -10,7 +10,7 @@ const protectedRoutes = ["/dashboard"];
 // API routes that bypass authentication entirely (auth handler + dev tools)
 const authApiRoutes = ["/api/auth", "/api/dev"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Allow auth API routes and public assets
