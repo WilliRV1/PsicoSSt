@@ -59,13 +59,13 @@ export default function OrgRiskSummaryTable({ orgs }: Props) {
             <table className="w-full text-sm">
                 <thead className="border-b border-border">
                     <tr className="text-xs text-muted-foreground uppercase tracking-wider">
-                        <th className="py-2.5 text-left font-semibold">Empresa</th>
-                        <th className="py-2.5 px-3 text-center font-semibold">Trabajadores</th>
-                        <th className="py-2.5 px-3 text-center font-semibold">Evaluaciones</th>
-                        <th className="py-2.5 px-3 text-center font-semibold">Riesgo Predominante</th>
-                        <th className="py-2.5 px-3 text-left font-semibold">Distribución</th>
-                        <th className="py-2.5 px-3 text-center font-semibold">Pendientes</th>
-                        <th className="py-2.5 px-1 text-center font-semibold">Crítico</th>
+                        <th className="py-2.5 text-left font-semibold" title="Nombre de la empresa u organización.">Empresa</th>
+                        <th className="py-2.5 px-3 text-center font-semibold" title="Cantidad total de trabajadores registrados en esta empresa.">Trabajadores</th>
+                        <th className="py-2.5 px-3 text-center font-semibold" title="Cantidad de evaluaciones ya procesadas y calculadas.">Evaluaciones</th>
+                        <th className="py-2.5 px-3 text-center font-semibold" title="Nivel de riesgo más frecuente entre las evaluaciones realizadas.">Riesgo Predominante</th>
+                        <th className="py-2.5 px-3 text-left font-semibold" title="Gráfico de distribución que muestra cuántos trabajadores están en cada nivel de riesgo (verde=bajo, rojo=alto, etc).">Distribución</th>
+                        <th className="py-2.5 px-3 text-center font-semibold" title="Evaluaciones que aún no se han realizado a trabajadores registrados.">Pendientes</th>
+                        <th className="py-2.5 px-1 text-center font-semibold" title="Número de trabajadores detectados con Riesgo Muy Alto.">Crítico</th>
                         <th className="py-2.5 px-3 text-right font-semibold"></th>
                     </tr>
                 </thead>
