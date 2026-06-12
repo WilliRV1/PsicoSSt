@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { DimensionScore, DomainScore, TotalScore, RiskCategory } from "@/types/battery";
 import AIRecommendationsSection from "@/components/reports/AIRecommendationsSection";
+import ReportToolbar from "./report-toolbar";
+import AnalysisSignPanel from "./analysis-sign-panel";
+import ConsentRecorder from "@/components/assessments/consent-recorder";
 import "./report.css";
 
 const riskLabels: Record<string, string> = {
@@ -85,6 +88,7 @@ export default async function ReportPage({ params }: PageProps) {
                 }
             },
             scoredResult: true,
+            consent: true,
             reports: {
                 take: 1,
                 orderBy: { generatedAt: "desc" }
@@ -164,112 +168,20 @@ export default async function ReportPage({ params }: PageProps) {
         });
     }
 
+    const savedRecommendations = report?.recommendationsAI ?? (report?.reportData as any)?.recommendations ?? null;
+    const savedAnalysis = (report?.reportData as any)?.analysis ?? null;
+
     return (
         <>
-            {/* Print Button (hidden on print) */}
-            <div className="no-print" style={{
-                padding: "1rem 2rem",
-                background: "#f8fafc",
-                borderBottom: "1px solid #e2e8f0",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-            }}>
-                <a href="/dashboard/assessments" style={{ color: "#6366f1", textDecoration: "none", fontWeight: 600 }}>
-                    ← Volver a Evaluaciones
-                </a>
-                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                    {!isSigned && (
-                        <div style={{ display: "flex", gap: "12px" }}>
-                            <textarea
-                                id="analysis-input"
-                                className="no-print"
-                                placeholder="Escriba aquí el análisis clínico..."
-                                style={{
-                                    width: "300px",
-                                    height: "40px",
-                                    borderRadius: "4px",
-                                    border: "1px solid #cbd5e1",
-                                    padding: "8px",
-                                    fontSize: "0.8rem",
-                                    resize: "none"
-                                }}
-                            />
-                            <textarea
-                                id="recommendations-input"
-                                className="no-print"
-                                placeholder="Recomendaciones..."
-                                style={{
-                                    width: "300px",
-                                    height: "40px",
-                                    borderRadius: "4px",
-                                    border: "1px solid #cbd5e1",
-                                    padding: "8px",
-                                    fontSize: "0.8rem",
-                                    resize: "none"
-                                }}
-                            />
-                            <button
-                                id="sign-btn"
-                                className="print-btn"
-                                style={{ background: "#10b981" }}
-                            >
-                                ✍️ Firmar Reporte
-                            </button>
-                        </div>
-                    )}
-                    <button
-                        onClick={undefined}
-                        className="print-btn"
-                    >
-                        🖨️ Descargar PDF
-                    </button>
-                </div>
+            {/* Toolbar (hidden on print) */}
+            <ReportToolbar
+                assessmentId={assessmentId}
+                isSigned={isSigned}
+                pdfUrl={`/api/assessments/${assessmentId}/report/pdf`}
+            />
+            <div className="no-print" style={{ maxWidth: 900, margin: "0 auto", padding: "0 1rem 0.5rem" }}>
+                <ConsentRecorder assessmentId={assessmentId} hasConsent={!!assessment.consent} />
             </div>
-
-            {/* Signature Logic Script */}
-            {!isSigned && (
-                <script dangerouslySetInnerHTML={{
-                    __html: `
-                        document.getElementById('sign-btn')?.addEventListener('click', async function() {
-                            const analysis = document.getElementById('analysis-input')?.value;
-                            const recommendations = document.getElementById('recommendations-input')?.value;
-
-                            if (!analysis || !recommendations) {
-                                alert('Por favor ingrese el análisis y las recomendaciones antes de firmar.');
-                                return;
-                            }
-
-                            if (!confirm('¿Confirma que desea firmar este reporte? Una vez firmado será inmutable y legalmente válido.')) return;
-                            
-                            const btn = this;
-                            btn.disabled = true;
-                            btn.innerText = 'Firmando...';
-                            
-                            try {
-                                const res = await fetch('/api/reports/${assessmentId}/sign', { 
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ analysis, recommendations })
-                                });
-                                if (res.ok) {
-                                    alert('Reporte firmado correctamente.');
-                                    window.location.reload();
-                                } else {
-                                    const data = await res.json();
-                                    alert('Error: ' + (data.error || 'No se pudo firmar.'));
-                                    btn.disabled = false;
-                                    btn.innerText = '✍️ Firmar Reporte';
-                                }
-                            } catch (e) {
-                                alert('Error de conexión.');
-                                btn.disabled = false;
-                                btn.innerText = '✍️ Firmar Reporte';
-                            }
-                        });
-                    `
-                }} />
-            )}
 
             <div className="report-view-wrapper">
                 <div className="report-container">
@@ -288,9 +200,23 @@ export default async function ReportPage({ params }: PageProps) {
                         <p><strong>AVISO DE CONFIDENCIALIDAD:</strong> En Colombia, el informe individual de la Batería de Riesgo Psicosocial (regulado por las Resoluciones 2646 de 2008 y 2764 de 2022) es un documento confidencial que debe ser entregado únicamente al trabajador por un psicólogo especialista en Seguridad y Salud en el Trabajo. La empresa no puede conocer el contenido de los informes individuales; solo tiene acceso al informe diagnóstico general o consolidado.</p>
                     </div>
 
+                    {/* ═══════════════ MARCO NORMATIVO ═══════════════ */}
+                    <section className="report-section">
+                        <h3>1. Marco Normativo</h3>
+                        <div style={{ fontSize: "0.8rem", lineHeight: 1.7, color: "#374151" }}>
+                            <p>El presente informe se enmarca en la normatividad colombiana vigente sobre riesgo psicosocial laboral:</p>
+                            <ul style={{ marginTop: "0.5rem", paddingLeft: "1.2rem", listStyleType: "disc" }}>
+                                <li><strong>Resolución 2646 de 2008</strong> — Define las responsabilidades para la identificación, evaluación, prevención, intervención y monitoreo permanente de la exposición a factores de riesgo psicosocial en el trabajo.</li>
+                                <li><strong>Resolución 2764 de 2022</strong> — Adopta la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial, la Guía Técnica General para la promoción, prevención e intervención de los factores psicosociales y sus efectos en la población trabajadora, y sus protocolos específicos.</li>
+                                <li><strong>Ley 1090 de 2006</strong> — Reglamenta el ejercicio profesional de la Psicología, garantizando la confidencialidad de la información obtenida en el proceso evaluativo.</li>
+                            </ul>
+                            <p style={{ marginTop: "0.5rem" }}>La aplicación e interpretación de estos instrumentos debe ser realizada exclusivamente por un psicólogo especialista en Seguridad y Salud en el Trabajo con licencia vigente.</p>
+                        </div>
+                    </section>
+
                     {/* ═══════════════ WORKER INFO ═══════════════ */}
                     <section className="report-section">
-                        <h3>1. Datos Generales e Identificación</h3>
+                        <h3>2. Datos Generales e Identificación</h3>
                         <div className="info-grid">
                             <div className="info-item">
                                 <label>Nombre completo</label>
@@ -337,7 +263,7 @@ export default async function ReportPage({ params }: PageProps) {
 
                     {/* ═══════════════ INTRALABORAL RESULTS ═══════════════ */}
                     <section className="report-section">
-                        <h3>2. Resultados de Factores Intralaborales</h3>
+                        <h3>3. Resultados de Factores Intralaborales</h3>
                         <div className={`total-result-card ${getRiskClass(overallRisk)}`}>
                             <div className="total-result-label">Nivel de Riesgo Intralaboral Total</div>
                             <div className="total-result-value">{riskLabels[overallRisk] || overallRisk}</div>
@@ -381,7 +307,7 @@ export default async function ReportPage({ params }: PageProps) {
 
                     {/* ═══════════════ EXTRALABORAL RESULTS (Aggregated) ═══════════════ */}
                     <section className="report-section">
-                        <h3>3. Resultados de Factores Extralaborales</h3>
+                        <h3>4. Resultados de Factores Extralaborales</h3>
                         {extralaboralResults ? (
                             <>
                                 <div className={`total-result-card ${getRiskClass((extralaboralResults as any).overallRiskCategory)}`}>
@@ -418,7 +344,7 @@ export default async function ReportPage({ params }: PageProps) {
 
                     {/* ═══════════════ STRESS RESULTS (Aggregated) ═══════════════ */}
                     <section className="report-section">
-                        <h3>4. Evaluación del Estrés</h3>
+                        <h3>5. Evaluación del Estrés</h3>
                         {stressResults ? (
                             <>
                                 <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
@@ -492,22 +418,68 @@ export default async function ReportPage({ params }: PageProps) {
                         </section>
                     )}
 
+                    {/* ═══════════════ CONCLUSIONS ═══════════════ */}
+                    <section className="report-section">
+                        <h3>6. Conclusiones</h3>
+                        <div style={{ fontSize: "0.8rem", lineHeight: 1.7, color: "#374151" }}>
+                            <p>
+                                Con base en los resultados obtenidos mediante la aplicación del cuestionario de
+                                {" "}{questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}, el/la
+                                trabajador/a <strong>{assessment.worker.fullName}</strong> presenta un nivel de
+                                riesgo general clasificado como <strong>{riskLabels[overallRisk] || overallRisk}</strong>.
+                            </p>
+                            {(overallRisk === "ALTO" || overallRisk === "MUY_ALTO") && (
+                                <p style={{ marginTop: "0.5rem", color: "#dc2626" }}>
+                                    <strong>De acuerdo con la Resolución 2764 de 2022, los niveles de riesgo Alto y Muy Alto
+                                    requieren intervención inmediata en el marco del Sistema de Vigilancia Epidemiológica
+                                    de Factores de Riesgo Psicosocial.</strong> Se recomienda remisión prioritaria al programa
+                                    de intervención y seguimiento.
+                                </p>
+                            )}
+                            {overallRisk === "MEDIO" && (
+                                <p style={{ marginTop: "0.5rem" }}>
+                                    Este nivel de riesgo amerita observación y acciones de intervención preventiva
+                                    orientadas a evitar la progresión hacia niveles superiores de riesgo.
+                                </p>
+                            )}
+                            {(overallRisk === "BAJO" || overallRisk === "SIN_RIESGO") && (
+                                <p style={{ marginTop: "0.5rem" }}>
+                                    Este resultado indica condiciones favorables. Se recomienda mantener las
+                                    acciones de promoción y prevención que contribuyen a preservar este nivel.
+                                </p>
+                            )}
+                            {Object.keys(domainScores).length > 0 && (() => {
+                                const criticalDomains = Object.values(domainScores)
+                                    .filter(d => d.riskCategory === "ALTO" || d.riskCategory === "MUY_ALTO");
+                                if (criticalDomains.length === 0) return null;
+                                return (
+                                    <p style={{ marginTop: "0.5rem" }}>
+                                        Se identifican como dominios prioritarios de intervención:{" "}
+                                        <strong>{criticalDomains.map(d => d.domainName).join(", ")}</strong>,
+                                        los cuales presentan niveles de riesgo que requieren atención.
+                                    </p>
+                                );
+                            })()}
+                        </div>
+                    </section>
+
                     {/* ═══════════════ ANALYSIS & RECOMMENDATIONS ═══════════════ */}
                     <section className="report-section">
-                        <h3>5. Análisis y Recomendaciones</h3>
-                        <div className="analysis-box">
-                            <label>Interpretación Profesional</label>
-                            <div className="analysis-content">
-                                {(report?.reportData as any)?.analysis || (
-                                    <span className="placeholder no-print">El psicólogo debe ingresar el análisis clínico al firmar el reporte.</span>
-                                )}
-                            </div>
-                        </div>
+                        <h3>7. Análisis y Plan de Intervención Individual</h3>
+
+                        {/* Inline analysis editor — Client Component */}
+                        <AnalysisSignPanel
+                            assessmentId={assessmentId}
+                            isSigned={isSigned}
+                            initialAnalysis={savedAnalysis}
+                            savedRecommendations={savedRecommendations}
+                            hasSignature={!!assessment.psychologist?.signature}
+                        />
 
                         {/* IA RECOMMENDATIONS — Client Component */}
                         <AIRecommendationsSection
                             assessmentId={assessmentId}
-                            initialRecommendations={report?.recommendationsAI ?? (report?.reportData as any)?.recommendations ?? null}
+                            initialRecommendations={savedRecommendations}
                             isSigned={isSigned}
                         />
                     </section>
@@ -527,9 +499,9 @@ export default async function ReportPage({ params }: PageProps) {
                     <section className="report-section signature-section">
                         <div className="signature-box">
                             <div className="signature-img-wrap">
-                                {isSigned && assessment.psychologist?.signature && (
+                                {isSigned && (report?.signatureImage || assessment.psychologist?.signature) && (
                                     <img
-                                        src={assessment.psychologist.signature}
+                                        src={(report?.signatureImage || assessment.psychologist?.signature) as string}
                                         alt="Firma Digital"
                                         style={{ maxHeight: "100px", maxWidth: "220px", filter: "contrast(1.2)" }}
                                     />
@@ -558,14 +530,6 @@ export default async function ReportPage({ params }: PageProps) {
                 </div>
             </div>
 
-            {/* Client-side print trigger */}
-            <script dangerouslySetInnerHTML={{
-                __html: `
-                    document.querySelector('.print-btn')?.addEventListener('click', function() {
-                        window.print();
-                    });
-                `
-            }} />
         </>
     );
 }

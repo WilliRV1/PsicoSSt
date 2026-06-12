@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, validatePasswordStrength } from "@/lib/auth/password";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import { CreditService } from "@/lib/services/credit-service";
+import { sendEmail } from "@/lib/email/resend";
+import { welcomeEmail } from "@/lib/email/templates";
 
 export async function POST(request: Request) {
     try {
@@ -85,6 +88,13 @@ export async function POST(request: Request) {
                 isAdmin: true,
             },
         });
+
+        // Grant trial credits
+        await CreditService.grantTrialCredits(psychologist.id);
+
+        // Send welcome email (fire-and-forget)
+        const template = welcomeEmail(psychologist.fullName);
+        sendEmail({ to: psychologist.email, ...template }).catch(console.error);
 
         // Audit log
         const { ipAddress, userAgent } = extractRequestMeta(request);

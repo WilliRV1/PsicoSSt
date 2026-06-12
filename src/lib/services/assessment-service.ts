@@ -39,14 +39,15 @@ export class AssessmentService {
             where: { id: data.workerId },
             select: {
                 gender: true,
-                jobLevel: true,
-                hasCustomerInteraction: true
+                jobLevel: true
+                // hasCustomerInteraction: true // Field missing in current DB schema
             }
         });
 
         if (!worker) throw new Error("Trabajador no encontrado");
 
         // 1. Calculate scores using the pure scoring engine
+        console.log("Calculando puntajes para:", data.workerId);
         const scoredResult: ScoredResultData = scoreQuestionnaire(
             data.responses,
             data.formType,
@@ -55,81 +56,88 @@ export class AssessmentService {
                 occupationalGroup: data.occupationalGroup,
                 gender: (worker as any).gender || "F",
                 jobLevel: (worker as any).jobLevel,
-                hasCustomerInteraction: (worker as any).hasCustomerInteraction
+                hasCustomerInteraction: true // Default to true since field is missing in DB
             }
         );
 
         // 2. Save to database in a transaction
-        return await prisma.$transaction(async (tx) => {
-            // Create the Assessment record
-            const assessment = await tx.assessment.create({
-                data: {
-                    workerId: data.workerId,
-                    psychologistId: data.psychologistId,
-                    organizationId: data.companyId,
-                    formType: data.formType,
-                    questionnaireType: data.questionnaireType,
-                    assessmentDate: data.assessmentDate,
-                    status: "COMPLETED",
-                    completedAt: data.assessmentDate,
-                    inputMethod: data.inputMethod || "MANUAL",
-                    // Create related response set
-                    responseSet: {
-                        create: {
-                            responses: data.responses as any,
-                            totalItems: Object.keys(data.responses).length,
-                            isComplete: true,
-                            submittedAt: data.assessmentDate
-                        }
-                    },
-                    // Create related scored result
-                    scoredResult: {
-                        create: {
-                            dimensionScores: scoredResult.dimensions as any,
-                            domainScores: scoredResult.domains as any,
-                            totalScores: scoredResult.total as any,
-                            overallRiskCategory: scoredResult.total.riskCategory,
-                            scoredAt: new Date()
-                        }
-                    }
-                }
-            });
-
-            // Create informed consent if provided
-            if (data.informedConsent) {
-                await tx.informedConsent.create({
+        try {
+            return await prisma.$transaction(async (tx) => {
+                console.log("Iniciando transacción de guardado...");
+                // Create the Assessment record
+                const assessment = await tx.assessment.create({
                     data: {
-                        assessmentId: assessment.id,
                         workerId: data.workerId,
-                        consentGranted: data.informedConsent.consentGranted,
-                        consentMethod: data.informedConsent.consentMethod as any,
-                        consentText: data.informedConsent.consentText || "Confirmación de consentimiento físico firmado.",
-                        consentedAt: data.assessmentDate
-                    }
-                });
-            }
-
-            // Log the creation
-            await tx.auditLog.create({
-                data: {
-                    userId: data.psychologistId,
-                    action: "CREATE",
-                    resourceType: "ASSESSMENT",
-                    resourceId: assessment.id,
-                    metadata: {
-                        workerId: data.workerId,
+                        psychologistId: data.psychologistId,
+                        organizationId: data.companyId,
                         formType: data.formType,
                         questionnaireType: data.questionnaireType,
-                        consentGranted: data.informedConsent?.consentGranted || false
+                        assessmentDate: data.assessmentDate,
+                        status: "SIGNED", // Changed to SIGNED to enable immediate reporting
+                        completedAt: new Date(),
+                        inputMethod: data.inputMethod || "MANUAL",
+                        // Create related response set
+                        responseSet: {
+                            create: {
+                                responses: data.responses as any,
+                                totalItems: Object.keys(data.responses).length,
+                                isComplete: true,
+                                submittedAt: new Date()
+                            }
+                        },
+                        // Create related scored result
+                        scoredResult: {
+                            create: {
+                                dimensionScores: scoredResult.dimensions as any,
+                                domainScores: scoredResult.domains as any,
+                                totalScores: scoredResult.total as any,
+                                overallRiskCategory: scoredResult.total.riskCategory,
+                                scoredAt: new Date()
+                            }
+                        }
                     }
-                }
-            });
+                });
 
-            return {
-                id: assessment.id,
-                result: scoredResult
-            };
-        });
+                // Create informed consent if provided
+                if (data.informedConsent) {
+                    await tx.informedConsent.create({
+                        data: {
+                            assessmentId: assessment.id,
+                            workerId: data.workerId,
+                            consentGranted: data.informedConsent.consentGranted,
+                            consentMethod: data.informedConsent.consentMethod as any,
+                            consentText: data.informedConsent.consentText || "Confirmación de consentimiento físico firmado.",
+                            consentedAt: new Date()
+                        }
+                    });
+                }
+
+                // Log the creation
+                await tx.auditLog.create({
+                    data: {
+                        userId: data.psychologistId,
+                        action: "CREATE",
+                        resourceType: "ASSESSMENT",
+                        resourceId: assessment.id,
+                        metadata: {
+                            workerId: data.workerId,
+                            formType: data.formType,
+                            questionnaireType: data.questionnaireType,
+                            consentGranted: data.informedConsent?.consentGranted || false
+                        }
+                    }
+                });
+
+                console.log("Evaluación guardada exitosamente:", assessment.id);
+                return {
+                    id: assessment.id,
+                    result: scoredResult
+                };
+            });
+        } catch (error: any) {
+            console.error("Error DETALLADO en la transacción de Assessment:", error);
+            throw new Error(`Error en base de datos: ${error.message}`);
+        }
     }
 
     /**

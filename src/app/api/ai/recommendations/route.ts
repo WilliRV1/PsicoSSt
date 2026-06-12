@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
     if (assessment.psychologistId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
     // If manual override — just save it
     if (overrideText !== undefined) {
       const report = await prisma.report.findFirst({ where: { assessmentId } });

@@ -10,11 +10,13 @@ import {
 } from "@/types/battery";
 import { getFormConfig } from "@/config/battery";
 import { scoreQuestionnaire } from "@/lib/scoring";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ManualFormProps {
     workerId: string;
     organizationId: string;
-    onSuccess: (result: ScoredResultData) => void;
+    onSuccess: (result: any) => void;
 }
 
 export default function ManualForm({ workerId, organizationId, onSuccess }: ManualFormProps) {
@@ -117,11 +119,15 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
 
             if (!res.ok) {
                 const data = await res.json();
+                if (data.code === "INSUFFICIENT_CREDITS") {
+                    setError("INSUFFICIENT_CREDITS");
+                    return;
+                }
                 throw new Error(data.error || "Error al guardar la evaluación");
             }
 
             const result = await res.json();
-            onSuccess(result.result);
+            onSuccess(result);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -130,13 +136,12 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
     };
 
     return (
-        <div className="rounded-xl shadow-lg border border-indigo-500/20 overflow-hidden" style={{ background: 'rgba(30,30,60,0.6)' }}>
-            {/* ... (rest of the header/selector code remains unchanged) ... */}
+        <div className="bg-card overflow-hidden rounded-b-xl">
             {/* Header / Selector */}
-            <div className="p-6 border-b border-indigo-500/10" style={{ background: 'rgba(15,15,35,0.5)' }}>
-                <div className="flex flex-wrap gap-4 items-end">
-                    <div>
-                        <label className="block text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">Cuestionario</label>
+            <div className="p-6 border-b border-border bg-muted">
+                <div className="flex flex-wrap gap-6 items-end">
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de Cuestionario</label>
                         <select
                             value={qType}
                             onChange={(e) => {
@@ -145,7 +150,7 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                 setCurrentIndex(0);
                                 setConsentGranted(false);
                             }}
-                            className="border border-indigo-500/30 text-slate-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" style={{ background: 'rgba(15,15,35,0.8)' }}
+                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium"
                         >
                             <option value="INTRALABORAL">Intralaboral</option>
                             <option value="EXTRALABORAL">Extralaboral</option>
@@ -153,8 +158,8 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                         </select>
                     </div>
                     {qType === "INTRALABORAL" && (
-                        <div>
-                            <label className="block text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">Forma</label>
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Forma</label>
                             <select
                                 value={formType}
                                 onChange={(e) => {
@@ -163,44 +168,45 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                     setCurrentIndex(0);
                                     setConsentGranted(false);
                                 }}
-                                className="border border-indigo-500/30 text-slate-200 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" style={{ background: 'rgba(15,15,35,0.8)' }}
+                                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium"
                             >
-                                <option value="A">Forma A (Jefes/Profs)</option>
-                                <option value="B">Forma B (Aux/Operativos)</option>
+                                <option value="A">Forma A (Jefes/Profesionales)</option>
+                                <option value="B">Forma B (Auxiliares/Operativos)</option>
                             </select>
                         </div>
                     )}
-                    <div className="ml-auto flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-400">Progreso:</span>
-                        <div className="w-48 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(15,15,35,0.8)' }}>
+                    <div className="w-full lg:w-auto lg:ml-auto flex flex-col gap-2 min-w-[250px]">
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Progreso</span>
+                            <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{Object.keys(responses).length} / {totalItems}</span>
+                        </div>
+                        <div className="w-full h-2.5 rounded-full overflow-hidden bg-muted-foreground/20">
                             <div
-                                className="h-full bg-indigo-600 transition-all"
+                                className="h-full bg-indigo-600 transition-all duration-300 ease-out"
                                 style={{ width: `${(Object.keys(responses).length / totalItems) * 100}%` }}
                             ></div>
                         </div>
-                        <span className="text-sm font-bold text-indigo-600">{Object.keys(responses).length}/{totalItems}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className="grid grid-cols-1 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-border">
                 {/* Entry Area */}
-                <div className="p-6 h-[600px] overflow-y-auto border-r border-indigo-500/10">
-                    <div className="space-y-2">
+                <div className="p-6 h-[600px] overflow-y-auto lg:col-span-3 bg-muted/30 relative scroll-smooth">
+                    <div className="space-y-3">
                         {items.map((item, idx) => (
                             <div
                                 key={item}
-                                className={`flex items-center p-3 rounded-lg border transition-all ${currentIndex === idx
-                                    ? "border-indigo-500 ring-2 ring-indigo-500/30"
-                                    : "border-indigo-500/10 hover:border-indigo-500/30"
+                                className={`flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer ${currentIndex === idx
+                                    ? "border-indigo-500 bg-indigo-50/50 shadow-sm"
+                                    : "border-border bg-card hover:border-indigo-300"
                                     }`}
-                                style={{ background: currentIndex === idx ? 'rgba(99,102,241,0.1)' : 'transparent' }}
                                 onClick={() => {
                                     setCurrentIndex(idx);
                                     inputRefs.current[idx]?.focus();
                                 }}
                             >
-                                <span className="w-10 font-bold text-slate-400">#{item}</span>
+                                <span className="w-12 font-black text-muted-foreground text-lg">#{item}</span>
                                 <input
                                     ref={el => { inputRefs.current[idx] = el; }}
                                     type="text"
@@ -208,32 +214,31 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                     onKeyDown={(e) => handleKeyDown(e, idx)}
                                     readOnly
                                     placeholder="?"
-                                    className="w-12 h-10 text-center font-bold text-lg border border-indigo-500/30 rounded focus:outline-none text-slate-200" style={{ background: 'rgba(15,15,35,0.8)' }}
+                                    className={`w-14 h-12 text-center font-black text-xl border-2 rounded-lg focus:outline-none transition-colors ${currentIndex === idx ? 'border-indigo-500 bg-card text-indigo-700 focus:ring-4 focus:ring-indigo-500/20' : 'border-border bg-muted text-foreground'}`}
                                 />
-                                <div className="ml-4 flex gap-1">
-                                    {[0, 1, 2, 3, 4].map(v => (
+                                <div className="ml-6 flex gap-2">
+                                    {(qType === 'STRESS' ? [0, 1, 2, 3] : [0, 1, 2, 3, 4]).map(v => (
                                         <button
                                             key={v}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleValueChange(item, v);
                                             }}
-                                            className={`w-8 h-8 text-xs font-bold rounded flex items-center justify-center transition-all ${responses[String(item)] === v
-                                                ? "bg-indigo-600 text-white"
-                                                : "text-slate-400 hover:text-slate-200"
+                                            className={`w-10 h-10 text-sm font-bold rounded-lg flex items-center justify-center transition-all ${responses[String(item)] === v
+                                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 scale-105"
+                                                : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                                                 }`}
-                                            style={responses[String(item)] === v ? {} : { background: 'rgba(15,15,35,0.6)' }}
                                         >
                                             {v}
                                         </button>
                                     ))}
                                 </div>
                                 {responses[String(item)] !== undefined && (
-                                    <span className="ml-auto text-xs font-medium text-slate-400 italic">
+                                    <span className="ml-auto text-xs font-bold text-muted-foreground bg-muted px-3 py-1.5 rounded-md hidden sm:block">
                                         {responses[String(item)] === 0 && "Siempre"}
                                         {responses[String(item)] === 1 && "Casi siempre"}
-                                        {responses[String(item)] === 2 && "A veces"}
-                                        {responses[String(item)] === 3 && "Casi nunca"}
+                                        {responses[String(item)] === 2 && (qType === 'STRESS' ? "A veces" : "Algunas veces")}
+                                        {responses[String(item)] === 3 && (qType === 'STRESS' ? "Nunca" : "Casi nunca")}
                                         {responses[String(item)] === 4 && "Nunca"}
                                     </span>
                                 )}
@@ -243,8 +248,8 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                 </div>
 
                 {/* Real-time Result Area */}
-                <div className="p-6 flex flex-col" style={{ background: 'rgba(15,15,35,0.4)' }}>
-                    <h3 className="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                <div className="p-6 flex flex-col lg:col-span-2 bg-card">
+                    <h3 className="text-lg font-black text-foreground mb-6 flex items-center gap-2 border-b border-border pb-4">
                         <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
@@ -254,40 +259,43 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                     {realTimeScore ? (
                         <div className="space-y-6 flex-1 flex flex-col">
                             {/* Total Risk Card */}
-                            <div className="p-5 rounded-xl border border-indigo-500/20 shadow-sm" style={{ background: 'rgba(30,30,60,0.6)' }}>
-                                <span className="text-sm font-semibold text-slate-400 uppercase tracking-widest">Riesgo Total</span>
-                                <div className="flex items-end justify-between mt-1">
-                                    <span className={`text-3xl font-black ${realTimeScore.total.riskCategory === "MUY_ALTO" ? "text-red-500" :
-                                        realTimeScore.total.riskCategory === "ALTO" ? "text-orange-500" :
-                                            realTimeScore.total.riskCategory === "MEDIO" ? "text-yellow-500" :
-                                                "text-green-500"
+                            <div className="p-5 rounded-xl border border-border shadow-sm bg-muted">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Riesgo Total Estimado</span>
+                                <div className="flex items-end justify-between">
+                                    <span className={`text-2xl font-black px-3 py-1 rounded-md ${realTimeScore.total.riskCategory === "MUY_ALTO" ? "bg-red-100 text-red-700" :
+                                        realTimeScore.total.riskCategory === "ALTO" ? "bg-orange-100 text-orange-700" :
+                                            realTimeScore.total.riskCategory === "MEDIO" ? "bg-yellow-100 text-yellow-700" :
+                                                realTimeScore.total.riskCategory === "BAJO" ? "bg-emerald-100 text-emerald-700" :
+                                                    "bg-teal-100 text-teal-700"
                                         }`}>
                                         {realTimeScore.total.riskCategory.replace("_", " ")}
                                     </span>
-                                    <span className="text-slate-400 text-sm font-medium">Puntaje: {realTimeScore.total.transformedScore.toFixed(1)}</span>
+                                    <div className="text-right">
+                                        <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider block">Puntaje</span>
+                                        <span className="text-foreground text-lg font-black">{realTimeScore.total.transformedScore.toFixed(1)}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Dimension Breakdown */}
-                            <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2">
+                            <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                 {Object.values(realTimeScore.dimensions)
                                     .filter(d => d.itemCount > 0)
                                     .map(dim => (
-                                        <div key={dim.dimensionKey} className="flex flex-col gap-1">
-                                            <div className="flex justify-between text-xs font-bold text-slate-400">
-                                                <span>{dim.dimensionName}</span>
-                                                <span className={
-                                                    dim.riskCategory === "MUY_ALTO" ? "text-red-500" :
-                                                        dim.riskCategory === "ALTO" ? "text-orange-500" :
-                                                            "text-slate-500"
-                                                }>{dim.riskCategory.replace("_", " ")}</span>
+                                        <div key={dim.dimensionKey} className="flex flex-col gap-1.5">
+                                            <div className="flex justify-between text-xs font-bold text-foreground">
+                                                <span className="truncate pr-2">{dim.dimensionName}</span>
+                                                <span className={`flex-shrink-0 px-2 py-0.5 rounded ${dim.riskCategory === "MUY_ALTO" ? "bg-red-50 text-red-600" :
+                                                    dim.riskCategory === "ALTO" ? "bg-orange-50 text-orange-600" :
+                                                        "bg-muted text-muted-foreground"
+                                                    }`}>{dim.riskCategory.replace("_", " ")}</span>
                                             </div>
-                                            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(15,15,35,0.8)' }}>
+                                            <div className="w-full h-1.5 rounded-full overflow-hidden bg-muted">
                                                 <div
-                                                    className={`h-full transition-all ${dim.riskCategory === "MUY_ALTO" ? "bg-red-500" :
+                                                    className={`h-full transition-all duration-500 ${dim.riskCategory === "MUY_ALTO" ? "bg-red-500" :
                                                         dim.riskCategory === "ALTO" ? "bg-orange-500" :
                                                             dim.riskCategory === "MEDIO" ? "bg-yellow-500" :
-                                                                "bg-green-500"
+                                                                "bg-emerald-500"
                                                         }`}
                                                     style={{ width: `${dim.transformedScore}%` }}
                                                 ></div>
@@ -297,21 +305,23 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                             </div>
 
                             {/* Actions */}
-                            <div className="mt-auto pt-6 border-t border-indigo-500/10">
+                            <div className="mt-auto pt-6 border-t border-border">
                                 {/* Consent Checkbox */}
                                 {Object.keys(responses).length >= totalItems && (
-                                    <div className="mb-4 p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5 transition-all animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="mb-5 p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 transition-all animate-in fade-in slide-in-from-bottom-2">
                                         <label className="flex items-start gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={consentGranted}
-                                                onChange={(e) => setConsentGranted(e.target.checked)}
-                                                className="mt-1 w-5 h-5 rounded border-indigo-500/50 bg-slate-800 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                                            />
+                                            <div className="relative flex items-center justify-center mt-0.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={consentGranted}
+                                                    onChange={(e) => setConsentGranted(e.target.checked)}
+                                                    className="w-5 h-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 transition-colors cursor-pointer"
+                                                />
+                                            </div>
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">Consentimiento Informado</span>
-                                                <span className="text-[10px] text-slate-400 leading-relaxed mt-1">
-                                                    Confirmo que el trabajador ha firmado el **Consentimiento Informado** físico y que cuento con el documento original archivado.
+                                                <span className="text-sm font-bold text-foreground group-hover:text-indigo-700 transition-colors">Consentimiento Informado</span>
+                                                <span className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                                                    Confirmo bajo mi responsabilidad profesional que el trabajador ha firmado el <strong>Consentimiento Informado</strong> físico.
                                                 </span>
                                             </div>
                                         </label>
@@ -319,15 +329,22 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                 )}
 
                                 {error && (
-                                    <div className="mb-4 p-3 bg-red-900/30 text-red-400 text-sm rounded-lg border border-red-500/30 flex items-center gap-2">
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                                        {error}
+                                    <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center gap-2 font-medium">
+                                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                                        {error === "INSUFFICIENT_CREDITS" ? (
+                                            <span>
+                                                No tienes créditos suficientes.{" "}
+                                                <a href="/dashboard/credits" className="underline font-bold hover:text-red-900">
+                                                    Comprar créditos →
+                                                </a>
+                                            </span>
+                                        ) : error}
                                     </div>
                                 )}
-                                <button
+                                <Button
                                     onClick={handleSubmit}
                                     disabled={isSubmitting || Object.keys(responses).length < totalItems || !consentGranted}
-                                    className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/30 transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-4 text-base shadow-md shadow-indigo-200"
                                 >
                                     {isSubmitting ? (
                                         <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -335,20 +352,38 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                                     )}
                                     Finalizar y Guardar Evaluación
-                                </button>
-                                <p className="text-center text-xs text-slate-500 mt-3 font-medium">
-                                    Presiona los números (0-4) para capturar y avanzar automáticamente.
+                                </Button>
+                                <p className="text-center text-xs text-muted-foreground mt-4 font-medium flex items-center justify-center gap-1.5">
+                                    <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">0</kbd> a <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">{qType === 'STRESS' ? '3' : '4'}</kbd> para ingreso rápido
                                 </p>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-center p-8 border-2 border-dashed border-indigo-500/20 rounded-xl">
-                            <svg className="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            <p>Comienza a ingresar puntajes para ver los resultados en tiempo real.</p>
+                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground text-center p-8 border-2 border-dashed border-border rounded-xl bg-muted">
+                            <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center mb-4 shadow-sm">
+                                <svg className="w-8 h-8 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            </div>
+                            <p className="font-medium">Comienza a ingresar puntajes para ver el análisis de riesgo automático.</p>
                         </div>
                     )}
                 </div>
             </div>
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f5f9;
+                    border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
+            `}</style>
         </div>
     );
 }

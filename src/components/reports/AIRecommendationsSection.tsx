@@ -59,20 +59,6 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
         }
     };
 
-    if (isSigned) {
-        return (
-            <div className="analysis-box" style={{ marginTop: "1.5rem" }}>
-                <label>Recomendaciones y Próximos Pasos</label>
-                <div className="analysis-content">
-                    {recommendations
-                        ? recommendations.split("\n").map((line, i) => <p key={i}>{line}</p>)
-                        : <span className="placeholder">Sin recomendaciones registradas.</span>
-                    }
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="analysis-box no-print" style={{ marginTop: "1.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>

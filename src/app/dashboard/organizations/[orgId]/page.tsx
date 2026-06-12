@@ -3,6 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Plus, Upload, MapPin, Building2, Users, Loader2, XCircle, X, Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import OrgMetricsDashboard from "@/components/organizations/org-metrics-dashboard";
+import InterventionPlanPanel from "@/components/organizations/intervention-plan-panel";
+import CollectiveReportButton from "@/components/organizations/collective-report-button";
+import { ComplianceStatusPanel } from "@/components/organizations/compliance-status-panel";
+import { ExpiringWorkersPanel } from "@/components/organizations/expiring-workers-panel";
 
 interface Worker {
     id: string;
@@ -12,8 +21,16 @@ interface Worker {
     jobTitle: string | null;
     jobLevel: string;
     educationLevel: string;
-    area?: string;
     departmentArea: string | null;
+    gender: string | null;
+    birthDate: string | null;
+    maritalStatus: string | null;
+    residenceCity: string | null;
+    yearsInCompany: number | null;
+    yearsInPosition: number | null;
+    contractType: string | null;
+    workSchedule: string | null;
+    hoursPerWeek: number | null;
     createdAt: string;
 }
 
@@ -25,12 +42,14 @@ interface Organization {
     city: string | null;
     department: string | null;
     employeeCount: number | null;
+    contactName: string | null;
+    contactEmail: string | null;
 }
 
 const JOB_LEVEL_LABELS: Record<string, string> = {
     JEFATURA: "Jefatura",
     PROFESIONAL: "Profesional",
-    TECNICO: "Técnico",
+    TECNICO: "T\u00e9cnico",
     AUXILIAR: "Auxiliar",
     OPERATIVO: "Operativo"
 };
@@ -38,37 +57,41 @@ const JOB_LEVEL_LABELS: Record<string, string> = {
 const EDUCATION_LABELS: Record<string, string> = {
     PRIMARIA: "Primaria",
     BACHILLERATO: "Bachillerato",
-    TECNICO_TECNOLOGO: "Técnico/Tecnólogo",
+    TECNICO: "T\u00e9cnico",
+    TECNOLOGO: "Tecn\u00f3logo",
+    TECNICO_TECNOLOGO: "T\u00e9cnico/Tecn\u00f3logo",
     PROFESIONAL: "Profesional",
-    ESPECIALIZACION: "Especialización",
-    MAESTRIA: "Maestría",
+    ESPECIALIZACION: "Especializaci\u00f3n",
+    MAESTRIA: "Maestr\u00eda",
     DOCTORADO: "Doctorado"
 };
 
-const MARITAL_STATUS_LABELS: Record<string, string> = {
-    "SOLTERO": "Soltero/a",
-    "CASADO": "Casado/a",
-    "UNION_LIBRE": "Unión Libre",
-    "DIVORCIADO": "Divorciado/a",
-    "VIUDO": "Viudo/a"
-};
+const SELECT_CLASS = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:border-ring";
 
-const HOUSING_LABELS: Record<string, string> = {
-    "PROPIA": "Propia",
-    "ARRENDADA": "Arrendada",
-    "FAMILIAR": "Familiar",
-    "OTRA": "Otra"
-};
-
-const TRANSPORT_LABELS: Record<string, string> = {
-    "CAMINANDO": "Caminando",
-    "BICICLETA": "Bicicleta",
-    "MOTOCICLETA": "Motocicleta",
-    "VEHICULO_PARTICULAR": "Vehículo Particular",
-    "TRANSPORTE_MASIVO": "Transporte Masivo",
-    "TRANSPORTE_PUBLICO": "Transporte Público",
-    "TRANSPORTE_EMPRESA": "Transporte de Empresa",
-    "OTRO": "Otro"
+const EMPTY_WORKER_FORM = {
+    documentType: "CC",
+    documentId: "",
+    fullName: "",
+    gender: "F",
+    birthDate: "",
+    maritalStatus: "SOLTERO",
+    jobTitle: "",
+    jobLevel: "PROFESIONAL",
+    educationLevel: "PROFESIONAL",
+    departmentArea: "",
+    residenceCity: "",
+    socioeconomicStratum: "1",
+    housingType: "PROPIA",
+    dependentsCount: "0",
+    freeTimeUsage: [] as string[],
+    yearsInCompany: "",
+    yearsInPosition: "",
+    contractType: "INDEFINIDO",
+    workSchedule: "DIURNA",
+    hoursPerWeek: "48",
+    transportMeans: "TRANSPORTE_PUBLICO",
+    displacementTime: "",
+    hasCustomerInteraction: true
 };
 
 export default function OrganizationDetailPage() {
@@ -78,35 +101,34 @@ export default function OrganizationDetailPage() {
     const [org, setOrg] = useState<Organization | null>(null);
     const [workers, setWorkers] = useState<Worker[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Create worker modal
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [form, setForm] = useState({ ...EMPTY_WORKER_FORM });
 
-    const [form, setForm] = useState({
-        documentType: "CC",
-        documentId: "",
-        fullName: "",
-        gender: "F",
-        birthDate: "",
-        maritalStatus: "SOLTERO",
-        jobTitle: "",
-        jobLevel: "PROFESIONAL",
-        educationLevel: "PROFESIONAL",
-        departmentArea: "",
-        residenceCity: "",
-        socioeconomicStratum: "1",
-        housingType: "PROPIA",
-        dependentsCount: "0",
-        freeTimeUsage: [] as string[],
-        yearsInCompany: "",
-        yearsInPosition: "",
-        contractType: "INDEFINIDO",
-        workSchedule: "DIURNA",
-        hoursPerWeek: "48",
-        transportMeans: "TRANSPORTE_PUBLICO",
-        displacementTime: "",
-        hasCustomerInteraction: true
+    // Edit org modal
+    const [showEditOrgModal, setShowEditOrgModal] = useState(false);
+    const [savingOrg, setSavingOrg] = useState(false);
+    const [orgError, setOrgError] = useState<string | null>(null);
+    const [orgForm, setOrgForm] = useState({
+        name: "",
+        nit: "",
+        economicSector: "",
+        city: "",
+        department: "",
+        employeeCount: "",
+        contactName: "",
+        contactEmail: ""
     });
+
+    // Edit worker modal
+    const [showEditWorkerModal, setShowEditWorkerModal] = useState(false);
+    const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
+    const [savingWorker, setSavingWorker] = useState(false);
+    const [workerError, setWorkerError] = useState<string | null>(null);
+    const [editWorkerForm, setEditWorkerForm] = useState({ ...EMPTY_WORKER_FORM });
 
     const fetchData = useCallback(async () => {
         try {
@@ -131,6 +153,7 @@ export default function OrganizationDetailPage() {
         fetchData();
     }, [fetchData]);
 
+    // --- Create worker ---
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -147,31 +170,7 @@ export default function OrganizationDetailPage() {
             if (!res.ok) throw new Error(data.error || "Error al crear");
 
             setShowModal(false);
-            setForm({
-                documentType: "CC",
-                documentId: "",
-                fullName: "",
-                gender: "F",
-                birthDate: "",
-                maritalStatus: "SOLTERO",
-                jobTitle: "",
-                jobLevel: "PROFESIONAL",
-                educationLevel: "PROFESIONAL",
-                departmentArea: "",
-                residenceCity: "",
-                socioeconomicStratum: "1",
-                housingType: "PROPIA",
-                dependentsCount: "0",
-                freeTimeUsage: [],
-                yearsInCompany: "",
-                yearsInPosition: "",
-                contractType: "INDEFINIDO",
-                workSchedule: "DIURNA",
-                hoursPerWeek: "48",
-                transportMeans: "TRANSPORTE_PUBLICO",
-                displacementTime: "",
-                hasCustomerInteraction: true
-            });
+            setForm({ ...EMPTY_WORKER_FORM });
             fetchData();
         } catch (err: any) {
             setError(err.message);
@@ -180,327 +179,651 @@ export default function OrganizationDetailPage() {
         }
     };
 
+    // --- Edit org ---
+    const openEditOrg = () => {
+        if (!org) return;
+        setOrgForm({
+            name: org.name,
+            nit: org.nit,
+            economicSector: org.economicSector || "",
+            city: org.city || "",
+            department: org.department || "",
+            employeeCount: org.employeeCount != null ? String(org.employeeCount) : "",
+            contactName: org.contactName || "",
+            contactEmail: org.contactEmail || ""
+        });
+        setOrgError(null);
+        setShowEditOrgModal(true);
+    };
+
+    const handleEditOrg = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingOrg(true);
+        setOrgError(null);
+
+        try {
+            const res = await fetch(`/api/organizations/${orgId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orgForm)
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Error al actualizar");
+
+            setShowEditOrgModal(false);
+            fetchData();
+        } catch (err: any) {
+            setOrgError(err.message);
+        } finally {
+            setSavingOrg(false);
+        }
+    };
+
+    // --- Edit worker ---
+    const openEditWorker = (w: Worker) => {
+        setEditingWorker(w);
+        setEditWorkerForm({
+            documentType: w.documentType || "CC",
+            documentId: w.documentId || "",
+            fullName: w.fullName || "",
+            gender: w.gender || "F",
+            birthDate: w.birthDate ? w.birthDate.substring(0, 10) : "",
+            maritalStatus: w.maritalStatus || "SOLTERO",
+            jobTitle: w.jobTitle || "",
+            jobLevel: w.jobLevel || "PROFESIONAL",
+            educationLevel: w.educationLevel || "PROFESIONAL",
+            departmentArea: w.departmentArea || "",
+            residenceCity: w.residenceCity || "",
+            socioeconomicStratum: "1",
+            housingType: "PROPIA",
+            dependentsCount: "0",
+            freeTimeUsage: [],
+            yearsInCompany: w.yearsInCompany != null ? String(w.yearsInCompany) : "",
+            yearsInPosition: w.yearsInPosition != null ? String(w.yearsInPosition) : "",
+            contractType: w.contractType || "INDEFINIDO",
+            workSchedule: w.workSchedule || "DIURNA",
+            hoursPerWeek: w.hoursPerWeek != null ? String(w.hoursPerWeek) : "48",
+            transportMeans: "TRANSPORTE_PUBLICO",
+            displacementTime: "",
+            hasCustomerInteraction: true
+        });
+        setWorkerError(null);
+        setShowEditWorkerModal(true);
+    };
+
+    const handleEditWorker = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingWorker) return;
+        setSavingWorker(true);
+        setWorkerError(null);
+
+        try {
+            const res = await fetch(`/api/workers/${editingWorker.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editWorkerForm)
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Error al actualizar");
+
+            setShowEditWorkerModal(false);
+            setEditingWorker(null);
+            fetchData();
+        } catch (err: any) {
+            setWorkerError(err.message);
+        } finally {
+            setSavingWorker(false);
+        }
+    };
+
+    // --- Delete worker ---
+    const handleDeleteWorker = async (w: Worker) => {
+        if (!confirm(`¿Eliminar al trabajador "${w.fullName}"? Esta acción no se puede deshacer.`)) return;
+
+        try {
+            const res = await fetch(`/api/workers/${w.id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || "Error al eliminar");
+                return;
+            }
+            fetchData();
+        } catch {
+            alert("Error al eliminar el trabajador");
+        }
+    };
+
     if (loading) {
         return (
-            <div style={{ minHeight: "100vh", background: "#0f0f23", color: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                Cargando...
+            <div className="flex items-center justify-center p-20">
+                <Loader2 className="animate-spin h-10 w-10 text-primary" />
             </div>
         );
     }
 
     if (!org) {
         return (
-            <div style={{ minHeight: "100vh", background: "#0f0f23", color: "#e2e8f0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
-                <span style={{ fontSize: "3rem" }}>🚫</span>
-                <h1>Organización no encontrada</h1>
-                <Link href="/dashboard/organizations" style={{ color: "#6366f1" }}>← Volver a Mis Empresas</Link>
+            <div className="text-center py-20 animate-in">
+                <h2 className="text-2xl font-bold text-foreground">Organizaci&oacute;n no encontrada</h2>
+                <Link href="/dashboard/organizations" className="text-primary font-bold hover:underline mt-4 inline-block">
+                    &larr; Volver a Mis Empresas
+                </Link>
             </div>
         );
     }
 
     return (
-        <div style={{ minHeight: "100vh", background: "#0f0f23", color: "#e2e8f0" }}>
-            {/* Nav */}
-            <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 2rem", borderBottom: "1px solid rgba(99,102,241,0.1)", background: "rgba(15,15,35,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "#f1f5f9" }}>
-                        <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-                            <rect width="40" height="40" rx="10" fill="url(#g2)" />
-                            <path d="M12 20C12 15.58 15.58 12 20 12C24.42 12 28 15.58 28 20C28 24.42 24.42 28 20 28" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                            <path d="M20 16V24M16 20H24" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                            <defs><linearGradient id="g2" x1="0" y1="0" x2="40" y2="40"><stop stopColor="#6366f1" /><stop offset="1" stopColor="#8b5cf6" /></linearGradient></defs>
-                        </svg>
-                        <span style={{ fontSize: "1.125rem", fontWeight: 700 }}>PsicoSST</span>
-                    </Link>
-                </div>
-                <div style={{ display: "flex", gap: "1.5rem" }}>
-                    <Link href="/dashboard" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#94a3b8", textDecoration: "none" }}>Dashboard</Link>
-                    <Link href="/dashboard/organizations" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#f1f5f9", textDecoration: "none" }}>Empresas</Link>
-                    <Link href="/dashboard/assessments" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#94a3b8", textDecoration: "none" }}>Evaluaciones</Link>
-                </div>
+        <div className="space-y-8 animate-in">
+            {/* Breadcrumbs */}
+            <nav className="flex text-sm font-medium text-muted-foreground gap-2">
+                <Link href="/dashboard/organizations" className="hover:text-primary transition-colors">Mis Empresas</Link>
+                <span className="text-border">/</span>
+                <span className="text-foreground font-bold">{org.name}</span>
             </nav>
 
-            {/* Content */}
-            <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem" }}>
-                {/* Breadcrumbs */}
-                <div style={{ fontSize: "0.8rem", color: "#64748b", marginBottom: "1.5rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                    <Link href="/dashboard/organizations" style={{ color: "#6366f1", textDecoration: "none" }}>Mis Empresas</Link>
-                    <span>›</span>
-                    <span style={{ color: "#94a3b8" }}>{org.name}</span>
-                </div>
-
-                {/* Org Header Card */}
-                <div style={{ background: "rgba(30,30,60,0.6)", border: "1px solid rgba(99,102,241,0.15)", borderRadius: "16px", padding: "2rem", marginBottom: "2rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start" }}>
-                            <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "rgba(99,102,241,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem" }}>🏢</div>
-                            <div>
-                                <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem" }}>{org.name}</h1>
-                                <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", fontSize: "0.8rem", color: "#94a3b8" }}>
-                                    <span>📋 NIT: {org.nit}</span>
-                                    {org.city && <span>📍 {org.city}{org.department ? `, ${org.department}` : ""}</span>}
-                                    {org.economicSector && <span>🏭 {org.economicSector}</span>}
-                                    {org.employeeCount && <span>👥 {org.employeeCount} empleados (declarados)</span>}
+            {/* Org Header Card */}
+            <div className="bg-card border border-border rounded-xl p-6 border-t-4 border-t-primary">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                    <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-primary/20">
+                        <Building2 className="w-8 h-8" />
+                    </div>
+                    <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h1 className="text-3xl font-black text-foreground tracking-tight">{org.name}</h1>
+                            <span className="px-2.5 py-1 bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-widest rounded-md border border-border">
+                                NIT: {org.nit}
+                            </span>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-y-2 gap-x-6 text-sm text-muted-foreground font-medium">
+                            {org.city && (
+                                <div className="flex items-center gap-1.5">
+                                    <MapPin className="w-4 h-4" />
+                                    {org.city}{org.department ? `, ${org.department}` : ""}
                                 </div>
+                            )}
+                            {org.economicSector && (
+                                <div className="flex items-center gap-1.5">
+                                    <Building2 className="w-4 h-4" />
+                                    {org.economicSector}
+                                </div>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                                <Users className="w-4 h-4" />
+                                {org.employeeCount || 0} empleados declarados
                             </div>
                         </div>
                     </div>
+                    <div className="flex-shrink-0">
+                        <Button variant="outline" size="sm" onClick={openEditOrg}>
+                            <Pencil className="w-4 h-4" />
+                            Editar empresa
+                        </Button>
+                    </div>
                 </div>
+            </div>
 
-                {/* Reports Quick Access */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2.5rem" }}>
-                    <Link href={`/dashboard/organizations/${orgId}/reports/diagnostic`} style={{ textDecoration: "none" }}>
-                        <div style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1))", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "16px", padding: "1.5rem", transition: "transform 0.2s", cursor: "pointer" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                <div style={{ fontSize: "1.5rem" }}>📊</div>
-                                <div>
-                                    <h3 style={{ color: "white", fontSize: "1rem", margin: 0 }}>Informe Diagnóstico</h3>
-                                    <p style={{ color: "#94a3b8", fontSize: "0.75rem", margin: "0.25rem 0 0 0" }}>Resumen de riesgos anónimo para la empresa</p>
-                                </div>
-                            </div>
+            {/* Reports Access Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Link href={`/dashboard/organizations/${orgId}/reports/diagnostic`} className="group p-6 bg-card border border-border rounded-2xl hover:border-primary hover:ring-1 hover:ring-primary transition-all shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors dark:bg-blue-950 dark:text-blue-400">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                         </div>
-                    </Link>
-                    <Link href={`/dashboard/organizations/${orgId}/reports/sociodemographic`} style={{ textDecoration: "none" }}>
-                        <div style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1))", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "16px", padding: "1.5rem", transition: "transform 0.2s", cursor: "pointer" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                <div style={{ fontSize: "1.5rem" }}>🧬</div>
-                                <div>
-                                    <h3 style={{ color: "white", fontSize: "1rem", margin: 0 }}>Perfil Sociodemográfico</h3>
-                                    <p style={{ color: "#94a3b8", fontSize: "0.75rem", margin: "0.25rem 0 0 0" }}>Análisis epidemiológico de la población</p>
-                                </div>
-                            </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Informe Diagn&oacute;stico</h3>
+                            <p className="text-sm text-muted-foreground font-medium">Resultados consolidados de riesgo organizacional.</p>
                         </div>
-                    </Link>
+                    </div>
+                </Link>
+                <Link href={`/dashboard/organizations/${orgId}/reports/sociodemographic`} className="group p-6 bg-card border border-border rounded-2xl hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 transition-all shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors dark:bg-emerald-950 dark:text-emerald-400">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-foreground group-hover:text-emerald-600 transition-colors">Perfil Sociodemogr&aacute;fico</h3>
+                            <p className="text-sm text-muted-foreground font-medium">An&aacute;lisis de la poblaci&oacute;n evaluada.</p>
+                        </div>
+                    </div>
+                </Link>
+            </div>
+
+            {/* Compliance Status */}
+            <div className="space-y-2">
+                <h2 className="text-base font-semibold text-foreground">Estado de Cumplimiento SGSST</h2>
+                <ComplianceStatusPanel orgId={orgId} />
+            </div>
+
+            {/* Expiring evaluations */}
+            <ExpiringWorkersPanel orgId={orgId} />
+
+            {/* Metrics Dashboard */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-base font-semibold text-foreground">Métricas de Evaluación</h2>
+                    <CollectiveReportButton orgId={orgId} orgName={org.name} />
                 </div>
+                <OrgMetricsDashboard orgId={orgId} />
+            </div>
 
-                {/* Workers Section */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-                    <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                        Trabajadores ({workers.length})
+            {/* Intervention Plan */}
+            <div className="space-y-2">
+                <h2 className="text-base font-semibold text-foreground">Plan de Intervención</h2>
+                <InterventionPlanPanel orgId={orgId} />
+            </div>
+
+            {/* Workers Section */}
+            <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                        Trabajadores Registrados
+                        <span className="bg-primary/10 text-primary text-xs font-black px-2 py-0.5 rounded-full">{workers.length}</span>
                     </h2>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <Link
-                            href={`/dashboard/organizations/${orgId}/import`}
-                            style={{ padding: "0.5rem 1.25rem", background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)", color: "#818cf8", borderRadius: "10px", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem", textDecoration: "none" }}
+                    <div className="flex gap-2">
+                        <a
+                            href={`/api/workers/export?orgId=${orgId}`}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                            title="Exportar lista de trabajadores a CSV"
                         >
-                            📥 Importar CSV
-                        </Link>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            style={{ padding: "0.5rem 1.25rem", background: "#6366f1", color: "white", border: "none", borderRadius: "10px", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem" }}
-                        >
-                            <span style={{ fontSize: "1.1rem" }}>+</span> Agregar Trabajador
-                        </button>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+                            CSV
+                        </a>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/dashboard/organizations/${orgId}/import`}>
+                                <Upload className="w-4 h-4" />
+                                Carga Masiva
+                            </Link>
+                        </Button>
+                        <Button size="sm" onClick={() => { setError(null); setShowModal(true); }}>
+                            <Plus className="w-4 h-4" />
+                            Agregar Trabajador
+                        </Button>
                     </div>
                 </div>
 
                 {workers.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "4rem", background: "rgba(30,30,60,0.4)", borderRadius: "16px", border: "2px dashed rgba(99,102,241,0.2)" }}>
-                        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>👤</div>
-                        <h3 style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Sin trabajadores</h3>
-                        <p style={{ color: "#64748b", marginBottom: "1.5rem" }}>Agrega al menos un trabajador para evaluarlo.</p>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            style={{ padding: "0.75rem 2rem", background: "#6366f1", color: "white", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer" }}
-                        >
-                            Agregar Primer Trabajador
-                        </button>
+                    <div className="bg-card border-2 border-dashed border-border rounded-xl text-center py-16 px-6">
+                        <div className="text-4xl mb-4">
+                            <Users className="w-10 h-10 text-muted-foreground mx-auto" />
+                        </div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">Sin trabajadores registrados</h3>
+                        <p className="text-sm text-muted-foreground mb-6">Debes registrar a los empleados para poder iniciar sus evaluaciones.</p>
+                        <Button onClick={() => setShowModal(true)} className="mx-auto">Agregar Primer Trabajador</Button>
                     </div>
                 ) : (
-                    <div style={{ background: "rgba(30,30,60,0.4)", borderRadius: "16px", border: "1px solid rgba(99,102,241,0.1)", overflow: "hidden" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr style={{ borderBottom: "1px solid rgba(99,102,241,0.1)" }}>
-                                    <th style={thStyle}>Nombre</th>
-                                    <th style={thStyle}>Documento</th>
-                                    <th style={thStyle}>Cargo</th>
-                                    <th style={thStyle}>Nivel</th>
-                                    <th style={thStyle}>Educación</th>
-                                    <th style={thStyle}>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {workers.map(w => (
-                                    <tr key={w.id} style={{ borderBottom: "1px solid rgba(99,102,241,0.05)" }}>
-                                        <td style={tdStyle}>
-                                            <span style={{ fontWeight: 600, color: "#f1f5f9" }}>{w.fullName}</span>
-                                        </td>
-                                        <td style={tdStyle}>
-                                            <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>{w.documentType}: {w.documentId}</span>
-                                        </td>
-                                        <td style={tdStyle}>
-                                            <span style={{ color: "#94a3b8" }}>{w.jobTitle || "—"}</span>
-                                        </td>
-                                        <td style={tdStyle}>
-                                            <span style={{ padding: "0.2rem 0.6rem", background: "rgba(99,102,241,0.15)", borderRadius: "6px", fontSize: "0.75rem", fontWeight: 600, color: "#818cf8" }}>
-                                                {JOB_LEVEL_LABELS[w.jobLevel] || w.jobLevel}
-                                            </span>
-                                        </td>
-                                        <td style={tdStyle}>
-                                            <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>
-                                                {EDUCATION_LABELS[w.educationLevel] || w.educationLevel}
-                                            </span>
-                                        </td>
-                                        <td style={tdStyle}>
-                                            <Link
-                                                href={`/dashboard/assessments/new/manual`}
-                                                style={{ padding: "0.35rem 0.8rem", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: "8px", color: "#34d399", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600 }}
-                                            >
-                                                Evaluar
-                                            </Link>
-                                        </td>
+                    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-muted border-b border-border text-muted-foreground uppercase font-bold tracking-wider text-[11px]">
+                                    <tr>
+                                        <th className="px-6 py-4">Nombre</th>
+                                        <th className="px-6 py-4">Documento</th>
+                                        <th className="px-6 py-4">Cargo</th>
+                                        <th className="px-6 py-4">Nivel / Educaci&oacute;n</th>
+                                        <th className="px-6 py-4 text-center">Acciones</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-border">
+                                    {workers.map(w => (
+                                        <tr key={w.id} className="hover:bg-muted/50 transition-colors group">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <Link href={`/dashboard/workers/${w.id}`} className="font-bold text-foreground hover:text-primary transition-colors hover:underline">
+                                                    {w.fullName}
+                                                </Link>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-muted-foreground font-medium">
+                                                {w.documentType} {w.documentId}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-foreground/80">
+                                                {w.jobTitle || <span className="text-muted-foreground/50 italic">No asignado</span>}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-primary font-bold text-[10px] uppercase tracking-tighter">{JOB_LEVEL_LABELS[w.jobLevel] || w.jobLevel}</span>
+                                                    <span className="text-muted-foreground text-[11px] font-medium">{EDUCATION_LABELS[w.educationLevel] || w.educationLevel}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={`/dashboard/assessments/new/manual?workerId=${w.id}`}>
+                                                            Evaluar
+                                                        </Link>
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => openEditWorker(w)}
+                                                        title="Editar trabajador"
+                                                    >
+                                                        <Pencil className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteWorker(w)}
+                                                        title="Eliminar trabajador"
+                                                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
-            </main>
+            </div>
 
-            {/* Add Worker Modal */}
+            {/* Modal - Worker Creation */}
             {showModal && (
-                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, backdropFilter: "blur(4px)" }}>
-                    <div style={{ background: "#1e1e3c", borderRadius: "20px", padding: "2rem", width: "100%", maxWidth: "800px", maxHeight: "90vh", border: "1px solid rgba(99,102,241,0.2)", display: "flex", flexDirection: "column" }}>
-                        <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "1.5rem" }}>Agregar Trabajador</h2>
-
-                        {error && (
-                            <div style={{ padding: "0.75rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#f87171", fontSize: "0.875rem", marginBottom: "1rem" }}>
-                                {error}
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
+                    <div className="bg-card rounded-2xl w-full max-w-3xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50">
+                            <div>
+                                <h2 className="text-xl font-black text-foreground tracking-tight">Agregar Nuevo Trabajador</h2>
+                                <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">Formulario de registro socio-demogr&aacute;fico</p>
                             </div>
-                        )}
+                            <Button variant="ghost" size="icon" onClick={() => setShowModal(false)}>
+                                <X className="w-5 h-5" />
+                            </Button>
+                        </div>
 
-                        <form onSubmit={handleCreate} style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                            <div style={{ overflowY: "auto", paddingRight: "1rem", flex: 1 }}>
+                        <form onSubmit={handleCreate} className="overflow-hidden flex flex-col">
+                            <div className="p-8 overflow-y-auto space-y-8 scroll-smooth">
+                                {error && (
+                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2 animate-in">
+                                        <XCircle className="w-5 h-5" />
+                                        {error}
+                                    </div>
+                                )}
+
                                 {/* Section 1: Basic Info */}
-                                <div style={{ marginBottom: "2rem" }}>
-                                    <h3 style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 700, textTransform: "uppercase", marginBottom: "1rem", borderBottom: "1px solid rgba(99,102,241,0.1)", paddingBottom: "0.5rem" }}>Información Básica</h3>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                                        <div style={{ gridColumn: "span 2" }}>
-                                            <label style={labelStyle}>Nombre completo *</label>
-                                            <input required value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} placeholder="Ej: María García López" style={inputStyle} />
+                                <div>
+                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                        1. Identificaci&oacute;n y Personales
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="sm:col-span-2 space-y-2">
+                                            <Label>Nombre completo *</Label>
+                                            <Input required value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} placeholder="Ej: Juan P&eacute;rez" />
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>Tipo Doc. *</label>
-                                            <select value={form.documentType} onChange={e => setForm(f => ({ ...f, documentType: e.target.value }))} style={inputStyle}>
-                                                <option value="CC">C.C.</option>
-                                                <option value="CE">C.E.</option>
-                                                <option value="TI">T.I.</option>
+                                        <div className="space-y-2">
+                                            <Label>Tipo de Documento</Label>
+                                            <select value={form.documentType} onChange={e => setForm(f => ({ ...f, documentType: e.target.value }))} className={SELECT_CLASS}>
+                                                <option value="CC">C&eacute;dula de Ciudadan&iacute;a</option>
+                                                <option value="CE">C&eacute;dula de Extranjer&iacute;a</option>
+                                                <option value="TI">Tarjeta de Identidad</option>
                                                 <option value="PA">Pasaporte</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>N.º Documento *</label>
-                                            <input required value={form.documentId} onChange={e => setForm(f => ({ ...f, documentId: e.target.value }))} placeholder="Ej: 1023456789" style={inputStyle} />
+                                        <div className="space-y-2">
+                                            <Label>N&uacute;mero de Documento *</Label>
+                                            <Input required value={form.documentId} onChange={e => setForm(f => ({ ...f, documentId: e.target.value }))} />
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>Sexo *</label>
-                                            <select value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))} style={inputStyle}>
+                                        <div className="space-y-2">
+                                            <Label>Sexo</Label>
+                                            <select value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))} className={SELECT_CLASS}>
                                                 <option value="F">Femenino</option>
                                                 <option value="M">Masculino</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>Fecha de Nacimiento</label>
-                                            <input type="date" value={form.birthDate} onChange={e => setForm(f => ({ ...f, birthDate: e.target.value }))} style={inputStyle} />
+                                        <div className="space-y-2">
+                                            <Label>Fecha de Nacimiento</Label>
+                                            <Input type="date" value={form.birthDate} onChange={e => setForm(f => ({ ...f, birthDate: e.target.value }))} />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Section 2: Professional Info */}
-                                <div style={{ marginBottom: "2rem" }}>
-                                    <h3 style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 700, textTransform: "uppercase", marginBottom: "1rem", borderBottom: "1px solid rgba(99,102,241,0.1)", paddingBottom: "0.5rem" }}>Información Profesional</h3>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                                        <div>
-                                            <label style={labelStyle}>Cargo</label>
-                                            <input value={form.jobTitle} onChange={e => setForm(f => ({ ...f, jobTitle: e.target.value }))} style={inputStyle} />
+                                <div>
+                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                        2. Perfil Laboral
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Cargo / Puesto</Label>
+                                            <Input value={form.jobTitle} onChange={e => setForm(f => ({ ...f, jobTitle: e.target.value }))} />
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>Nivel de cargo *</label>
-                                            <select value={form.jobLevel} onChange={e => setForm(f => ({ ...f, jobLevel: e.target.value }))} style={inputStyle}>
-                                                <option value="JEFATURA">Jefatura / Directivo</option>
-                                                <option value="PROFESIONAL">Profesional / Técnico</option>
-                                                <option value="AUXILIAR">Auxiliar / Operativo</option>
+                                        <div className="space-y-2">
+                                            <Label>Nivel jer&aacute;rquico *</Label>
+                                            <select value={form.jobLevel} onChange={e => setForm(f => ({ ...f, jobLevel: e.target.value }))} className={SELECT_CLASS}>
+                                                {Object.entries(JOB_LEVEL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>Nivel Educativo *</label>
-                                            <select value={form.educationLevel} onChange={e => setForm(f => ({ ...f, educationLevel: e.target.value }))} style={inputStyle}>
+                                        <div className="space-y-2">
+                                            <Label>Nivel de estudios *</Label>
+                                            <select value={form.educationLevel} onChange={e => setForm(f => ({ ...f, educationLevel: e.target.value }))} className={SELECT_CLASS}>
                                                 {Object.entries(EDUCATION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label style={labelStyle}>Área / Departamento</label>
-                                            <input value={form.departmentArea} onChange={e => setForm(f => ({ ...f, departmentArea: e.target.value }))} style={inputStyle} />
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Años en la empresa</label>
-                                            <input type="number" value={form.yearsInCompany} onChange={e => setForm(f => ({ ...f, yearsInCompany: e.target.value }))} style={inputStyle} />
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Años en el cargo actual</label>
-                                            <input type="number" value={form.yearsInPosition} onChange={e => setForm(f => ({ ...f, yearsInPosition: e.target.value }))} style={inputStyle} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section 3: Sociodemographic */}
-                                <div style={{ marginBottom: "2rem" }}>
-                                    <h3 style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 700, textTransform: "uppercase", marginBottom: "1rem", borderBottom: "1px solid rgba(99,102,241,0.1)", paddingBottom: "0.5rem" }}>Información Sociodemográfica</h3>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                                        <div>
-                                            <label style={labelStyle}>Estado Civil</label>
-                                            <select value={form.maritalStatus} onChange={e => setForm(f => ({ ...f, maritalStatus: e.target.value }))} style={inputStyle}>
-                                                {Object.entries(MARITAL_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Estrato Socioeconómico</label>
-                                            <select value={form.socioeconomicStratum} onChange={e => setForm(f => ({ ...f, socioeconomicStratum: e.target.value }))} style={inputStyle}>
-                                                {[1, 2, 3, 4, 5, 6].map(s => <option key={s} value={String(s)}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Ciudad de Residencia</label>
-                                            <input value={form.residenceCity} onChange={e => setForm(f => ({ ...f, residenceCity: e.target.value }))} style={inputStyle} />
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Tipo de Vivienda</label>
-                                            <select value={form.housingType} onChange={e => setForm(f => ({ ...f, housingType: e.target.value }))} style={inputStyle}>
-                                                {Object.entries(HOUSING_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section 4: Lifestyle & Transport */}
-                                <div style={{ marginBottom: "1rem" }}>
-                                    <h3 style={{ fontSize: "0.8rem", color: "#6366f1", fontWeight: 700, textTransform: "uppercase", marginBottom: "1rem", borderBottom: "1px solid rgba(99,102,241,0.1)", paddingBottom: "0.5rem" }}>Transporte y Estilo de Vida</h3>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                                        <div>
-                                            <label style={labelStyle}>Medio de Transporte</label>
-                                            <select value={form.transportMeans} onChange={e => setForm(f => ({ ...f, transportMeans: e.target.value }))} style={inputStyle}>
-                                                {Object.entries(TRANSPORT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style={labelStyle}>Tiempo desplazamiento (min)</label>
-                                            <input type="number" value={form.displacementTime} onChange={e => setForm(f => ({ ...f, displacementTime: e.target.value }))} style={inputStyle} />
-                                        </div>
-                                        <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                            <input type="checkbox" checked={form.hasCustomerInteraction} onChange={e => setForm(f => ({ ...f, hasCustomerInteraction: e.target.checked }))} style={{ width: "1rem", height: "1rem", cursor: "pointer" }} />
-                                            <label style={{ ...labelStyle, marginBottom: 0, cursor: "pointer" }}>¿Tiene trato directo con público / clientes? *</label>
+                                        <div className="space-y-2">
+                                            <Label>&Aacute;rea / Departamento</Label>
+                                            <Input value={form.departmentArea} onChange={e => setForm(f => ({ ...f, departmentArea: e.target.value }))} />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem", justifyContent: "flex-end", padding: "1rem 0 0", borderTop: "1px solid rgba(99,102,241,0.1)" }}>
-                                <button type="button" onClick={() => { setShowModal(false); setError(null); }} style={{ padding: "0.75rem 1.5rem", background: "transparent", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "10px", color: "#94a3b8", fontWeight: 600, cursor: "pointer" }}>
-                                    Cancelar
-                                </button>
-                                <button type="submit" disabled={saving} style={{ padding: "0.75rem 1.5rem", background: "#6366f1", border: "none", borderRadius: "10px", color: "white", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}>
-                                    {saving ? "Guardando..." : "Agregar Trabajador"}
-                                </button>
+                            <div className="p-6 border-t border-border bg-muted/50 flex justify-end gap-3">
+                                <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
+                                <Button type="submit" disabled={saving} className="px-10">
+                                    {saving ? "Guardando..." : "Registrar Trabajador"}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal - Edit Organization */}
+            {showEditOrgModal && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
+                    <div className="bg-card rounded-2xl w-full max-w-lg shadow-2xl border border-border overflow-hidden">
+                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50">
+                            <h2 className="text-xl font-black text-foreground tracking-tight">Editar Empresa</h2>
+                            <Button variant="ghost" size="icon" onClick={() => setShowEditOrgModal(false)}>
+                                <X className="w-5 h-5" />
+                            </Button>
+                        </div>
+
+                        <form onSubmit={handleEditOrg}>
+                            <div className="p-6 space-y-4">
+                                {orgError && (
+                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2">
+                                        <XCircle className="w-5 h-5" />
+                                        {orgError}
+                                    </div>
+                                )}
+
+                                <div className="space-y-2">
+                                    <Label>Nombre de la empresa *</Label>
+                                    <Input required value={orgForm.name} onChange={e => setOrgForm(f => ({ ...f, name: e.target.value }))} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>NIT *</Label>
+                                    <Input required value={orgForm.nit} onChange={e => setOrgForm(f => ({ ...f, nit: e.target.value }))} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Ciudad</Label>
+                                        <Input value={orgForm.city} onChange={e => setOrgForm(f => ({ ...f, city: e.target.value }))} placeholder="Ej: Bogot&aacute;" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Departamento</Label>
+                                        <Input value={orgForm.department} onChange={e => setOrgForm(f => ({ ...f, department: e.target.value }))} placeholder="Ej: Cundinamarca" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Sector Econ&oacute;mico</Label>
+                                        <Input value={orgForm.economicSector} onChange={e => setOrgForm(f => ({ ...f, economicSector: e.target.value }))} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>N.&ordm; Empleados</Label>
+                                        <Input type="number" value={orgForm.employeeCount} onChange={e => setOrgForm(f => ({ ...f, employeeCount: e.target.value }))} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Nombre de Contacto</Label>
+                                    <Input value={orgForm.contactName} onChange={e => setOrgForm(f => ({ ...f, contactName: e.target.value }))} placeholder="Ej: Mar&iacute;a L&oacute;pez" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Email de Contacto</Label>
+                                    <Input type="email" value={orgForm.contactEmail} onChange={e => setOrgForm(f => ({ ...f, contactEmail: e.target.value }))} placeholder="Ej: contacto@empresa.com" />
+                                </div>
+                            </div>
+
+                            <div className="p-6 border-t border-border bg-muted/50 flex justify-end gap-3">
+                                <Button type="button" variant="ghost" onClick={() => setShowEditOrgModal(false)}>Cancelar</Button>
+                                <Button type="submit" disabled={savingOrg} className="px-10">
+                                    {savingOrg ? "Guardando..." : "Guardar Cambios"}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal - Edit Worker */}
+            {showEditWorkerModal && editingWorker && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
+                    <div className="bg-card rounded-2xl w-full max-w-3xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50">
+                            <div>
+                                <h2 className="text-xl font-black text-foreground tracking-tight">Editar Trabajador</h2>
+                                <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">{editingWorker.fullName}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setShowEditWorkerModal(false)}>
+                                <X className="w-5 h-5" />
+                            </Button>
+                        </div>
+
+                        <form onSubmit={handleEditWorker} className="overflow-hidden flex flex-col">
+                            <div className="p-8 overflow-y-auto space-y-8 scroll-smooth">
+                                {workerError && (
+                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2 animate-in">
+                                        <XCircle className="w-5 h-5" />
+                                        {workerError}
+                                    </div>
+                                )}
+
+                                {/* Section 1: Identification */}
+                                <div>
+                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                        1. Identificaci&oacute;n y Personales
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="sm:col-span-2 space-y-2">
+                                            <Label>Nombre completo *</Label>
+                                            <Input required value={editWorkerForm.fullName} onChange={e => setEditWorkerForm(f => ({ ...f, fullName: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Tipo de Documento</Label>
+                                            <select value={editWorkerForm.documentType} onChange={e => setEditWorkerForm(f => ({ ...f, documentType: e.target.value }))} className={SELECT_CLASS}>
+                                                <option value="CC">C&eacute;dula de Ciudadan&iacute;a</option>
+                                                <option value="CE">C&eacute;dula de Extranjer&iacute;a</option>
+                                                <option value="TI">Tarjeta de Identidad</option>
+                                                <option value="PA">Pasaporte</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>N&uacute;mero de Documento</Label>
+                                            <Input value={editWorkerForm.documentId} onChange={e => setEditWorkerForm(f => ({ ...f, documentId: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Sexo</Label>
+                                            <select value={editWorkerForm.gender} onChange={e => setEditWorkerForm(f => ({ ...f, gender: e.target.value }))} className={SELECT_CLASS}>
+                                                <option value="F">Femenino</option>
+                                                <option value="M">Masculino</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Fecha de Nacimiento</Label>
+                                            <Input type="date" value={editWorkerForm.birthDate} onChange={e => setEditWorkerForm(f => ({ ...f, birthDate: e.target.value }))} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Professional Info */}
+                                <div>
+                                    <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                        2. Perfil Laboral
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Cargo / Puesto</Label>
+                                            <Input value={editWorkerForm.jobTitle} onChange={e => setEditWorkerForm(f => ({ ...f, jobTitle: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Nivel jer&aacute;rquico *</Label>
+                                            <select value={editWorkerForm.jobLevel} onChange={e => setEditWorkerForm(f => ({ ...f, jobLevel: e.target.value }))} className={SELECT_CLASS}>
+                                                {Object.entries(JOB_LEVEL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Nivel de estudios *</Label>
+                                            <select value={editWorkerForm.educationLevel} onChange={e => setEditWorkerForm(f => ({ ...f, educationLevel: e.target.value }))} className={SELECT_CLASS}>
+                                                {Object.entries(EDUCATION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>&Aacute;rea / Departamento</Label>
+                                            <Input value={editWorkerForm.departmentArea} onChange={e => setEditWorkerForm(f => ({ ...f, departmentArea: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Ciudad de residencia</Label>
+                                            <Input value={editWorkerForm.residenceCity} onChange={e => setEditWorkerForm(f => ({ ...f, residenceCity: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>A&ntilde;os en la empresa</Label>
+                                            <Input type="number" min="0" value={editWorkerForm.yearsInCompany} onChange={e => setEditWorkerForm(f => ({ ...f, yearsInCompany: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>A&ntilde;os en el cargo</Label>
+                                            <Input type="number" min="0" value={editWorkerForm.yearsInPosition} onChange={e => setEditWorkerForm(f => ({ ...f, yearsInPosition: e.target.value }))} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Tipo de contrato</Label>
+                                            <select value={editWorkerForm.contractType} onChange={e => setEditWorkerForm(f => ({ ...f, contractType: e.target.value }))} className={SELECT_CLASS}>
+                                                <option value="INDEFINIDO">Indefinido</option>
+                                                <option value="FIJO">Fijo</option>
+                                                <option value="OBRA_LABOR">Obra y labor</option>
+                                                <option value="PRESTACION_SERVICIOS">Prestaci&oacute;n de servicios</option>
+                                                <option value="TEMPORAL">Temporal</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Jornada laboral</Label>
+                                            <select value={editWorkerForm.workSchedule} onChange={e => setEditWorkerForm(f => ({ ...f, workSchedule: e.target.value }))} className={SELECT_CLASS}>
+                                                <option value="DIURNA">Diurna</option>
+                                                <option value="NOCTURNA">Nocturna</option>
+                                                <option value="MIXTA">Mixta</option>
+                                                <option value="ROTATIVA">Rotativa</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Horas por semana</Label>
+                                            <Input type="number" min="1" max="168" value={editWorkerForm.hoursPerWeek} onChange={e => setEditWorkerForm(f => ({ ...f, hoursPerWeek: e.target.value }))} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 border-t border-border bg-muted/50 flex justify-end gap-3">
+                                <Button type="button" variant="ghost" onClick={() => setShowEditWorkerModal(false)}>Cancelar</Button>
+                                <Button type="submit" disabled={savingWorker} className="px-10">
+                                    {savingWorker ? "Guardando..." : "Guardar Cambios"}
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -509,41 +832,3 @@ export default function OrganizationDetailPage() {
         </div>
     );
 }
-
-const labelStyle: React.CSSProperties = {
-    display: "block",
-    fontSize: "0.75rem",
-    fontWeight: 600,
-    color: "#94a3b8",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    marginBottom: "0.375rem"
-};
-
-const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "0.75rem 1rem",
-    background: "rgba(15,15,35,0.8)",
-    border: "1px solid rgba(99,102,241,0.3)",
-    borderRadius: "10px",
-    color: "#e2e8f0",
-    fontSize: "0.875rem",
-    outline: "none",
-    boxSizing: "border-box"
-};
-
-const thStyle: React.CSSProperties = {
-    padding: "0.875rem 1rem",
-    fontSize: "0.7rem",
-    fontWeight: 700,
-    color: "#64748b",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    textAlign: "left",
-    background: "rgba(15,15,35,0.4)"
-};
-
-const tdStyle: React.CSSProperties = {
-    padding: "0.875rem 1rem",
-    fontSize: "0.875rem"
-};

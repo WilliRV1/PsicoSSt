@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/psicosst/logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AlertCircle, Loader2, LockKeyhole } from "lucide-react";
 
 export default function MfaVerifyPage() {
     const router = useRouter();
@@ -36,77 +42,57 @@ export default function MfaVerifyPage() {
     }
 
     return (
-        <>
-            <form onSubmit={handleSubmit} className="card">
-                <div className="mfa-icon">🔐</div>
-                <h2 className="card-title">Verificación MFA</h2>
-                <p className="card-description">
-                    Ingresa el código de 6 dígitos de tu aplicación de autenticación.
-                </p>
+        <div className="flex min-h-screen items-center justify-center bg-background p-4">
+            <div className="w-full max-w-md">
+                <div className="mb-8 text-center"><Logo /></div>
+                <Card className="text-center">
+                    <CardHeader>
+                        <div className="mx-auto mb-2">
+                            <LockKeyhole className="h-10 w-10 text-primary" />
+                        </div>
+                        <CardTitle className="text-xl">Verificación MFA</CardTitle>
+                        <CardDescription>
+                            Ingresa el código de 6 dígitos de tu aplicación de autenticación.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {error && (
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertDescription>{error}</AlertDescription>
+                                </Alert>
+                            )}
 
-                {error && <div className="alert alert-error">{error}</div>}
+                            <Input
+                                id="code"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]{6}"
+                                maxLength={6}
+                                value={code}
+                                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                                placeholder="000000"
+                                required
+                                autoFocus
+                                autoComplete="one-time-code"
+                                className="text-center text-2xl tracking-[0.5em] font-mono"
+                            />
 
-                <div className="field">
-                    <input
-                        id="code"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]{6}"
-                        maxLength={6}
-                        value={code}
-                        onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                        placeholder="000000"
-                        required
-                        autoFocus
-                        autoComplete="one-time-code"
-                        className="code-input"
-                    />
-                </div>
-
-                <button type="submit" className="btn-primary" disabled={loading || code.length !== 6}>
-                    {loading ? <span className="spinner" /> : "Verificar"}
-                </button>
-            </form>
-
-            <style>{`
-        .card {
-          background: rgba(30, 30, 60, 0.6);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(99, 102, 241, 0.15);
-          border-radius: 16px;
-          padding: 2rem;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          text-align: center;
-        }
-        .mfa-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-        .card-title { font-size: 1.25rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.5rem; }
-        .card-description { font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
-        .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.8125rem; margin-bottom: 1rem; }
-        .alert-error { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
-        .field { margin-bottom: 1.25rem; }
-        .code-input {
-          width: 100%;
-          padding: 0.875rem;
-          background: rgba(15, 15, 35, 0.6);
-          border: 1px solid rgba(99, 102, 241, 0.2);
-          border-radius: 8px;
-          color: #e2e8f0;
-          font-size: 1.5rem;
-          text-align: center;
-          letter-spacing: 0.5em;
-          font-family: monospace;
-          outline: none;
-          box-sizing: border-box;
-          transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .code-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
-        .code-input::placeholder { color: #334155; letter-spacing: 0.5em; }
-        .btn-primary { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: 600; font-size: 0.875rem; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; min-height: 44px; }
-        .btn-primary:hover:not(:disabled) { opacity: 0.9; }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
-        </>
+                            <Button type="submit" className="w-full" disabled={loading || code.length !== 6}>
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Verificando...
+                                    </>
+                                ) : (
+                                    "Verificar"
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
     );
 }

@@ -3,7 +3,33 @@
     "allow": [
       "Bash(cd:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(curl:*)",
+      "Bash(npx next dev:*)",
+      "Bash(timeout:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(taskkill:*)",
+      "Bash(ping:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(node:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 69912 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 65340 -Force; Start-Sleep -Seconds 2; Remove-Item -Recurse -Force ''C:\\\\Users\\\\delfo\\\\Desktop\\\\Proyectos - Codigo\\\\PsicoSST\\\\app\\\\.next'' -ErrorAction SilentlyContinue; Write-Host ''Done''\")",
+      "Bash(powershell -Command:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(dir /a \"C:\\\\Users\\\\delfo\\\\Desktop\\\\Proyectos - Codigo\\\\PsicoSST\\\\app\")",
+      "Bash(dir /a /b \"C:\\\\Users\\\\delfo\\\\Desktop\\\\Proyectos - Codigo\\\\PsicoSST\\\\app\")",
+      "Bash(echo:*)",
+      "Bash(python3:*)",
+      "Bash(git push:*)",
+      "Bash(tasklist:*)",
+      "Bash(npx prisma db execute:*)",
+      "Bash(1:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(grep:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

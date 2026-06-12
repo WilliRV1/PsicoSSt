@@ -1,90 +1,71 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-const db = prisma as any; // Use `as any` since Prisma is generated locally
-
-/** GET /api/profile/signature */
-export async function GET() {
-  try {
+export async function POST(request: NextRequest) {
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
 
-    const psychologistId = session.user.id;
-    const signatures = await db.psychologistSignature.findMany({ where: { psychologistId } });
+    try {
+        const { signatureData, type } = await request.json();
 
-    return NextResponse.json({
-      drawn: signatures.find((s: any) => s.signatureType === 'drawn') ?? null,
-      uploaded: signatures.find((s: any) => s.signatureType === 'uploaded') ?? null,
-    });
-  } catch (error) {
-    console.error('GET /api/profile/signature:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+        if (!signatureData) {
+            return NextResponse.json({ error: "Datos de firma requeridos" }, { status: 400 });
+        }
+
+        // Actualizar o crear la firma del psicólogo
+        // Usamos upsert para manejar el registro único por tipo por psicólogo
+        await prisma.psychologistSignature.upsert({
+            where: {
+                psychologistId_signatureType: {
+                    psychologistId: session.user.id,
+                    signatureType: type || "drawn"
+                }
+            },
+            update: {
+                dataUrl: signatureData,
+                updatedAt: new Date()
+            },
+            create: {
+                psychologistId: session.user.id,
+                signatureType: type || "drawn",
+                dataUrl: signatureData
+            }
+        });
+
+        // También actualizamos el campo legacy 'signature' en el modelo Psychologist
+        await prisma.psychologist.update({
+            where: { id: session.user.id },
+            data: { signature: signatureData }
+        });
+
+        return NextResponse.json({ success: true, message: "Firma guardada correctamente" });
+    } catch (error: any) {
+        console.error("Error al guardar firma:", error);
+        return NextResponse.json({ error: "Error interno al guardar la firma" }, { status: 500 });
+    }
 }
 
-/** POST /api/profile/signature */
-export async function POST(req: NextRequest) {
-  try {
+export async function DELETE(request: NextRequest) {
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const psychologistId = session.user.id;
-    const { signatureType, dataUrl, imageUrl, fileName } = await req.json();
-
-    if (!signatureType || !['drawn', 'uploaded'].includes(signatureType)) {
-      return NextResponse.json({ error: 'Invalid signatureType' }, { status: 400 });
-    }
-    if (signatureType === 'drawn' && !dataUrl) {
-      return NextResponse.json({ error: 'dataUrl required for drawn' }, { status: 400 });
-    }
-    if (signatureType === 'uploaded' && !imageUrl) {
-      return NextResponse.json({ error: 'imageUrl required for uploaded' }, { status: 400 });
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const signature = await db.psychologistSignature.upsert({
-      where: { psychologistId_signatureType: { psychologistId, signatureType } },
-      update: {
-        dataUrl: signatureType === 'drawn' ? dataUrl : null,
-        imageUrl: signatureType === 'uploaded' ? imageUrl : null,
-        fileName: signatureType === 'uploaded' ? (fileName ?? null) : null,
-      },
-      create: {
-        psychologistId,
-        signatureType,
-        dataUrl: signatureType === 'drawn' ? dataUrl : null,
-        imageUrl: signatureType === 'uploaded' ? imageUrl : null,
-        fileName: signatureType === 'uploaded' ? (fileName ?? null) : null,
-      },
-    });
+    try {
+        await prisma.psychologistSignature.deleteMany({
+            where: { psychologistId: session.user.id }
+        });
 
-    return NextResponse.json({ success: true, signature });
-  } catch (error) {
-    console.error('POST /api/profile/signature:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+        await prisma.psychologist.update({
+            where: { id: session.user.id },
+            data: { signature: null }
+        });
 
-/** DELETE /api/profile/signature?signatureType=drawn|uploaded */
-export async function DELETE(req: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const psychologistId = session.user.id;
-    const signatureType = req.nextUrl.searchParams.get('signatureType');
-
-    if (!signatureType || !['drawn', 'uploaded'].includes(signatureType)) {
-      return NextResponse.json({ error: 'Invalid signatureType' }, { status: 400 });
+        return NextResponse.json({ success: true, message: "Firma eliminada" });
+    } catch (error) {
+        return NextResponse.json({ error: "Error al eliminar la firma" }, { status: 500 });
     }
-
-    const result = await db.psychologistSignature.deleteMany({
-      where: { psychologistId, signatureType },
-    });
-
-    return NextResponse.json({ success: true, deleted: result.count });
-  } catch (error) {
-    console.error('DELETE /api/profile/signature:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }

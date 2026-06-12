@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Plus, Building2, Users, MapPin, Loader2, XCircle, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Organization {
     id: string;
@@ -16,6 +21,7 @@ interface Organization {
 }
 
 export default function OrganizationsPage() {
+    const router = useRouter();
     const [orgs, setOrgs] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -73,203 +79,200 @@ export default function OrganizationsPage() {
         }
     };
 
+    const handleDeleteOrg = async (e: React.MouseEvent, org: Organization) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!confirm(`¿Eliminar la empresa "${org.name}"? Esta acción no se puede deshacer.`)) return;
+
+        try {
+            const res = await fetch(`/api/organizations/${org.id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || "Error al eliminar");
+                return;
+            }
+            fetchOrgs();
+        } catch {
+            alert("Error al eliminar la organización");
+        }
+    };
+
     return (
-        <div style={{ minHeight: "100vh", background: "#0f0f23", color: "#e2e8f0" }}>
-            {/* Nav */}
-            <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 2rem", borderBottom: "1px solid rgba(99,102,241,0.1)", background: "rgba(15,15,35,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none", color: "#f1f5f9" }}>
-                        <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-                            <rect width="40" height="40" rx="10" fill="url(#g)" />
-                            <path d="M12 20C12 15.58 15.58 12 20 12C24.42 12 28 15.58 28 20C28 24.42 24.42 28 20 28" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-                            <path d="M20 16V24M16 20H24" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                            <defs><linearGradient id="g" x1="0" y1="0" x2="40" y2="40"><stop stopColor="#6366f1" /><stop offset="1" stopColor="#8b5cf6" /></linearGradient></defs>
-                        </svg>
-                        <span style={{ fontSize: "1.125rem", fontWeight: 700 }}>PsicoSST</span>
-                    </Link>
+        <div className="space-y-6 animate-in">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-black text-foreground tracking-tight">Mis Empresas</h1>
+                    <p className="mt-1 text-sm text-muted-foreground font-medium">Gestiona las organizaciones que est&aacute;s evaluando.</p>
                 </div>
-                <div style={{ display: "flex", gap: "1.5rem" }}>
-                    <Link href="/dashboard" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#94a3b8", textDecoration: "none" }}>Dashboard</Link>
-                    <Link href="/dashboard/organizations" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#f1f5f9", textDecoration: "none" }}>Empresas</Link>
-                    <Link href="/dashboard/assessments" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#94a3b8", textDecoration: "none" }}>Evaluaciones</Link>
-                </div>
-            </nav>
+                <Button onClick={() => setShowModal(true)}>
+                    <Plus className="w-5 h-5" />
+                    Nueva Empresa
+                </Button>
+            </div>
 
             {/* Content */}
-            <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "2rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-                    <div>
-                        <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "0.25rem" }}>Mis Empresas</h1>
-                        <p style={{ color: "#64748b", fontSize: "0.875rem" }}>Gestiona las organizaciones que evalúas</p>
-                    </div>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        style={{ padding: "0.75rem 1.5rem", background: "#6366f1", color: "white", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}
-                    >
-                        <span style={{ fontSize: "1.25rem" }}>+</span> Nueva Empresa
-                    </button>
+            {loading ? (
+                <div className="flex items-center justify-center p-12">
+                    <Loader2 className="animate-spin h-8 w-8 text-primary" />
                 </div>
-
-                {loading ? (
-                    <div style={{ textAlign: "center", padding: "4rem", color: "#64748b" }}>Cargando...</div>
-                ) : orgs.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "4rem", background: "rgba(30,30,60,0.4)", borderRadius: "16px", border: "2px dashed rgba(99,102,241,0.2)" }}>
-                        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🏢</div>
-                        <h2 style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Sin empresas registradas</h2>
-                        <p style={{ color: "#64748b", marginBottom: "1.5rem" }}>Crea tu primera empresa para comenzar a evaluar trabajadores.</p>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            style={{ padding: "0.75rem 2rem", background: "#6366f1", color: "white", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer" }}
-                        >
-                            Crear Primera Empresa
-                        </button>
+            ) : orgs.length === 0 ? (
+                <div className="rounded-xl border-2 border-dashed border-border bg-muted/50 text-center py-16 px-6">
+                    <div className="w-16 h-16 bg-card border border-border rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <Building2 className="w-8 h-8 text-muted-foreground" />
                     </div>
-                ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.25rem" }}>
-                        {orgs.map(org => (
+                    <h2 className="text-lg font-bold text-foreground mb-2">Sin empresas registradas</h2>
+                    <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">Crea tu primera empresa para comenzar a agregar trabajadores y realizar evaluaciones psicosociales.</p>
+                    <Button onClick={() => setShowModal(true)} className="mx-auto">
+                        Crear Primera Empresa
+                    </Button>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {orgs.map(org => (
+                        <div key={org.id} className="relative group">
                             <Link
-                                key={org.id}
                                 href={`/dashboard/organizations/${org.id}`}
-                                style={{ textDecoration: "none", color: "inherit", display: "block", background: "rgba(30,30,60,0.6)", border: "1px solid rgba(99,102,241,0.1)", borderRadius: "16px", padding: "1.5rem", transition: "all 0.2s" }}
-                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#6366f1"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(99,102,241,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
+                                className="flex flex-col justify-between bg-card border border-border rounded-xl p-6 hover:border-primary hover:ring-1 hover:ring-primary transition-all shadow-sm h-full"
                             >
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                                    <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(99,102,241,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>🏢</div>
-                                    <span style={{ fontSize: "0.75rem", color: "#64748b", background: "rgba(15,15,35,0.5)", padding: "0.25rem 0.5rem", borderRadius: "6px" }}>
-                                        NIT: {org.nit}
-                                    </span>
+                                <div>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                            <Building2 className="w-5 h-5" />
+                                        </div>
+                                        <span className="px-2.5 py-1 bg-muted text-muted-foreground text-[10px] font-bold uppercase tracking-wider rounded-md border border-border">
+                                            NIT: {org.nit}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">{org.name}</h3>
                                 </div>
-                                <h3 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#f1f5f9", marginBottom: "0.5rem" }}>{org.name}</h3>
-                                <div style={{ display: "flex", gap: "1rem", fontSize: "0.8rem", color: "#94a3b8" }}>
-                                    <span>👥 {org._count.workers} trabajadores</span>
-                                    {org.city && <span>📍 {org.city}</span>}
+
+                                <div className="mt-6 pt-4 border-t border-border flex items-center gap-4 text-sm text-muted-foreground font-medium">
+                                    <div className="flex items-center gap-1.5">
+                                        <Users className="w-4 h-4" />
+                                        {org._count.workers} trab.
+                                    </div>
+                                    {org.city && (
+                                        <div className="flex items-center gap-1.5">
+                                            <MapPin className="w-4 h-4" />
+                                            <span className="truncate max-w-[100px]">{org.city}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </Link>
-                        ))}
-                    </div>
-                )}
-            </main>
+
+                            {/* Delete button overlay */}
+                            <button
+                                onClick={(e) => handleDeleteOrg(e, org)}
+                                title="Eliminar empresa"
+                                className="absolute top-3 right-3 w-7 h-7 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground border border-destructive/20"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Create Modal */}
             {showModal && (
-                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, backdropFilter: "blur(4px)" }}>
-                    <div style={{ background: "#1e1e3c", borderRadius: "20px", padding: "2rem", width: "100%", maxWidth: "500px", border: "1px solid rgba(99,102,241,0.2)" }}>
-                        <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "1.5rem" }}>Nueva Empresa</h2>
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
+                    <div className="bg-card rounded-2xl w-full max-w-lg shadow-2xl border border-border overflow-hidden">
+                        <div className="p-6 border-b border-border">
+                            <h2 className="text-xl font-bold text-foreground">Nueva Empresa</h2>
+                        </div>
 
-                        {error && (
-                            <div style={{ padding: "0.75rem", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#f87171", fontSize: "0.875rem", marginBottom: "1rem" }}>
-                                {error}
-                            </div>
-                        )}
+                        <div className="p-6">
+                            {error && (
+                                <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm font-medium flex items-start gap-2">
+                                    <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                    {error}
+                                </div>
+                            )}
 
-                        <form onSubmit={handleCreate}>
-                            <div style={{ display: "grid", gap: "1rem" }}>
-                                <div>
-                                    <label style={labelStyle}>Nombre de la empresa *</label>
-                                    <input
+                            <form onSubmit={handleCreate} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Nombre de la empresa *</Label>
+                                    <Input
                                         required
                                         value={form.name}
                                         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                        placeholder="Ej: Empresa Demo S.A.S."
-                                        style={inputStyle}
+                                        placeholder="Ej: TechSolutions S.A.S."
                                     />
                                 </div>
-                                <div>
-                                    <label style={labelStyle}>NIT *</label>
-                                    <input
+                                <div className="space-y-2">
+                                    <Label>NIT *</Label>
+                                    <Input
                                         required
                                         value={form.nit}
                                         onChange={e => setForm(f => ({ ...f, nit: e.target.value }))}
-                                        placeholder="Ej: 900123456-1"
-                                        style={inputStyle}
+                                        placeholder="Ej: 900.123.456-1"
                                     />
                                 </div>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                                    <div>
-                                        <label style={labelStyle}>Ciudad</label>
-                                        <input
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Ciudad</Label>
+                                        <Input
                                             value={form.city}
                                             onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                                            placeholder="Ej: Bogotá"
-                                            style={inputStyle}
+                                            placeholder="Ej: Bogot&aacute;"
                                         />
                                     </div>
-                                    <div>
-                                        <label style={labelStyle}>Departamento</label>
-                                        <input
+                                    <div className="space-y-2">
+                                        <Label>Departamento</Label>
+                                        <Input
                                             value={form.department}
                                             onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
                                             placeholder="Ej: Cundinamarca"
-                                            style={inputStyle}
                                         />
                                     </div>
                                 </div>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                                    <div>
-                                        <label style={labelStyle}>Sector Económico</label>
-                                        <input
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Sector Econ&oacute;mico</Label>
+                                        <Input
                                             value={form.economicSector}
                                             onChange={e => setForm(f => ({ ...f, economicSector: e.target.value }))}
-                                            placeholder="Ej: Tecnología"
-                                            style={inputStyle}
+                                            placeholder="Ej: Tecnolog&iacute;a"
                                         />
                                     </div>
-                                    <div>
-                                        <label style={labelStyle}>N.º Empleados</label>
-                                        <input
+                                    <div className="space-y-2">
+                                        <Label>N.&ordm; Empleados</Label>
+                                        <Input
                                             type="number"
                                             value={form.employeeCount}
                                             onChange={e => setForm(f => ({ ...f, employeeCount: e.target.value }))}
-                                            placeholder="Ej: 50"
-                                            style={inputStyle}
+                                            placeholder="Ej: 150"
                                         />
                                     </div>
                                 </div>
-                            </div>
 
-                            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem", justifyContent: "flex-end" }}>
-                                <button
-                                    type="button"
-                                    onClick={() => { setShowModal(false); setError(null); }}
-                                    style={{ padding: "0.75rem 1.5rem", background: "transparent", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "10px", color: "#94a3b8", fontWeight: 600, cursor: "pointer" }}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    style={{ padding: "0.75rem 1.5rem", background: "#6366f1", border: "none", borderRadius: "10px", color: "white", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
-                                >
-                                    {saving ? "Guardando..." : "Crear Empresa"}
-                                </button>
-                            </div>
-                        </form>
+                                <div className="flex gap-3 justify-end pt-6 mt-6 border-t border-border">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => { setShowModal(false); setError(null); }}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={saving}
+                                    >
+                                        {saving ? (
+                                            <>
+                                                <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                                Guardando...
+                                            </>
+                                        ) : "Crear Empresa"}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
         </div>
     );
 }
-
-const labelStyle: React.CSSProperties = {
-    display: "block",
-    fontSize: "0.75rem",
-    fontWeight: 600,
-    color: "#94a3b8",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    marginBottom: "0.375rem"
-};
-
-const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "0.75rem 1rem",
-    background: "rgba(15,15,35,0.8)",
-    border: "1px solid rgba(99,102,241,0.3)",
-    borderRadius: "10px",
-    color: "#e2e8f0",
-    fontSize: "0.875rem",
-    outline: "none",
-    boxSizing: "border-box"
-};

@@ -1,0 +1,185 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await auth();
+    if (!session || !session.user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const { id } = await params;
+
+        const worker = await prisma.worker.findUnique({
+            where: { id: id },
+            include: {
+                organization: {
+                    select: { name: true }
+                }
+            }
+        });
+
+        if (!worker) {
+            return NextResponse.json({ error: "Worker not found" }, { status: 404 });
+        }
+
+        return NextResponse.json(worker);
+    } catch (error) {
+        console.error("Get worker error:", error);
+        return NextResponse.json({
+            error: "Internal Server Error",
+            details: error instanceof Error ? error.message : "Unknown error"
+        }, { status: 500 });
+    }
+}
+
+/**
+ * PUT — Update a worker
+ */
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const { id } = await params;
+
+        const worker = await (prisma.worker as any).findUnique({
+            where: { id },
+            include: {
+                organization: {
+                    select: { createdByPsychologist: true }
+                }
+            }
+        });
+
+        if (!worker) {
+            return NextResponse.json({ error: "Trabajador no encontrado" }, { status: 404 });
+        }
+
+        if (worker.organization.createdByPsychologist !== session.user.id) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
+        const body = await request.json();
+        const {
+            fullName, documentType, documentId, gender, birthDate, maritalStatus,
+            jobTitle, jobLevel, educationLevel, departmentArea, residenceCity,
+            yearsInCompany, yearsInPosition, contractType, workSchedule, hoursPerWeek
+        } = body;
+
+        if (!fullName) {
+            return NextResponse.json(
+                { error: "El nombre completo es obligatorio" },
+                { status: 400 }
+            );
+        }
+
+        const updated = await (prisma.worker as any).update({
+            where: { id },
+            data: {
+                fullName,
+                documentType: documentType || undefined,
+                documentId: documentId || undefined,
+                gender: gender || null,
+                birthDate: birthDate ? new Date(birthDate) : null,
+                maritalStatus: maritalStatus || null,
+                jobTitle: jobTitle || null,
+                jobLevel: jobLevel || undefined,
+                educationLevel: educationLevel || undefined,
+                departmentArea: departmentArea || null,
+                residenceCity: residenceCity || null,
+                yearsInCompany: yearsInCompany ? parseInt(yearsInCompany) : null,
+                yearsInPosition: yearsInPosition ? parseInt(yearsInPosition) : null,
+                contractType: contractType || null,
+                workSchedule: workSchedule || null,
+                hoursPerWeek: hoursPerWeek ? parseInt(hoursPerWeek) : null,
+            }
+        });
+
+        const { ipAddress, userAgent } = extractRequestMeta(request);
+        await logAudit({
+            userId: session.user.id,
+            action: "UPDATE",
+            resourceType: "worker",
+            resourceId: id,
+            metadata: { fullName },
+            ipAddress,
+            userAgent
+        });
+
+        return NextResponse.json({ data: updated });
+    } catch (error) {
+        console.error("[WORKERS] PUT Error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+/**
+ * DELETE — Delete a worker (only if no assessments)
+ */
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const { id } = await params;
+
+        const worker = await (prisma.worker as any).findUnique({
+            where: { id },
+            include: {
+                organization: {
+                    select: { createdByPsychologist: true }
+                },
+                _count: { select: { assessments: true } }
+            }
+        });
+
+        if (!worker) {
+            return NextResponse.json({ error: "Trabajador no encontrado" }, { status: 404 });
+        }
+
+        if (worker.organization.createdByPsychologist !== session.user.id) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
+        if (worker._count.assessments > 0) {
+            return NextResponse.json(
+                { error: "No se puede eliminar: el trabajador tiene evaluaciones registradas" },
+                { status: 409 }
+            );
+        }
+
+        await (prisma.worker as any).delete({ where: { id } });
+
+        const { ipAddress, userAgent } = extractRequestMeta(request);
+        await logAudit({
+            userId: session.user.id,
+            action: "DELETE",
+            resourceType: "worker",
+            resourceId: id,
+            metadata: { fullName: worker.fullName },
+            ipAddress,
+            userAgent
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("[WORKERS] DELETE Error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}

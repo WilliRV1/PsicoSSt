@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { RiskCategory } from "@prisma/client";
+import { RiskCategory } from "@/generated/prisma/client";
 
 export async function GET(
     request: NextRequest,

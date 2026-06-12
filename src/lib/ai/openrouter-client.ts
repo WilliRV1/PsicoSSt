@@ -81,27 +81,41 @@ interface ScoreData {
 
 /**
  * Generate psychosocial recommendations based on assessment scores
- * Uses Claude or GPT-4 via OpenRouter
  */
 export async function generateRecommendations(
   scoreData: ScoreData
 ): Promise<string> {
-  const prompt = `You are an expert occupational health psychologist specializing in Colombian psychosocial risk assessment (Batería para Evaluación de Factores de Riesgo Psicosocial).
+  const dimensionDetails =
+    scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
+      ? Object.entries(scoreData.dimensionScores)
+          .map(([key, val]: [string, any]) =>
+            `- ${val?.dimensionName ?? key}: puntuación transformada ${val?.transformedScore ?? 'N/D'}, nivel de riesgo "${val?.riskCategory ?? 'N/D'}"`
+          )
+          .join('\n')
+      : 'No disponible';
 
-A worker has been assessed with the following results:
-- Overall Risk Category: ${scoreData.overallRiskCategory}
-- Job Title: ${scoreData.workerProfile?.jobTitle || 'Not specified'}
-- Job Level: ${scoreData.workerProfile?.jobLevel || 'Not specified'}
-- Years in Position: ${scoreData.workerProfile?.yearsInPosition || 'Not specified'}
+  const prompt = `Eres un psicólogo experto en salud ocupacional especializado en la evaluación de riesgo psicosocial laboral según la Batería para la Evaluación de Factores de Riesgo Psicosocial del Ministerio de Trabajo de Colombia.
 
-Based on these results, provide:
-1. RECOMMENDATIONS: 3-4 specific, actionable recommendations for workplace improvements
-2. NEXT STEPS: 2-3 immediate next steps for the worker and organization
+Un trabajador ha sido evaluado con los siguientes resultados:
 
-Format your response in Spanish with clear sections. Be professional and evidence-based.`;
+Nivel de riesgo global: ${scoreData.overallRiskCategory}
+Cargo: ${scoreData.workerProfile?.jobTitle || 'No especificado'}
+Nivel del cargo: ${scoreData.workerProfile?.jobLevel || 'No especificado'}
+Años en el cargo: ${scoreData.workerProfile?.yearsInPosition ?? 'No especificado'}
+Puntajes totales: ${JSON.stringify(scoreData.totalScores)}
+
+Dimensiones evaluadas:
+${dimensionDetails}
+
+Con base en estos resultados, redacta en español:
+
+1. RECOMENDACIONES: 3 a 4 recomendaciones específicas y accionables dirigidas a la organización y al trabajador para reducir los factores de riesgo más elevados.
+2. PRÓXIMOS PASOS: 2 a 3 acciones inmediatas prioritarias para el trabajador y la empresa.
+
+Sé profesional, preciso y fundamentado en evidencia. Adapta las recomendaciones al cargo y nivel de riesgo de las dimensiones con mayor puntuación.`;
 
   const response = await callOpenRouter({
-    model: 'meta-llama/llama-2-70b-chat', // Default model, can be changed
+    model: 'anthropic/claude-3-5-haiku',
     messages: [
       {
         role: 'user',
@@ -114,19 +128,72 @@ Format your response in Spanish with clear sections. Be professional and evidenc
 }
 
 /**
+ * Generate clinical analysis (Interpretación Profesional) for the psychologist's signature section
+ */
+export async function generateClinicalAnalysis(
+  scoreData: ScoreData
+): Promise<string> {
+  const dimensionDetails =
+    scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
+      ? Object.entries(scoreData.dimensionScores)
+          .map(([key, val]: [string, any]) =>
+            `- ${val?.dimensionName ?? key}: puntuación transformada ${val?.transformedScore ?? 'N/D'}, nivel de riesgo "${val?.riskCategory ?? 'N/D'}"`
+          )
+          .join('\n')
+      : 'No disponible';
+
+  const prompt = `Eres un psicólogo experto en salud ocupacional especializado en la evaluación de riesgo psicosocial laboral según la Batería para la Evaluación de Factores de Riesgo Psicosocial del Ministerio de Trabajo de Colombia.
+
+Redacta la sección de "Interpretación Profesional" de un informe clínico para el siguiente trabajador evaluado. Este texto irá en la sección que firma el psicólogo, por lo que debe estar escrito en primera persona profesional del psicólogo y ser editable por él.
+
+Datos de la evaluación:
+Nivel de riesgo global: ${scoreData.overallRiskCategory}
+Cargo: ${scoreData.workerProfile?.jobTitle || 'No especificado'}
+Nivel del cargo: ${scoreData.workerProfile?.jobLevel || 'No especificado'}
+Años en el cargo: ${scoreData.workerProfile?.yearsInPosition ?? 'No especificado'}
+Puntajes totales: ${JSON.stringify(scoreData.totalScores)}
+
+Dimensiones evaluadas:
+${dimensionDetails}
+
+Instrucciones para la redacción:
+- Escribe entre 200 y 300 palabras en prosa profesional continua, sin viñetas, sin encabezados, solo párrafos.
+- Explica qué significa el nivel de riesgo global para este trabajador en su contexto laboral.
+- Menciona específicamente las dimensiones con mayor puntuación y su implicancia clínica.
+- Describe las implicaciones clínicas considerando el cargo y los años de experiencia del trabajador.
+- Señala las áreas prioritarias de intervención de manera fundamentada.
+- El texto debe sonar como redactado por un psicólogo profesional, listo para ser incluido en un informe oficial.
+- Responde ÚNICAMENTE con el texto de la interpretación, sin introducción, sin "Aquí está el análisis:", sin ningún prefacio.`;
+
+  const response = await callOpenRouter({
+    model: 'anthropic/claude-3-5-haiku',
+    messages: [
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    max_tokens: 700,
+    temperature: 0.65,
+  });
+
+  return response;
+}
+
+/**
  * Generate general interpretation of psychosocial assessment results
  */
 export async function generateInterpretation(
   scoreData: ScoreData
 ): Promise<string> {
-  const prompt = `You are an expert occupational health psychologist. Provide a brief (200-250 words) professional interpretation of the following psychosocial assessment results in Spanish:
+  const prompt = `Eres un psicólogo experto en salud ocupacional. Redacta una interpretación profesional breve (200-250 palabras) en español de los siguientes resultados de evaluación psicosocial:
 
-Overall Risk Category: ${scoreData.overallRiskCategory}
+Nivel de riesgo global: ${scoreData.overallRiskCategory}
 
-Explain what this risk category means for the worker and organization, and provide context about priority areas for intervention.`;
+Explica qué significa este nivel de riesgo para el trabajador y la organización, y proporciona contexto sobre las áreas prioritarias de intervención.`;
 
   const response = await callOpenRouter({
-    model: 'meta-llama/llama-2-70b-chat',
+    model: 'anthropic/claude-3-5-haiku',
     messages: [
       {
         role: 'user',

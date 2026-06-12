@@ -6,25 +6,9 @@ export function SignOutButton() {
     return (
         <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="sign-out-btn"
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
         >
             Cerrar sesión
-            <style>{`
-        .sign-out-btn {
-          padding: 0.5rem 1rem;
-          background: transparent;
-          border: 1px solid rgba(239, 68, 68, 0.3);
-          border-radius: 6px;
-          color: #f87171;
-          font-size: 0.8125rem;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .sign-out-btn:hover {
-          background: rgba(239, 68, 68, 0.1);
-          border-color: rgba(239, 68, 68, 0.5);
-        }
-      `}</style>
         </button>
     );
 }

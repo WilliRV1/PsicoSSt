@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes accessible without authentication
-const publicRoutes = ["/login", "/register", "/pending-approval", "/mfa-setup", "/mfa-verify"];
+const publicRoutes = ["/login", "/register", "/pending-approval", "/mfa-setup", "/mfa-verify", "/forgot-password", "/terms", "/privacy"];
 // Routes that should redirect TO dashboard if user is already authenticated
 const redirectIfAuthenticated = ["/login", "/register"];
 // Routes that require full authentication (dashboard)
 const protectedRoutes = ["/dashboard"];
 // API routes that bypass authentication entirely (auth handler + dev tools)
-const authApiRoutes = ["/api/auth", "/api/dev"];
+const authApiRoutes = ["/api/auth", "/api/dev", "/api/payments/webhook"];
 
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
+import { PrintButton } from "../diagnostic/print-button";
 import "../diagnostic/organizational-report.css";
 
 interface PageProps {
@@ -35,9 +36,12 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
 
     if (workers.length === 0) {
         return (
-            <div className="org-report-container">
-                <h1>Informe Sociodemográfico</h1>
-                <p>No hay trabajadores registrados para esta organización.</p>
+            <div className="org-report-container text-center py-20">
+                <h1 className="text-2xl font-bold text-slate-800">Informe Sociodemográfico</h1>
+                <p className="text-slate-500 mt-4">No hay trabajadores registrados para esta organización.</p>
+                <div className="mt-8">
+                    <a href={`/dashboard/organizations/${orgId}`} className="text-blue-600 font-bold hover:underline">← Volver</a>
+                </div>
             </div>
         );
     }
@@ -45,63 +49,76 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
     const stats = processSociodemographics(workers);
 
     return (
-        <div className="org-report-container">
-            <header className="org-report-header">
-                <div>
-                    <h1>Informe Sociodemográfico</h1>
-                    <p style={{ color: "#718096" }}>{org.name} | Perfil Epidemiológico</p>
-                </div>
-                <div style={{ textAlign: "right", fontSize: "0.9rem" }}>
-                    <p><strong>Generado por:</strong> {org.psychologist.fullName}</p>
-                    <p><strong>Licencia:</strong> {org.psychologist.licenseNumber}</p>
-                </div>
-            </header>
+        <div className="min-h-screen bg-slate-50 py-12 px-4">
+            <div className="org-report-container">
+                <header className="org-report-header">
+                    <div>
+                        <span className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1 block">Perfil Epidemiológico</span>
+                        <h1>Análisis Sociodemográfico</h1>
+                        <p className="text-slate-500 font-medium mt-1">{org.name} <span className="mx-2 text-slate-300">|</span> Población: {workers.length} trabajadores</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-sm text-slate-600 font-bold">{org.psychologist.fullName}</p>
+                        <p className="text-[10px] text-slate-400 mt-2 uppercase tracking-tighter">Fecha: {new Date().toLocaleDateString('es-CO')}</p>
+                    </div>
+                </header>
 
-            <section className="report-section">
-                <h2 className="section-title">Distribución por Edad y Género</h2>
-                <div className="segment-grid">
-                    <ChartBox title="Edad" distribution={stats.age} />
-                    <ChartBox title="Género" distribution={stats.gender} />
+                <div className="anonymity-notice">
+                    <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 112 0v4a1 1 0 11-2 0V6zm1 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                    <p><strong>Aviso Técnico:</strong> Este análisis consolida las variables socio-demográficas y ocupacionales de la población evaluada, fundamentales para el diseño de programas de vigilancia epidemiológica según la Res. 2646 de 2008.</p>
                 </div>
-            </section>
 
-            <section className="report-section">
-                <h2 className="section-title">Perfil Educativo y Laboral</h2>
-                <div className="segment-grid">
-                    <ChartBox title="Nivel Educativo" distribution={stats.education} />
-                    <ChartBox title="Nivel del Cargo" distribution={stats.jobLevel} />
-                    <ChartBox title="Antigüedad en la Empresa" distribution={stats.tenure} />
-                </div>
-            </section>
+                <section className="report-section">
+                    <h2 className="section-title">1. Distribución Demográfica</h2>
+                    <div className="segment-grid">
+                        <ChartBox title="Rangos de Edad" distribution={stats.age} />
+                        <ChartBox title="Distribución por Género" distribution={stats.gender} />
+                    </div>
+                </section>
 
-            <section className="report-section">
-                <h2 className="section-title">Vivienda y Estrato Socioeconómico</h2>
-                <div className="segment-grid">
-                    <ChartBox title="Tipo de Vivienda" distribution={stats.housing} />
-                    <ChartBox title="Estrato Socioeconómico" distribution={stats.stratum} />
-                </div>
-            </section>
+                <section className="report-section">
+                    <h2 className="section-title">2. Perfil Educativo y Ocupacional</h2>
+                    <div className="segment-grid">
+                        <ChartBox title="Nivel de Escolaridad" distribution={stats.education} />
+                        <ChartBox title="Nivel Jerárquico" distribution={stats.jobLevel} />
+                    </div>
+                    <div className="mt-6">
+                        <ChartBox title="Antigüedad en la Organización" distribution={stats.tenure} />
+                    </div>
+                </section>
 
-            <section className="report-section">
-                <h2 className="section-title">Uso del Tiempo Libre</h2>
-                <div className="chart-container" style={{ maxWidth: "600px", margin: "0 auto" }}>
-                    <DistributionBars distribution={stats.freeTime} />
-                </div>
-            </section>
+                <section className="report-section">
+                    <h2 className="section-title">3. Condiciones de Vida</h2>
+                    <div className="segment-grid">
+                        <ChartBox title="Tipo de Vivienda" distribution={stats.housing} />
+                        <ChartBox title="Estrato Socioeconómico" distribution={stats.stratum} />
+                    </div>
+                </section>
 
-            <footer className="no-print" style={{ marginTop: "4rem", textAlign: "center" }}>
-                <button onClick={() => window.print()} className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors">
-                    🖨️ Imprimir Análisis Epidemiológico
-                </button>
-            </footer>
+                <section className="report-section">
+                    <h2 className="section-title">4. Uso del Tiempo Libre</h2>
+                    <div className="chart-container">
+                        <DistributionBars distribution={stats.freeTime} />
+                    </div>
+                </section>
+
+                <footer className="no-print mt-12 pt-8 border-t border-slate-200 flex justify-between items-center">
+                    <a href={`/dashboard/organizations/${orgId}`} className="px-6 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-all">
+                        ← Volver
+                    </a>
+                    <PrintButton />
+                </footer>
+            </div>
         </div>
     );
 }
 
 function ChartBox({ title, distribution }: { title: string, distribution: any }) {
     return (
-        <div className="chart-container">
-            <h3 className="chart-title">{title}</h3>
+        <div className="chart-container shadow-sm border-slate-200/60 bg-white">
+            <h3 className="chart-title border-b border-slate-100 pb-2 mb-4">{title}</h3>
             <DistributionBars distribution={distribution} />
         </div>
     );
@@ -109,15 +126,15 @@ function ChartBox({ title, distribution }: { title: string, distribution: any })
 
 function DistributionBars({ distribution }: { distribution: any }) {
     return (
-        <div>
+        <div className="space-y-3">
             {Object.entries(distribution).map(([label, percentage]: [string, any]) => (
                 <div key={label} className="bar-row">
                     <div className="bar-label">
-                        <span>{label}</span>
-                        <span>{percentage}%</span>
+                        <span className="text-xs font-bold text-slate-600">{label}</span>
+                        <span className="text-xs font-black text-blue-600">{percentage}%</span>
                     </div>
-                    <div className="bar-outer">
-                        <div className="bar-inner bg-blue-500" style={{ width: `${percentage}%`, backgroundColor: "#3182ce" }}></div>
+                    <div className="bar-outer bg-slate-100 h-2.5">
+                        <div className="bar-inner bg-blue-500 shadow-sm" style={{ width: `${percentage}%` }}></div>
                     </div>
                 </div>
             ))}
@@ -176,7 +193,7 @@ function calculateTenureRange(workers: any[]) {
         else groups["> 12 años"]++;
     });
     const dist: any = {};
-    Object.entries(groups).forEach(([k, v]: [string, any]) => dist[k] = Math.round((v / workers.length) * 100));
+    Object.entries(groups).forEach(([k, v]: [string, any]) => dist[k] = Math.round((v / (workers.length || 1)) * 100));
     return dist;
 }
 
@@ -186,6 +203,7 @@ function calculateFreeTime(workers: any[]) {
         (w.freeTimeUsage || []).forEach((u: string) => counts[u] = (counts[u] || 0) + 1);
     });
     const dist: any = {};
-    Object.entries(counts).forEach(([k, v]: [string, any]) => dist[k] = Math.round((v / workers.length) * 100));
+    const total = workers.length || 1;
+    Object.entries(counts).forEach(([k, v]: [string, any]) => dist[k] = Math.round((v / total) * 100));
     return dist;
 }

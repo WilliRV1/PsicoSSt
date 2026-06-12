@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email/resend';
+import { accountApprovedEmail, accountRejectedEmail } from '@/lib/email/templates';
 
 /** POST /api/admin/psychologists/approve */
 export async function POST(req: NextRequest) {
@@ -35,6 +37,12 @@ export async function POST(req: NextRequest) {
         userAgent: req.headers.get('user-agent') ?? 'unknown',
       },
     });
+
+    // Send approval/rejection email
+    const template = status === 'ACTIVE'
+      ? accountApprovedEmail(psychologist.fullName)
+      : accountRejectedEmail(psychologist.fullName);
+    sendEmail({ to: psychologist.email, ...template }).catch(console.error);
 
     return NextResponse.json({
       success: true,

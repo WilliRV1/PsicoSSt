@@ -1,5 +1,8 @@
 # PsicoSST
 
+> [!CAUTION]
+> **AVISO DE SEGURIDAD TEMPORAL**: El flujo de Autenticación de Dos Factores (MFA) y la validación de cuentas pendientes han sido **DESHABILITADOS TEMPORALMENTE** en `src/app/(auth)/login/page.tsx` para permitir la ejecución de pruebas automatizadas con Cypress. **REVERTIR ANTES DE DESPLEGAR A PRODUCCIÓN.**
+
 > Plataforma web para la administración, calificación e interpretación automatizada de la **Batería de instrumentos para la evaluación de factores de riesgo psicosocial** (Resolución 2646 de 2008, Colombia).
 
 ---

@@ -196,11 +196,33 @@ export function scoreQuestionnaire(
 
     const baremoTable = (baremos as any)[baremoKey];
 
-    // 2. Pre-process: Apply Inversions
+    // 2. Pre-process: Apply Inversions or Custom Mappings
     // Inversions are defined per dimension in the config
     let processedResponses = { ...rawResponses };
-    for (const dim of config.dimensions) {
-        processedResponses = applyInversions(processedResponses, dim.invertedItems);
+    if (questionnaireType === "STRESS") {
+        for (const dim of config.dimensions) {
+            for (const item of dim.items) {
+                const key = String(item);
+                const uiValue = rawResponses[key];
+                if (uiValue !== undefined && uiValue !== null) {
+                    // For stress, uiValue 0=Siempre, 1=Casi siempre, 2=A veces, 3=Nunca.
+                    // If legacy data has 4, treat as Nunca.
+                    const inverted = 3 - Math.min(uiValue, 3); // 3=Siempre, 0=Nunca
+                    
+                    if ([1, 2, 3, 9, 13, 14, 15, 23, 24].includes(item)) {
+                        processedResponses[key] = inverted * 3; // Max 9
+                    } else if ([4, 5, 6, 10, 11, 16, 17, 18, 19, 25, 26, 27, 28].includes(item)) {
+                        processedResponses[key] = inverted * 2; // Max 6
+                    } else {
+                        processedResponses[key] = inverted * 1; // Max 3
+                    }
+                }
+            }
+        }
+    } else {
+        for (const dim of config.dimensions) {
+            processedResponses = applyInversions(processedResponses, dim.invertedItems);
+        }
     }
 
     // 3. Score Dimensions
@@ -273,7 +295,31 @@ export function scoreQuestionnaire(
     }
 
     // 5. Calculate Total
-    const totalTransformed = totalMax === 0 ? 0 : (totalRaw / totalMax) * 100;
+    let totalTransformed = 0;
+    
+    if (questionnaireType === "STRESS") {
+        const dimFis = dimensionResults["sintomas_fisiologicos"]?.rawScore || 0;
+        const dimSoc = dimensionResults["sintomas_sociales"]?.rawScore || 0;
+        const dimInt = dimensionResults["sintomas_intelectuales"]?.rawScore || 0;
+        const dimPsi = dimensionResults["sintomas_psicoemocionales"]?.rawScore || 0;
+        
+        // Promedios ponderados por grupo
+        const avgFis = dimFis / 8;
+        const avgSoc = dimSoc / 4;
+        const avgInt = dimInt / 10;
+        const avgPsi = dimPsi / 9;
+        
+        const totalRawStress = (avgFis * 4) + (avgSoc * 3) + (avgInt * 2) + (avgPsi * 1);
+        
+        totalRaw = totalRawStress;
+        totalMax = 61.16; // Factor de transformación para estrés
+        
+        // Validación de completitud: el estrés exige todos los ítems
+        const allItemsAnswered = Object.keys(rawResponses).length >= 31;
+        totalTransformed = allItemsAnswered ? (totalRawStress / 61.16) * 100 : 0;
+    } else {
+        totalTransformed = totalMax === 0 ? 0 : (totalRaw / totalMax) * 100;
+    }
 
     // Total Baremo lookup
     let totalThresholds: BaremoThreshold;

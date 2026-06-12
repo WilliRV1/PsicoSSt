@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Upload, FileText, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function BulkUploadPage() {
     const router = useRouter();
@@ -47,22 +49,20 @@ export default function BulkUploadPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-            <header>
-                <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-                    <div className="p-2 bg-indigo-600 rounded-lg text-white">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+        <div className="max-w-4xl mx-auto space-y-6">
+            <div>
+                <h2 className="text-xl font-semibold text-foreground flex items-center gap-3">
+                    <div className="p-2 bg-primary rounded-lg text-primary-foreground">
+                        <Upload className="w-5 h-5" />
                     </div>
                     Carga Masiva de Resultados
-                </h1>
-                <p className="text-slate-500 mt-1 font-medium">Sube archivos CSV con resultados de múltiples trabajadores.</p>
-            </header>
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">Sube archivos CSV con resultados de multiples trabajadores.</p>
+            </div>
 
             {!results ? (
-                <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-10 text-center">
-                    <div className="border-2 border-dashed border-slate-200 rounded-2xl p-12 transition-all hover:border-indigo-300 hover:bg-slate-50 group">
+                <div className="rounded-xl border border-border bg-card p-10 text-center shadow-sm">
+                    <div className="border-2 border-dashed border-border rounded-xl p-12 transition-all hover:border-primary/50 hover:bg-muted/30 group">
                         <input
                             type="file"
                             accept=".csv"
@@ -71,84 +71,80 @@ export default function BulkUploadPage() {
                             id="file-upload"
                         />
                         <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
-                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <svg className="w-8 h-8 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
+                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <FileText className="w-8 h-8 text-muted-foreground group-hover:text-primary" />
                             </div>
-                            <span className="text-lg font-bold text-slate-700">
+                            <span className="text-lg font-semibold text-foreground">
                                 {file ? file.name : "Seleccionar Archivo CSV"}
                             </span>
-                            <span className="text-sm text-slate-400 mt-2">Tamaño máximo: 5MB</span>
+                            <span className="text-sm text-muted-foreground mt-2">Tamano maximo: 5MB</span>
                         </label>
                     </div>
 
                     <div className="mt-8 flex justify-center gap-4">
-                        <button
+                        <Button
                             onClick={handleUpload}
                             disabled={!file || isUploading}
-                            className="px-10 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-black rounded-xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2"
+                            size="lg"
                         >
-                            {isUploading ? "Procesando..." : "Empezar Importación"}
-                        </button>
+                            {isUploading ? "Procesando..." : "Empezar Importacion"}
+                        </Button>
                     </div>
 
                     {error && (
-                        <div className="mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-xl border border-red-100 font-medium">
+                        <div className="mt-6 p-4 bg-destructive/10 text-destructive text-sm rounded-xl border border-destructive/20 font-medium">
                             {error}
                         </div>
                     )}
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+                <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-slate-800">Resultado de la Importación</h2>
+                        <h3 className="text-lg font-semibold text-foreground">Resultado de la Importacion</h3>
                         <button
                             onClick={() => setResults(null)}
-                            className="text-indigo-600 font-bold text-sm hover:underline"
+                            className="text-primary font-semibold text-sm hover:underline"
                         >
                             Subir otro archivo
                         </button>
                     </div>
 
                     <div className="grid grid-cols-3 gap-6 mb-8">
-                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 transition-all hover:shadow-md">
-                            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest block mb-1">Total Filas</span>
-                            <span className="text-3xl font-black text-slate-800">{results.totalRows}</span>
+                        <div className="bg-muted/50 p-6 rounded-xl border border-border">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Total Filas</span>
+                            <span className="text-3xl font-bold text-foreground">{results.totalRows}</span>
                         </div>
-                        <div className="bg-green-50 p-6 rounded-2xl border border-green-100 transition-all hover:shadow-md">
-                            <span className="text-sm font-bold text-green-600 uppercase tracking-widest block mb-1">Éxito</span>
-                            <span className="text-3xl font-black text-green-700">{results.successRows}</span>
+                        <div className="bg-green-50 p-6 rounded-xl border border-green-200">
+                            <span className="text-xs font-semibold text-green-600 uppercase tracking-wider block mb-1">Exito</span>
+                            <span className="text-3xl font-bold text-green-700">{results.successRows}</span>
                         </div>
-                        <div className="bg-red-50 p-6 rounded-2xl border border-red-100 transition-all hover:shadow-md">
-                            <span className="text-sm font-bold text-red-600 uppercase tracking-widest block mb-1">Errores</span>
-                            <span className="text-3xl font-black text-red-700">{results.failedRows}</span>
+                        <div className="bg-red-50 p-6 rounded-xl border border-red-200">
+                            <span className="text-xs font-semibold text-red-600 uppercase tracking-wider block mb-1">Errores</span>
+                            <span className="text-3xl font-bold text-red-700">{results.failedRows}</span>
                         </div>
                     </div>
 
                     {results.errors?.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
+                            <h4 className="font-semibold text-foreground flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5 text-destructive" />
                                 Detalle de Errores
-                            </h3>
-                            <div className="bg-slate-50 rounded-xl overflow-hidden border border-slate-200">
+                            </h4>
+                            <div className="rounded-xl overflow-hidden border border-border">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-slate-100 text-slate-600 font-bold uppercase text-xs">
+                                    <thead className="bg-muted/50 border-b border-border">
                                         <tr>
-                                            <th className="p-4">Fila</th>
-                                            <th className="p-4">Columna</th>
-                                            <th className="p-4">Error</th>
+                                            <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Fila</th>
+                                            <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Columna</th>
+                                            <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Error</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-200">
+                                    <tbody className="divide-y divide-border">
                                         {results.errors.map((err: any, idx: number) => (
-                                            <tr key={idx} className="hover:bg-white transition-colors">
-                                                <td className="p-4 font-bold text-slate-700">{err.row}</td>
-                                                <td className="p-4">{err.column || "Geral"}</td>
-                                                <td className="p-4 text-red-600 font-medium">{err.message}</td>
+                                            <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                                                <td className="px-4 py-3 font-medium text-foreground">{err.row}</td>
+                                                <td className="px-4 py-3 text-muted-foreground">{err.column || "General"}</td>
+                                                <td className="px-4 py-3 text-destructive font-medium">{err.message}</td>
                                             </tr>
                                         ))}
                                     </tbody>

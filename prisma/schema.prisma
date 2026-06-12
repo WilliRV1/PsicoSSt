@@ -27,14 +27,19 @@ model Psychologist {
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
 
-  // Relations
-  assessments   Assessment[]
-  auditLogs     AuditLog[]
-  organizations Organization[]
-  reports       Report[]
+  /// Current credit balance
+  creditBalance      Int           @default(0) @map("credit_balance")
 
   // Relations
-  signatures       PsychologistSignature[]
+  assessments        Assessment[]
+  auditLogs          AuditLog[]
+  organizations      Organization[]
+  reports            Report[]
+  signatures         PsychologistSignature[]
+  interventionPlans  InterventionPlan[]
+  creditTransactions CreditTransaction[]
+  resetTokens        PasswordResetToken[]
+  paymentOrders      PaymentOrder[]
 
   @@map("psychologists")
 }
@@ -78,6 +83,7 @@ model Organization {
   assessments           Assessment[]
   psychologist          Psychologist @relation(fields: [createdByPsychologist], references: [id])
   workers               Worker[]
+  interventionPlans     InterventionPlan[]
 
   @@map("organizations")
 }
@@ -247,6 +253,43 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+/// Intervention plan per organization (required by Res. 2764/2022)
+model InterventionPlan {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  psychologistId String               @map("psychologist_id") @db.Uuid
+  title          String
+  period         String
+  status         PlanStatus           @default(ACTIVE)
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  psychologist   Psychologist         @relation(fields: [psychologistId], references: [id])
+  actions        InterventionAction[]
+
+  @@index([organizationId])
+  @@map("intervention_plans")
+}
+
+/// Individual action/measure within an intervention plan
+model InterventionAction {
+  id           String           @id @default(uuid()) @db.Uuid
+  planId       String           @map("plan_id") @db.Uuid
+  measure      String           @db.Text
+  responsible  String
+  dueDate      DateTime?        @map("due_date") @db.Date
+  status       ActionStatus     @default(PENDING)
+  riskCategory String?          @map("risk_category")
+  area         String?
+  notes        String?          @db.Text
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  plan         InterventionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@map("intervention_actions")
+}
+
 /// Bulk import job tracking
 model ImportJob {
   id             String    @id @default(uuid()) @db.Uuid
@@ -375,6 +418,8 @@ enum AuditAction {
   CONSENT_RECORDED
   MFA_SETUP
   PASSWORD_CHANGE
+  CREDIT_PURCHASE
+  CREDIT_CONSUME
 }
 
 /// Housing type
@@ -393,6 +438,100 @@ enum FreeTimeUsage {
   RECREACION
   DESCANSO
   OTRO
+}
+
+/// Intervention plan lifecycle
+enum PlanStatus {
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+/// Individual action status within a plan
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+/// Credit transaction for token-based billing
+model CreditTransaction {
+  id             String            @id @default(uuid()) @db.Uuid
+  psychologistId String            @map("psychologist_id") @db.Uuid
+  type           CreditTxType
+  /// Positive for purchases/grants, negative for consumption
+  amount         Int
+  /// Running balance after this transaction
+  balanceAfter   Int               @map("balance_after")
+  /// Package ID for purchases (e.g. "starter", "pro")
+  packageId      String?           @map("package_id")
+  /// Price paid in COP (for purchases)
+  priceCOP       Int?              @map("price_cop")
+  /// Payment reference or external ID
+  paymentRef     String?           @map("payment_ref")
+  /// Related assessment ID (for consumption)
+  assessmentId   String?           @map("assessment_id") @db.Uuid
+  /// Description of the transaction
+  description    String?
+  createdAt      DateTime          @default(now()) @map("created_at")
+  psychologist   Psychologist      @relation(fields: [psychologistId], references: [id])
+
+  @@index([psychologistId, createdAt(sort: Desc)])
+  @@map("credit_transactions")
+}
+
+/// Credit transaction types
+enum CreditTxType {
+  PURCHASE
+  TRIAL_GRANT
+  ADMIN_GRANT
+  CONSUMPTION
+  REFUND
+}
+
+/// Password reset token (6-digit code)
+model PasswordResetToken {
+  id             String       @id @default(uuid()) @db.Uuid
+  psychologistId String       @map("psychologist_id") @db.Uuid
+  codeHash       String       @map("code_hash")
+  expiresAt      DateTime     @map("expires_at")
+  attempts       Int          @default(0)
+  used           Boolean      @default(false)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  psychologist   Psychologist @relation(fields: [psychologistId], references: [id], onDelete: Cascade)
+
+  @@index([psychologistId, createdAt(sort: Desc)])
+  @@map("password_reset_tokens")
+}
+
+/// Payment order for Wompi integration
+model PaymentOrder {
+  id             String        @id @default(uuid()) @db.Uuid
+  psychologistId String        @map("psychologist_id") @db.Uuid
+  packageId      String        @map("package_id")
+  amountCents    Int           @map("amount_cents")
+  wompiRef       String?       @unique @map("wompi_ref")
+  internalRef    String        @unique @map("internal_ref")
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  String?       @map("payment_method")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  completedAt    DateTime?     @map("completed_at")
+
+  psychologist   Psychologist  @relation(fields: [psychologistId], references: [id])
+
+  @@index([psychologistId, createdAt(sort: Desc)])
+  @@map("payment_orders")
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  VOIDED
+  ERROR
 }
 
 /// Transport means used by the worker

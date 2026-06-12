@@ -25,10 +25,14 @@ export async function POST(
             where: { id: assessmentId },
             include: {
                 scoredResult: true,
-                psychologist: true,
+                psychologist: {
+                    include: {
+                        signatures: true
+                    }
+                },
                 reports: {
                     take: 1,
-                    where: { status: "SIGNED" }
+                    orderBy: { generatedAt: "desc" }
                 }
             }
         });
@@ -40,6 +44,10 @@ export async function POST(
         if (!assessment.scoredResult) {
             return NextResponse.json({ error: "Assessment not scored yet" }, { status: 400 });
         }
+
+        // Get psychologist's signature (optional — name-only signing is allowed)
+        const psychologistSignature = assessment.psychologist.signatures.find(sig => sig.signatureType === 'drawn') ||
+                                     assessment.psychologist.signatures.find(sig => sig.signatureType === 'uploaded');
 
         // We sign based on the scored results and assessment metadata
         const dataToSign = JSON.stringify({
@@ -55,33 +63,47 @@ export async function POST(
 
         const hash = crypto.createHash('sha256').update(dataToSign).digest('hex');
 
-        if (assessment.reports.length > 0 && assessment.reports[0].status === "SIGNED") {
-            return NextResponse.json({ error: "Report already signed" }, { status: 400 });
-        }
-
-        // Upsert report record
+        // Prepare report data
         const reportData = {
-            ...(assessment.scoredResult as any),
             analysis,
-            recommendations
+            recommendations,
+            signedBy: assessment.psychologist.fullName,
+            licenseNumber: assessment.psychologist.licenseNumber,
+            signedAt: new Date().toISOString()
         };
+
+        // Get signature image if available (prefer drawn over uploaded, fallback to legacy field)
+        const signatureImage = psychologistSignature
+            ? (psychologistSignature.dataUrl || psychologistSignature.imageUrl)
+            : assessment.psychologist.signature ?? null;
 
         const report = await prisma.report.upsert({
             where: { assessmentId: assessment.id },
             update: {
                 status: "SIGNED",
                 signatureHash: hash,
+                signatureImage: signatureImage,
+                signedBy: assessment.psychologist.fullName,
                 signedAt: new Date(),
-                reportData
+                reportData,
+                isFinalized: true
             },
             create: {
                 assessmentId: assessment.id,
                 psychologistId: session.user.id,
                 status: "SIGNED",
                 signatureHash: hash,
+                signatureImage: signatureImage,
+                signedBy: assessment.psychologist.fullName,
                 signedAt: new Date(),
-                reportData
+                reportData,
+                isFinalized: true
             }
+        });
+
+        await prisma.assessment.update({
+            where: { id: assessmentId },
+            data: { status: "SIGNED" }
         });
 
         await prisma.auditLog.create({
