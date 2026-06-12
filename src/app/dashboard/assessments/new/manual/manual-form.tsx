@@ -192,7 +192,28 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
 
             <div className="grid grid-cols-1 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-border">
                 {/* Entry Area */}
-                <div className="p-6 h-[600px] overflow-y-auto lg:col-span-3 bg-muted/30 relative scroll-smooth">
+                <div className="p-6 h-[600px] overflow-y-auto lg:col-span-3 bg-muted/30 relative scroll-smooth flex flex-col gap-4">
+                    {/* Legend */}
+                    <div className="bg-white border border-border rounded-xl p-4 shadow-sm">
+                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Convenciones del Cuestionario</p>
+                        {qType === 'STRESS' ? (
+                            <div className="flex flex-wrap gap-3 text-sm">
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">0</kbd> = Siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Casi siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = A veces</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = Nunca</span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap gap-3 text-sm">
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">0</kbd> = Siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Casi siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = Algunas veces</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = Casi nunca</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">4</kbd> = Nunca</span>
+                            </div>
+                        )}
+                    </div>
+                    
                     <div className="space-y-3">
                         {items.map((item, idx) => (
                             <div
