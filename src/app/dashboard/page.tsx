@@ -159,6 +159,7 @@ export default async function DashboardPage() {
                 assessments: {
                     where: { psychologistId: psychId, status: { in: ["SCORED", "REVIEWED", "SIGNED"] } },
                     select: {
+                        workerId: true,
                         status: true,
                         scoredResult: { select: { overallRiskCategory: true } },
                     },

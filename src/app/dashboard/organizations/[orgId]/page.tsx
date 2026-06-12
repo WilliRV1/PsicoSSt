@@ -71,27 +71,246 @@ const EMPTY_WORKER_FORM = {
     documentType: "CC",
     documentId: "",
     fullName: "",
-    gender: "F",
+    gender: "",
+    birthYear: "",
     birthDate: "",
-    maritalStatus: "SOLTERO",
+    maritalStatus: "",
+    educationLevel: "",
+    profession: "",
     jobTitle: "",
-    jobLevel: "PROFESIONAL",
-    educationLevel: "PROFESIONAL",
-    departmentArea: "",
+    jobLevel: "",
     residenceCity: "",
-    socioeconomicStratum: "1",
-    housingType: "PROPIA",
-    dependentsCount: "0",
+    residenceDepartment: "",
+    socioeconomicStratum: "",
+    housingType: "",
+    dependentsCount: "",
     freeTimeUsage: [] as string[],
+    departmentArea: "",
+    lessThanOneYearInCompany: false,
     yearsInCompany: "",
+    lessThanOneYearInPosition: false,
     yearsInPosition: "",
-    contractType: "INDEFINIDO",
-    workSchedule: "DIURNA",
-    hoursPerWeek: "48",
-    transportMeans: "TRANSPORTE_PUBLICO",
+    contractType: "",
+    workSchedule: "",
+    hoursPerDay: "",
+    hoursPerWeek: "",
+    paymentModality: "",
+    workCity: "",
+    workDepartment: "",
+    transportMeans: "",
     displacementTime: "",
     hasCustomerInteraction: true
 };
+
+const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any }) => {
+    return (
+        <div className="space-y-8">
+            {/* Section 1: Identification */}
+            <div>
+                <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                    1. Identificación y Personales
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2 space-y-2">
+                        <Label>Nombre completo *</Label>
+                        <Input required value={form.fullName} onChange={e => setForm((f:any) => ({ ...f, fullName: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Tipo de Documento</Label>
+                        <select value={form.documentType} onChange={e => setForm((f:any) => ({ ...f, documentType: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="CC">Cédula de Ciudadanía</option>
+                            <option value="CE">Cédula de Extranjería</option>
+                            <option value="TI">Tarjeta de Identidad</option>
+                            <option value="PA">Pasaporte</option>
+                            <option value="OTHER">Otro</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Número de Documento *</Label>
+                        <Input required value={form.documentId} onChange={e => setForm((f:any) => ({ ...f, documentId: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Sexo</Label>
+                        <select value={form.gender} onChange={e => setForm((f:any) => ({ ...f, gender: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                            <option value="NO_BINARIO">No binario</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Año de nacimiento</Label>
+                        <Input type="number" value={form.birthYear} onChange={e => setForm((f:any) => ({ ...f, birthYear: e.target.value }))} placeholder="Ej: 1990" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Estado Civil</Label>
+                        <select value={form.maritalStatus} onChange={e => setForm((f:any) => ({ ...f, maritalStatus: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="Soltero">Soltero(a)</option>
+                            <option value="Casado">Casado(a)</option>
+                            <option value="Union_libre">Unión libre</option>
+                            <option value="Separado">Separado(a)</option>
+                            <option value="Divorciado">Divorciado(a)</option>
+                            <option value="Viudo">Viudo(a)</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Número de personas a cargo</Label>
+                        <Input type="number" value={form.dependentsCount} onChange={e => setForm((f:any) => ({ ...f, dependentsCount: e.target.value }))} placeholder="0" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Lugar de residencia (Ciudad)</Label>
+                        <Input value={form.residenceCity} onChange={e => setForm((f:any) => ({ ...f, residenceCity: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Departamento de residencia</Label>
+                        <Input value={form.residenceDepartment} onChange={e => setForm((f:any) => ({ ...f, residenceDepartment: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Estrato de servicios públicos</Label>
+                        <select value={form.socioeconomicStratum} onChange={e => setForm((f:any) => ({ ...f, socioeconomicStratum: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="Finca">Finca</option>
+                            <option value="No_se">No sé</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Tipo de vivienda</Label>
+                        <select value={form.housingType} onChange={e => setForm((f:any) => ({ ...f, housingType: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="Propia">Propia</option>
+                            <option value="Arriendo">En arriendo</option>
+                            <option value="Familiar">Familiar</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Section 2: Professional Profile */}
+            <div>
+                <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                    2. Perfil Laboral
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2 sm:col-span-2">
+                        <Label>Último nivel de estudios que alcanzó *</Label>
+                        <select required value={form.educationLevel} onChange={e => setForm((f:any) => ({ ...f, educationLevel: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="Ninguno">Ninguno</option>
+                            <option value="Primaria_incompleta">Primaria incompleta</option>
+                            <option value="Primaria_completa">Primaria completa</option>
+                            <option value="Bachillerato_incompleto">Bachillerato incompleto</option>
+                            <option value="Bachillerato_completo">Bachillerato completo</option>
+                            <option value="Tecnico_tecnologo_incompleto">Técnico/Tecnólogo incompleto</option>
+                            <option value="Tecnico_tecnologo_completo">Técnico/Tecnólogo completo</option>
+                            <option value="Profesional_incompleto">Profesional incompleto</option>
+                            <option value="Profesional_completo">Profesional completo</option>
+                            <option value="Posgrado_incompleto">Posgrado incompleto</option>
+                            <option value="Posgrado_completo">Posgrado completo</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>¿Cuál es su ocupación o profesión?</Label>
+                        <Input value={form.profession} onChange={e => setForm((f:any) => ({ ...f, profession: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Nombre del cargo que ocupa</Label>
+                        <Input value={form.jobTitle} onChange={e => setForm((f:any) => ({ ...f, jobTitle: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                        <Label>Tipo de cargo que más se parece al suyo *</Label>
+                        <select required value={form.jobLevel} onChange={e => setForm((f:any) => ({ ...f, jobLevel: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="JEFATURA">Jefatura - Dirección - Gerencia</option>
+                            <option value="PROFESIONAL">Profesional - Analista - Técnico - Tecnólogo</option>
+                            <option value="AUXILIAR">Auxiliar - Asistente Administrativo - Asistente Técnico</option>
+                            <option value="OPERATIVO">Operario - Operador - Ayudante - Servicios Generales</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Departamento de la empresa (Área)</Label>
+                        <Input value={form.departmentArea} onChange={e => setForm((f:any) => ({ ...f, departmentArea: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Ciudad donde trabaja actualmente</Label>
+                        <Input value={form.workCity} onChange={e => setForm((f:any) => ({ ...f, workCity: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Departamento donde trabaja</Label>
+                        <Input value={form.workDepartment} onChange={e => setForm((f:any) => ({ ...f, workDepartment: e.target.value }))} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Section 3: Job Conditions */}
+            <div>
+                <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                    3. Condiciones de Trabajo
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2 border p-3 rounded-lg border-border">
+                        <Label>Tiempo en la empresa</Label>
+                        <div className="flex items-center gap-2 mt-2 mb-2">
+                            <input type="checkbox" id="lessThanCompany" checked={form.lessThanOneYearInCompany} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInCompany: e.target.checked, yearsInCompany: e.target.checked ? "0" : "" }))} />
+                            <label htmlFor="lessThanCompany" className="text-sm">Menos de un año</label>
+                        </div>
+                        {!form.lessThanOneYearInCompany && (
+                            <Input type="number" placeholder="Años en la empresa" value={form.yearsInCompany} onChange={e => setForm((f:any) => ({ ...f, yearsInCompany: e.target.value }))} />
+                        )}
+                    </div>
+                    
+                    <div className="space-y-2 border p-3 rounded-lg border-border">
+                        <Label>Tiempo en el cargo</Label>
+                        <div className="flex items-center gap-2 mt-2 mb-2">
+                            <input type="checkbox" id="lessThanPosition" checked={form.lessThanOneYearInPosition} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInPosition: e.target.checked, yearsInPosition: e.target.checked ? "0" : "" }))} />
+                            <label htmlFor="lessThanPosition" className="text-sm">Menos de un año</label>
+                        </div>
+                        {!form.lessThanOneYearInPosition && (
+                            <Input type="number" placeholder="Años en el cargo" value={form.yearsInPosition} onChange={e => setForm((f:any) => ({ ...f, yearsInPosition: e.target.value }))} />
+                        )}
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                        <Label>Tipo de contrato</Label>
+                        <select value={form.contractType} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="Temporal_menos_1_ano">Temporal de menos de 1 año</option>
+                            <option value="Temporal_1_ano_o_mas">Temporal de 1 año o más</option>
+                            <option value="Termino_indefinido">Término indefinido</option>
+                            <option value="Cooperado">Cooperado (Cooperativa)</option>
+                            <option value="Prestacion_servicios">Prestación de servicios</option>
+                            <option value="No_se">No sé</option>
+                        </select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label>Horas diarias establecidas</Label>
+                        <Input type="number" step="0.1" placeholder="Ej: 8.5" value={form.hoursPerDay} onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Tipo de salario</Label>
+                        <select value={form.paymentModality} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} className={SELECT_CLASS}>
+                            <option value="">Seleccione...</option>
+                            <option value="Fijo">Fijo (Integral o mensual)</option>
+                            <option value="Fijo_y_variable">Una parte fija y otra variable</option>
+                            <option value="Todo_variable">Todo variable (A destajo, comisiones)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 export default function OrganizationDetailPage() {
     const params = useParams();
@@ -220,36 +439,7 @@ export default function OrganizationDetailPage() {
     };
 
     // --- Edit worker ---
-    const openEditWorker = (w: Worker) => {
-        setEditingWorker(w);
-        setEditWorkerForm({
-            documentType: w.documentType || "CC",
-            documentId: w.documentId || "",
-            fullName: w.fullName || "",
-            gender: w.gender || "F",
-            birthDate: w.birthDate ? w.birthDate.substring(0, 10) : "",
-            maritalStatus: w.maritalStatus || "SOLTERO",
-            jobTitle: w.jobTitle || "",
-            jobLevel: w.jobLevel || "PROFESIONAL",
-            educationLevel: w.educationLevel || "PROFESIONAL",
-            departmentArea: w.departmentArea || "",
-            residenceCity: w.residenceCity || "",
-            socioeconomicStratum: "1",
-            housingType: "PROPIA",
-            dependentsCount: "0",
-            freeTimeUsage: [],
-            yearsInCompany: w.yearsInCompany != null ? String(w.yearsInCompany) : "",
-            yearsInPosition: w.yearsInPosition != null ? String(w.yearsInPosition) : "",
-            contractType: w.contractType || "INDEFINIDO",
-            workSchedule: w.workSchedule || "DIURNA",
-            hoursPerWeek: w.hoursPerWeek != null ? String(w.hoursPerWeek) : "48",
-            transportMeans: "TRANSPORTE_PUBLICO",
-            displacementTime: "",
-            hasCustomerInteraction: true
-        });
-        setWorkerError(null);
-        setShowEditWorkerModal(true);
-    };
+    const openEditWorker = (w: any) => { setEditingWorker(w); setEditWorkerForm({ documentType: w.documentType || "CC", documentId: w.documentId || "", fullName: w.fullName || "", gender: w.gender || "", birthYear: w.birthYear != null ? String(w.birthYear) : "", birthDate: w.birthDate ? w.birthDate.substring(0, 10) : "", maritalStatus: w.maritalStatus || "", educationLevel: w.educationLevel || "", profession: w.profession || "", jobTitle: w.jobTitle || "", jobLevel: w.jobLevel || "", residenceCity: w.residenceCity || "", residenceDepartment: w.residenceDepartment || "", socioeconomicStratum: w.socioeconomicStratum || "", housingType: w.housingType || "", dependentsCount: w.dependentsCount != null ? String(w.dependentsCount) : "", freeTimeUsage: w.freeTimeUsage || [], departmentArea: w.departmentArea || "", lessThanOneYearInCompany: w.lessThanOneYearInCompany || false, yearsInCompany: w.yearsInCompany != null ? String(w.yearsInCompany) : "", lessThanOneYearInPosition: w.lessThanOneYearInPosition || false, yearsInPosition: w.yearsInPosition != null ? String(w.yearsInPosition) : "", contractType: w.contractType || "", workSchedule: w.workSchedule || "", hoursPerDay: w.hoursPerDay != null ? String(w.hoursPerDay) : "", hoursPerWeek: w.hoursPerWeek != null ? String(w.hoursPerWeek) : "", paymentModality: w.paymentModality || "", workCity: w.workCity || "", workDepartment: w.workDepartment || "", transportMeans: w.transportMeans || "", displacementTime: w.displacementTime != null ? String(w.displacementTime) : "", hasCustomerInteraction: w.hasCustomerInteraction ?? true }); setWorkerError(null); setShowEditWorkerModal(true); };
 
     const handleEditWorker = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -831,3 +1021,4 @@ export default function OrganizationDetailPage() {
         </div>
     );
 }
+

@@ -269,7 +269,7 @@ async function handler() {
           jobTitle: w.title,
           jobLevel: w.level as any,
           residenceCity: w.city,
-          socioeconomicStratum: w.stratum,
+          socioeconomicStratum: String(w.stratum),
           housingType: w.housing as any,
           dependentsCount: w.deps,
           freeTimeUsage: w.freeTime as any,

@@ -74,6 +74,37 @@ export function PsychologistList() {
         }
     };
 
+    const handleAssignTokens = async (psychologistId: string) => {
+        const amountStr = window.prompt("¿Cuántos tokens deseas asignar a este psicólogo?");
+        if (!amountStr) return;
+        
+        const amount = parseInt(amountStr);
+        if (isNaN(amount) || amount <= 0) {
+            alert("Monto inválido. Debe ser un número mayor a 0.");
+            return;
+        }
+
+        try {
+            setUpdatingId(psychologistId);
+            const res = await fetch("/api/admin/tokens", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ psychologistId, tokens: amount }),
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(`¡Éxito! ${data.message}`);
+            } else {
+                alert(data.error || data.message || "Error al asignar tokens");
+            }
+        } catch (err) {
+            alert("Error de conexión");
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -139,14 +170,36 @@ export function PsychologistList() {
                                                 </Button>
                                             )}
                                             {p.status === "ACTIVE" && !p.isAdmin && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                                        onClick={() => handleAssignTokens(p.id)}
+                                                        disabled={!!updatingId}
+                                                    >
+                                                        + Tokens
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                                        onClick={() => handleStatusChange(p.id, "SUSPENDED")}
+                                                        disabled={!!updatingId}
+                                                    >
+                                                        Suspender
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {p.status === "ACTIVE" && p.isAdmin && (
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                                                    onClick={() => handleStatusChange(p.id, "SUSPENDED")}
+                                                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                                    onClick={() => handleAssignTokens(p.id)}
                                                     disabled={!!updatingId}
                                                 >
-                                                    Suspender
+                                                    + Tokens
                                                 </Button>
                                             )}
                                             {p.status === "SUSPENDED" && (

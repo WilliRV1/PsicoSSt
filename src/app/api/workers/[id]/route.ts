@@ -72,9 +72,14 @@ export async function PUT(
 
         const body = await request.json();
         const {
-            fullName, documentType, documentId, gender, birthDate, maritalStatus,
-            jobTitle, jobLevel, educationLevel, departmentArea, residenceCity,
-            yearsInCompany, yearsInPosition, contractType, workSchedule, hoursPerWeek
+            fullName, documentType, documentId, gender, birthDate, birthYear, maritalStatus,
+            profession, jobTitle, jobLevel, educationLevel, departmentArea, 
+            residenceCity, residenceDepartment, socioeconomicStratum, housingType,
+            dependentsCount, workCity, workDepartment, freeTimeUsage, transportMeans,
+            displacementTime, hasCustomerInteraction,
+            lessThanOneYearInCompany, yearsInCompany, 
+            lessThanOneYearInPosition, yearsInPosition, 
+            contractType, workSchedule, hoursPerDay, hoursPerWeek, paymentModality
         } = body;
 
         if (!fullName) {
@@ -92,17 +97,33 @@ export async function PUT(
                 documentId: documentId || undefined,
                 gender: gender || null,
                 birthDate: birthDate ? new Date(birthDate) : null,
+                birthYear: birthYear ? parseInt(birthYear) : null,
                 maritalStatus: maritalStatus || null,
+                profession: profession || null,
                 jobTitle: jobTitle || null,
                 jobLevel: jobLevel || undefined,
                 educationLevel: educationLevel || undefined,
                 departmentArea: departmentArea || null,
                 residenceCity: residenceCity || null,
+                residenceDepartment: residenceDepartment || null,
+                socioeconomicStratum: socioeconomicStratum ? String(socioeconomicStratum) : null,
+                housingType: housingType || null,
+                dependentsCount: dependentsCount !== undefined && dependentsCount !== null ? parseInt(dependentsCount) : null,
+                workCity: workCity || null,
+                workDepartment: workDepartment || null,
+                freeTimeUsage: Array.isArray(freeTimeUsage) ? freeTimeUsage : undefined,
+                transportMeans: transportMeans || null,
+                displacementTime: displacementTime ? parseInt(displacementTime) : null,
+                hasCustomerInteraction: hasCustomerInteraction !== undefined ? !!hasCustomerInteraction : undefined,
+                lessThanOneYearInCompany: lessThanOneYearInCompany !== undefined ? !!lessThanOneYearInCompany : undefined,
                 yearsInCompany: yearsInCompany ? parseInt(yearsInCompany) : null,
+                lessThanOneYearInPosition: lessThanOneYearInPosition !== undefined ? !!lessThanOneYearInPosition : undefined,
                 yearsInPosition: yearsInPosition ? parseInt(yearsInPosition) : null,
                 contractType: contractType || null,
                 workSchedule: workSchedule || null,
+                hoursPerDay: hoursPerDay ? parseFloat(hoursPerDay) : null,
                 hoursPerWeek: hoursPerWeek ? parseInt(hoursPerWeek) : null,
+                paymentModality: paymentModality || null,
             }
         });
 

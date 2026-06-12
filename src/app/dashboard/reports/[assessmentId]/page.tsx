@@ -244,7 +244,7 @@ export default async function ReportPage({ params }: PageProps) {
                             </div>
                             <div className="info-item">
                                 <label>Escolaridad</label>
-                                <span>{educationLabels[assessment.worker.educationLevel] || assessment.worker.educationLevel}</span>
+                                <span>{assessment.worker.educationLevel ? (educationLabels[assessment.worker.educationLevel] || assessment.worker.educationLevel) : "–"}</span>
                             </div>
                             <div className="info-item">
                                 <label>Antigüedad en Empresa</label>

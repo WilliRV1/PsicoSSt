@@ -54,12 +54,14 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const {
-            documentType, documentId, fullName, educationLevel, jobLevel, organizationId,
-            gender, birthDate, maritalStatus, jobTitle, residenceCity, socioeconomicStratum,
-            housingType, dependentsCount, freeTimeUsage, departmentArea, yearsInCompany,
-            yearsInPosition, contractType, workSchedule, hoursPerWeek,
-            transportMeans,
-            displacementTime,
+            documentType, documentId, fullName, educationLevel, profession, jobLevel, organizationId,
+            gender, birthDate, birthYear, maritalStatus, jobTitle, 
+            residenceCity, residenceDepartment, socioeconomicStratum,
+            housingType, dependentsCount, freeTimeUsage, departmentArea, 
+            lessThanOneYearInCompany, yearsInCompany,
+            lessThanOneYearInPosition, yearsInPosition, 
+            contractType, workSchedule, hoursPerDay, hoursPerWeek, paymentModality,
+            workCity, workDepartment, transportMeans, displacementTime,
             hasCustomerInteraction
         } = body;
 
@@ -100,16 +102,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const validEducationLevels = [
-            "PRIMARIA", "BACHILLERATO", "TECNICO", "TECNOLOGO",
-            "PROFESIONAL", "ESPECIALIZACION", "MAESTRIA", "DOCTORADO"
-        ];
-        if (educationLevel && !validEducationLevels.includes(educationLevel)) {
-            return NextResponse.json(
-                { error: `Nivel educativo inválido. Use: ${validEducationLevels.join(", ")}` },
-                { status: 400 }
-            );
-        }
+        // We removed enum validation for educationLevel and others since they are now generic Strings
+        // to support the specific exact text options requested by the user.
 
         // Check for duplicate document in the same organization
         const existingWorker = await prisma.worker.findFirst({
@@ -131,21 +125,30 @@ export async function POST(request: NextRequest) {
                 fullName,
                 gender,
                 birthDate: birthDate ? new Date(birthDate) : null,
+                birthYear: birthYear ? parseInt(birthYear) : null,
                 maritalStatus,
                 educationLevel,
+                profession,
                 jobTitle,
                 jobLevel,
                 residenceCity,
-                socioeconomicStratum: socioeconomicStratum ? parseInt(socioeconomicStratum) : null,
+                residenceDepartment,
+                socioeconomicStratum: socioeconomicStratum ? String(socioeconomicStratum) : null,
                 housingType,
-                dependentsCount: dependentsCount ? parseInt(dependentsCount) : null,
-                freeTimeUsage: freeTimeUsage || [],
+                dependentsCount: dependentsCount !== undefined && dependentsCount !== null ? parseInt(dependentsCount) : null,
+                freeTimeUsage: Array.isArray(freeTimeUsage) ? freeTimeUsage : [],
                 departmentArea,
+                lessThanOneYearInCompany: !!lessThanOneYearInCompany,
                 yearsInCompany: yearsInCompany ? parseInt(yearsInCompany) : null,
+                lessThanOneYearInPosition: !!lessThanOneYearInPosition,
                 yearsInPosition: yearsInPosition ? parseInt(yearsInPosition) : null,
                 contractType,
                 workSchedule,
+                hoursPerDay: hoursPerDay ? parseFloat(hoursPerDay) : null,
                 hoursPerWeek: hoursPerWeek ? parseInt(hoursPerWeek) : null,
+                paymentModality,
+                workCity,
+                workDepartment,
                 transportMeans,
                 displacementTime: displacementTime ? parseInt(displacementTime) : null,
                 hasCustomerInteraction: !!hasCustomerInteraction,
