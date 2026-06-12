@@ -22,7 +22,12 @@ interface ManualFormProps {
 export default function ManualForm({ workerId, organizationId, onSuccess }: ManualFormProps) {
     const [formType, setFormType] = useState<FormType>("A");
     const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
-    const [responses, setResponses] = useState<ItemResponses>({});
+    const [responsesCache, setResponsesCache] = useState<Record<QuestionnaireType, ItemResponses>>({
+        INTRALABORAL: {},
+        EXTRALABORAL: {},
+        STRESS: {}
+    });
+    const responses = responsesCache[qType];
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -50,9 +55,12 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
     const handleValueChange = (item: number, value: number) => {
         if (value < 0 || value > 4) return;
 
-        setResponses(prev => ({
+        setResponsesCache(prev => ({
             ...prev,
-            [String(item)]: value
+            [qType]: {
+                ...prev[qType],
+                [String(item)]: value
+            }
         }));
 
         // Auto-tab to next item if it's a fast entry (keyboard)
@@ -146,7 +154,6 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                             value={qType}
                             onChange={(e) => {
                                 setQType(e.target.value as QuestionnaireType);
-                                setResponses({});
                                 setCurrentIndex(0);
                                 setConsentGranted(false);
                             }}
@@ -164,7 +171,8 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                 value={formType}
                                 onChange={(e) => {
                                     setFormType(e.target.value as FormType);
-                                    setResponses({});
+                                    // Limpiamos intralaboral al cambiar la forma A/B
+                                    setResponsesCache(prev => ({ ...prev, INTRALABORAL: {} }));
                                     setCurrentIndex(0);
                                     setConsentGranted(false);
                                 }}
