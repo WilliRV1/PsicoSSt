@@ -59,7 +59,6 @@ const EDUCATION_LABELS: Record<string, string> = {
     BACHILLERATO: "Bachillerato",
     TECNICO: "T\u00e9cnico",
     TECNOLOGO: "Tecn\u00f3logo",
-    TECNICO_TECNOLOGO: "T\u00e9cnico/Tecn\u00f3logo",
     PROFESIONAL: "Profesional",
     ESPECIALIZACION: "Especializaci\u00f3n",
     MAESTRIA: "Maestr\u00eda",

@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
         }
 
         const validEducationLevels = [
-            "PRIMARIA", "BACHILLERATO", "TECNICO_TECNOLOGO",
+            "PRIMARIA", "BACHILLERATO", "TECNICO", "TECNOLOGO",
             "PROFESIONAL", "ESPECIALIZACION", "MAESTRIA", "DOCTORADO"
         ];
         if (educationLevel && !validEducationLevels.includes(educationLevel)) {

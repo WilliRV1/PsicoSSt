@@ -91,6 +91,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
 
     const navItems = [
         { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { label: "Guía Rápida", href: "/dashboard/tutorial", icon: ClipboardList },
         { label: "Empresas", href: "/dashboard/organizations", icon: Building2 },
         { label: "Trabajadores", href: "/dashboard/workers", icon: Users },
         { label: "Evaluaciones", href: "/dashboard/assessments", icon: ClipboardList },
