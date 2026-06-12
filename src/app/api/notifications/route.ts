@@ -90,10 +90,16 @@ export async function GET() {
         }
 
         // 3. High risk workers
-        const highRiskCount = await prisma.scoredResult.count({
+        const highRiskCount = await prisma.worker.count({
             where: {
-                overallRiskCategory: { in: ["ALTO", "MUY_ALTO"] },
-                assessment: { psychologistId: psychId },
+                assessments: {
+                    some: {
+                        psychologistId: psychId,
+                        scoredResult: {
+                            overallRiskCategory: { in: ["ALTO", "MUY_ALTO"] },
+                        },
+                    },
+                },
             },
         });
 

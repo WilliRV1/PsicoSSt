@@ -125,9 +125,9 @@ export async function GET(
 
     // Predominant risk
     const predominantRisk = riskGroups.sort((a, b) => b._count.overallRiskCategory - a._count.overallRiskCategory)[0]?.overallRiskCategory ?? null;
-    const criticalCount = riskGroups
-        .filter(g => g.overallRiskCategory === "ALTO" || g.overallRiskCategory === "MUY_ALTO")
-        .reduce((sum, g) => sum + g._count.overallRiskCategory, 0);
+    const criticalCount = workerRisks.filter(w =>
+        w.assessments.some(a => a.scoredResult?.overallRiskCategory === "ALTO" || a.scoredResult?.overallRiskCategory === "MUY_ALTO")
+    ).length;
 
     return NextResponse.json({
         summary: { total, signed, pending, criticalCount },

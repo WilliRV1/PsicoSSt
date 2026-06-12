@@ -57,6 +57,7 @@ export default async function DashboardPage() {
         pendingToSign,
         last12Months,
         allWorkersForExpiry,
+        criticalWorkerCount,
         criticalWorkers,
         orgsWithMetrics,
     ] = await Promise.all([
@@ -105,19 +106,47 @@ export default async function DashboardPage() {
                 },
             },
         }),
-        // Workers with high/very high risk (for the alert card)
-        prisma.assessment.findMany({
+        // Count of workers with high/very high risk
+        prisma.worker.count({
             where: {
-                psychologistId: psychId,
-                status: { in: ["SCORED", "REVIEWED", "SIGNED"] },
-                scoredResult: { overallRiskCategory: { in: ["ALTO", "MUY_ALTO"] } },
+                assessments: {
+                    some: {
+                        psychologistId: psychId,
+                        status: { in: ["SCORED", "REVIEWED", "SIGNED"] },
+                        scoredResult: { overallRiskCategory: { in: ["ALTO", "MUY_ALTO"] } },
+                    },
+                },
             },
-            include: {
-                worker: { select: { fullName: true } },
+        }),
+        // Workers with high/very high risk (for the alert card)
+        prisma.worker.findMany({
+            where: {
+                assessments: {
+                    some: {
+                        psychologistId: psychId,
+                        status: { in: ["SCORED", "REVIEWED", "SIGNED"] },
+                        scoredResult: { overallRiskCategory: { in: ["ALTO", "MUY_ALTO"] } },
+                    },
+                },
+            },
+            select: {
+                id: true,
+                fullName: true,
                 organization: { select: { name: true } },
-                scoredResult: { select: { overallRiskCategory: true } },
+                assessments: {
+                    where: {
+                        psychologistId: psychId,
+                        status: { in: ["SCORED", "REVIEWED", "SIGNED"] },
+                        scoredResult: { overallRiskCategory: { in: ["ALTO", "MUY_ALTO"] } },
+                    },
+                    select: {
+                        id: true,
+                        scoredResult: { select: { overallRiskCategory: true } },
+                    },
+                    orderBy: { assessmentDate: "desc" },
+                    take: 1,
+                },
             },
-            orderBy: { assessmentDate: "desc" },
             take: 4,
         }),
         // Per-org metrics for the summary table
@@ -179,10 +208,16 @@ export default async function DashboardPage() {
             if (rk) riskMap[rk] = (riskMap[rk] ?? 0) + 1;
         }
         const riskDist = riskOrder.map(key => ({ key, count: riskMap[key] ?? 0 }));
-        const criticalCount = (riskMap["ALTO"] ?? 0) + (riskMap["MUY_ALTO"] ?? 0);
-        const predominantRisk = riskOrder.slice().reverse().find(k => (riskMap[k] ?? 0) > 0) ?? null;
+        
         // Use severity-weighted predominant: pick highest-severity with most entries
         const predominantBySeverity = ["MUY_ALTO", "ALTO", "MEDIO", "BAJO", "SIN_RIESGO"].find(k => (riskMap[k] ?? 0) > 0) ?? null;
+        
+        // Critical count = distinct workers with ALTO/MUY_ALTO risk in this org
+        const criticalCount = org.assessments
+            .filter(a => a.scoredResult?.overallRiskCategory === "ALTO" || a.scoredResult?.overallRiskCategory === "MUY_ALTO")
+            .map(a => a.workerId)
+            .filter((v, i, a) => a.indexOf(v) === i).length;
+
         return {
             id: org.id,
             name: org.name,
@@ -250,9 +285,7 @@ export default async function DashboardPage() {
         })
         .filter(r => r.count > 0);
 
-    const alertCount = riskGroups
-        .filter(g => g.overallRiskCategory === "ALTO" || g.overallRiskCategory === "MUY_ALTO")
-        .reduce((sum, g) => sum + g._count.overallRiskCategory, 0);
+    const alertCount = criticalWorkerCount;
 
     return (
         <div className="space-y-6">
@@ -380,21 +413,25 @@ export default async function DashboardPage() {
                     </div>
                     {alertCount > 0 && criticalWorkers.length > 0 && (
                         <div className="space-y-1.5">
-                            {criticalWorkers.map(a => (
+                            {criticalWorkers.map(w => {
+                                const latestAlert = w.assessments[0];
+                                if (!latestAlert || !latestAlert.scoredResult) return null;
+                                return (
                                 <Link
-                                    key={a.id}
-                                    href={`/dashboard/reports/${a.id}`}
+                                    key={w.id}
+                                    href={`/dashboard/reports/${latestAlert.id}`}
                                     className="flex items-center justify-between rounded-lg bg-white/70 px-3 py-2 text-xs hover:bg-white transition-colors group"
                                 >
                                     <div>
-                                        <span className="font-medium text-red-900">{a.worker.fullName}</span>
-                                        <span className="text-red-600 ml-1.5">— {a.organization.name}</span>
+                                        <span className="font-medium text-red-900">{w.fullName}</span>
+                                        <span className="text-red-600 ml-1.5">— {w.organization.name}</span>
                                     </div>
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${a.scoredResult?.overallRiskCategory === "MUY_ALTO" ? "bg-red-200 text-red-800" : "bg-orange-200 text-orange-800"}`}>
-                                        {a.scoredResult?.overallRiskCategory === "MUY_ALTO" ? "Muy Alto" : "Alto"}
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${latestAlert.scoredResult.overallRiskCategory === "MUY_ALTO" ? "bg-red-200 text-red-800" : "bg-orange-200 text-orange-800"}`}>
+                                        {latestAlert.scoredResult.overallRiskCategory === "MUY_ALTO" ? "Muy Alto" : "Alto"}
                                     </span>
                                 </Link>
-                            ))}
+                                );
+                            })}
                             {alertCount > 4 && (
                                 <Link href="/dashboard/reports" className="flex items-center gap-1 text-xs text-red-700 hover:underline pt-1 pl-1">
                                     Ver todos <ArrowRight className="h-3 w-3" />
