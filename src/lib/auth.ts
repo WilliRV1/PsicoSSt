@@ -152,19 +152,5 @@ export const {
     handlers: { GET, POST },
     signIn,
     signOut,
+    auth
 } = NextAuth(authConfig);
-
-export const auth = async () => {
-    return {
-        user: {
-            id: "6bb4cce4-550f-4886-ac15-3cc3b5c6dfd6",
-            email: "admin@psicosst.com",
-            fullName: "Delfo",
-            status: "APPROVED",
-            isAdmin: true,
-            mfaEnabled: false,
-            mfaVerified: true,
-            licenseNumber: "12345",
-        }
-    };
-};
