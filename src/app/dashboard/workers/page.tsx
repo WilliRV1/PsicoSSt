@@ -371,6 +371,17 @@ export default async function WorkersPage({ searchParams }: PageProps) {
     } catch (error: any) {
         console.error("🔴 [WorkersPage] FATAL ERROR:", error);
         console.error("🔴 [WorkersPage] STACK:", error.stack);
-        throw error;
+        // If it's a Next.js dynamic usage error, re-throw it (that's normal behavior)
+        if (error?.digest === 'DYNAMIC_SERVER_USAGE') throw error;
+        // Otherwise show the error on screen for debugging
+        return (
+            <div className="p-8 space-y-4">
+                <h2 className="text-xl font-bold text-red-600">Error en la página de Trabajadores</h2>
+                <p className="text-sm text-muted-foreground">Código: {error?.code || "N/A"}</p>
+                <p className="text-sm text-muted-foreground">Mensaje: {error?.message || String(error)}</p>
+                <p className="text-sm text-muted-foreground">Digest: {error?.digest || "N/A"}</p>
+                <pre className="bg-muted p-4 rounded-lg text-xs overflow-auto max-h-64 whitespace-pre-wrap">{error?.stack || "Sin stack trace"}</pre>
+            </div>
+        );
     }
 }
