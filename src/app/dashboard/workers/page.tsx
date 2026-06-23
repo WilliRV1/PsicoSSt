@@ -37,112 +37,55 @@ interface PageProps {
 }
 
 export default async function WorkersPage({ searchParams }: PageProps) {
-    const session = await auth();
-    if (!session?.user?.id) redirect("/login");
+    try {
+        console.log("🟢 [WorkersPage] Starting render...");
+        
+        const session = await auth();
+        console.log("🟢 [WorkersPage] Session retrieved:", !!session?.user?.id);
+        if (!session?.user?.id) redirect("/login");
 
-    const params = await searchParams;
-    const q = params.q?.trim() || "";
-    const orgFilter = params.org || "";
-    const levelFilter = params.level || "";
-    const riskFilter = params.risk || "";
-    const page = Math.max(1, parseInt(params.page || "1"));
+        console.log("🟢 [WorkersPage] Awaiting searchParams...");
+        const params = await searchParams;
+        const q = params.q?.trim() || "";
+        const orgFilter = params.org || "";
+        const levelFilter = params.level || "";
+        const riskFilter = params.risk || "";
+        const page = Math.max(1, parseInt(params.page || "1"));
+        console.log("🟢 [WorkersPage] Params parsed:", { q, orgFilter, levelFilter, riskFilter, page });
 
-    const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
-    const EIGHTEEN_MONTHS_MS = 1.5 * 365.25 * 24 * 60 * 60 * 1000;
+        const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
+        const EIGHTEEN_MONTHS_MS = 1.5 * 365.25 * 24 * 60 * 60 * 1000;
 
-    const whereClause = {
-        organization: { createdByPsychologist: session.user.id },
-        ...(orgFilter && { organizationId: orgFilter }),
-        ...(levelFilter && { jobLevel: levelFilter as any }),
-        ...(q && {
-            OR: [
-                { fullName: { contains: q, mode: "insensitive" as const } },
-                { documentId: { contains: q, mode: "insensitive" as const } },
-            ],
-        }),
-    };
+        const whereClause = {
+            organization: { createdByPsychologist: session.user.id },
+            ...(orgFilter && { organizationId: orgFilter }),
+            ...(levelFilter && { jobLevel: levelFilter as any }),
+            ...(q && {
+                OR: [
+                    { fullName: { contains: q, mode: "insensitive" as const } },
+                    { documentId: { contains: q, mode: "insensitive" as const } },
+                ],
+            }),
+        };
 
-    const [workers, totalCount, organizations] = await Promise.all([
-        prisma.worker.findMany({
-            where: whereClause,
-            include: {
-                organization: { select: { id: true, name: true } },
-                assessments: {
-                    where: {
-                        psychologistId: session.user.id,
-                        status: { in: ["SCORED", "REVIEWED", "SIGNED"] },
+        console.log("🟢 [WorkersPage] Running Prisma queries...");
+        const [workers, totalCount, organizations] = await Promise.all([
+            prisma.worker.findMany({
+                where: whereClause,
+                include: {
+                    organization: { select: { id: true, name: true } },
+                    assessments: {
+                        where: {
+                            psychologistId: session.user.id,
+                            status: { in: ["SCORED", "REVIEWED", "SIGNED"] },
+                        },
+                        include: {
+                            scoredResult: { select: { overallRiskCategory: true } },
+                        },
+                        orderBy: { assessmentDate: "desc" },
+                        take: 1,
                     },
-                    include: {
-                        scoredResult: { select: { overallRiskCategory: true } },
-                    },
-                    orderBy: { assessmentDate: "desc" },
-                    take: 1,
                 },
-            },
-            orderBy: { fullName: "asc" },
-            skip: (page - 1) * PAGE_SIZE,
-            take: PAGE_SIZE,
-        }),
-        prisma.worker.count({ where: whereClause }),
-        prisma.organization.findMany({
-            where: { createdByPsychologist: session.user.id },
-            select: { id: true, name: true },
-            orderBy: { name: "asc" },
-        }),
-    ]);
-
-    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-    // Post-filter by risk if needed
-    const now = Date.now();
-    const filteredWorkers = workers.filter((w) => {
-        if (riskFilter) {
-            const lastRisk = w.assessments[0]?.scoredResult?.overallRiskCategory;
-            if (lastRisk !== riskFilter) return false;
-        }
-        return true;
-    });
-
-    // Stats (from current page)
-    const totalWorkers = totalCount;
-    const expiredCount = filteredWorkers.filter((w) => {
-        const lastDate = w.assessments[0]?.assessmentDate;
-        if (!lastDate) return true;
-        return now - new Date(lastDate).getTime() >= TWO_YEARS_MS;
-    }).length;
-    const highRiskCount = filteredWorkers.filter((w) => {
-        const risk = w.assessments[0]?.scoredResult?.overallRiskCategory;
-        return risk === "ALTO" || risk === "MUY_ALTO";
-    }).length;
-
-    const buildPageUrl = (p: number) => {
-        const params = new URLSearchParams();
-        if (q) params.set("q", q);
-        if (orgFilter) params.set("org", orgFilter);
-        if (levelFilter) params.set("level", levelFilter);
-        if (riskFilter) params.set("risk", riskFilter);
-        params.set("page", String(p));
-        return `/dashboard/workers?${params.toString()}`;
-    };
-
-    return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h2 className="text-xl font-semibold text-foreground">Trabajadores</h2>
-                    <p className="text-sm text-muted-foreground">
-                        {totalWorkers} trabajador{totalWorkers !== 1 ? "es" : ""}
-                        {q || orgFilter || levelFilter || riskFilter ? " (filtrado)" : " registrados"}
-                    </p>
-                </div>
-                <a
-                    href={`/api/workers/export${orgFilter ? `?orgId=${orgFilter}` : ""}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                    title="Exportar a CSV"
-                >
-                    <FileDown className="h-4 w-4" />
-                    Exportar CSV
-                </a>
             </div>
 
             {/* Stats cards */}
@@ -367,4 +310,9 @@ export default async function WorkersPage({ searchParams }: PageProps) {
             )}
         </div>
     );
+    } catch (error: any) {
+        console.error("🔴 [WorkersPage] FATAL ERROR:", error);
+        console.error("🔴 [WorkersPage] STACK:", error.stack);
+        throw error;
+    }
 }

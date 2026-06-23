@@ -764,8 +764,8 @@ export default function OrganizationDetailPage() {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Fecha de Nacimiento</Label>
-                                            <Input type="date" value={form.birthDate} onChange={e => setForm(f => ({ ...f, birthDate: e.target.value }))} />
+                                            <Label>Año de Nacimiento</Label>
+                                            <Input type="number" value={form.birthYear} onChange={e => setForm(f => ({ ...f, birthYear: e.target.value }))} placeholder="Ej: 1990" />
                                         </div>
                                     </div>
                                 </div>
@@ -936,8 +936,8 @@ export default function OrganizationDetailPage() {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Fecha de Nacimiento</Label>
-                                            <Input type="date" value={editWorkerForm.birthDate} onChange={e => setEditWorkerForm(f => ({ ...f, birthDate: e.target.value }))} />
+                                            <Label>Año de Nacimiento</Label>
+                                            <Input type="number" value={editWorkerForm.birthYear} onChange={e => setEditWorkerForm(f => ({ ...f, birthYear: e.target.value }))} placeholder="Ej: 1990" />
                                         </div>
                                     </div>
                                 </div>
