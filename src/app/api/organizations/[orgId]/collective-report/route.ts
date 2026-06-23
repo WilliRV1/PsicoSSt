@@ -31,7 +31,7 @@ export async function GET(
                 },
                 select: {
                     questionnaireType: true,
-                    scoredResult: { select: { overallRiskCategory: true } },
+                    scoredResult: { select: { overallRiskCategory: true, dimensionScores: true, domainScores: true } },
                 },
             },
         },
@@ -64,6 +64,59 @@ export async function GET(
         }
     }
 
+    // New logic: Detailed breakdown by form type, domains, and dimensions
+    const detailedBreakdown = {
+        formA: { totalWorkers: 0, dimensions: {} as Record<string, Record<string, number>>, domains: {} as Record<string, Record<string, number>> },
+        formB: { totalWorkers: 0, dimensions: {} as Record<string, Record<string, number>>, domains: {} as Record<string, Record<string, number>> },
+        extralaboral: { totalWorkers: 0, dimensions: {} as Record<string, Record<string, number>>, domains: {} as Record<string, Record<string, number>> },
+        stress: { totalWorkers: 0, riskCounts: Object.fromEntries(RISK_ORDER.map(k => [k, 0])) }
+    };
+
+    // Helper to safely aggregate
+    const aggregateRisks = (source: Record<string, any>, targetBreakdown: any) => {
+        if (!source || typeof source !== 'object') return;
+        for (const [key, value] of Object.entries(source)) {
+            const risk = value?.riskCategory;
+            if (!risk) continue;
+            if (!targetBreakdown[key]) targetBreakdown[key] = Object.fromEntries(RISK_ORDER.map(k => [k, 0]));
+            if (targetBreakdown[key][risk] !== undefined) {
+                targetBreakdown[key][risk]++;
+            }
+        }
+    };
+
+    for (const worker of workers) {
+        for (const assessment of worker.assessments) {
+            const result = assessment.scoredResult;
+            if (!result) continue;
+
+            const dimScores = result.dimensionScores as Record<string, any>;
+            const domScores = result.domainScores as Record<string, any>;
+
+            if (assessment.questionnaireType === "INTRALABORAL") {
+                if (worker.jobLevel === "JEFATURA" || worker.jobLevel === "PROFESIONAL" || worker.jobLevel === "TECNICO") {
+                    detailedBreakdown.formA.totalWorkers++;
+                    aggregateRisks(dimScores, detailedBreakdown.formA.dimensions);
+                    aggregateRisks(domScores, detailedBreakdown.formA.domains);
+                } else {
+                    detailedBreakdown.formB.totalWorkers++;
+                    aggregateRisks(dimScores, detailedBreakdown.formB.dimensions);
+                    aggregateRisks(domScores, detailedBreakdown.formB.domains);
+                }
+            } else if (assessment.questionnaireType === "EXTRALABORAL") {
+                detailedBreakdown.extralaboral.totalWorkers++;
+                aggregateRisks(dimScores, detailedBreakdown.extralaboral.dimensions);
+                aggregateRisks(domScores, detailedBreakdown.extralaboral.domains);
+            } else if (assessment.questionnaireType === "STRESS") {
+                detailedBreakdown.stress.totalWorkers++;
+                const risk = result.overallRiskCategory;
+                if (detailedBreakdown.stress.riskCounts[risk] !== undefined) {
+                    detailedBreakdown.stress.riskCounts[risk]++;
+                }
+            }
+        }
+    }
+
     // Overall totals
     const totalByRisk: Record<string, number> = Object.fromEntries(RISK_ORDER.map(k => [k, 0]));
     for (const entry of Object.values(areaMap)) {
@@ -82,6 +135,7 @@ export async function GET(
         psychologist,
         areas: Object.values(areaMap),
         totalByRisk,
+        detailedBreakdown,
         generatedAt: new Date().toISOString(),
     });
 }

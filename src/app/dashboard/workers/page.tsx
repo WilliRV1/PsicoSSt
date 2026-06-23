@@ -183,7 +183,7 @@ export default async function WorkersPage({ searchParams }: PageProps) {
             </div>
 
             {/* Filter bar */}
-            <Suspense>
+            <Suspense fallback={<div className="h-10 w-full animate-pulse bg-muted rounded-lg border border-border"></div>}>
                 <FilterBar
                     searchPlaceholder="Buscar por nombre o documento..."
                     filters={[
