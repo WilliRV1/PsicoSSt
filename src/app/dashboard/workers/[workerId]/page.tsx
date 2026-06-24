@@ -84,8 +84,8 @@ export default async function WorkerDetailPage({ params }: PageProps) {
     }
 
     const assessments = worker.assessments as any[];
-    const age = worker.birthDate
-        ? Math.floor((Date.now() - new Date(worker.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+    const age = worker.birthYear
+        ? new Date().getFullYear() - worker.birthYear
         : null;
 
     // Latest risk per questionnaire type

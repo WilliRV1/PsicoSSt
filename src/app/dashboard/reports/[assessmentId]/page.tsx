@@ -134,11 +134,9 @@ export default async function ReportPage({ params }: PageProps) {
     const extralaboralResults = otherAssessments.find((a: any) => a.questionnaireType === "EXTRALABORAL")?.scoredResult;
     const stressResults = otherAssessments.find((a: any) => a.questionnaireType === "STRESS")?.scoredResult;
 
-    const calculateAge = (birthDate: Date | null) => {
-        if (!birthDate) return "–";
-        const ageDifMs = Date.now() - new Date(birthDate).getTime();
-        const ageDate = new Date(ageDifMs);
-        return Math.abs(ageDate.getUTCFullYear() - 1970);
+    const calculateAge = (birthYear: number | null) => {
+        if (!birthYear) return "–";
+        return new Date().getFullYear() - birthYear;
     };
 
     // Group dimensions by domain for intralaboral reports
@@ -236,7 +234,7 @@ export default async function ReportPage({ params }: PageProps) {
                             </div>
                             <div className="info-item">
                                 <label>Edad</label>
-                                <span>{calculateAge(assessment.worker.birthDate)} años</span>
+                                <span>{calculateAge(assessment.worker.birthYear)} años</span>
                             </div>
                             <div className="info-item">
                                 <label>Estado Civil</label>

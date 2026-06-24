@@ -169,8 +169,8 @@ function processSociodemographics(workers: any[]) {
 function calculateAgeRange(workers: any[]) {
     const groups: any = { "18-25": 0, "26-35": 0, "36-45": 0, "46-55": 0, "55+": 0 };
     workers.forEach(w => {
-        if (!w.birthDate) return;
-        const age = Math.abs(new Date(Date.now() - new Date(w.birthDate).getTime()).getUTCFullYear() - 1970);
+        if (!w.birthYear) return;
+        const age = new Date().getFullYear() - w.birthYear;
         if (age <= 25) groups["18-25"]++;
         else if (age <= 35) groups["26-35"]++;
         else if (age <= 45) groups["36-45"]++;
