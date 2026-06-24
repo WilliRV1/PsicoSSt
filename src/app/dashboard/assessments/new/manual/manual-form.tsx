@@ -16,10 +16,11 @@ import { Input } from "@/components/ui/input";
 interface ManualFormProps {
     workerId: string;
     organizationId: string;
+    hasCustomerInteraction?: boolean;
     onSuccess: (result: any) => void;
 }
 
-export default function ManualForm({ workerId, organizationId, onSuccess }: ManualFormProps) {
+export default function ManualForm({ workerId, organizationId, hasCustomerInteraction = true, onSuccess }: ManualFormProps) {
     const [formType, setFormType] = useState<FormType>("A");
     const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
     const [responsesCache, setResponsesCache] = useState<Record<QuestionnaireType, ItemResponses>>({
@@ -35,11 +36,20 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
     const [assessmentDate, setAssessmentDate] = useState<string>(new Date().toISOString().substring(0, 10));
 
     const config = getFormConfig(formType, qType);
-    const totalItems = config?.totalItems || 0;
+    const rawTotalItems = config?.totalItems || 0;
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-    // Items list (1 to totalItems)
-    const items = Array.from({ length: totalItems }, (_, i) => i + 1);
+    // Items list (1 to totalItems), filtering out omitted ones
+    const items = Array.from({ length: rawTotalItems }, (_, i) => i + 1).filter(item => {
+        if (qType === "INTRALABORAL") {
+            const dim = config?.dimensions?.find((d: any) => d.items.includes(item));
+            if (dim?.key === "demandas_emocionales" && hasCustomerInteraction === false) {
+                return false;
+            }
+        }
+        return true;
+    });
+    const totalItems = items.length;
 
     // Calculate real-time score when responses change
     useEffect(() => {

@@ -248,7 +248,7 @@ export function scoreQuestionnaire(
                 dimensionKey: dim.key,
                 dimensionName: dim.name,
                 rawScore: 0,
-                maxPossible: dim.items.length * 4,
+                maxPossible: 0,
                 transformedScore: 0,
                 transformationFactor: 0,
                 riskCategory: "SIN_RIESGO",

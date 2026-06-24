@@ -213,6 +213,7 @@ export default function ManualEntryPage() {
                         <ManualForm
                             workerId={selectedWorker.id}
                             organizationId={selectedWorker.organizationId}
+                            hasCustomerInteraction={selectedWorker.hasCustomerInteraction}
                             onSuccess={(res) => setFinalResult({ id: res.id, result: res.result })}
                         />
                     </Card>
