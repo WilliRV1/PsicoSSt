@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
             assessmentDate: new Date(data.assessmentDate || Date.now()),
             responses: data.responses,
             occupationalGroup: data.occupationalGroup,
+            hasCustomerInteraction: data.hasCustomerInteraction,
             informedConsent: data.informedConsent
         });
 

@@ -21,6 +21,12 @@ interface ManualFormProps {
 }
 
 export default function ManualForm({ workerId, organizationId, hasCustomerInteraction = true, onSuccess }: ManualFormProps) {
+    const [attendsCustomers, setAttendsCustomers] = useState<boolean>(hasCustomerInteraction);
+
+    useEffect(() => {
+        setAttendsCustomers(hasCustomerInteraction);
+    }, [hasCustomerInteraction]);
+
     const [formType, setFormType] = useState<FormType>("A");
     const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
     const [responsesCache, setResponsesCache] = useState<Record<QuestionnaireType, ItemResponses>>({
@@ -43,7 +49,7 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
     const items = Array.from({ length: rawTotalItems }, (_, i) => i + 1).filter(item => {
         if (qType === "INTRALABORAL") {
             const dim = config?.dimensions?.find((d: any) => d.items.includes(item));
-            if (dim?.key === "demandas_emocionales" && hasCustomerInteraction === false) {
+            if (dim?.key === "demandas_emocionales" && attendsCustomers === false) {
                 return false;
             }
         }
@@ -130,6 +136,7 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
                     questionnaireType: qType,
                     responses,
                     assessmentDate: new Date(assessmentDate).toISOString(),
+                    hasCustomerInteraction: attendsCustomers,
                     informedConsent: {
                         consentGranted: true,
                         consentMethod: "WRITTEN",
@@ -204,6 +211,25 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
                                 <option value="A">Forma A (Jefes/Profesionales)</option>
                                 <option value="B">Forma B (Auxiliares/Operativos)</option>
                             </select>
+                        </div>
+                    )}
+                    {qType === "INTRALABORAL" && (
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">¿Atiende clientes?</label>
+                            <div className="flex h-9 rounded-md border border-input p-0.5 bg-muted/30">
+                                <button
+                                    onClick={() => setAttendsCustomers(true)}
+                                    className={`flex-1 rounded text-xs font-bold transition-colors ${attendsCustomers ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
+                                >
+                                    SÍ
+                                </button>
+                                <button
+                                    onClick={() => setAttendsCustomers(false)}
+                                    className={`flex-1 rounded text-xs font-bold transition-colors ${!attendsCustomers ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
+                                >
+                                    NO
+                                </button>
+                            </div>
                         </div>
                     )}
                     <div className="w-full lg:w-auto lg:ml-auto flex flex-col gap-2 min-w-[250px]">

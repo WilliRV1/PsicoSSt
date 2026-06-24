@@ -20,6 +20,7 @@ export class AssessmentService {
         assessmentDate: Date;
         responses: ItemResponses;
         occupationalGroup?: string;
+        hasCustomerInteraction?: boolean;
         inputMethod?: "MANUAL" | "BULK";
         informedConsent?: {
             consentGranted: boolean;
@@ -39,12 +40,22 @@ export class AssessmentService {
             where: { id: data.workerId },
             select: {
                 gender: true,
-                jobLevel: true
-                // hasCustomerInteraction: true // Field missing in current DB schema
+                jobLevel: true,
+                hasCustomerInteraction: true
             }
         });
 
         if (!worker) throw new Error("Trabajador no encontrado");
+
+        // Override worker profile if UI provided a different hasCustomerInteraction
+        if (data.hasCustomerInteraction !== undefined && (worker as any).hasCustomerInteraction !== data.hasCustomerInteraction) {
+            console.log("Updating worker hasCustomerInteraction to", data.hasCustomerInteraction);
+            await prisma.worker.update({
+                where: { id: data.workerId },
+                data: { hasCustomerInteraction: data.hasCustomerInteraction }
+            });
+            (worker as any).hasCustomerInteraction = data.hasCustomerInteraction;
+        }
 
         // 1. Calculate scores using the pure scoring engine
         console.log("Calculando puntajes para:", data.workerId);
@@ -56,7 +67,7 @@ export class AssessmentService {
                 occupationalGroup: data.occupationalGroup,
                 gender: (worker as any).gender || "F",
                 jobLevel: (worker as any).jobLevel,
-                hasCustomerInteraction: true // Default to true since field is missing in DB
+                hasCustomerInteraction: (worker as any).hasCustomerInteraction
             }
         );
 
