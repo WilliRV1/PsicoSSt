@@ -294,15 +294,19 @@ const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any }) => {
                     
                     <div className="space-y-2">
                         <Label>Horas diarias establecidas</Label>
-                        <Input type="number" step="0.1" placeholder="Ej: 8.5" value={form.hoursPerDay} onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} />
+                        <Input type="text" placeholder="Ej: 8:30 o 8" value={form.hoursPerDay} onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Horas semanales establecidas</Label>
+                        <Input type="text" placeholder="Ej: 48:30 o 48" value={form.hoursPerWeek} onChange={e => setForm((f:any) => ({ ...f, hoursPerWeek: e.target.value }))} />
                     </div>
                     <div className="space-y-2">
                         <Label>Tipo de salario</Label>
                         <select value={form.paymentModality} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
-                            <option value="Fijo">Fijo (Integral o mensual)</option>
+                            <option value="Fijo">Fijo (diario, semanal, quincenal o mensual)</option>
                             <option value="Fijo_y_variable">Una parte fija y otra variable</option>
-                            <option value="Todo_variable">Todo variable (A destajo, comisiones)</option>
+                            <option value="Todo_variable">Todo variable (a destajo, por produccion, por comision)</option>
                         </select>
                     </div>
                 </div>

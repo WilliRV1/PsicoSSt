@@ -120,8 +120,8 @@ model Worker {
   yearsInPosition        Int?              @map("years_in_position")
   contractType           String?           @map("contract_type")
   workSchedule           String?           @map("work_schedule")
-  hoursPerDay            Float?            @map("hours_per_day")
-  hoursPerWeek           Int?              @map("hours_per_week")
+  hoursPerDay            String?           @map("hours_per_day")
+  hoursPerWeek           String?           @map("hours_per_week")
   paymentModality        String?           @map("payment_modality")
   organizationId         String            @map("organization_id") @db.Uuid
   createdAt              DateTime          @default(now()) @map("created_at")

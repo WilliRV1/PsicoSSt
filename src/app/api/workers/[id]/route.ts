@@ -121,8 +121,8 @@ export async function PUT(
                 yearsInPosition: yearsInPosition ? parseInt(yearsInPosition) : null,
                 contractType: contractType || null,
                 workSchedule: workSchedule || null,
-                hoursPerDay: hoursPerDay ? parseFloat(hoursPerDay) : null,
-                hoursPerWeek: hoursPerWeek ? parseInt(hoursPerWeek) : null,
+                hoursPerDay: hoursPerDay ? String(hoursPerDay) : null,
+                hoursPerWeek: hoursPerWeek ? String(hoursPerWeek) : null,
                 paymentModality: paymentModality || null,
             }
         });
