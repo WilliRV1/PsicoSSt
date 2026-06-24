@@ -73,9 +73,11 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
     };
 
     const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
-        if (e.key >= "0" && e.key <= "4") {
+        const maxVal = qType === 'STRESS' ? 4 : 5;
+        const keyVal = parseInt(e.key);
+        if (!isNaN(keyVal) && keyVal >= 1 && keyVal <= maxVal) {
             e.preventDefault();
-            handleValueChange(items[index], parseInt(e.key));
+            handleValueChange(items[index], keyVal - 1);
         } else if (e.key === "ArrowDown" || e.key === "Enter") {
             e.preventDefault();
             if (index < totalItems - 1) {
@@ -217,18 +219,18 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Convenciones del Cuestionario</p>
                         {qType === 'STRESS' ? (
                             <div className="flex flex-wrap gap-3 text-sm">
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">0</kbd> = Siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Casi siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = A veces</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = Nunca</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = Casi siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = A veces</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">4</kbd> = Nunca</span>
                             </div>
                         ) : (
                             <div className="flex flex-wrap gap-3 text-sm">
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">0</kbd> = Siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Casi siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = Algunas veces</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = Casi nunca</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">4</kbd> = Nunca</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = Casi siempre</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = Algunas veces</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">4</kbd> = Casi nunca</span>
+                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">5</kbd> = Nunca</span>
                             </div>
                         )}
                     </div>
@@ -250,21 +252,21 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                                 <input
                                     ref={el => { inputRefs.current[idx] = el; }}
                                     type="text"
-                                    value={responses[String(item)] ?? ""}
+                                    value={responses[String(item)] !== undefined ? responses[String(item)] + 1 : ""}
                                     onKeyDown={(e) => handleKeyDown(e, idx)}
                                     readOnly
                                     placeholder="?"
                                     className={`w-14 h-12 text-center font-black text-xl border-2 rounded-lg focus:outline-none transition-colors ${currentIndex === idx ? 'border-indigo-500 bg-card text-indigo-700 focus:ring-4 focus:ring-indigo-500/20' : 'border-border bg-muted text-foreground'}`}
                                 />
                                 <div className="ml-6 flex gap-2">
-                                    {(qType === 'STRESS' ? [0, 1, 2, 3] : [0, 1, 2, 3, 4]).map(v => (
+                                    {(qType === 'STRESS' ? [1, 2, 3, 4] : [1, 2, 3, 4, 5]).map(v => (
                                         <button
                                             key={v}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleValueChange(item, v);
+                                                handleValueChange(item, v - 1);
                                             }}
-                                            className={`w-10 h-10 text-sm font-bold rounded-lg flex items-center justify-center transition-all ${responses[String(item)] === v
+                                            className={`w-10 h-10 text-sm font-bold rounded-lg flex items-center justify-center transition-all ${responses[String(item)] === v - 1
                                                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 scale-105"
                                                 : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                                                 }`}
