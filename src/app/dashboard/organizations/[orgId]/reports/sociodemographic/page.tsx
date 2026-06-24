@@ -75,6 +75,8 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                     <div className="segment-grid">
                         <ChartBox title="Rangos de Edad" distribution={stats.age} />
                         <ChartBox title="Distribución por Género" distribution={stats.gender} />
+                        <ChartBox title="Estado Civil" distribution={stats.maritalStatus} />
+                        <ChartBox title="Personas a Cargo" distribution={stats.dependents} />
                     </div>
                 </section>
 
@@ -83,6 +85,10 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                     <div className="segment-grid">
                         <ChartBox title="Nivel de Escolaridad" distribution={stats.education} />
                         <ChartBox title="Nivel Jerárquico" distribution={stats.jobLevel} />
+                        <ChartBox title="Área / Departamento" distribution={stats.departmentArea} />
+                        <ChartBox title="Tipo de Contrato" distribution={stats.contractType} />
+                        <ChartBox title="Modalidad de Pago" distribution={stats.paymentModality} />
+                        <ChartBox title="Atención al Público" distribution={stats.customerInteraction} />
                     </div>
                     <div className="mt-6">
                         <ChartBox title="Antigüedad en la Organización" distribution={stats.tenure} />
@@ -90,10 +96,12 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                 </section>
 
                 <section className="report-section">
-                    <h2 className="section-title">3. Condiciones de Vida</h2>
+                    <h2 className="section-title">3. Condiciones de Vida y Entorno</h2>
                     <div className="segment-grid">
                         <ChartBox title="Tipo de Vivienda" distribution={stats.housing} />
                         <ChartBox title="Estrato Socioeconómico" distribution={stats.stratum} />
+                        <ChartBox title="Ciudad de Residencia" distribution={stats.residenceCity} />
+                        <ChartBox title="Medio de Transporte Principal" distribution={stats.transportMeans} />
                     </div>
                 </section>
 
@@ -146,7 +154,10 @@ function processSociodemographics(workers: any[]) {
     const calc = (field: string) => {
         const counts: any = {};
         workers.forEach(w => {
-            const val = w[field] || "No especificado";
+            let val = w[field];
+            if (val === true) val = "Sí";
+            else if (val === false) val = "No";
+            else if (!val) val = "No especificado";
             counts[val] = (counts[val] || 0) + 1;
         });
         const dist: any = {};
@@ -157,11 +168,19 @@ function processSociodemographics(workers: any[]) {
     return {
         age: calculateAgeRange(workers),
         gender: calc("gender"),
+        maritalStatus: calc("maritalStatus"),
+        dependents: calculateDependents(workers),
         education: calc("educationLevel"),
         jobLevel: calc("jobLevel"),
+        departmentArea: calc("departmentArea"),
+        contractType: calc("contractType"),
+        paymentModality: calc("paymentModality"),
         tenure: calculateTenureRange(workers),
         housing: calc("housingType"),
         stratum: calc("socioeconomicStratum"),
+        residenceCity: calc("residenceCity"),
+        transportMeans: calc("transportMeans"),
+        customerInteraction: calc("hasCustomerInteraction"),
         freeTime: calculateFreeTime(workers)
     };
 }
@@ -194,6 +213,22 @@ function calculateTenureRange(workers: any[]) {
     });
     const dist: any = {};
     Object.entries(groups).forEach(([k, v]: [string, any]) => dist[k] = Math.round((v / (workers.length || 1)) * 100));
+    return dist;
+}
+
+function calculateDependents(workers: any[]) {
+    const groups: any = { "Ninguna": 0, "1 a 2": 0, "3 o más": 0, "No especificado": 0 };
+    workers.forEach(w => {
+        const d = w.dependentsCount;
+        if (d === null || d === undefined) groups["No especificado"]++;
+        else if (d === 0) groups["Ninguna"]++;
+        else if (d <= 2) groups["1 a 2"]++;
+        else groups["3 o más"]++;
+    });
+    const dist: any = {};
+    Object.entries(groups).forEach(([k, v]: [string, any]) => {
+        if (v > 0) dist[k] = Math.round((v / (workers.length || 1)) * 100);
+    });
     return dist;
 }
 
