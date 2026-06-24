@@ -135,7 +135,7 @@ export default async function WorkersPage({ searchParams }: PageProps) {    con
                     </p>
                 </div>
                 <a
-                    href={`/api/workers/export${orgFilter ? \`?orgId=\${orgFilter}\` : ""}`}
+                    href={"/api/workers/export" + (orgFilter ? "?orgId=" + orgFilter : "")}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
                     title="Exportar a CSV"
                 >

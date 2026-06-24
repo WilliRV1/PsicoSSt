@@ -162,6 +162,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                             Volver
                         </Link>
                     </div>
+                </div>
             </div>
 
             {/* Risk summary cards */}
