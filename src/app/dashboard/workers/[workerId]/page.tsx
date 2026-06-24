@@ -146,14 +146,22 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                             )}
                         </div>
                     </div>
-                    <Link
-                        href={`/dashboard/organizations/${worker.organization.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors shrink-0"
-                    >
-                        <ArrowLeft className="h-3.5 w-3.5" />
-                        Volver
-                    </Link>
-                </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                            href={`/dashboard/organizations/${worker.organization.id}?editWorker=${worker.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors shadow-sm"
+                        >
+                            <PenLine className="h-4 w-4" />
+                            Editar Trabajador
+                        </Link>
+                        <Link
+                            href={`/dashboard/organizations/${worker.organization.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Volver
+                        </Link>
+                    </div>
             </div>
 
             {/* Risk summary cards */}
