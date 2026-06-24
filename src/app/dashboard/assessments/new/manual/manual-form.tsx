@@ -32,6 +32,7 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [realTimeScore, setRealTimeScore] = useState<ScoredResultData | null>(null);
+    const [assessmentDate, setAssessmentDate] = useState<string>(new Date().toISOString().substring(0, 10));
 
     const config = getFormConfig(formType, qType);
     const totalItems = config?.totalItems || 0;
@@ -116,7 +117,7 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                     formType,
                     questionnaireType: qType,
                     responses,
-                    assessmentDate: new Date().toISOString(),
+                    assessmentDate: new Date(assessmentDate).toISOString(),
                     informedConsent: {
                         consentGranted: true,
                         consentMethod: "WRITTEN",
@@ -163,6 +164,16 @@ export default function ManualForm({ workerId, organizationId, onSuccess }: Manu
                             <option value="EXTRALABORAL">Extralaboral</option>
                             <option value="STRESS">Estrés</option>
                         </select>
+                    </div>
+                    <div className="flex-1 min-w-[150px]">
+                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Fecha Aplicación</label>
+                        <Input
+                            type="date"
+                            value={assessmentDate}
+                            onChange={(e) => setAssessmentDate(e.target.value)}
+                            max={new Date().toISOString().substring(0, 10)}
+                            className="h-9 font-medium"
+                        />
                     </div>
                     {qType === "INTRALABORAL" && (
                         <div className="flex-1 min-w-[200px]">
