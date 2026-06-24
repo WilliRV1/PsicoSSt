@@ -281,7 +281,7 @@ async function handler() {
           yearsInPosition: w.yearsPos,
           contractType: w.contract,
           workSchedule: w.schedule,
-          hoursPerWeek: w.hours,
+          hoursPerWeek: String(w.hours),
           organizationId: w.orgId,
         },
       });
