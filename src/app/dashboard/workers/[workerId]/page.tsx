@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, MapPin, Calendar, AlertTriangle, RefreshCw } from "lucide-react";
+import EditWorkerProfileButton from "@/components/workers/EditWorkerProfileButton";
 import WorkerTrendChart from "@/components/workers/worker-trend-chart";
 
 const riskColors: Record<string, string> = {
@@ -147,13 +148,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                        <Link
-                            href={`/dashboard/organizations/${worker.organization.id}?editWorker=${worker.id}`}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors shadow-sm"
-                        >
-                            <PenLine className="h-4 w-4" />
-                            Editar Trabajador
-                        </Link>
+                        <EditWorkerProfileButton worker={worker} />
                         <Link
                             href={`/dashboard/organizations/${worker.organization.id}`}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
