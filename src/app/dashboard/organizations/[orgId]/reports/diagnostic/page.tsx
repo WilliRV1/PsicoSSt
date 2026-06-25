@@ -446,7 +446,15 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     <a href={`/dashboard/organizations/${orgId}`} className="px-6 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-all">
                         ← Volver
                     </a>
-                    <PrintButton />
+                    <PrintButton 
+                        orgName={org.name}
+                        orgNit={org.nit}
+                        orgCity={org.city || undefined}
+                        psychologistName={org.psychologist.fullName}
+                        psychologistLicense={org.psychologist.licenseNumber}
+                        totalWorkers={executiveSummary.uniqueWorkers}
+                        reportDate={new Date().toLocaleDateString('es-CO')}
+                    />
                 </footer>
             </div>
         </div>

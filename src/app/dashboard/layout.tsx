@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "./dashboard-shell";
+import SupportWidget from "@/components/dashboard/support-widget";
 
 export default async function DashboardLayout({
     children,
@@ -30,6 +31,7 @@ export default async function DashboardLayout({
             }}
         >
             {children}
+            <SupportWidget />
         </DashboardShell>
     );
 }

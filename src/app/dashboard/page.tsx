@@ -11,6 +11,7 @@ import AssessmentsByMonthChart, { MonthlyData } from "@/components/dashboard/ass
 import RiskDistributionChart from "@/components/dashboard/risk-distribution-chart";
 import OrgRiskSummaryTable, { OrgSummary } from "@/components/dashboard/org-risk-summary-table";
 import OrgDetailPanel from "@/components/dashboard/org-detail-panel";
+import EmptyDashboardState from "@/components/dashboard/empty-dashboard-state";
 
 const riskConfig: Record<string, { label: string; color: string; bar: string }> = {
     SIN_RIESGO: { label: "Sin Riesgo", color: "text-green-700",  bar: "bg-green-500" },
@@ -287,6 +288,10 @@ export default async function DashboardPage() {
         .filter(r => r.count > 0);
 
     const alertCount = criticalWorkerCount;
+
+    if (orgCount === 0) {
+        return <EmptyDashboardState firstName={firstName} />;
+    }
 
     return (
         <div className="space-y-6">
