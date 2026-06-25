@@ -125,16 +125,23 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
     return (
         <div>
             {showCustom ? (
-                <div className="flex gap-2 items-center mt-1">
-                    <Input 
-                        value={selectedValue === "OTRO" ? "" : selectedValue} 
-                        onChange={e => setForm((f:any) => ({ ...f, [fieldKey]: e.target.value }))} 
-                        className="border-gray-300 bg-gray-50 h-9"
-                        placeholder={placeholder} 
-                        autoFocus={selectedValue === "OTRO"}
-                    />
-                    {!noOptionsAvailable && (
-                        <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                <div className="mt-1">
+                    <div className="flex gap-2 items-center">
+                        <Input 
+                            value={selectedValue === "OTRO" ? "" : selectedValue} 
+                            onChange={e => setForm((f:any) => ({ ...f, [fieldKey]: e.target.value }))} 
+                            className="border-gray-300 bg-gray-50 h-9"
+                            placeholder={placeholder} 
+                            autoFocus={selectedValue === "OTRO"}
+                        />
+                        {!noOptionsAvailable && (
+                            <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Cancelar</button>
+                        )}
+                    </div>
+                    {((selectedValue === "OTRO" || selectedValue !== "") && !isKnown) && (
+                        <p className="text-[11px] text-gray-500 mt-1 italic">
+                            Se guardará como una nueva opción para la empresa.
+                        </p>
                     )}
                 </div>
             ) : (
@@ -145,7 +152,7 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                 >
                     <option value="">Seleccione...</option>
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
-                    <option value="OTRO">Otro / Escribir nuevo...</option>
+                    <option value="OTRO" className="font-semibold text-indigo-600">+ Crear nuevo...</option>
                 </select>
             )}
         </div>
