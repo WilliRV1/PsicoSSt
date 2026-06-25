@@ -114,6 +114,7 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setF
 
 export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any, setForm: any, organizationId?: string }) => {
     const [existingDepartments, setExistingDepartments] = useState<string[]>([]);
+    const [existingJobTitles, setExistingJobTitles] = useState<string[]>([]);
 
     useEffect(() => {
         if (organizationId) {
@@ -121,13 +122,21 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
                 .then(res => res.json())
                 .then(data => {
                     if (data.departments) setExistingDepartments(data.departments);
+                    if (data.jobTitles) setExistingJobTitles(data.jobTitles);
                 })
-                .catch(err => console.error("Error fetching departments:", err));
+                .catch(err => console.error("Error fetching autocomplete data:", err));
         }
     }, [organizationId]);
 
     return (
         <div className="space-y-8">
+            <datalist id={`dept-list-${organizationId || 'new'}`}>
+                {existingDepartments.map(d => <option key={d} value={d} />)}
+            </datalist>
+            <datalist id={`job-list-${organizationId || 'new'}`}>
+                {existingJobTitles.map(j => <option key={j} value={j} />)}
+            </datalist>
+            
             <div className="bg-white text-black p-6 border rounded-lg shadow-sm">
                 <div className="flex justify-between items-start border-b border-gray-300 pb-4 mb-6">
                     <div className="space-y-4 flex-1">
@@ -288,7 +297,13 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
                     {/* 12. Nombre del cargo */}
                     <div className="space-y-2">
                         <Label className="font-bold">12. ¿Cuál es el nombre del cargo que ocupa en la empresa?</Label>
-                        <Input value={form.jobTitle} onChange={e => setForm((f:any) => ({ ...f, jobTitle: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                        <Input 
+                            value={form.jobTitle} 
+                            onChange={e => setForm((f:any) => ({ ...f, jobTitle: e.target.value }))} 
+                            className="border-gray-300 bg-gray-50" 
+                            list={`job-list-${organizationId || 'new'}`}
+                            autoComplete="off"
+                        />
                     </div>
 
                     {/* 13. Tipo de cargo */}
@@ -323,7 +338,13 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
                     {/* 15. Departamento/área */}
                     <div className="space-y-2">
                         <Label className="font-bold">15. Escriba el nombre del departamento, área o sección de la empresa en el que trabaja</Label>
-                        <Input value={form.departmentArea} onChange={e => setForm((f:any) => ({ ...f, departmentArea: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                        <Input 
+                            value={form.departmentArea} 
+                            onChange={e => setForm((f:any) => ({ ...f, departmentArea: e.target.value }))} 
+                            className="border-gray-300 bg-gray-50" 
+                            list={`dept-list-${organizationId || 'new'}`}
+                            autoComplete="off"
+                        />
                     </div>
 
                     {/* 16. Tipo de contrato */}

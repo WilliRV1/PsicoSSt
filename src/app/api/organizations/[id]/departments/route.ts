@@ -25,20 +25,30 @@ export async function GET(
         }
 
         // Fetch distinct departments
-        const workers = await prisma.worker.findMany({
-            where: { 
-                organizationId: id,
-            },
+        const depts = await prisma.worker.findMany({
+            where: { organizationId: id },
             select: { departmentArea: true },
             distinct: ["departmentArea"],
             orderBy: { departmentArea: "asc" }
         });
 
-        const departments = workers
+        // Fetch distinct job titles
+        const jobs = await prisma.worker.findMany({
+            where: { organizationId: id },
+            select: { jobTitle: true },
+            distinct: ["jobTitle"],
+            orderBy: { jobTitle: "asc" }
+        });
+
+        const departments = depts
             .map(w => w.departmentArea)
             .filter(Boolean) as string[];
 
-        return NextResponse.json({ departments });
+        const jobTitles = jobs
+            .map(w => w.jobTitle)
+            .filter(Boolean) as string[];
+
+        return NextResponse.json({ departments, jobTitles });
     } catch (error) {
         console.error("Error fetching departments:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
