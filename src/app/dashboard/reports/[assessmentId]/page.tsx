@@ -131,8 +131,15 @@ export default async function ReportPage({ params }: PageProps) {
     // Extract other assessment results for aggregation
     const assessments = (assessment.worker as any)?.assessments || [];
     const otherAssessments = assessments.filter((a: any) => a.id !== assessment.id);
-    const extralaboralResults = otherAssessments.find((a: any) => a.questionnaireType === "EXTRALABORAL")?.scoredResult;
-    const stressResults = otherAssessments.find((a: any) => a.questionnaireType === "STRESS")?.scoredResult;
+    
+    // Determine which complementary results to show
+    const isIntra = assessment.questionnaireType === "INTRALABORAL";
+    const isExtra = assessment.questionnaireType === "EXTRALABORAL";
+    const isStress = assessment.questionnaireType === "STRESS";
+
+    const intralaboralResults = isIntra ? null : otherAssessments.find((a: any) => a.questionnaireType === "INTRALABORAL")?.scoredResult;
+    const extralaboralResults = isExtra ? null : otherAssessments.find((a: any) => a.questionnaireType === "EXTRALABORAL")?.scoredResult;
+    const stressResults = isStress ? null : otherAssessments.find((a: any) => a.questionnaireType === "STRESS")?.scoredResult;
 
     const calculateAge = (birthYear: number | null) => {
         if (!birthYear) return "–";
@@ -259,11 +266,11 @@ export default async function ReportPage({ params }: PageProps) {
                         </div>
                     </section>
 
-                    {/* ═══════════════ INTRALABORAL RESULTS ═══════════════ */}
+                    {/* ═══════════════ MAIN ASSESSMENT RESULTS ═══════════════ */}
                     <section className="report-section">
-                        <h3>3. Resultados de Factores Intralaborales</h3>
+                        <h3>3. Resultados de {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}</h3>
                         <div className={`total-result-card ${getRiskClass(overallRisk)}`}>
-                            <div className="total-result-label">Nivel de Riesgo Intralaboral Total</div>
+                            <div className="total-result-label">Nivel de Riesgo Total ({questionnaireLabels[assessment.questionnaireType]})</div>
                             <div className="total-result-value">{riskLabels[overallRisk] || overallRisk}</div>
                         </div>
 
@@ -303,79 +310,100 @@ export default async function ReportPage({ params }: PageProps) {
                         ))}
                     </section>
 
-                    {/* ═══════════════ EXTRALABORAL RESULTS (Aggregated) ═══════════════ */}
-                    <section className="report-section">
-                        <h3>4. Resultados de Factores Extralaborales</h3>
-                        {extralaboralResults ? (
-                            <>
-                                <div className={`total-result-card ${getRiskClass((extralaboralResults as any).overallRiskCategory)}`}>
-                                    <div className="total-result-label">Nivel de Riesgo Extralaboral Total</div>
-                                    <div className="total-result-value">{riskLabels[(extralaboralResults as any).overallRiskCategory] || (extralaboralResults as any).overallRiskCategory}</div>
-                                </div>
-                                <table className="results-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Dimensión</th>
-                                            <th className="center">Categoría de Riesgo</th>
-                                            <th className="center">Puntaje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {Object.values((extralaboralResults as any).dimensionScores).map((dim: any) => (
-                                            <tr key={dim.dimensionKey}>
-                                                <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
-                                                <td className="center">
-                                                    <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                        {riskLabels[dim.riskCategory] || dim.riskCategory}
-                                                    </span>
-                                                </td>
-                                                <td className="center">{dim.transformedScore.toFixed(1)}%</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </>
-                        ) : (
-                            <p className="no-data">No se registran valoraciones extralaborales en el ciclo actual.</p>
-                        )}
-                    </section>
+                    {/* ═══════════════ COMPLEMENTARY RESULTS ═══════════════ */}
+                    
+                    {!isIntra && (
+                        <section className="report-section">
+                            <h3>4. Resultados de Factores Intralaborales</h3>
+                            {intralaboralResults ? (
+                                <>
+                                    <div className={`total-result-card ${getRiskClass((intralaboralResults as any).overallRiskCategory)}`}>
+                                        <div className="total-result-label">Nivel de Riesgo Intralaboral Total</div>
+                                        <div className="total-result-value">{riskLabels[(intralaboralResults as any).overallRiskCategory] || (intralaboralResults as any).overallRiskCategory}</div>
+                                    </div>
+                                    <p className="no-data" style={{ padding: "1rem", textAlign: "left" }}>* Los detalles por dominio y dimensión están disponibles en el informe específico Intralaboral.</p>
+                                </>
+                            ) : (
+                                <p className="no-data">No se registran valoraciones intralaborales en el ciclo actual.</p>
+                            )}
+                        </section>
+                    )}
 
-                    {/* ═══════════════ STRESS RESULTS (Aggregated) ═══════════════ */}
-                    <section className="report-section">
-                        <h3>5. Evaluación del Estrés</h3>
-                        {stressResults ? (
-                            <>
-                                <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
-                                    <div className="total-result-label">Nivel de Síntomas de Estrés</div>
-                                    <div className="total-result-value">{riskLabels[(stressResults as any).overallRiskCategory] || (stressResults as any).overallRiskCategory}</div>
-                                </div>
-                                <table className="results-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Categoría de Síntomas</th>
-                                            <th className="center">Categoría de Riesgo</th>
-                                            <th className="center">Puntaje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {Object.values((stressResults as any).dimensionScores).map((dim: any) => (
-                                            <tr key={dim.dimensionKey}>
-                                                <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
-                                                <td className="center">
-                                                    <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                        {riskLabels[dim.riskCategory] || dim.riskCategory}
-                                                    </span>
-                                                </td>
-                                                <td className="center">{dim.transformedScore.toFixed(1)}%</td>
+                    {!isExtra && (
+                        <section className="report-section">
+                            <h3>{isIntra ? "4." : "5."} Resultados de Factores Extralaborales</h3>
+                            {extralaboralResults ? (
+                                <>
+                                    <div className={`total-result-card ${getRiskClass((extralaboralResults as any).overallRiskCategory)}`}>
+                                        <div className="total-result-label">Nivel de Riesgo Extralaboral Total</div>
+                                        <div className="total-result-value">{riskLabels[(extralaboralResults as any).overallRiskCategory] || (extralaboralResults as any).overallRiskCategory}</div>
+                                    </div>
+                                    <table className="results-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Dimensión</th>
+                                                <th className="center">Categoría de Riesgo</th>
+                                                <th className="center">Puntaje</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </>
-                        ) : (
-                            <p className="no-data">No se registran valoraciones de estrés en el ciclo actual.</p>
-                        )}
-                    </section>
+                                        </thead>
+                                        <tbody>
+                                            {Object.values((extralaboralResults as any).dimensionScores).map((dim: any) => (
+                                                <tr key={dim.dimensionKey}>
+                                                    <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
+                                                    <td className="center">
+                                                        <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
+                                                            {riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                        </span>
+                                                    </td>
+                                                    <td className="center">{dim.transformedScore.toFixed(1)}%</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </>
+                            ) : (
+                                <p className="no-data">No se registran valoraciones extralaborales en el ciclo actual.</p>
+                            )}
+                        </section>
+                    )}
+
+                    {!isStress && (
+                        <section className="report-section">
+                            <h3>{isIntra && isExtra ? "6." : (isIntra || isExtra ? "5." : "4.")} Evaluación del Estrés</h3>
+                            {stressResults ? (
+                                <>
+                                    <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
+                                        <div className="total-result-label">Nivel de Síntomas de Estrés</div>
+                                        <div className="total-result-value">{riskLabels[(stressResults as any).overallRiskCategory] || (stressResults as any).overallRiskCategory}</div>
+                                    </div>
+                                    <table className="results-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Categoría de Síntomas</th>
+                                                <th className="center">Categoría de Riesgo</th>
+                                                <th className="center">Puntaje</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Object.values((stressResults as any).dimensionScores).map((dim: any) => (
+                                                <tr key={dim.dimensionKey}>
+                                                    <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
+                                                    <td className="center">
+                                                        <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
+                                                            {riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                        </span>
+                                                    </td>
+                                                    <td className="center">{dim.transformedScore.toFixed(1)}%</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </>
+                            ) : (
+                                <p className="no-data">No se registran valoraciones de estrés en el ciclo actual.</p>
+                            )}
+                        </section>
+                    )}
 
                     {/* ═══════════════ DOMAINS SUMMARY ═══════════════ */}
                     {Object.keys(domainScores).length > 0 && (
