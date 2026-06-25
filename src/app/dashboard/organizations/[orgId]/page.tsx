@@ -105,215 +105,256 @@ const EMPTY_WORKER_FORM = {
 const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any }) => {
     return (
         <div className="space-y-8">
-            {/* Section 1: Identification */}
-            <div>
-                <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                    1. Identificación y Personales
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-2 space-y-2">
-                        <Label>Nombre completo *</Label>
-                        <Input required value={form.fullName} onChange={e => setForm((f:any) => ({ ...f, fullName: e.target.value }))} />
+            <div className="bg-white text-black p-6 border rounded-lg shadow-sm">
+                <div className="flex justify-between items-start border-b border-gray-300 pb-4 mb-6">
+                    <div className="space-y-4 flex-1">
+                        <div className="flex items-center gap-4">
+                            <span className="font-bold whitespace-nowrap">Fecha de aplicación:</span>
+                            <span className="text-gray-400 italic text-sm">dd mm aaaa (Sólo lectura en creación)</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="font-bold whitespace-nowrap">del respondiente (ID):</span>
+                            <div className="flex gap-2">
+                                <select value={form.documentType} onChange={e => setForm((f:any) => ({ ...f, documentType: e.target.value }))} className="border border-gray-300 p-1 text-sm bg-white rounded">
+                                    <option value="CC">CC</option>
+                                    <option value="CE">CE</option>
+                                    <option value="TI">TI</option>
+                                    <option value="PA">PA</option>
+                                    <option value="OTHER">Otro</option>
+                                </select>
+                                <Input required value={form.documentId} onChange={e => setForm((f:any) => ({ ...f, documentId: e.target.value }))} className="border-gray-300 h-8" placeholder="Número" />
+                            </div>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Tipo de Documento</Label>
-                        <select value={form.documentType} onChange={e => setForm((f:any) => ({ ...f, documentType: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="CC">Cédula de Ciudadanía</option>
-                            <option value="CE">Cédula de Extranjería</option>
-                            <option value="TI">Tarjeta de Identidad</option>
-                            <option value="PA">Pasaporte</option>
-                            <option value="OTHER">Otro</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Número de Documento *</Label>
-                        <Input required value={form.documentId} onChange={e => setForm((f:any) => ({ ...f, documentId: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Sexo</Label>
-                        <select value={form.gender} onChange={e => setForm((f:any) => ({ ...f, gender: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="">Seleccione...</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
-                            <option value="NO_BINARIO">No binario</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Año de nacimiento</Label>
-                        <Input type="number" value={form.birthYear} onChange={e => setForm((f:any) => ({ ...f, birthYear: e.target.value }))} placeholder="Ej: 1990" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Estado Civil</Label>
-                        <select value={form.maritalStatus} onChange={e => setForm((f:any) => ({ ...f, maritalStatus: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="">Seleccione...</option>
-                            <option value="Soltero">Soltero(a)</option>
-                            <option value="Casado">Casado(a)</option>
-                            <option value="Union_libre">Unión libre</option>
-                            <option value="Separado">Separado(a)</option>
-                            <option value="Divorciado">Divorciado(a)</option>
-                            <option value="Viudo">Viudo(a)</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Número de personas a cargo</Label>
-                        <Input type="number" value={form.dependentsCount} onChange={e => setForm((f:any) => ({ ...f, dependentsCount: e.target.value }))} placeholder="0" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Lugar de residencia (Ciudad)</Label>
-                        <Input value={form.residenceCity} onChange={e => setForm((f:any) => ({ ...f, residenceCity: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Departamento de residencia</Label>
-                        <Input value={form.residenceDepartment} onChange={e => setForm((f:any) => ({ ...f, residenceDepartment: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Estrato de servicios públicos</Label>
-                        <select value={form.socioeconomicStratum} onChange={e => setForm((f:any) => ({ ...f, socioeconomicStratum: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="">Seleccione...</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="Finca">Finca</option>
-                            <option value="No_se">No sé</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Tipo de vivienda</Label>
-                        <select value={form.housingType} onChange={e => setForm((f:any) => ({ ...f, housingType: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="">Seleccione...</option>
-                            <option value="Propia">Propia</option>
-                            <option value="Arriendo">En arriendo</option>
-                            <option value="Familiar">Familiar</option>
-                        </select>
+                    <div className="text-right text-xs text-gray-500 max-w-[200px]">
+                        Libertad y Orden<br/>
+                        Ministerio de la Protección Social<br/>
+                        República de Colombia<br/>
+                        SUBCENTRO DE SEGURIDAD SOCIAL<br/>
+                        Y RIESGOS PROFESIONALES
                     </div>
                 </div>
-            </div>
 
-            {/* Section 2: Professional Profile */}
-            <div>
-                <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                    2. Perfil Laboral
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2 sm:col-span-2">
-                        <Label>Último nivel de estudios que alcanzó *</Label>
-                        <select required value={form.educationLevel} onChange={e => setForm((f:any) => ({ ...f, educationLevel: e.target.value }))} className={SELECT_CLASS}>
+                <div className="text-center mb-8">
+                    <h2 className="text-xl font-bold uppercase tracking-widest mb-2">FICHA DE DATOS GENERALES</h2>
+                    <p className="text-sm text-gray-600">
+                        Las siguientes son algunas preguntas que se refieren a información general de usted o su ocupación.
+                        Por favor seleccione una sola respuesta para cada pregunta y márquela o escríbala en la casilla. Escriba con letra clara y legible.
+                    </p>
+                </div>
+
+                <div className="space-y-6">
+                    {/* 1. Nombre completo */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">1. Nombre completo:</Label>
+                        <Input required value={form.fullName} onChange={e => setForm((f:any) => ({ ...f, fullName: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                    </div>
+
+                    {/* 2. Sexo */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">2. Sexo:</Label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center gap-2">
+                                <input type="radio" name="gender" value="M" checked={form.gender === "M"} onChange={e => setForm((f:any) => ({ ...f, gender: e.target.value }))} /> Masculino
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input type="radio" name="gender" value="F" checked={form.gender === "F"} onChange={e => setForm((f:any) => ({ ...f, gender: e.target.value }))} /> Femenino
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input type="radio" name="gender" value="NO_BINARIO" checked={form.gender === "NO_BINARIO"} onChange={e => setForm((f:any) => ({ ...f, gender: e.target.value }))} /> No Binario
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* 3. Año de nacimiento */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">3. Año de nacimiento:</Label>
+                        <Input type="number" value={form.birthYear} onChange={e => setForm((f:any) => ({ ...f, birthYear: e.target.value }))} className="border-gray-300 bg-gray-50 max-w-[150px]" />
+                    </div>
+
+                    {/* 4. Último nivel de estudios */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">4. Último nivel de estudios que alcanzó (marque una sola opción)</Label>
+                        <select required value={form.educationLevel} onChange={e => setForm((f:any) => ({ ...f, educationLevel: e.target.value }))} className={`${SELECT_CLASS} border-gray-300 bg-gray-50`}>
                             <option value="">Seleccione...</option>
                             <option value="Ninguno">Ninguno</option>
                             <option value="Primaria_incompleta">Primaria incompleta</option>
                             <option value="Primaria_completa">Primaria completa</option>
                             <option value="Bachillerato_incompleto">Bachillerato incompleto</option>
                             <option value="Bachillerato_completo">Bachillerato completo</option>
-                            <option value="Tecnico_tecnologo_incompleto">Técnico/Tecnólogo incompleto</option>
-                            <option value="Tecnico_tecnologo_completo">Técnico/Tecnólogo completo</option>
+                            <option value="Tecnico_tecnologo_incompleto">Técnico / tecnológico incompleto</option>
+                            <option value="Tecnico_tecnologo_completo">Técnico / tecnológico completo</option>
                             <option value="Profesional_incompleto">Profesional incompleto</option>
                             <option value="Profesional_completo">Profesional completo</option>
+                            <option value="Carrera_militar_policia">Carrera militar / policía</option>
                             <option value="Posgrado_incompleto">Posgrado incompleto</option>
                             <option value="Posgrado_completo">Posgrado completo</option>
                         </select>
                     </div>
-                    <div className="space-y-2">
-                        <Label>¿Cuál es su ocupación o profesión?</Label>
-                        <Input value={form.profession} onChange={e => setForm((f:any) => ({ ...f, profession: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Nombre del cargo que ocupa</Label>
-                        <Input value={form.jobTitle} onChange={e => setForm((f:any) => ({ ...f, jobTitle: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                        <Label>Tipo de cargo que más se parece al suyo *</Label>
-                        <select required value={form.jobLevel} onChange={e => setForm((f:any) => ({ ...f, jobLevel: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="">Seleccione...</option>
-                            <option value="JEFATURA">Jefatura - Dirección - Gerencia</option>
-                            <option value="PROFESIONAL">Profesional - Analista - Técnico - Tecnólogo</option>
-                            <option value="AUXILIAR">Auxiliar - Asistente Administrativo - Asistente Técnico</option>
-                            <option value="OPERATIVO">Operario - Operador - Ayudante - Servicios Generales</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Departamento de la empresa (Área)</Label>
-                        <Input value={form.departmentArea} onChange={e => setForm((f:any) => ({ ...f, departmentArea: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Ciudad donde trabaja actualmente</Label>
-                        <Input value={form.workCity} onChange={e => setForm((f:any) => ({ ...f, workCity: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Departamento donde trabaja</Label>
-                        <Input value={form.workDepartment} onChange={e => setForm((f:any) => ({ ...f, workDepartment: e.target.value }))} />
-                    </div>
-                </div>
-            </div>
 
-            {/* Section 3: Job Conditions */}
-            <div>
-                <h3 className="text-xs font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                    3. Condiciones de Trabajo
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2 border p-3 rounded-lg border-border">
-                        <Label>Tiempo en la empresa</Label>
-                        <div className="flex items-center gap-2 mt-2 mb-2">
-                            <input type="checkbox" id="lessThanCompany" checked={form.lessThanOneYearInCompany} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInCompany: e.target.checked, yearsInCompany: e.target.checked ? "0" : "" }))} />
-                            <label htmlFor="lessThanCompany" className="text-sm">Menos de un año</label>
-                        </div>
-                        {!form.lessThanOneYearInCompany && (
-                            <Input type="number" placeholder="Años en la empresa" value={form.yearsInCompany} onChange={e => setForm((f:any) => ({ ...f, yearsInCompany: e.target.value }))} />
-                        )}
-                    </div>
-                    
-                    <div className="space-y-2 border p-3 rounded-lg border-border">
-                        <Label>Tiempo en el cargo</Label>
-                        <div className="flex items-center gap-2 mt-2 mb-2">
-                            <input type="checkbox" id="lessThanPosition" checked={form.lessThanOneYearInPosition} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInPosition: e.target.checked, yearsInPosition: e.target.checked ? "0" : "" }))} />
-                            <label htmlFor="lessThanPosition" className="text-sm">Menos de un año</label>
-                        </div>
-                        {!form.lessThanOneYearInPosition && (
-                            <Input type="number" placeholder="Años en el cargo" value={form.yearsInPosition} onChange={e => setForm((f:any) => ({ ...f, yearsInPosition: e.target.value }))} />
-                        )}
+                    {/* 5. Ocupación o profesión */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">5. ¿Cuál es su ocupación o profesión?</Label>
+                        <Input value={form.profession} onChange={e => setForm((f:any) => ({ ...f, profession: e.target.value }))} className="border-gray-300 bg-gray-50" />
                     </div>
 
-                    <div className="space-y-2 sm:col-span-2">
-                        <Label>Tipo de contrato</Label>
-                        <select value={form.contractType} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} className={SELECT_CLASS}>
+                    {/* 6. Lugar de residencia */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">6. Lugar de residencia actual:</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label className="text-xs text-gray-500">Ciudad / municipio</Label>
+                                <Input value={form.residenceCity} onChange={e => setForm((f:any) => ({ ...f, residenceCity: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                            </div>
+                            <div>
+                                <Label className="text-xs text-gray-500">Departamento</Label>
+                                <Input value={form.residenceDepartment} onChange={e => setForm((f:any) => ({ ...f, residenceDepartment: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 7. Estrato */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">7. Seleccione y marque el estrato de los servicios públicos de su vivienda</Label>
+                        <div className="flex flex-wrap gap-4">
+                            {["1", "2", "3", "4", "5", "6", "Finca", "No_se"].map(opt => (
+                                <label key={opt} className="flex items-center gap-1">
+                                    <input type="radio" name="stratum" value={opt} checked={form.socioeconomicStratum === opt} onChange={e => setForm((f:any) => ({ ...f, socioeconomicStratum: e.target.value }))} /> 
+                                    {opt === "No_se" ? "No sé" : opt}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 8. Tipo de vivienda */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">8. Tipo de vivienda</Label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center gap-1">
+                                <input type="radio" name="housing" value="Propia" checked={form.housingType === "Propia"} onChange={e => setForm((f:any) => ({ ...f, housingType: e.target.value }))} /> Propia
+                            </label>
+                            <label className="flex items-center gap-1">
+                                <input type="radio" name="housing" value="Arriendo" checked={form.housingType === "Arriendo"} onChange={e => setForm((f:any) => ({ ...f, housingType: e.target.value }))} /> En arriendo
+                            </label>
+                            <label className="flex items-center gap-1">
+                                <input type="radio" name="housing" value="Familiar" checked={form.housingType === "Familiar"} onChange={e => setForm((f:any) => ({ ...f, housingType: e.target.value }))} /> Familiar
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* 9. Dependientes */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">9. Número de personas que dependen económicamente de usted (aunque vivan en otro lugar)</Label>
+                        <Input type="number" value={form.dependentsCount} onChange={e => setForm((f:any) => ({ ...f, dependentsCount: e.target.value }))} className="border-gray-300 bg-gray-50 max-w-[150px]" />
+                    </div>
+
+                    {/* 10. Lugar de trabajo */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">10. Lugar donde trabaja actualmente:</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label className="text-xs text-gray-500">Ciudad / municipio</Label>
+                                <Input value={form.workCity} onChange={e => setForm((f:any) => ({ ...f, workCity: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                            </div>
+                            <div>
+                                <Label className="text-xs text-gray-500">Departamento</Label>
+                                <Input value={form.workDepartment} onChange={e => setForm((f:any) => ({ ...f, workDepartment: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 11. Tiempo en empresa */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">11. ¿Hace cuántos años que trabaja en esta empresa?</Label>
+                        <div className="space-y-2 pl-4">
+                            <label className="flex items-center gap-2 text-sm">
+                                <input type="checkbox" checked={form.lessThanOneYearInCompany} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInCompany: e.target.checked, yearsInCompany: e.target.checked ? "0" : "" }))} />
+                                Si lleva menos de un año marque esta opción
+                            </label>
+                            {!form.lessThanOneYearInCompany && (
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-sm">Si lleva más de un año, anote cuántos años:</span>
+                                    <Input type="number" value={form.yearsInCompany} onChange={e => setForm((f:any) => ({ ...f, yearsInCompany: e.target.value }))} className="border-gray-300 bg-gray-50 w-[100px] h-8" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 12. Nombre del cargo */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">12. ¿Cuál es el nombre del cargo que ocupa en la empresa?</Label>
+                        <Input value={form.jobTitle} onChange={e => setForm((f:any) => ({ ...f, jobTitle: e.target.value }))} className="border-gray-300 bg-gray-50" />
+                    </div>
+
+                    {/* 13. Tipo de cargo */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">13. Seleccione el tipo de cargo que más se parece al que usted desempeña</Label>
+                        <select required value={form.jobLevel} onChange={e => setForm((f:any) => ({ ...f, jobLevel: e.target.value }))} className={`${SELECT_CLASS} border-gray-300 bg-gray-50`}>
                             <option value="">Seleccione...</option>
-                            <option value="Temporal_menos_1_ano">Temporal de menos de 1 año</option>
-                            <option value="Temporal_1_ano_o_mas">Temporal de 1 año o más</option>
-                            <option value="Termino_indefinido">Término indefinido</option>
-                            <option value="Cooperado">Cooperado (Cooperativa)</option>
-                            <option value="Prestacion_servicios">Prestación de servicios</option>
-                            <option value="No_se">No sé</option>
+                            <option value="JEFATURA">Jefatura - tiene personal a cargo</option>
+                            <option value="PROFESIONAL">Profesional, analista, técnico, tecnólogo</option>
+                            <option value="AUXILIAR">Auxiliar, asistente administrativo, asistente técnico</option>
+                            <option value="OPERATIVO">Operario, operador, ayudante, servicios generales</option>
                         </select>
                     </div>
-                    
+
+                    {/* 14. Tiempo en el cargo */}
                     <div className="space-y-2">
-                        <Label>Horas diarias establecidas</Label>
-                        <Input type="text" placeholder="Ej: 8:30 o 8" value={form.hoursPerDay} onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} />
+                        <Label className="font-bold">14. ¿Hace cuántos años que desempeña el cargo u oficio actual en esta empresa?</Label>
+                        <div className="space-y-2 pl-4">
+                            <label className="flex items-center gap-2 text-sm">
+                                <input type="checkbox" checked={form.lessThanOneYearInPosition} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInPosition: e.target.checked, yearsInPosition: e.target.checked ? "0" : "" }))} />
+                                Si lleva menos de un año marque esta opción
+                            </label>
+                            {!form.lessThanOneYearInPosition && (
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-sm">Si lleva más de un año, anote cuántos años:</span>
+                                    <Input type="number" value={form.yearsInPosition} onChange={e => setForm((f:any) => ({ ...f, yearsInPosition: e.target.value }))} className="border-gray-300 bg-gray-50 w-[100px] h-8" />
+                                </div>
+                            )}
+                        </div>
                     </div>
+
+                    {/* 15. Departamento/área */}
                     <div className="space-y-2">
-                        <Label>Horas semanales establecidas</Label>
-                        <Input type="text" placeholder="Ej: 48:30 o 48" value={form.hoursPerWeek} onChange={e => setForm((f:any) => ({ ...f, hoursPerWeek: e.target.value }))} />
+                        <Label className="font-bold">15. Escriba el nombre del departamento, área o sección de la empresa en el que trabaja</Label>
+                        <Input value={form.departmentArea} onChange={e => setForm((f:any) => ({ ...f, departmentArea: e.target.value }))} className="border-gray-300 bg-gray-50" />
                     </div>
+
+                    {/* 16. Tipo de contrato */}
                     <div className="space-y-2">
-                        <Label>Tipo de salario</Label>
-                        <select value={form.paymentModality} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} className={SELECT_CLASS}>
-                            <option value="">Seleccione...</option>
-                            <option value="Fijo">Fijo (diario, semanal, quincenal o mensual)</option>
-                            <option value="Fijo_y_variable">Una parte fija y otra variable</option>
-                            <option value="Todo_variable">Todo variable (a destajo, por produccion, por comision)</option>
-                        </select>
+                        <Label className="font-bold">16. Seleccione el tipo de contrato que tiene actualmente (marque una sola opción)</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <label className="flex items-center gap-2"><input type="radio" name="contract" value="Temporal_menos_1_ano" checked={form.contractType === "Temporal_menos_1_ano"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Temporal de menos de 1 año</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="contract" value="Temporal_1_ano_o_mas" checked={form.contractType === "Temporal_1_ano_o_mas"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Temporal de 1 año o más</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="contract" value="Termino_indefinido" checked={form.contractType === "Termino_indefinido"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Término indefinido</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="contract" value="Cooperado" checked={form.contractType === "Cooperado"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Cooperado (cooperativa)</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="contract" value="Prestacion_servicios" checked={form.contractType === "Prestacion_servicios"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Prestación de servicios</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="contract" value="No_se" checked={form.contractType === "No_se"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> No sé</label>
+                        </div>
+                    </div>
+
+                    {/* 17. Horas diarias */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">17. Indique cuántas horas diarias de trabajo están establecidas habitualmente por la empresa para su cargo</Label>
+                        <Input type="text" value={form.hoursPerDay} onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} className="border-gray-300 bg-gray-50 max-w-[150px]" />
+                    </div>
+
+                    {/* 18. Tipo de salario */}
+                    <div className="space-y-2">
+                        <Label className="font-bold">18. Seleccione y marque el tipo de salario que recibe (marque una sola opción)</Label>
+                        <div className="flex flex-col gap-2">
+                            <label className="flex items-center gap-2"><input type="radio" name="payment" value="Fijo" checked={form.paymentModality === "Fijo"} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} /> Fijo (diario, semanal, quincenal o mensual)</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="payment" value="Fijo_y_variable" checked={form.paymentModality === "Fijo_y_variable"} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} /> Una parte fija y otra variable</label>
+                            <label className="flex items-center gap-2"><input type="radio" name="payment" value="Todo_variable" checked={form.paymentModality === "Todo_variable"} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} /> Todo variable (a destajo, por producción, por comisión)</label>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     );
 };
+
 
 
 export default function OrganizationDetailPage() {

@@ -179,10 +179,20 @@ export async function DELETE(
         }
 
         if (worker._count.assessments > 0) {
-            return NextResponse.json(
-                { error: "No se puede eliminar: el trabajador tiene evaluaciones registradas" },
-                { status: 409 }
-            );
+            // Eliminar todas las evaluaciones y datos relacionados en cascada
+            const assessments = await (prisma.assessment as any).findMany({
+                where: { workerId: id },
+                select: { id: true }
+            });
+            const assessmentIds = assessments.map((a:any) => a.id);
+
+            if (assessmentIds.length > 0) {
+                await (prisma.informedConsent as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
+                await (prisma.report as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
+                await (prisma.responseSet as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
+                await (prisma.scoredResult as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
+                await (prisma.assessment as any).deleteMany({ where: { workerId: id } });
+            }
         }
 
         await (prisma.worker as any).delete({ where: { id } });
