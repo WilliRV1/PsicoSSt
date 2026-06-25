@@ -115,8 +115,12 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setF
 const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }: { form: any, setForm: any, fieldKey: string, options: string[], placeholder: string }) => {
     const selectedValue = form[fieldKey] || "";
     const isKnown = options.includes(selectedValue);
-    // Show custom input if "OTRO" is selected, or if the current value is not empty and not in the known options list
-    const showCustom = selectedValue === "OTRO" || (selectedValue !== "" && !isKnown);
+    
+    // Si no hay opciones previas creadas en la empresa, mostramos directamente el input
+    const noOptionsAvailable = options.length === 0;
+    
+    // Show custom input if "OTRO" is selected, if current value is unknown, or if there are no options
+    const showCustom = noOptionsAvailable || selectedValue === "OTRO" || (selectedValue !== "" && !isKnown);
 
     return (
         <div>
@@ -129,7 +133,9 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                         placeholder={placeholder} 
                         autoFocus={selectedValue === "OTRO"}
                     />
-                    <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                    {!noOptionsAvailable && (
+                        <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                    )}
                 </div>
             ) : (
                 <select 
@@ -139,7 +145,7 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                 >
                     <option value="">Seleccione...</option>
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
-                    <option value="OTRO">Otro / Escribir...</option>
+                    <option value="OTRO">Otro / Escribir nuevo...</option>
                 </select>
             )}
         </div>
