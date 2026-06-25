@@ -1,7 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import colombiaData from "@/config/colombia.json";
+
+const FormTooltip = ({ text }: { text: string }) => (
+    <Tooltip>
+        <TooltipTrigger type="button" tabIndex={-1} className="ml-1 cursor-help">
+            <Info className="h-4 w-4 text-gray-400 hover:text-indigo-600 transition-colors inline-block" />
+        </TooltipTrigger>
+        <TooltipContent className="max-w-[280px]">
+            <p className="text-xs font-normal leading-relaxed">{text}</p>
+        </TooltipContent>
+    </Tooltip>
+);
 
 const SELECT_CLASS = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -246,7 +259,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 4. Último nivel de estudios */}
                     <div className="space-y-2">
-                        <Label className="font-bold">4. Último nivel de estudios que alcanzó (marque una sola opción)</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            4. Último nivel de estudios que alcanzó (marque una sola opción)
+                            <FormTooltip text="Seleccione el nivel educativo más alto que haya culminado exitosamente. Si está estudiando actualmente, marque el nivel inmediatamente anterior completado." />
+                        </Label>
                         <select required value={form.educationLevel} onChange={e => setForm((f:any) => ({ ...f, educationLevel: e.target.value }))} className={`${SELECT_CLASS} border-gray-300 bg-gray-50`}>
                             <option value="">Seleccione...</option>
                             <option value="Ninguno">Ninguno</option>
@@ -278,7 +294,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 7. Estrato */}
                     <div className="space-y-2">
-                        <Label className="font-bold">7. Seleccione y marque el estrato de los servicios públicos de su vivienda</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            7. Seleccione y marque el estrato de los servicios públicos de su vivienda
+                            <FormTooltip text="Corresponde al estrato socioeconómico que aparece en el recibo de servicios públicos de su lugar de residencia habitual." />
+                        </Label>
                         <div className="flex flex-wrap gap-4">
                             {["1", "2", "3", "4", "5", "6", "Finca", "No_se"].map(opt => (
                                 <label key={opt} className="flex items-center gap-1">
@@ -307,7 +326,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 9. Dependientes */}
                     <div className="space-y-2">
-                        <Label className="font-bold">9. Número de personas que dependen económicamente de usted (aunque vivan en otro lugar)</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            9. Número de personas que dependen económicamente de usted (aunque vivan en otro lugar)
+                            <FormTooltip text="Incluya hijos, padres, cónyuge u otros familiares que dependan total o parcialmente de sus ingresos económicos para subsistir." />
+                        </Label>
                         <Input type="number" value={form.dependentsCount} onChange={e => setForm((f:any) => ({ ...f, dependentsCount: e.target.value }))} className="border-gray-300 bg-gray-50 max-w-[150px]" />
                     </div>
 
@@ -348,7 +370,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 13. Tipo de cargo */}
                     <div className="space-y-2">
-                        <Label className="font-bold">13. Seleccione el tipo de cargo que más se parece al que usted desempeña</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            13. Seleccione el tipo de cargo que más se parece al que usted desempeña
+                            <FormTooltip text="Jefatura: si tiene personal a cargo. Profesional: si su puesto exige título técnico o profesional. Auxiliar: apoyo administrativo. Operativo: tareas manuales, de planta o servicios." />
+                        </Label>
                         <select required value={form.jobLevel} onChange={e => setForm((f:any) => ({ ...f, jobLevel: e.target.value }))} className={`${SELECT_CLASS} border-gray-300 bg-gray-50`}>
                             <option value="">Seleccione...</option>
                             <option value="JEFATURA">Jefatura - tiene personal a cargo</option>
@@ -389,7 +414,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 16. Tipo de contrato */}
                     <div className="space-y-2">
-                        <Label className="font-bold">16. Seleccione el tipo de contrato que tiene actualmente (marque una sola opción)</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            16. Seleccione el tipo de contrato que tiene actualmente (marque una sola opción)
+                            <FormTooltip text="El tipo de vinculación formal que tiene con la organización en este momento." />
+                        </Label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <label className="flex items-center gap-2"><input type="radio" name="contract" value="Temporal_menos_1_ano" checked={form.contractType === "Temporal_menos_1_ano"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Temporal de menos de 1 año</label>
                             <label className="flex items-center gap-2"><input type="radio" name="contract" value="Temporal_1_ano_o_mas" checked={form.contractType === "Temporal_1_ano_o_mas"} onChange={e => setForm((f:any) => ({ ...f, contractType: e.target.value }))} /> Temporal de 1 año o más</label>
@@ -402,7 +430,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 17. Horas diarias */}
                     <div className="space-y-2">
-                        <Label className="font-bold">17. Indique cuántas horas diarias de trabajo están establecidas habitualmente por la empresa para su cargo</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            17. Indique cuántas horas diarias de trabajo están establecidas habitualmente por la empresa para su cargo
+                            <FormTooltip text="Las horas que normalmente debe cumplir al día según su contrato o acuerdo con la empresa. Si su horario es muy variable, anote el promedio de horas que suele trabajar al día." />
+                        </Label>
                         <div>
                             <Input 
                                 type="text" 
@@ -450,7 +481,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 18. Tipo de salario */}
                     <div className="space-y-2">
-                        <Label className="font-bold">18. Seleccione y marque el tipo de salario que recibe (marque una sola opción)</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            18. Seleccione y marque el tipo de salario que recibe (marque una sola opción)
+                            <FormTooltip text="Fijo: sueldo base que no varía. Fijo y variable: sueldo base más comisiones o bonos. Todo variable: pago exclusivo por producción, comisión o a destajo." />
+                        </Label>
                         <div className="flex flex-col gap-2">
                             <label className="flex items-center gap-2"><input type="radio" name="payment" value="Fijo" checked={form.paymentModality === "Fijo"} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} /> Fijo (diario, semanal, quincenal o mensual)</label>
                             <label className="flex items-center gap-2"><input type="radio" name="payment" value="Fijo_y_variable" checked={form.paymentModality === "Fijo_y_variable"} onChange={e => setForm((f:any) => ({ ...f, paymentModality: e.target.value }))} /> Una parte fija y otra variable</label>
