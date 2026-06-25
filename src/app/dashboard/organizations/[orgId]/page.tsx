@@ -504,7 +504,7 @@ export default function OrganizationDetailPage() {
                                     </div>
                                 )}
 
-                                <WorkerFormFields form={form} setForm={setForm} />
+                                <WorkerFormFields form={form} setForm={setForm} organizationId={orgId} />
                             </div>
 
                             <div className="p-6 border-t border-border bg-muted/50 flex justify-end gap-3">
@@ -610,7 +610,7 @@ export default function OrganizationDetailPage() {
                                     </div>
                                 )}
 
-                                <WorkerFormFields form={editWorkerForm} setForm={setEditWorkerForm} />
+                                <WorkerFormFields form={editWorkerForm} setForm={setEditWorkerForm} organizationId={orgId} />
                             </div>
 
                             <div className="p-6 border-t border-border bg-muted/50 flex justify-end gap-3">

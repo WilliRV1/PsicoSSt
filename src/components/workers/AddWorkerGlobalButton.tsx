@@ -98,7 +98,7 @@ export default function AddWorkerGlobalButton({ organizations }: Props) {
                                 </select>
                             </div>
 
-                            <WorkerFormFields form={form} setForm={setForm} />
+                            <WorkerFormFields form={form} setForm={setForm} organizationId={selectedOrgId} />
                         </div>
 
                         <div className="border-t border-border p-4 flex justify-end gap-3 bg-muted/20">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import colombiaData from "@/config/colombia.json";
@@ -112,7 +112,20 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setF
     );
 };
 
-export const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any }) => {
+export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any, setForm: any, organizationId?: string }) => {
+    const [existingDepartments, setExistingDepartments] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (organizationId) {
+            fetch(`/api/organizations/${organizationId}/departments`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.departments) setExistingDepartments(data.departments);
+                })
+                .catch(err => console.error("Error fetching departments:", err));
+        }
+    }, [organizationId]);
+
     return (
         <div className="space-y-8">
             <div className="bg-white text-black p-6 border rounded-lg shadow-sm">
