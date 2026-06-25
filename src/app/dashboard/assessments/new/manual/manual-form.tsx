@@ -28,6 +28,8 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
         setAttendsCustomers(hasCustomerInteraction);
     }, [hasCustomerInteraction]);
 
+    const [isBoss, setIsBoss] = useState<boolean>(true);
+
     const [formType, setFormType] = useState<FormType>("A");
     const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
     const [responsesCache, setResponsesCache] = useState<Record<QuestionnaireType, ItemResponses>>({
@@ -53,6 +55,9 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
             if (dim?.key === "demandas_emocionales" && attendsCustomers === false) {
                 return false;
             }
+            if (formType === "A" && dim?.key === "relacion_colaboradores" && isBoss === false) {
+                return false;
+            }
         }
         return true;
     });
@@ -62,13 +67,16 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
     useEffect(() => {
         if (Object.keys(responses).length > 0) {
             try {
-                const score = scoreQuestionnaire(responses, formType, qType);
+                const score = scoreQuestionnaire(responses, formType, qType, {
+                    hasCustomerInteraction: attendsCustomers,
+                    jobLevel: isBoss ? "JEFATURA" : "PROFESIONAL"
+                } as any);
                 setRealTimeScore(score);
             } catch (e) {
                 console.error(e);
             }
         }
-    }, [responses, formType, qType]);
+    }, [responses, formType, qType, attendsCustomers, isBoss]);
 
     const handleValueChange = (item: number, value: number) => {
         if (value < 0 || value > 4) return;
@@ -138,6 +146,7 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
                     responses,
                     assessmentDate: new Date(assessmentDate).toISOString(),
                     hasCustomerInteraction: attendsCustomers,
+                    occupationalGroup: isBoss ? "JEFATURA" : "PROFESIONAL",
                     informedConsent: {
                         consentGranted: true,
                         consentMethod: "WRITTEN",
@@ -229,6 +238,25 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
                                 <button
                                     onClick={() => setAttendsCustomers(false)}
                                     className={`flex-1 rounded text-xs font-bold transition-colors ${!attendsCustomers ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
+                                >
+                                    NO
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {qType === "INTRALABORAL" && formType === "A" && (
+                        <div className="flex-1 min-w-[200px]">
+                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">¿Es jefe de otras personas?</label>
+                            <div className="flex h-9 rounded-md border border-input p-0.5 bg-muted/30">
+                                <button
+                                    onClick={() => setIsBoss(true)}
+                                    className={`flex-1 rounded text-xs font-bold transition-colors ${isBoss ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
+                                >
+                                    SÍ
+                                </button>
+                                <button
+                                    onClick={() => setIsBoss(false)}
+                                    className={`flex-1 rounded text-xs font-bold transition-colors ${!isBoss ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
                                 >
                                     NO
                                 </button>
