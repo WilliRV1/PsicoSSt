@@ -83,17 +83,23 @@ export async function GET(
     const pdfElement = React.createElement(IndividualReportPDF, {
       workerName: worker.fullName,
       workerId: `${worker.documentType} ${worker.documentId}`,
+      age: worker.birthYear ? `${new Date().getFullYear() - worker.birthYear} años` : undefined,
+      gender: worker.gender || undefined,
+      jobTitle: worker.jobTitle || undefined,
+      department: worker.departmentArea || undefined,
       orgName: organization.name,
       psychologistName: psychologist.fullName,
       licenseNumber: psychologist.licenseNumber,
       professionalCard: psychologist.professionalCard,
       sstCredential: psychologist.sstCredential,
-      overallRisk: scoredResult.overallRiskCategory,
+      sstLicenseDate: psychologist.sstLicenseDate ? new Date(psychologist.sstLicenseDate).toISOString() : undefined,
+      overallRisk: scoredResult.overallRiskCategory as any,
       dimensionScores: dimensionScores,
       analysis: reportData?.analysis,
       recommendations: reportData?.recommendations,
       signatureImage: signatureImage,
       assessmentDate: assessmentDate,
+      reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
     });
 
     // @ts-expect-error react-pdf renderToStream typing mismatch with React 19

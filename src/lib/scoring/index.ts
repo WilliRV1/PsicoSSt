@@ -116,7 +116,7 @@ export function calculateDimensionScore(
         dimensionName: config.name,
         rawScore,
         maxPossible,
-        transformedScore: Math.round(transformedScore * 100) / 100,
+        transformedScore: Math.round(transformedScore * 10) / 10,
         transformationFactor: maxPossible === 0 ? 0 : Math.round((100 / maxPossible) * 1000) / 1000,
         riskCategory,
         riskLevel: getRiskLevel(riskCategory),
@@ -158,7 +158,7 @@ export function calculateDomainScore(
         domainName,
         rawScore,
         maxPossible,
-        transformedScore: Math.round(transformedScore * 100) / 100,
+        transformedScore: Math.round(transformedScore * 10) / 10,
         riskCategory,
         riskLevel: getRiskLevel(riskCategory),
         dimensions: dimensionKeys
@@ -324,12 +324,19 @@ export function scoreQuestionnaire(
     // Total Baremo lookup
     let totalThresholds: BaremoThreshold;
     if (questionnaireType === "STRESS") {
-        const group = metadata?.occupationalGroup || "profesionales_tecnicos";
-        const gender = metadata?.gender || "F";
-
-        // Handle gender-nested baremos if present, otherwise fallback
-        const genderTable = baremoTable.total[gender] || baremoTable.total;
-        totalThresholds = genderTable[group] || genderTable;
+        let group = "jefes_profesionales_tecnicos";
+        if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERARIO") {
+            group = "auxiliares_operativos";
+        } else if (metadata?.occupationalGroup === "auxiliares_operativos") {
+            group = "auxiliares_operativos";
+        }
+        
+        const gender = metadata?.gender === "M" ? "M" : "F";
+        
+        totalThresholds = baremoTable[gender]?.[group];
+        if (!totalThresholds) {
+            totalThresholds = baremoTable["F"]["jefes_profesionales_tecnicos"];
+        }
     } else {
         totalThresholds = baremoTable.total;
     }
@@ -339,7 +346,7 @@ export function scoreQuestionnaire(
     const total: TotalScore = {
         rawScore: totalRaw,
         maxPossible: totalMax,
-        transformedScore: Math.round(totalTransformed * 100) / 100,
+        transformedScore: Math.round(totalTransformed * 10) / 10,
         riskCategory: totalCategory,
         riskLevel: getRiskLevel(totalCategory)
     };

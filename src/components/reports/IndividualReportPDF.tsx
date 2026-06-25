@@ -173,45 +173,64 @@ const styles = StyleSheet.create({
 interface IndividualReportPDFProps {
   workerName: string;
   workerId: string;
+  age?: string;
+  gender?: string;
+  jobTitle?: string;
+  department?: string;
   orgName: string;
   psychologistName: string;
   licenseNumber: string;
   professionalCard: string;
   sstCredential: string;
+  sstLicenseDate?: string;
   overallRisk: RiskCategory;
   dimensionScores: any[];
   analysis?: string;
   recommendations?: string;
   signatureImage?: string;
   assessmentDate: string;
+  reportDate?: string;
 }
 
 const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
   workerName,
   workerId,
+  age,
+  gender,
+  jobTitle,
+  department,
   orgName,
   psychologistName,
   licenseNumber,
   professionalCard,
   sstCredential,
+  sstLicenseDate,
   overallRisk,
   dimensionScores,
   analysis,
   recommendations,
   signatureImage,
   assessmentDate,
+  reportDate,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Informe Individual de Factores de Riesgo</Text>
-        <Text style={styles.subtitle}>Batería de Instrumentos Oficial (Resolución 2764 de 2022)</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View>
+            <Text style={styles.title}>Informe Individual de Factores de Riesgo</Text>
+            <Text style={styles.subtitle}>Batería de Instrumentos Oficial (Resolución 2764 de 2022)</Text>
+          </View>
+          <View style={{ textAlign: 'right', fontSize: 9, color: '#666' }}>
+            <Text>Fecha de Aplicación: {assessmentDate}</Text>
+            {reportDate && <Text>Fecha de Elaboración: {reportDate}</Text>}
+          </View>
+        </View>
       </View>
 
-      {/* Basic Info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>1. INFORMACIÓN GENERAL</Text>
+        <Text style={styles.sectionTitle}>1. DATOS DEMOGRÁFICOS Y OCUPACIONALES</Text>
         <View style={styles.grid}>
           <View style={styles.gridItem}>
             <Text><Text style={styles.label}>Trabajador: </Text><Text style={styles.value}>{workerName}</Text></Text>
@@ -220,10 +239,19 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
             <Text><Text style={styles.label}>Identificación: </Text><Text style={styles.value}>{workerId}</Text></Text>
           </View>
           <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Empresa: </Text><Text style={styles.value}>{orgName}</Text></Text>
+            <Text><Text style={styles.label}>Edad: </Text><Text style={styles.value}>{age || 'N/A'}</Text></Text>
           </View>
           <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Fecha Evaluación: </Text><Text style={styles.value}>{assessmentDate}</Text></Text>
+            <Text><Text style={styles.label}>Sexo: </Text><Text style={styles.value}>{gender || 'N/A'}</Text></Text>
+          </View>
+          <View style={styles.gridItem}>
+            <Text><Text style={styles.label}>Cargo: </Text><Text style={styles.value}>{jobTitle || 'N/A'}</Text></Text>
+          </View>
+          <View style={styles.gridItem}>
+            <Text><Text style={styles.label}>Departamento/Área: </Text><Text style={styles.value}>{department || 'N/A'}</Text></Text>
+          </View>
+          <View style={styles.gridItem}>
+            <Text><Text style={styles.label}>Empresa: </Text><Text style={styles.value}>{orgName}</Text></Text>
           </View>
         </View>
       </View>
@@ -286,9 +314,9 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
           )}
           <View style={styles.signatureLine} />
           <Text style={{ fontWeight: 'bold' }}>{psychologistName}</Text>
-          <Text>Psicólogo(a) Especialista en SST</Text>
-          <Text>T.P.: {professionalCard}</Text>
-          <Text>Licencia SST: {sstCredential}</Text>
+          <Text>T.P.: {professionalCard || 'N/A'}</Text>
+          <Text>Licencia SST: {sstCredential || licenseNumber}</Text>
+          {sstLicenseDate && <Text>Fecha Exp: {new Date(sstLicenseDate).toLocaleDateString('es-CO')}</Text>}
         </View>
       </View>
 

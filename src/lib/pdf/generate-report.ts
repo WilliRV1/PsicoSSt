@@ -30,6 +30,7 @@ export function generateReportHTML(data: ReportData): string {
   });
 
   const reportDate = dateFormatter.format(new Date());
+  const assessmentDate = dateFormatter.format(new Date(assessment.assessmentDate));
   const signedDate = report.signedAt
     ? dateFormatter.format(new Date(report.signedAt))
     : reportDate;
@@ -217,14 +218,14 @@ export function generateReportHTML(data: ReportData): string {
           <div class="header-title">INFORME DE EVALUACIÓN PSICOSOCIAL</div>
           <div class="header-subtitle">Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial</div>
           <div class="header-info">
-            <span>Generado: ${reportDate}</span>
-            <span>Informe Firmado: ${report.signedAt ? signedDate : 'Pendiente'}</span>
+            <span>Fecha de Aplicación: ${assessmentDate}</span>
+            <span>Fecha de Elaboración: ${reportDate}</span>
           </div>
         </div>
 
         <!-- INFORMACIÓN DEL TRABAJADOR -->
         <div class="section">
-          <div class="section-title">DATOS DEL TRABAJADOR</div>
+          <div class="section-title">DATOS DEMOGRÁFICOS Y OCUPACIONALES</div>
           <div class="section-content">
             <div class="info-grid">
               <div class="info-item">
@@ -236,29 +237,49 @@ export function generateReportHTML(data: ReportData): string {
                 <span class="info-value">${worker.documentType} ${worker.documentId}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Género:</span>
+                <span class="info-label">Edad:</span>
+                <span class="info-value">${worker.birthYear ? (new Date().getFullYear() - worker.birthYear) + ' años' : 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Sexo:</span>
                 <span class="info-value">${worker.gender || 'N/A'}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Puesto:</span>
+                <span class="info-label">Cargo:</span>
                 <span class="info-value">${worker.jobTitle || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Departamento/Área:</span>
+                <span class="info-value">${worker.departmentArea || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Organización:</span>
+                <span class="info-value">${(assessment as any).organization?.name || 'N/A'}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- INFORMACIÓN DEL PSICÓLOGO -->
+        <!-- INFORMACIÓN DEL EVALUADOR -->
         <div class="section">
           <div class="section-title">EVALUADOR</div>
           <div class="section-content">
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">Psicólogo:</span>
+                <span class="info-label">Nombre Completo:</span>
                 <span class="info-value">${psychologist.fullName}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Licencia:</span>
-                <span class="info-value">${psychologist.licenseNumber}</span>
+                <span class="info-label">Tarjeta Profesional:</span>
+                <span class="info-value">${psychologist.professionalCard || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Licencia SST:</span>
+                <span class="info-value">${psychologist.sstCredential || psychologist.licenseNumber}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Fecha Expedición SST:</span>
+                <span class="info-value">${(psychologist as any).sstLicenseDate ? new Date((psychologist as any).sstLicenseDate).toLocaleDateString('es-CO') : 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -332,8 +353,9 @@ export function generateReportHTML(data: ReportData): string {
                 : '<div class="signature-line"></div>'
             }
             <div class="signature-name">${psychologist.fullName}</div>
-            <div class="signature-title">Psicólogo / Especialista en SST</div>
-            <div class="signature-title">Lic. ${psychologist.licenseNumber}</div>
+            <div class="signature-title">T.P. ${psychologist.professionalCard || 'N/A'}</div>
+            <div class="signature-title">Licencia SST: ${psychologist.sstCredential || psychologist.licenseNumber}</div>
+            ${(psychologist as any).sstLicenseDate ? `<div class="signature-title">Fecha Exp: ${new Date((psychologist as any).sstLicenseDate).toLocaleDateString('es-CO')}</div>` : ''}
           </div>
         </div>
 

@@ -16,6 +16,7 @@ model Psychologist {
   licenseNumber    String        @unique @map("license_number")
   professionalCard String        @map("professional_card")
   sstCredential    String        @map("sst_credential")
+  sstLicenseDate   DateTime?     @map("sst_license_date")
   mfaSecret        String?       @map("mfa_secret")
   mfaEnabled       Boolean       @default(false) @map("mfa_enabled")
   status           AccountStatus @default(PENDING)

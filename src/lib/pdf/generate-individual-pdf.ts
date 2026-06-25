@@ -6,9 +6,9 @@ interface AssessmentForPDF {
     assessmentDate: Date;
     questionnaireType: string;
     formType: string;
-    worker: { fullName: string; documentType: string; documentId: string };
+    worker: { fullName: string; documentType: string; documentId: string; birthYear?: number | null; gender?: string | null; jobTitle?: string | null; departmentArea?: string | null };
     organization: { name: string };
-    psychologist: { fullName: string; licenseNumber: string; professionalCard?: string; sstCredential?: string; signature?: string | null; signatures?: { signatureType: string; dataUrl?: string | null; imageUrl?: string | null }[] };
+    psychologist: { fullName: string; licenseNumber: string; professionalCard?: string; sstCredential?: string; sstLicenseDate?: Date | null; signature?: string | null; signatures?: { signatureType: string; dataUrl?: string | null; imageUrl?: string | null }[] };
     scoredResult: {
         overallRiskCategory: string;
         dimensionScores: unknown;
@@ -52,17 +52,23 @@ export async function generateIndividualPDF(assessment: AssessmentForPDF): Promi
     const element = React.createElement(IndividualReportPDF, {
         workerName: worker.fullName,
         workerId: `${worker.documentType} ${worker.documentId}`,
+        age: worker.birthYear ? `${new Date().getFullYear() - worker.birthYear} años` : undefined,
+        gender: worker.gender || undefined,
+        jobTitle: worker.jobTitle || undefined,
+        department: worker.departmentArea || undefined,
         orgName: organization.name,
         psychologistName: psychologist.fullName,
         licenseNumber: psychologist.licenseNumber,
         professionalCard: psychologist.professionalCard || '',
         sstCredential: psychologist.sstCredential || '',
+        sstLicenseDate: psychologist.sstLicenseDate ? new Date(psychologist.sstLicenseDate).toISOString() : undefined,
         overallRisk: scoredResult.overallRiskCategory as any,
         dimensionScores,
         analysis: reportData?.analysis,
         recommendations: reportData?.recommendations,
         signatureImage,
         assessmentDate,
+        reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
     });
 
     const stream = await renderToStream(element as any);
