@@ -6,6 +6,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface ProfileFormProps {
     initialData: {
@@ -35,16 +36,17 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                 body: JSON.stringify(formData)
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                setMessage({ type: 'success', text: "Información actualizada correctamente" });
-                router.refresh(); // Actualiza los datos en el servidor (header, etc)
-            } else {
-                setMessage({ type: 'error', text: data.error || "Ocurrió un error" });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Error al guardar");
             }
-        } catch (err) {
-            setMessage({ type: 'error', text: "Fallo de conexión con el servidor" });
+            
+            toast.success("Perfil actualizado correctamente");
+            setMessage({ type: 'success', text: "Información actualizada correctamente" });
+            router.refresh(); // Actualiza los datos en el servidor (header, etc)
+        } catch (err: any) {
+            setMessage({ type: 'error', text: err.message || "Ocurrió un error" });
+            toast.error(err.message || "Error al actualizar el perfil");
         } finally {
             setSaving(false);
         }

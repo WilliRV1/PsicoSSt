@@ -12,6 +12,7 @@ import { getFormConfig } from "@/config/battery";
 import { scoreQuestionnaire } from "@/lib/scoring";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface ManualFormProps {
     workerId: string;
@@ -155,9 +156,11 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
             }
 
             const result = await res.json();
+            toast.success("Evaluación guardada exitosamente");
             onSuccess(result);
         } catch (err: any) {
             setError(err.message);
+            toast.error(err.message || "Error al guardar la evaluación");
         } finally {
             setIsSubmitting(false);
         }

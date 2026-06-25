@@ -7,6 +7,20 @@ import { Plus, Building2, Users, MapPin, Loader2, XCircle, Trash2 } from "lucide
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+
+const FormTooltip = ({ text }: { text: string }) => (
+    <Tooltip>
+        <TooltipTrigger type="button" tabIndex={-1} className="ml-1 cursor-help">
+            <Info className="h-4 w-4 text-gray-400 hover:text-primary transition-colors inline-block" />
+        </TooltipTrigger>
+        <TooltipContent className="max-w-[280px]">
+            <p className="text-xs font-normal leading-relaxed">{text}</p>
+        </TooltipContent>
+    </Tooltip>
+);
 
 interface Organization {
     id: string;
@@ -66,14 +80,18 @@ export default function OrganizationsPage() {
                 body: JSON.stringify(form)
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Error al crear");
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Error al crear la empresa");
+            }
 
+            toast.success("Empresa creada exitosamente");
             setShowModal(false);
             setForm({ name: "", nit: "", economicSector: "", city: "", department: "", employeeCount: "" });
             fetchOrgs();
         } catch (err: any) {
             setError(err.message);
+            toast.error(err.message || "Error al guardar");
         } finally {
             setSaving(false);
         }
@@ -193,7 +211,10 @@ export default function OrganizationsPage() {
 
                             <form onSubmit={handleCreate} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label>Nombre de la empresa *</Label>
+                                    <Label className="flex items-center gap-1">
+                                        Nombre de la empresa *
+                                        <FormTooltip text="La razón social completa y oficial de la organización." />
+                                    </Label>
                                     <Input
                                         required
                                         value={form.name}
@@ -202,7 +223,10 @@ export default function OrganizationsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>NIT *</Label>
+                                    <Label className="flex items-center gap-1">
+                                        NIT *
+                                        <FormTooltip text="Número de Identificación Tributaria (sin dígito de verificación)." />
+                                    </Label>
                                     <Input
                                         required
                                         value={form.nit}
@@ -230,15 +254,21 @@ export default function OrganizationsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label>Sector Econ&oacute;mico</Label>
+                                        <Label className="flex items-center gap-1">
+                                            Sector Económico
+                                            <FormTooltip text="Actividad económica principal (ej. Comercio, Agricultura, Servicios, Industria)." />
+                                        </Label>
                                         <Input
                                             value={form.economicSector}
                                             onChange={e => setForm(f => ({ ...f, economicSector: e.target.value }))}
-                                            placeholder="Ej: Tecnolog&iacute;a"
+                                            placeholder="Ej: Tecnología"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>N.&ordm; Empleados</Label>
+                                        <Label className="flex items-center gap-1">
+                                            N.º Empleados
+                                            <FormTooltip text="Cantidad total aproximada de trabajadores directos en la empresa." />
+                                        </Label>
                                         <Input
                                             type="number"
                                             value={form.employeeCount}

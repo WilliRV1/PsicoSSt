@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { WorkerFormFields, EMPTY_WORKER_FORM } from "@/components/workers/WorkerFormFields";
+import { toast } from "sonner";
 
 interface Organization {
     id: string;
@@ -36,14 +37,16 @@ export default function AddWorkerGlobalButton({ organizations }: Props) {
             });
             if (!res.ok) {
                 const data = await res.json();
-                throw new Error(data.error || "Error al guardar");
+                throw new Error(data.error || "Error al crear el trabajador");
             }
+            toast.success("Trabajador creado exitosamente");
             setShowModal(false);
             setForm({ ...EMPTY_WORKER_FORM });
             setSelectedOrgId("");
             window.location.reload();
         } catch (err: any) {
             setError(err.message);
+            toast.error(err.message || "Error al guardar");
         } finally {
             setSaving(false);
         }

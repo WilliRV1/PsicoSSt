@@ -231,13 +231,19 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
                 <div className="space-y-6">
                     {/* 1. Nombre completo */}
                     <div className="space-y-2">
-                        <Label className="font-bold">1. Nombre completo:</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            1. Nombre completo:
+                            <FormTooltip text="Escriba sus nombres y apellidos completos, tal cual aparecen en su documento de identidad." />
+                        </Label>
                         <Input required value={form.fullName} onChange={e => setForm((f:any) => ({ ...f, fullName: e.target.value }))} className="border-gray-300 bg-gray-50" />
                     </div>
 
                     {/* 2. Sexo */}
                     <div className="space-y-2">
-                        <Label className="font-bold">2. Sexo:</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            2. Sexo:
+                            <FormTooltip text="Seleccione el sexo con el que se identifica actualmente." />
+                        </Label>
                         <div className="flex gap-4">
                             <label className="flex items-center gap-2">
                                 <input type="radio" name="gender" value="M" checked={form.gender === "M"} onChange={e => setForm((f:any) => ({ ...f, gender: e.target.value }))} /> Masculino
@@ -253,7 +259,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 3. Año de nacimiento */}
                     <div className="space-y-2">
-                        <Label className="font-bold">3. Año de nacimiento:</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            3. Año de nacimiento:
+                            <FormTooltip text="Escriba los 4 dígitos de su año de nacimiento (ej. 1985)." />
+                        </Label>
                         <Input type="number" value={form.birthYear} onChange={e => setForm((f:any) => ({ ...f, birthYear: e.target.value }))} className="border-gray-300 bg-gray-50 max-w-[150px]" />
                     </div>
 
@@ -282,13 +291,19 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 5. Ocupación o profesión */}
                     <div className="space-y-2">
-                        <Label className="font-bold">5. ¿Cuál es su ocupación o profesión?</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            5. ¿Cuál es su ocupación o profesión?
+                            <FormTooltip text="Escriba la profesión, oficio o disciplina en la que se formó o especializó (ej. Contador, Soldador, Psicólogo)." />
+                        </Label>
                         <Input value={form.profession} onChange={e => setForm((f:any) => ({ ...f, profession: e.target.value }))} className="border-gray-300 bg-gray-50" />
                     </div>
 
                     {/* 6. Lugar de residencia */}
                     <div className="space-y-2">
-                        <Label className="font-bold">6. Lugar de residencia actual:</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            6. Lugar de residencia actual:
+                            <FormTooltip text="La ciudad y departamento donde vive habitualmente en este momento." />
+                        </Label>
                         <LocationSelector form={form} setForm={setForm} deptKey="residenceDepartment" cityKey="residenceCity" />
                     </div>
 
@@ -310,7 +325,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 8. Tipo de vivienda */}
                     <div className="space-y-2">
-                        <Label className="font-bold">8. Tipo de vivienda</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            8. Tipo de vivienda
+                            <FormTooltip text="Familiar: vive con familiares y no paga arriendo. Propia: está a su nombre o de su cónyuge. Arriendo: paga alquiler." />
+                        </Label>
                         <div className="flex gap-4">
                             <label className="flex items-center gap-1">
                                 <input type="radio" name="housing" value="Propia" checked={form.housingType === "Propia"} onChange={e => setForm((f:any) => ({ ...f, housingType: e.target.value }))} /> Propia
@@ -335,13 +353,19 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 10. Lugar de trabajo */}
                     <div className="space-y-2">
-                        <Label className="font-bold">10. Lugar donde trabaja actualmente:</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            10. Lugar donde trabaja actualmente:
+                            <FormTooltip text="La ciudad y departamento donde se encuentra la sede principal en la que usted labora." />
+                        </Label>
                         <LocationSelector form={form} setForm={setForm} deptKey="workDepartment" cityKey="workCity" />
                     </div>
 
                     {/* 11. Tiempo en empresa */}
                     <div className="space-y-2">
-                        <Label className="font-bold">11. ¿Hace cuántos años que trabaja en esta empresa?</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            11. ¿Hace cuántos años que trabaja en esta empresa?
+                            <FormTooltip text="Tiempo total de antigüedad en la organización, sin importar si ha cambiado de cargo." />
+                        </Label>
                         <div className="space-y-2 pl-4">
                             <label className="flex items-center gap-2 text-sm">
                                 <input type="checkbox" checked={form.lessThanOneYearInCompany} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInCompany: e.target.checked, yearsInCompany: e.target.checked ? "0" : "" }))} />
@@ -358,7 +382,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 12. Nombre del cargo */}
                     <div className="space-y-2">
-                        <Label className="font-bold">12. ¿Cuál es el nombre del cargo que ocupa en la empresa?</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            12. ¿Cuál es el nombre del cargo que ocupa en la empresa?
+                            <FormTooltip text="El nombre oficial de su puesto de trabajo en la organización." />
+                        </Label>
                         <AutocompleteSelector 
                             form={form} 
                             setForm={setForm} 
@@ -385,7 +412,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 14. Tiempo en el cargo */}
                     <div className="space-y-2">
-                        <Label className="font-bold">14. ¿Hace cuántos años que desempeña el cargo u oficio actual en esta empresa?</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            14. ¿Hace cuántos años que desempeña el cargo u oficio actual en esta empresa?
+                            <FormTooltip text="Años laborando exclusivamente en su puesto actual, no el total en la empresa." />
+                        </Label>
                         <div className="space-y-2 pl-4">
                             <label className="flex items-center gap-2 text-sm">
                                 <input type="checkbox" checked={form.lessThanOneYearInPosition} onChange={e => setForm((f:any) => ({ ...f, lessThanOneYearInPosition: e.target.checked, yearsInPosition: e.target.checked ? "0" : "" }))} />
@@ -402,7 +432,10 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
                     {/* 15. Departamento/área */}
                     <div className="space-y-2">
-                        <Label className="font-bold">15. Escriba el nombre del departamento, área o sección de la empresa en el que trabaja</Label>
+                        <Label className="font-bold flex items-center gap-1">
+                            15. Escriba el nombre del departamento, área o sección de la empresa en el que trabaja
+                            <FormTooltip text="El área, gerencia, departamento o proceso al cual pertenece su cargo." />
+                        </Label>
                         <AutocompleteSelector 
                             form={form} 
                             setForm={setForm} 

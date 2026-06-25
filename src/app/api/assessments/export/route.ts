@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
             a.formType,
             new Date(a.assessmentDate).toLocaleDateString("es-CO"),
             riskLabels[a.scoredResult?.overallRiskCategory || "SIN_RIESGO"],
-            score !== undefined ? score.toFixed(2) : "",
+            score !== undefined ? score.toFixed(1) : "",
             statusLabels[a.status] || a.status,
         ].map(escapeCSV).join(",");
     });

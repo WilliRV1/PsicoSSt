@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import SignaturePad from "signature_pad";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface SignatureSectionProps {
     initialSignature?: string | null;
@@ -61,15 +62,16 @@ export default function SignatureSection({ initialSignature }: SignatureSectionP
                 body: JSON.stringify({ signatureData: dataUrl, type })
             });
 
-            if (res.ok) {
-                setSignature(dataUrl);
-                alert("Firma guardada correctamente");
-            } else {
-                throw new Error("Error al guardar");
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Error al subir la firma");
             }
-        } catch (err) {
+            
+            setSignature(dataUrl);
+            toast.success("Firma actualizada exitosamente");
+        } catch (err: any) {
             console.error(err);
-            alert("No se pudo guardar la firma");
+            toast.error(err.message || "No se pudo guardar la firma");
         } finally {
             setSaving(false);
         }

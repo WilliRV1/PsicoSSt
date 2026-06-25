@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { PenLine, X, Loader2 } from "lucide-react";
 import { WorkerFormFields, EMPTY_WORKER_FORM } from "@/components/workers/WorkerFormFields";
+import { toast } from "sonner";
 
 export default function EditWorkerProfileButton({ worker }: { worker: any }) {
     const [showModal, setShowModal] = useState(false);
@@ -62,10 +63,12 @@ export default function EditWorkerProfileButton({ worker }: { worker: any }) {
                 const data = await res.json();
                 throw new Error(data.error || "Error al actualizar el trabajador");
             }
+            toast.success("Trabajador actualizado correctamente");
             setShowModal(false);
             window.location.reload();
         } catch (err: any) {
             setError(err.message);
+            toast.error(err.message || "Error al guardar");
         } finally {
             setSaving(false);
         }

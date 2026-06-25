@@ -37,10 +37,16 @@ export async function GET(
         },
     });
 
-    // Group by departmentArea (or "Sin área" if null)
-    // For each area, count risk distribution across all questionnaire types
+    // Group by departmentArea (or "Sin área" if null) and jobTitle
+    // For each, count risk distribution across all questionnaire types
     const areaMap: Record<string, {
         area: string;
+        workerCount: number;
+        riskCounts: Record<string, number>;
+    }> = {};
+
+    const jobTitleMap: Record<string, {
+        jobTitle: string;
         workerCount: number;
         riskCounts: Record<string, number>;
     }> = {};
@@ -49,18 +55,28 @@ export async function GET(
 
     for (const worker of workers) {
         const area = worker.departmentArea || "Sin área";
+        const jobTitle = worker.jobTitle || "Sin cargo";
+
         if (!areaMap[area]) {
             areaMap[area] = { area, workerCount: 0, riskCounts: Object.fromEntries(RISK_ORDER.map(k => [k, 0])) };
         }
+        if (!jobTitleMap[jobTitle]) {
+            jobTitleMap[jobTitle] = { jobTitle, workerCount: 0, riskCounts: Object.fromEntries(RISK_ORDER.map(k => [k, 0])) };
+        }
+
         // Count this worker only once (use highest risk across assessments)
         const risks = worker.assessments
             .filter(a => a.scoredResult)
             .map(a => a.scoredResult!.overallRiskCategory as string);
         if (risks.length > 0) {
-            areaMap[area].workerCount++;
             // Use the most severe risk for this worker
             const highest = RISK_ORDER.slice().reverse().find(r => risks.includes(r)) ?? risks[0];
+            
+            areaMap[area].workerCount++;
             areaMap[area].riskCounts[highest] = (areaMap[area].riskCounts[highest] ?? 0) + 1;
+
+            jobTitleMap[jobTitle].workerCount++;
+            jobTitleMap[jobTitle].riskCounts[highest] = (jobTitleMap[jobTitle].riskCounts[highest] ?? 0) + 1;
         }
     }
 
@@ -134,6 +150,7 @@ export async function GET(
         organization: { name: org.name, nit: org.nit, city: org.city },
         psychologist,
         areas: Object.values(areaMap),
+        jobTitles: Object.values(jobTitleMap),
         totalByRisk,
         detailedBreakdown,
         generatedAt: new Date().toISOString(),

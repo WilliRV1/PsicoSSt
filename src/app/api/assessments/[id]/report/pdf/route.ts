@@ -64,13 +64,15 @@ export async function GET(
 
     // Get signature image: from signed report first, then from psychologist signatures, then legacy field
     let signatureImage: string | undefined;
-    if (report?.status === 'SIGNED' && report.signatureImage) {
-      signatureImage = report.signatureImage;
-    } else {
-      const drawnSig = psychologist.signatures.find((sig) => sig.signatureType === 'drawn');
-      const uploadedSig = psychologist.signatures.find((sig) => sig.signatureType === 'uploaded');
-      const bestSig = drawnSig || uploadedSig;
-      signatureImage = bestSig?.dataUrl || bestSig?.imageUrl || psychologist.signature || undefined;
+    if (psychologist.sstLicenseDate) {
+      if (report?.status === 'SIGNED' && report.signatureImage) {
+        signatureImage = report.signatureImage;
+      } else {
+        const drawnSig = psychologist.signatures.find((sig) => sig.signatureType === 'drawn');
+        const uploadedSig = psychologist.signatures.find((sig) => sig.signatureType === 'uploaded');
+        const bestSig = drawnSig || uploadedSig;
+        signatureImage = bestSig?.dataUrl || bestSig?.imageUrl || psychologist.signature || undefined;
+      }
     }
 
     const assessmentDate = new Date(assessment.assessmentDate).toLocaleDateString('es-CO', {
