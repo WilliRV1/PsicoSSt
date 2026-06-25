@@ -329,7 +329,49 @@ export const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any })
                     {/* 17. Horas diarias */}
                     <div className="space-y-2">
                         <Label className="font-bold">17. Indique cuántas horas diarias de trabajo están establecidas habitualmente por la empresa para su cargo</Label>
-                        <Input type="text" value={form.hoursPerDay} onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} className="border-gray-300 bg-gray-50 max-w-[150px]" />
+                        <div>
+                            <Input 
+                                type="text" 
+                                value={form.hoursPerDay} 
+                                onChange={e => setForm((f:any) => ({ ...f, hoursPerDay: e.target.value }))} 
+                                onBlur={(e) => {
+                                    let val = e.target.value.trim();
+                                    if (!val) return;
+                                    
+                                    val = val.replace(',', '.');
+                                    let decimal = parseFloat(val);
+                                    let isConverted = false;
+
+                                    if (val.includes(':')) {
+                                        const parts = val.split(':');
+                                        const h = parseInt(parts[0]) || 0;
+                                        const m = parseInt(parts[1]) || 0;
+                                        decimal = h + (m / 60);
+                                        isConverted = true;
+                                    } else if (val.endsWith('.30')) {
+                                        decimal = parseInt(val.split('.')[0]) + 0.5;
+                                        isConverted = true;
+                                    } else if (val.endsWith('.15')) {
+                                        decimal = parseInt(val.split('.')[0]) + 0.25;
+                                        isConverted = true;
+                                    } else if (val.endsWith('.45')) {
+                                        decimal = parseInt(val.split('.')[0]) + 0.75;
+                                        isConverted = true;
+                                    }
+
+                                    if (isConverted || !isNaN(decimal)) {
+                                        // Redondear a 2 decimales máximo para evitar números como 7.3333333
+                                        const finalStr = Number(decimal.toFixed(2)).toString();
+                                        setForm((f:any) => ({ ...f, hoursPerDay: finalStr }));
+                                    }
+                                }}
+                                className="border-gray-300 bg-gray-50 max-w-[150px]" 
+                                placeholder="Ej: 8 o 7:30"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Puedes escribir horas y minutos (ej. 7:30). Se convertirá a decimal (7.5).
+                            </p>
+                        </div>
                     </div>
 
                     {/* 18. Tipo de salario */}
