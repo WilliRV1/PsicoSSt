@@ -190,6 +190,7 @@ interface IndividualReportPDFProps {
   signatureImage?: string;
   assessmentDate: string;
   reportDate?: string;
+  submittedTime?: string;
 }
 
 const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
@@ -212,6 +213,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
   signatureImage,
   assessmentDate,
   reportDate,
+  submittedTime,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -225,6 +227,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
           <View style={{ textAlign: 'right', fontSize: 9, color: '#666' }}>
             <Text>Fecha de Aplicación: {assessmentDate}</Text>
             {reportDate && <Text>Fecha de Elaboración: {reportDate}</Text>}
+            {submittedTime && <Text>Hora de Digitación: {submittedTime}</Text>}
           </View>
         </View>
       </View>

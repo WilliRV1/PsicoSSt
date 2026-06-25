@@ -35,6 +35,11 @@ export function generateReportHTML(data: ReportData): string {
     ? dateFormatter.format(new Date(report.signedAt))
     : reportDate;
 
+  const submittedTime = new Date(assessment.createdAt).toLocaleTimeString('es-CO', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
   return `
     <!DOCTYPE html>
     <html lang="es">
@@ -220,6 +225,7 @@ export function generateReportHTML(data: ReportData): string {
           <div class="header-info">
             <span>Fecha de Aplicación: ${assessmentDate}</span>
             <span>Fecha de Elaboración: ${reportDate}</span>
+            <span>Hora de Digitación: ${submittedTime}</span>
           </div>
         </div>
 

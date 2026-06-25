@@ -6,6 +6,7 @@ import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock } from
 import { Button } from "@/components/ui/button";
 import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
+import DeleteAssessmentButton from "./delete-assessment-button";
 
 const PAGE_SIZE = 50;
 
@@ -275,6 +276,7 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                                                         <FileDown className="h-3.5 w-3.5" />
                                                         PDF
                                                     </a>
+                                                    <DeleteAssessmentButton id={assessment.id} />
                                                 </div>
                                             </td>
                                         </tr>

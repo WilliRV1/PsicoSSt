@@ -3,6 +3,7 @@ import React from "react";
 import IndividualReportPDF from "@/components/reports/IndividualReportPDF";
 
 interface AssessmentForPDF {
+    createdAt: Date;
     assessmentDate: Date;
     questionnaireType: string;
     formType: string;
@@ -47,6 +48,11 @@ export async function generateIndividualPDF(assessment: AssessmentForPDF): Promi
         day: "numeric",
     });
 
+    const submittedTime = new Date(assessment.createdAt).toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     const reportData = report?.reportData as Record<string, string> | undefined;
 
     const element = React.createElement(IndividualReportPDF, {
@@ -69,6 +75,7 @@ export async function generateIndividualPDF(assessment: AssessmentForPDF): Promi
         signatureImage,
         assessmentDate,
         reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
+        submittedTime,
     });
 
     const stream = await renderToStream(element as any);

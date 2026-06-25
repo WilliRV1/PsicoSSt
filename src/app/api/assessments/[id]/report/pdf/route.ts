@@ -78,6 +78,11 @@ export async function GET(
       day: 'numeric'
     });
 
+    const submittedTime = new Date(assessment.createdAt).toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     const reportData = report?.reportData as ReportData | null;
 
     const pdfElement = React.createElement(IndividualReportPDF, {
@@ -100,6 +105,7 @@ export async function GET(
       signatureImage: signatureImage,
       assessmentDate: assessmentDate,
       reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
+      submittedTime: submittedTime,
     });
 
     // @ts-expect-error react-pdf renderToStream typing mismatch with React 19
