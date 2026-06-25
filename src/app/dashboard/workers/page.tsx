@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Users, FileDown, Eye, AlertTriangle, Building2, ClipboardList } from "lucide-react";
 import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
+import AddWorkerGlobalButton from "@/components/workers/AddWorkerGlobalButton";
 
 const PAGE_SIZE = 50;
 
@@ -134,14 +135,17 @@ export default async function WorkersPage({ searchParams }: PageProps) {    con
                         {q || orgFilter || levelFilter || riskFilter ? " (filtrado)" : " registrados"}
                     </p>
                 </div>
-                <a
-                    href={"/api/workers/export" + (orgFilter ? "?orgId=" + orgFilter : "")}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                    title="Exportar a CSV"
-                >
-                    <FileDown className="h-4 w-4" />
-                    Exportar CSV
-                </a>
+                <div className="flex items-center gap-2">
+                    <AddWorkerGlobalButton organizations={organizations} />
+                    <a
+                        href={"/api/workers/export" + (orgFilter ? "?orgId=" + orgFilter : "")}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                        title="Exportar a CSV"
+                    >
+                        <FileDown className="h-4 w-4" />
+                        Exportar CSV
+                    </a>
+                </div>
             </div>
 
             {/* Stats cards */}
