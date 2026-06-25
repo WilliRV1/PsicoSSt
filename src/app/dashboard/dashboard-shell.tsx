@@ -113,7 +113,9 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
             {/* Navigation */}
             <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Navegacion principal">
                 {navItems.map(({ label, href, icon: Icon }) => {
-                    const isActive = pathname === href || pathname.startsWith(href + "/")
+                    const isActive = href === "/dashboard" 
+                        ? pathname === "/dashboard" 
+                        : pathname === href || pathname.startsWith(href + "/")
                     return (
                         <Link
                             key={href}
@@ -237,7 +239,16 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
                             <Menu className="h-5 w-5 text-foreground" />
                         </button>
                         <h1 className="text-lg font-semibold text-foreground">
-                            {navItems.find((n) => pathname === n.href || pathname.startsWith(n.href + "/"))?.label ?? "PsicoSST"}
+                            {(() => {
+                                const exactMatch = navItems.find((n) => pathname === n.href)
+                                if (exactMatch) return exactMatch.label
+                                
+                                const prefixMatch = navItems.find((n) => n.href !== "/dashboard" && pathname.startsWith(n.href + "/"))
+                                if (prefixMatch) return prefixMatch.label
+                                
+                                if (pathname.startsWith("/dashboard/profile")) return "Mi Perfil"
+                                return "PsicoSST"
+                            })()}
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
