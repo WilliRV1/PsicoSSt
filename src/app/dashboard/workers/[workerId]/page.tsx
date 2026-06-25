@@ -2,9 +2,32 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, MapPin, Calendar, AlertTriangle, RefreshCw } from "lucide-react";
+import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, MapPin, Calendar, AlertTriangle, RefreshCw, Info } from "lucide-react";
 import EditWorkerProfileButton from "@/components/workers/EditWorkerProfileButton";
 import WorkerTrendChart from "@/components/workers/worker-trend-chart";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: React.ReactNode }) => {
+    const texts: Record<string, string> = {
+        SIN_RIESGO: "No se requiere intervención. Es indicativo de un ambiente de trabajo saludable en esta dimensión.",
+        BAJO: "No se espera que la respuesta al estrés sea alta. Se recomienda mantener las acciones preventivas actuales.",
+        MEDIO: "Nivel en el que se esperaría una respuesta de estrés moderada. Requiere observación y acciones preventivas concretas.",
+        ALTO: "Importante posibilidad de asociación con respuestas de estrés alto. Requiere intervención psicosocial en el marco de un sistema de vigilancia epidemiológica.",
+        MUY_ALTO: "Amplia posibilidad de asociarse con respuestas muy altas de estrés. Requiere intervención inmediata y seguimiento estrecho."
+    };
+    
+    return (
+        <Tooltip>
+            <TooltipTrigger type="button" tabIndex={-1} className="cursor-help flex items-center justify-center gap-1.5 mx-auto">
+                {children}
+                <Info className="h-3.5 w-3.5 opacity-50 hover:opacity-100 transition-opacity" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[250px] p-3 text-center">
+                <p className="text-xs font-normal leading-relaxed">{texts[riskLevel]}</p>
+            </TooltipContent>
+        </Tooltip>
+    );
+};
 
 const riskColors: Record<string, string> = {
     SIN_RIESGO: "bg-green-100 text-green-700 border-green-200",
@@ -44,10 +67,38 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 };
 
 const educationLabels: Record<string, string> = {
-    PRIMARIA: "Primaria", BACHILLERATO: "Bachillerato", TECNICO: "Técnico",
-    TECNOLOGO: "Tecnólogo", TECNICO_TECNOLOGO: "Técnico/Tecnólogo",
-    PROFESIONAL: "Profesional", ESPECIALIZACION: "Especialización",
-    MAESTRIA: "Maestría", DOCTORADO: "Doctorado",
+    Ninguno: "Ninguno",
+    Primaria_incompleta: "Primaria incompleta",
+    Primaria_completa: "Primaria completa",
+    Bachillerato_incompleto: "Bachillerato incompleto",
+    Bachillerato_completo: "Bachillerato completo",
+    Tecnico_incompleto: "Técnico incompleto",
+    Tecnico_completo: "Técnico completo",
+    Tecnologo_incompleto: "Tecnólogo incompleto",
+    Tecnologo_completo: "Tecnólogo completo",
+    Profesional_incompleto: "Profesional incompleto",
+    Profesional_completo: "Profesional completo",
+    Especializacion_incompleta: "Especialización incompleta",
+    Especializacion_completa: "Especialización completa",
+    Maestria_incompleta: "Maestría incompleta",
+    Maestria_completa: "Maestría completa",
+    Doctorado_incompleto: "Doctorado incompleto",
+    Doctorado_completo: "Doctorado completo"
+};
+
+const contractLabels: Record<string, string> = {
+    Temporal_menos_1_ano: "Temporal < 1 año",
+    Temporal_1_ano_o_mas: "Temporal >= 1 año",
+    A_termino_indefinido: "A término indefinido",
+    Cooperativa: "Cooperativa",
+    Prestacion_de_servicios: "Prestación de servicios",
+    No_se: "No sabe"
+};
+
+const housingLabels: Record<string, string> = {
+    Propia: "Propia",
+    Familiar: "Familiar",
+    Arriendo: "Arriendo"
 };
 
 const jobLevelLabels: Record<string, string> = {
@@ -176,7 +227,9 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                         return (
                             <div key={type} className={`rounded-xl border p-4 text-center ${riskColors[risk]}`}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{questionnaireLabels[type]}</p>
-                                <p className="text-xl font-black">{riskLabels[risk]}</p>
+                                <RiskTooltip riskLevel={risk}>
+                                    <span className="text-xl font-black">{riskLabels[risk]}</span>
+                                </RiskTooltip>
                                 {score !== undefined && <p className="text-sm font-semibold opacity-70 mt-0.5">{score.toFixed(1)}%</p>}
                                 <p className="text-xs opacity-60 mt-1">
                                     {new Date(a.assessmentDate).toLocaleDateString("es-CO", { year: "numeric", month: "short" })}
@@ -233,16 +286,16 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                     {[
                         { label: "Género", value: worker.gender === "M" ? "Masculino" : worker.gender === "F" ? "Femenino" : null },
                         { label: "Estado civil", value: worker.maritalStatus },
-                        { label: "Escolaridad", value: educationLabels[worker.educationLevel] || worker.educationLevel },
+                        { label: "Escolaridad", value: educationLabels[worker.educationLevel] || worker.educationLevel?.replace(/_/g, " ") },
                         { label: "Ciudad de residencia", value: worker.residenceCity },
                         { label: "Área / Departamento", value: worker.departmentArea },
-                        { label: "Tipo de contrato", value: worker.contractType },
+                        { label: "Tipo de contrato", value: contractLabels[worker.contractType] || worker.contractType?.replace(/_/g, " ") },
                         { label: "Jornada laboral", value: worker.workSchedule },
                         { label: "Horas por semana", value: worker.hoursPerWeek ? `${worker.hoursPerWeek} h` : null },
-                        { label: "Antigüedad en empresa", value: worker.yearsInCompany !== null ? `${worker.yearsInCompany} años` : null },
-                        { label: "Antigüedad en cargo", value: worker.yearsInPosition !== null ? `${worker.yearsInPosition} años` : null },
+                        { label: "Antigüedad en empresa", value: worker.lessThanOneYearInCompany ? "Menos de un año" : worker.yearsInCompany !== null ? `${worker.yearsInCompany} años` : null },
+                        { label: "Antigüedad en cargo", value: worker.lessThanOneYearInPosition ? "Menos de un año" : worker.yearsInPosition !== null ? `${worker.yearsInPosition} años` : null },
                         { label: "Estrato socioeconómico", value: worker.socioeconomicStratum ? `Estrato ${worker.socioeconomicStratum}` : null },
-                        { label: "Tipo de vivienda", value: worker.housingType },
+                        { label: "Tipo de vivienda", value: housingLabels[worker.housingType] || worker.housingType },
                     ].map(({ label, value }) => value ? (
                         <div key={label}>
                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ orgId: string }> }
 ) {
     try {
         const session = await auth();
@@ -12,11 +12,11 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id } = await params;
+        const { orgId } = await params;
 
         // Verify organization access
         const org = await prisma.organization.findUnique({
-            where: { id },
+            where: { id: orgId },
             select: { createdByPsychologist: true }
         });
 
@@ -26,7 +26,7 @@ export async function GET(
 
         // Fetch distinct departments
         const depts = await prisma.worker.findMany({
-            where: { organizationId: id },
+            where: { organizationId: orgId },
             select: { departmentArea: true },
             distinct: ["departmentArea"],
             orderBy: { departmentArea: "asc" }
@@ -34,7 +34,7 @@ export async function GET(
 
         // Fetch distinct job titles
         const jobs = await prisma.worker.findMany({
-            where: { organizationId: id },
+            where: { organizationId: orgId },
             select: { jobTitle: true },
             distinct: ["jobTitle"],
             orderBy: { jobTitle: "asc" }
