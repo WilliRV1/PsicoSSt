@@ -13,6 +13,7 @@ interface Worker {
     fullName: string;
     documentId: string;
     organizationId: string;
+    hasCustomerInteraction?: boolean;
     organization: { name: string };
 }
 
