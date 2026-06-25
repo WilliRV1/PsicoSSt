@@ -1,6 +1,8 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import colombiaData from "@/config/colombia.json";
+import { Input } from "@/components/ui/input";
 
 const SELECT_CLASS = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -37,6 +39,78 @@ export const EMPTY_WORKER_FORM = {
     transportMeans: "",
     displacementTime: "",
     hasCustomerInteraction: true
+};
+
+const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setForm: any, deptKey: string, cityKey: string }) => {
+    const selectedDept = form[deptKey] || "";
+    const selectedCity = form[cityKey] || "";
+
+    const isKnownDept = colombiaData.some(d => d.departamento === selectedDept);
+    const showCustomDept = selectedDept === "OTRO" || (selectedDept !== "" && !isKnownDept);
+
+    const deptObj = colombiaData.find(d => d.departamento === selectedDept);
+    const knownCities = deptObj ? deptObj.ciudades : [];
+    
+    const isKnownCity = knownCities.includes(selectedCity);
+    const showCustomCity = showCustomDept || selectedCity === "OTRO" || (selectedCity !== "" && !isKnownCity);
+
+    return (
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+                <Label className="text-xs text-gray-500">Departamento</Label>
+                {showCustomDept ? (
+                    <div className="flex gap-2 items-center mt-1">
+                        <Input 
+                            value={selectedDept === "OTRO" ? "" : selectedDept} 
+                            onChange={e => setForm((f:any) => ({ ...f, [deptKey]: e.target.value }))} 
+                            className="border-gray-300 bg-gray-50 h-9"
+                            placeholder="Escriba el departamento" 
+                            autoFocus={selectedDept === "OTRO"}
+                        />
+                        <button type="button" onClick={() => setForm((f:any) => ({ ...f, [deptKey]: "", [cityKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                    </div>
+                ) : (
+                    <select 
+                        value={selectedDept} 
+                        onChange={e => setForm((f:any) => ({ ...f, [deptKey]: e.target.value, [cityKey]: "" }))} 
+                        className={`${SELECT_CLASS} border-gray-300 bg-gray-50 mt-1`}
+                    >
+                        <option value="">Seleccione...</option>
+                        {colombiaData.map(d => <option key={d.departamento} value={d.departamento}>{d.departamento}</option>)}
+                        <option value="OTRO">Otro / Escribir...</option>
+                    </select>
+                )}
+            </div>
+            <div>
+                <Label className="text-xs text-gray-500">Ciudad / municipio</Label>
+                {showCustomCity ? (
+                    <div className="flex gap-2 items-center mt-1">
+                        <Input 
+                            value={selectedCity === "OTRO" ? "" : selectedCity} 
+                            onChange={e => setForm((f:any) => ({ ...f, [cityKey]: e.target.value }))} 
+                            className="border-gray-300 bg-gray-50 h-9"
+                            placeholder="Escriba la ciudad" 
+                            autoFocus={selectedCity === "OTRO"}
+                        />
+                        {!showCustomDept && (
+                            <button type="button" onClick={() => setForm((f:any) => ({ ...f, [cityKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                        )}
+                    </div>
+                ) : (
+                    <select 
+                        value={selectedCity} 
+                        onChange={e => setForm((f:any) => ({ ...f, [cityKey]: e.target.value }))} 
+                        className={`${SELECT_CLASS} border-gray-300 bg-gray-50 mt-1`}
+                        disabled={!selectedDept}
+                    >
+                        <option value="">{selectedDept ? "Seleccione..." : "Seleccione dpto"}</option>
+                        {knownCities.map((c: string) => <option key={c} value={c}>{c}</option>)}
+                        {selectedDept && <option value="OTRO">Otro / Escribir...</option>}
+                    </select>
+                )}
+            </div>
+        </div>
+    );
 };
 
 export const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any }) => {
@@ -138,16 +212,7 @@ export const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any })
                     {/* 6. Lugar de residencia */}
                     <div className="space-y-2">
                         <Label className="font-bold">6. Lugar de residencia actual:</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs text-gray-500">Ciudad / municipio</Label>
-                                <Input value={form.residenceCity} onChange={e => setForm((f:any) => ({ ...f, residenceCity: e.target.value }))} className="border-gray-300 bg-gray-50" />
-                            </div>
-                            <div>
-                                <Label className="text-xs text-gray-500">Departamento</Label>
-                                <Input value={form.residenceDepartment} onChange={e => setForm((f:any) => ({ ...f, residenceDepartment: e.target.value }))} className="border-gray-300 bg-gray-50" />
-                            </div>
-                        </div>
+                        <LocationSelector form={form} setForm={setForm} deptKey="residenceDepartment" cityKey="residenceCity" />
                     </div>
 
                     {/* 7. Estrato */}
@@ -188,16 +253,7 @@ export const WorkerFormFields = ({ form, setForm }: { form: any, setForm: any })
                     {/* 10. Lugar de trabajo */}
                     <div className="space-y-2">
                         <Label className="font-bold">10. Lugar donde trabaja actualmente:</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs text-gray-500">Ciudad / municipio</Label>
-                                <Input value={form.workCity} onChange={e => setForm((f:any) => ({ ...f, workCity: e.target.value }))} className="border-gray-300 bg-gray-50" />
-                            </div>
-                            <div>
-                                <Label className="text-xs text-gray-500">Departamento</Label>
-                                <Input value={form.workDepartment} onChange={e => setForm((f:any) => ({ ...f, workDepartment: e.target.value }))} className="border-gray-300 bg-gray-50" />
-                            </div>
-                        </div>
+                        <LocationSelector form={form} setForm={setForm} deptKey="workDepartment" cityKey="workCity" />
                     </div>
 
                     {/* 11. Tiempo en empresa */}
