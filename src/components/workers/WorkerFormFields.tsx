@@ -112,6 +112,40 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setF
     );
 };
 
+const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }: { form: any, setForm: any, fieldKey: string, options: string[], placeholder: string }) => {
+    const selectedValue = form[fieldKey] || "";
+    const isKnown = options.includes(selectedValue);
+    // Show custom input if "OTRO" is selected, or if the current value is not empty and not in the known options list
+    const showCustom = selectedValue === "OTRO" || (selectedValue !== "" && !isKnown);
+
+    return (
+        <div>
+            {showCustom ? (
+                <div className="flex gap-2 items-center mt-1">
+                    <Input 
+                        value={selectedValue === "OTRO" ? "" : selectedValue} 
+                        onChange={e => setForm((f:any) => ({ ...f, [fieldKey]: e.target.value }))} 
+                        className="border-gray-300 bg-gray-50 h-9"
+                        placeholder={placeholder} 
+                        autoFocus={selectedValue === "OTRO"}
+                    />
+                    <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                </div>
+            ) : (
+                <select 
+                    value={selectedValue} 
+                    onChange={e => setForm((f:any) => ({ ...f, [fieldKey]: e.target.value }))} 
+                    className={`${SELECT_CLASS} border-gray-300 bg-gray-50 mt-1`}
+                >
+                    <option value="">Seleccione...</option>
+                    {options.map(o => <option key={o} value={o}>{o}</option>)}
+                    <option value="OTRO">Otro / Escribir...</option>
+                </select>
+            )}
+        </div>
+    );
+};
+
 export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any, setForm: any, organizationId?: string }) => {
     const [existingDepartments, setExistingDepartments] = useState<string[]>([]);
     const [existingJobTitles, setExistingJobTitles] = useState<string[]>([]);
@@ -130,13 +164,6 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
 
     return (
         <div className="space-y-8">
-            <datalist id={`dept-list-${organizationId || 'new'}`}>
-                {existingDepartments.map(d => <option key={d} value={d} />)}
-            </datalist>
-            <datalist id={`job-list-${organizationId || 'new'}`}>
-                {existingJobTitles.map(j => <option key={j} value={j} />)}
-            </datalist>
-            
             <div className="bg-white text-black p-6 border rounded-lg shadow-sm">
                 <div className="flex justify-between items-start border-b border-gray-300 pb-4 mb-6">
                     <div className="space-y-4 flex-1">
@@ -297,12 +324,12 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
                     {/* 12. Nombre del cargo */}
                     <div className="space-y-2">
                         <Label className="font-bold">12. ¿Cuál es el nombre del cargo que ocupa en la empresa?</Label>
-                        <Input 
-                            value={form.jobTitle} 
-                            onChange={e => setForm((f:any) => ({ ...f, jobTitle: e.target.value }))} 
-                            className="border-gray-300 bg-gray-50" 
-                            list={`job-list-${organizationId || 'new'}`}
-                            autoComplete="off"
+                        <AutocompleteSelector 
+                            form={form} 
+                            setForm={setForm} 
+                            fieldKey="jobTitle" 
+                            options={existingJobTitles} 
+                            placeholder="Escriba el cargo" 
                         />
                     </div>
 
@@ -338,12 +365,12 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: any,
                     {/* 15. Departamento/área */}
                     <div className="space-y-2">
                         <Label className="font-bold">15. Escriba el nombre del departamento, área o sección de la empresa en el que trabaja</Label>
-                        <Input 
-                            value={form.departmentArea} 
-                            onChange={e => setForm((f:any) => ({ ...f, departmentArea: e.target.value }))} 
-                            className="border-gray-300 bg-gray-50" 
-                            list={`dept-list-${organizationId || 'new'}`}
-                            autoComplete="off"
+                        <AutocompleteSelector 
+                            form={form} 
+                            setForm={setForm} 
+                            fieldKey="departmentArea" 
+                            options={existingDepartments} 
+                            placeholder="Escriba el departamento o área" 
                         />
                     </div>
 
