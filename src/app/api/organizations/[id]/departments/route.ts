@@ -28,7 +28,6 @@ export async function GET(
         const workers = await prisma.worker.findMany({
             where: { 
                 organizationId: id,
-                departmentArea: { not: null, not: "" }
             },
             select: { departmentArea: true },
             distinct: ["departmentArea"],
