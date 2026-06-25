@@ -191,6 +191,7 @@ interface IndividualReportPDFProps {
   assessmentDate: string;
   reportDate?: string;
   submittedTime?: string;
+  isAnonymous?: boolean;
 }
 
 const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
@@ -214,7 +215,16 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
   assessmentDate,
   reportDate,
   submittedTime,
-}) => (
+  isAnonymous = false,
+}) => {
+  const displayWorkerName = isAnonymous ? "TRABAJADOR ANÓNIMO" : workerName;
+  // Mask ID by extracting last 4 digits if possible
+  const maskedId = typeof workerId === 'string' && workerId.length > 4 
+    ? `WK-***${workerId.slice(-4)}` 
+    : "WK-ANON";
+  const displayWorkerId = isAnonymous ? maskedId : workerId;
+
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
@@ -236,10 +246,10 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
         <Text style={styles.sectionTitle}>1. DATOS DEMOGRÁFICOS Y OCUPACIONALES</Text>
         <View style={styles.grid}>
           <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Trabajador: </Text><Text style={styles.value}>{workerName}</Text></Text>
+            <Text><Text style={styles.label}>Trabajador: </Text><Text style={styles.value}>{displayWorkerName}</Text></Text>
           </View>
           <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Identificación: </Text><Text style={styles.value}>{workerId}</Text></Text>
+            <Text><Text style={styles.label}>Identificación: </Text><Text style={styles.value}>{displayWorkerId}</Text></Text>
           </View>
           <View style={styles.gridItem}>
             <Text><Text style={styles.label}>Edad: </Text><Text style={styles.value}>{age || 'N/A'}</Text></Text>
@@ -291,10 +301,30 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
         </View>
       </View>
 
+      {/* Interpretación Genérica */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>4. INTERPRETACIÓN GENÉRICA DEL RIESGO</Text>
+        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
+          <Text style={{ fontWeight: 'bold' }}>• Sin Riesgo o Riesgo Despreciable:</Text> Ausencia de riesgo o riesgo tan bajo que no amerita acciones diferentes a mantener las condiciones actuales.
+        </Text>
+        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
+          <Text style={{ fontWeight: 'bold' }}>• Riesgo Bajo:</Text> No se espera que cause efectos adversos significativos, pero se sugiere mantener promoción y prevención.
+        </Text>
+        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
+          <Text style={{ fontWeight: 'bold' }}>• Riesgo Medio:</Text> Nivel de riesgo que amerita observación y acciones de intervención para prevenir efectos perjudiciales en la salud.
+        </Text>
+        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
+          <Text style={{ fontWeight: 'bold' }}>• Riesgo Alto:</Text> Nivel de riesgo que tiene importante posibilidad de asociación con respuestas de estrés alto. Requiere intervención a corto plazo.
+        </Text>
+        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
+          <Text style={{ fontWeight: 'bold' }}>• Riesgo Muy Alto:</Text> Nivel de riesgo con amplia posibilidad de asociarse a respuestas muy altas de estrés y enfermedades asociadas. Requiere intervención inmediata (Resolución 2764 de 2022).
+        </Text>
+      </View>
+
       {/* Clinical Analysis */}
-      {analysis && (
+      {analysis && !isAnonymous && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. ANÁLISIS CLÍNICO</Text>
+          <Text style={styles.sectionTitle}>5. ANÁLISIS CLÍNICO Y CONCEPTUAL</Text>
           <Text style={{ fontSize: 9, lineHeight: 1.4 }}>{analysis}</Text>
         </View>
       )}
@@ -302,7 +332,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
       {/* Recommendations */}
       {recommendations && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. RECOMENDACIONES TÉCNICAS</Text>
+          <Text style={styles.sectionTitle}>{isAnonymous ? "5" : "6"}. RECOMENDACIONES TÉCNICAS</Text>
           <Text style={{ fontSize: 9, lineHeight: 1.4 }}>{recommendations}</Text>
         </View>
       )}
@@ -325,7 +355,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
 
       {/* Footer with Mandatory Attribution */}
       <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-        `Batería de Riesgo Psicosocial © Ministerio de la Protección Social - Pontificia Universidad Javeriana\nPsicoSST - Documento Confidencial - Página ${pageNumber} de ${totalPages}`
+        `Batería de Riesgo Psicosocial © Ministerio de la Protección Social - Pontificia Universidad Javeriana\nPsicoSST - Documento de Reserva Legal y Confidencial (Ley 1090 de 2006) - Página ${pageNumber} de ${totalPages}`
       )} fixed />
     </Page>
   </Document>

@@ -25,6 +25,7 @@ export async function GET(
 ) {
   try {
     const { id: assessmentId } = await params;
+    const isAnonymous = req.nextUrl.searchParams.get('anon') === 'true';
 
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId },
@@ -106,6 +107,7 @@ export async function GET(
       assessmentDate: assessmentDate,
       reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
       submittedTime: submittedTime,
+      isAnonymous: isAnonymous,
     });
 
     // @ts-expect-error react-pdf renderToStream typing mismatch with React 19
@@ -117,11 +119,13 @@ export async function GET(
     }
     const buffer = Buffer.concat(chunks);
 
+    const filename = isAnonymous ? `Informe_Anonimo_${worker.documentId.slice(-4)}.pdf` : `Informe_${worker.documentId}.pdf`;
+
     return new NextResponse(buffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="Informe_${worker.documentId}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
 
