@@ -355,6 +355,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
 
       {/* Footer with Mandatory Attribution */}
       <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
+        `Batería de Riesgo Psicosocial © Ministerio de la Protección Social - Pontificia Universidad Javeriana\nPsicoSST - Documento de Reserva Legal y Confidencial (Ley 1090 de 2006) - Página ${pageNumber} de ${totalPages}`
       )} fixed />
     </Page>
   </Document>
