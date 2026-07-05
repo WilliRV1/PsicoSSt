@@ -20,26 +20,45 @@ import {
 } from "@/types/battery";
 
 /**
+ * Redondeo estricto a 1 decimal por aproximación
+ */
+function round1(value: number): number {
+    return Math.round(value * 10) / 10;
+}
+
+/**
  * Validates if a dimension should be nullified based on missing items.
- * Rule: More than 1 item missing for N > 2, or any missing for N <= 2.
  */
 export function validateDimensionNullity(
     responses: ItemResponses,
-    items: number[]
+    items: number[],
+    dimensionKey: string,
+    questionnaireType: QuestionnaireType
 ): boolean {
     const missingCount = items.filter(item => {
         const val = responses[String(item)];
         return val === undefined || val === null;
     }).length;
 
-    const n = items.length;
-    if (n <= 2) return missingCount === 0;
-    return missingCount <= 1;
+    if (missingCount === 0) return true;
+
+    if (questionnaireType === "INTRALABORAL") {
+        const tolerantDimensions = [
+            "liderazgo_caracteristicas",
+            "relaciones_sociales",
+            "relacion_colaboradores",
+            "demandas_ambientales"
+        ];
+        if (tolerantDimensions.includes(dimensionKey) && missingCount === 1) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /**
  * Reverses scores for specific items (4 - value).
- * Typically used for "Negative/Risk" items to make High Score = High Risk.
  */
 export function applyInversions(
     responses: ItemResponses,
@@ -48,7 +67,7 @@ export function applyInversions(
     const result = { ...responses };
     for (const item of invertedItems) {
         const key = String(item);
-        if (key in result) {
+        if (key in result && result[key] !== undefined && result[key] !== null) {
             result[key] = 4 - result[key];
         }
     }
@@ -62,8 +81,7 @@ export function lookupRiskCategory(
     transformedScore: number,
     thresholds: BaremoThreshold
 ): RiskCategory {
-    // Round to 1 decimal for lookup to match baremo precision
-    const score = Math.round(transformedScore * 10) / 10;
+    const score = round1(transformedScore);
 
     if (score <= thresholds.sinRiesgo[1]) return "SIN_RIESGO";
     if (score <= thresholds.bajo[1]) return "BAJO";
@@ -72,9 +90,6 @@ export function lookupRiskCategory(
     return "MUY_ALTO";
 }
 
-/**
- * Returns risk level (1-5) for a category
- */
 export function getRiskLevel(category: RiskCategory): number {
     const levels: Record<RiskCategory, number> = {
         "SIN_RIESGO": 1,
@@ -86,100 +101,109 @@ export function getRiskLevel(category: RiskCategory): number {
     return levels[category];
 }
 
-/**
- * Calculates result for a single dimension
- */
 export function calculateDimensionScore(
     responses: ItemResponses,
-    config: any, // DimensionConfig
-    baremoTable: Record<string, BaremoThreshold>
+    config: any,
+    baremoTable: Record<string, BaremoThreshold>,
+    questionnaireType: QuestionnaireType
 ): DimensionScore {
+    const isValid = validateDimensionNullity(responses, config.items, config.key, questionnaireType);
+    
     let rawScore = 0;
-    for (const item of config.items) {
-        rawScore += responses[String(item)] ?? 0;
+    let answeredCount = 0;
+    
+    if (isValid) {
+        for (const item of config.items) {
+            const val = responses[String(item)];
+            if (val !== undefined && val !== null) {
+                rawScore += val;
+                answeredCount++;
+            }
+        }
+        
+        // Imputación por media si hay faltantes permitidos
+        if (answeredCount < config.items.length && answeredCount > 0) {
+            const avg = rawScore / answeredCount;
+            const missing = config.items.length - answeredCount;
+            rawScore += (avg * missing);
+        }
     }
 
     const itemCount = config.items.length;
-    const maxPossible = itemCount * 4;
-
-    // Validate Nullity
-    const isValid = validateDimensionNullity(responses, config.items);
-    const transformedScore = (!isValid || maxPossible === 0) ? 0 : (rawScore / maxPossible) * 100;
+    const transformationFactor = itemCount * 4; // Fijo (Tabla 25 y 14)
+    
+    const transformedScore = (!isValid || transformationFactor === 0) ? 0 : (rawScore / transformationFactor) * 100;
+    const roundedTransformed = round1(transformedScore);
 
     const thresholds = baremoTable[config.key];
     const riskCategory = (thresholds && isValid)
-        ? lookupRiskCategory(transformedScore, thresholds)
+        ? lookupRiskCategory(roundedTransformed, thresholds)
         : "SIN_RIESGO" as RiskCategory;
 
     return {
         dimensionKey: config.key,
         dimensionName: config.name,
-        rawScore,
-        maxPossible,
-        transformedScore: Math.round(transformedScore * 10) / 10,
-        transformationFactor: maxPossible === 0 ? 0 : Math.round((100 / maxPossible) * 1000) / 1000,
-        riskCategory,
-        riskLevel: getRiskLevel(riskCategory),
+        rawScore: isValid ? round1(rawScore) : 0,
+        maxPossible: transformationFactor,
+        transformedScore: isValid ? roundedTransformed : 0,
+        transformationFactor,
+        riskCategory: isValid ? riskCategory : "SIN_RIESGO",
+        riskLevel: isValid ? getRiskLevel(riskCategory) : 1,
         itemCount,
         invertedItems: config.invertedItems,
         isValid
     };
 }
 
-/**
- * Aggregates dimensions into a domain score
- */
 export function calculateDomainScore(
-    domainKey: string,
-    domainName: string,
+    domainConfig: any,
     dimensionScores: Record<string, DimensionScore>,
-    dimensionKeys: string[],
     baremoTable: Record<string, BaremoThreshold>
 ): DomainScore {
     let rawScore = 0;
-    let maxPossible = 0;
+    let allValid = true;
 
-    for (const key of dimensionKeys) {
+    for (const key of domainConfig.dimensionKeys) {
         const score = dimensionScores[key];
-        if (score) {
+        if (score && score.isValid && !score.isFiltered) {
             rawScore += score.rawScore;
-            maxPossible += score.maxPossible;
+        } else if (score && !score.isValid) {
+            allValid = false;
         }
     }
 
-    const transformedScore = maxPossible === 0 ? 0 : (rawScore / maxPossible) * 100;
-    const thresholds = baremoTable[domainKey];
-    const riskCategory = thresholds
-        ? lookupRiskCategory(transformedScore, thresholds)
+    const transformationFactor = domainConfig.transformationFactor; // Valor fijo del manual
+    const transformedScore = (!allValid || transformationFactor === 0) ? 0 : (rawScore / transformationFactor) * 100;
+    const roundedTransformed = round1(transformedScore);
+
+    const thresholds = baremoTable[domainConfig.key];
+    const riskCategory = (thresholds && allValid)
+        ? lookupRiskCategory(roundedTransformed, thresholds)
         : "SIN_RIESGO" as RiskCategory;
 
     return {
-        domainKey,
-        domainName,
-        rawScore,
-        maxPossible,
-        transformedScore: Math.round(transformedScore * 10) / 10,
-        riskCategory,
-        riskLevel: getRiskLevel(riskCategory),
-        dimensions: dimensionKeys
+        domainKey: domainConfig.key,
+        domainName: domainConfig.name,
+        rawScore: allValid ? round1(rawScore) : 0,
+        maxPossible: transformationFactor, // Repurposed for API compatibility
+        transformedScore: allValid ? roundedTransformed : 0,
+        riskCategory: allValid ? riskCategory : "SIN_RIESGO",
+        riskLevel: allValid ? getRiskLevel(riskCategory) : 1,
+        dimensions: domainConfig.dimensionKeys
     };
 }
 
-/**
- * Main entry point: Score a complete questionnaire
- */
 export function scoreQuestionnaire(
     rawResponses: ItemResponses,
     formType: FormType,
     questionnaireType: QuestionnaireType,
     metadata?: {
-        occupationalGroup?: string,
+        occupationalGroup?: string, // 'jefes_profesionales_tecnicos' o 'auxiliares_operativos'
         gender?: string,
         jobLevel?: string,
         hasCustomerInteraction?: boolean
     }
 ): ScoredResultData {
-    // 1. Get Config
     let config: any;
     let baremoKey: string;
 
@@ -194,50 +218,40 @@ export function scoreQuestionnaire(
         baremoKey = "stress";
     }
 
-    const baremoTable = (baremos as any)[baremoKey];
+    let baremoTable = (baremos as any)[baremoKey];
 
-    // 2. Pre-process: Apply Inversions or Custom Mappings
-    // Inversions are defined per dimension in the config
-    let processedResponses = { ...rawResponses };
-    if (questionnaireType === "STRESS") {
-        for (const dim of config.dimensions) {
-            for (const item of dim.items) {
-                const key = String(item);
-                const uiValue = rawResponses[key];
-                if (uiValue !== undefined && uiValue !== null) {
-                    // For stress, uiValue 0=Siempre, 1=Casi siempre, 2=A veces, 3=Nunca.
-                    // If legacy data has 4, treat as Nunca.
-                    const inverted = 3 - Math.min(uiValue, 3); // 3=Siempre, 0=Nunca
-                    
-                    if ([1, 2, 3, 9, 13, 14, 15, 23, 24].includes(item)) {
-                        processedResponses[key] = inverted * 3; // Max 9
-                    } else if ([4, 5, 6, 10, 11, 16, 17, 18, 19, 25, 26, 27, 28].includes(item)) {
-                        processedResponses[key] = inverted * 2; // Max 6
-                    } else {
-                        processedResponses[key] = inverted * 1; // Max 3
-                    }
-                }
-            }
+    // Baremos diferenciales Extralaboral
+    if (questionnaireType === "EXTRALABORAL") {
+        let group = "jefes_profesionales_tecnicos";
+        if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERATIVO") {
+            group = "auxiliares_operativos";
+        } else if (metadata?.occupationalGroup === "auxiliares_operativos") {
+            group = "auxiliares_operativos";
         }
-    } else {
+        baremoTable = baremoTable[group];
+    }
+
+    let processedResponses = { ...rawResponses };
+    if (questionnaireType !== "STRESS") {
         for (const dim of config.dimensions) {
             processedResponses = applyInversions(processedResponses, dim.invertedItems);
         }
     }
 
-    // 3. Score Dimensions
     const dimensionResults: Record<string, DimensionScore> = {};
-    for (const dim of config.dimensions) {
-        let currentResponses = processedResponses;
+    let allDimensionsValid = true;
 
-        // Apply Filter Logic
+    for (const dim of config.dimensions) {
         let isFiltered = false;
         if (questionnaireType === "INTRALABORAL") {
-            // Relación con colaboradores filter (only for Form A if NOT JEFATURA)
-            if (formType === "A" && dim.key === "relacion_colaboradores" && metadata?.jobLevel !== "JEFATURA") {
-                isFiltered = true;
+            // "no jefe" -> relacion_colaboradores = 0.0
+            if (formType === "A" && dim.key === "relacion_colaboradores" && 
+                metadata?.jobLevel !== "JEFATURA" && metadata?.jobLevel !== "PROFESIONAL") {
+                // If it's explicitly marked as not having people in charge, but since we only have jobLevel, we assume JEFATURA/PROFESIONAL might have people.
+                // Or if we have a specific flag. We will use jobLevel for now as proxy if specific flag is missing.
+                isFiltered = true; 
             }
-            // Demandas emocionales filter (customer interaction)
+            // "no atiende clientes" -> demandas_emocionales = 0.0
             if (dim.key === "demandas_emocionales" && metadata?.hasCustomerInteraction === false) {
                 isFiltered = true;
             }
@@ -248,9 +262,9 @@ export function scoreQuestionnaire(
                 dimensionKey: dim.key,
                 dimensionName: dim.name,
                 rawScore: 0,
-                maxPossible: 0,
+                maxPossible: dim.items.length * 4,
                 transformedScore: 0,
-                transformationFactor: 0,
+                transformationFactor: dim.items.length * 4,
                 riskCategory: "SIN_RIESGO",
                 riskLevel: 1,
                 itemCount: dim.items.length,
@@ -259,80 +273,82 @@ export function scoreQuestionnaire(
                 isFiltered: true
             };
         } else {
-            dimensionResults[dim.key] = calculateDimensionScore(
-                currentResponses,
+            const dimScore = calculateDimensionScore(
+                processedResponses,
                 dim,
-                baremoTable.dimensions || {}
+                baremoTable.dimensions || {},
+                questionnaireType
             );
+            dimensionResults[dim.key] = dimScore;
+            if (!dimScore.isValid) {
+                allDimensionsValid = false;
+            }
         }
     }
 
-    // 4. Score Domains
     const domainResults: Record<string, DomainScore> = {};
     let totalRaw = 0;
-    let totalMax = 0;
+    let totalTransformed = 0;
 
-    if (config.domains) {
+    if (questionnaireType === "INTRALABORAL") {
         for (const dom of config.domains) {
             const domainScore = calculateDomainScore(
-                dom.key,
-                dom.name,
+                dom,
                 dimensionResults,
-                dom.dimensionKeys,
                 baremoTable.domains || {}
             );
             domainResults[dom.key] = domainScore;
-            totalRaw += domainScore.rawScore;
-            totalMax += domainScore.maxPossible;
+            if (domainScore.rawScore > 0) {
+                totalRaw += domainScore.rawScore;
+            }
         }
-    } else {
-        // Simple questionnaires (Extralaboral, Stress) might not have domains
-        // so we aggregate all dimensions directly for the total
+        
+        if (allDimensionsValid) {
+            totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
+        }
+    } else if (questionnaireType === "EXTRALABORAL") {
         for (const key in dimensionResults) {
             totalRaw += dimensionResults[key].rawScore;
-            totalMax += dimensionResults[key].maxPossible;
+        }
+        if (allDimensionsValid) {
+            totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
+        }
+    } else if (questionnaireType === "STRESS") {
+        // Validación de 31 ítems sin faltantes
+        allDimensionsValid = Object.keys(rawResponses).length >= 31;
+        
+        if (allDimensionsValid) {
+            // Grupo 1: 1-8
+            let sum1 = 0; for(let i=1; i<=8; i++) sum1 += rawResponses[String(i)] || 0;
+            const avg1 = sum1 / 8;
+            
+            // Grupo 2: 9-12
+            let sum2 = 0; for(let i=9; i<=12; i++) sum2 += rawResponses[String(i)] || 0;
+            const avg2 = sum2 / 4;
+            
+            // Grupo 3: 13-22
+            let sum3 = 0; for(let i=13; i<=22; i++) sum3 += rawResponses[String(i)] || 0;
+            const avg3 = sum3 / 10;
+            
+            // Grupo 4: 23-31
+            let sum4 = 0; for(let i=23; i<=31; i++) sum4 += rawResponses[String(i)] || 0;
+            const avg4 = sum4 / 9;
+            
+            totalRaw = (avg1 * 4) + (avg2 * 3) + (avg3 * 2) + (avg4 * 1);
+            totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
         }
     }
 
-    // 5. Calculate Total
-    let totalTransformed = 0;
-    
-    if (questionnaireType === "STRESS") {
-        const dimFis = dimensionResults["sintomas_fisiologicos"]?.rawScore || 0;
-        const dimSoc = dimensionResults["sintomas_sociales"]?.rawScore || 0;
-        const dimInt = dimensionResults["sintomas_intelectuales"]?.rawScore || 0;
-        const dimPsi = dimensionResults["sintomas_psicoemocionales"]?.rawScore || 0;
-        
-        // Promedios ponderados por grupo
-        const avgFis = dimFis / 8;
-        const avgSoc = dimSoc / 4;
-        const avgInt = dimInt / 10;
-        const avgPsi = dimPsi / 9;
-        
-        const totalRawStress = (avgFis * 4) + (avgSoc * 3) + (avgInt * 2) + (avgPsi * 1);
-        
-        totalRaw = totalRawStress;
-        totalMax = 61.16; // Factor de transformación para estrés
-        
-        // Validación de completitud: el estrés exige todos los ítems
-        const allItemsAnswered = Object.keys(rawResponses).length >= 31;
-        totalTransformed = allItemsAnswered ? (totalRawStress / 61.16) * 100 : 0;
-    } else {
-        totalTransformed = totalMax === 0 ? 0 : (totalRaw / totalMax) * 100;
-    }
-
-    // Total Baremo lookup
     let totalThresholds: BaremoThreshold;
     if (questionnaireType === "STRESS") {
         let group = "jefes_profesionales_tecnicos";
-        if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERARIO") {
+        if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERATIVO") {
             group = "auxiliares_operativos";
         } else if (metadata?.occupationalGroup === "auxiliares_operativos") {
             group = "auxiliares_operativos";
         }
         
         const gender = metadata?.gender === "M" ? "M" : "F";
-        
         totalThresholds = baremoTable[gender]?.[group];
         if (!totalThresholds) {
             totalThresholds = baremoTable["F"]["jefes_profesionales_tecnicos"];
@@ -341,14 +357,17 @@ export function scoreQuestionnaire(
         totalThresholds = baremoTable.total;
     }
 
-    const totalCategory = lookupRiskCategory(totalTransformed, totalThresholds);
+    const roundedTotalTransformed = round1(totalTransformed);
+    const totalCategory = (allDimensionsValid && totalThresholds) 
+        ? lookupRiskCategory(roundedTotalTransformed, totalThresholds) 
+        : "SIN_RIESGO" as RiskCategory;
 
     const total: TotalScore = {
-        rawScore: totalRaw,
-        maxPossible: totalMax,
-        transformedScore: Math.round(totalTransformed * 10) / 10,
-        riskCategory: totalCategory,
-        riskLevel: getRiskLevel(totalCategory)
+        rawScore: allDimensionsValid ? round1(totalRaw) : 0,
+        maxPossible: config.totalTransformationFactor,
+        transformedScore: allDimensionsValid ? roundedTotalTransformed : 0,
+        riskCategory: allDimensionsValid ? totalCategory : "SIN_RIESGO",
+        riskLevel: allDimensionsValid ? getRiskLevel(totalCategory) : 1
     };
 
     return {

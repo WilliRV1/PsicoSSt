@@ -321,7 +321,7 @@ export function generateReportHTML(data: ReportData): string {
                         ([key, value]: [string, any]) => `
                     <tr>
                       <td>${key.replace(/_/g, ' ')}</td>
-                      <td>${typeof value === 'object' ? value.score || 0 : value}</td>
+                      <td>${typeof value === 'object' ? (typeof value.score === 'number' ? value.score.toFixed(1) : 0) : value}</td>
                       <td>${typeof value === 'object' ? value.riskCategory || '' : ''}</td>
                     </tr>
                   `
@@ -367,7 +367,7 @@ export function generateReportHTML(data: ReportData): string {
 
         <!-- FOOTER -->
         <div class="footer">
-          <p>Este documento es confidencial y está sujeto a protección de datos.</p>
+          <p>La información contenida en este informe está sometida a reserva legal según la Ley 1090 de 2006 y la Resolución 2346 de 2007.</p>
           <p>Generado por PsicoSST • ${new Date().toLocaleDateString('es-CO')}</p>
         </div>
       </div>

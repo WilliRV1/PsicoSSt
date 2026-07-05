@@ -1,68 +1,97 @@
 import { scoreQuestionnaire } from "./index";
 
-/**
- * Manual test script to verify scoring engine logic
- */
 async function testScoring() {
     console.log("🚀 Starting Scoring Engine Verification...\n");
 
-    // Case 1: Intralaboral Form A - Claridad de Rol (Protector)
-    // Scale: 0=Siempre, 4=Nunca.
-    // Protector: 0 Siempre -> 0 Riesgo (No inversion)
-    // Responses: 1, 0, 2, 0, 1, 1, 0 (Worker has clarity)
-    // Raw sum = 1+0+2+0+1+1+0 = 5
-    // Max = 28
-    // Transf = (5/28)*100 = 17.86
-    // Baremo: [7.2, 17.9] is MEDIO risk.
-    console.log("--- Test Case 1: Protector Dimension (Claridad de Rol) ---");
-    const responsesCase1 = {
-        "79": 1, "80": 0, "81": 2, "82": 0, "83": 1, "84": 1, "85": 0
-    };
-    const result1 = scoreQuestionnaire(responsesCase1, "A", "INTRALABORAL");
-    const clarity = result1.dimensions.claridad_rol;
-    console.log(`Raw Score: ${clarity.rawScore} (Expected: 5)`);
-    console.log(`Risk Category: ${clarity.riskCategory} (Expected: MEDIO)`);
+    let passed = 0;
+    let failed = 0;
 
-    if (clarity.rawScore === 5 && clarity.riskCategory === "MEDIO") {
-        console.log("✅ Case 1 PASSED");
-    } else {
-        console.log("❌ Case 1 FAILED");
+    function assertEq(name: string, actual: any, expected: any) {
+        if (actual === expected) {
+            console.log(`✅ ${name}: ${actual}`);
+            passed++;
+        } else {
+            console.error(`❌ ${name}: expected ${expected}, got ${actual}`);
+            failed++;
+        }
     }
 
-    // Case 2: Inversion Logic - Demandas (Riesgo)
-    // Protector (Liderazgo) Item 1 = 0 (Siempre) -> 0 Riesgo
-    // Riesgo (Demandas) Item 43 = 0 (Siempre) -> 4 Riesgo (Inverted)
-    console.log("\n--- Test Case 2: Inversion Logic ---");
-    const responsesCase2 = { "1": 0, "43": 0 };
-    const result2 = scoreQuestionnaire(responsesCase2, "A", "INTRALABORAL");
-    const lider = result2.dimensions.liderazgo_caracteristicas;
-    const ambi = result2.dimensions.demandas_ambientales;
-    console.log(`Liderazgo (Item 1=0): Raw=${lider.rawScore} (Expected 0)`);
-    console.log(`Demandas (Item 43=0): Raw=${ambi.rawScore} (Expected 4)`);
-    if (lider.rawScore === 0 && ambi.rawScore === 4) {
-        console.log("✅ Case 2 PASSED");
-    } else {
-        console.log("❌ Case 2 FAILED");
-    }
+    // --- Caso 1: Claridad de Rol (A) — Todos 0 (invertidos) ---
+    // Según config: ítems 53 al 59 (7 ítems). Si responde 0 (Siempre),
+    // como están en "invertedItems", se convierten a 4.
+    // Raw sum = 7 * 4 = 28. Transformed = 100.0
+    console.log("--- Test Case 1: Claridad Rol (Invertidos) ---");
+    const responses1: Record<string, number> = {};
+    for (let i = 53; i <= 59; i++) responses1[String(i)] = 0;
+    const result1 = scoreQuestionnaire(responses1, "A", "INTRALABORAL");
+    const clarity = result1.dimensions["claridad_rol"];
+    assertEq("Case 1 - Claridad Rol Raw", clarity.rawScore, 28);
+    assertEq("Case 1 - Claridad Rol Transformed", clarity.transformedScore, 100.0);
 
-    // Case 3: Stress Questionnaire
-    // Scale 0-3. All items inverted to ensure Always (0) = High Risk (3).
-    // If I answer "Siempre" (0) to all 8 items of Fisiológicos
-    // Raw should be 8 * 3 = 24. Transformed = 100.
-    console.log("\n--- Test Case 3: Stress Questionnaire ---");
-    const responsesCase3: Record<string, number> = {};
-    for (let i = 1; i <= 31; i++) responsesCase3[String(i)] = 0; // All "Siempre"
-    const result3 = scoreQuestionnaire(responsesCase3, "A", "STRESS", { occupationalGroup: "auxiliares_operativos" });
-    const fisio = result3.dimensions.sintomas_fisiologicos;
-    console.log(`Fisiológicos (All 0): Raw=${fisio.rawScore} (Expected 24)`);
-    console.log(`Total Stress Risk: ${result3.total.riskCategory} (Expected: MUY_ALTO)`);
-    if (fisio.rawScore === 24 && result3.total.riskCategory === "MUY_ALTO") {
-        console.log("✅ Case 3 PASSED");
-    } else {
-        console.log("❌ Case 3 FAILED");
-    }
+    // --- Caso 2: Demandas Ambientales (A) — Todos 0 (directos) ---
+    // Según config: ítems 1 al 12 (12 ítems). No invertidos.
+    // Raw sum = 12 * 0 = 0. Transformed = 0.0
+    console.log("\n--- Test Case 2: Demandas Ambientales (Directos) ---");
+    const responses2: Record<string, number> = {};
+    for (let i = 1; i <= 12; i++) responses2[String(i)] = 0;
+    const result2 = scoreQuestionnaire(responses2, "A", "INTRALABORAL");
+    const ambientales = result2.dimensions["demandas_ambientales"];
+    assertEq("Case 2 - Demandas Amb Raw", ambientales.rawScore, 0);
+    assertEq("Case 2 - Demandas Amb Transformed", ambientales.transformedScore, 0.0);
 
-    console.log("\n🏁 Final Verification Completed.");
+    // --- Caso 3: Estrés — Todos Siempre (0) ---
+    // No hay inversión. Promedios: Grupo 1=0, G2=0, G3=0, G4=0. Total = 0.
+    console.log("\n--- Test Case 3: Estrés Todos 0 ---");
+    const responses3: Record<string, number> = {};
+    for (let i = 1; i <= 31; i++) responses3[String(i)] = 0;
+    const result3 = scoreQuestionnaire(responses3, "A", "STRESS", { jobLevel: "AUXILIAR" });
+    assertEq("Case 3 - Estrés Raw", result3.total.rawScore, 0);
+    assertEq("Case 3 - Estrés Transformed", result3.total.transformedScore, 0.0);
+
+    // --- Caso 4: Estrés — Todos Nunca (3) ---
+    // Promedios: 3*4 + 3*3 + 3*2 + 3*1 = 30.
+    // Transformado: (30 / 61.16) * 100 = 49.0516... -> 49.1
+    console.log("\n--- Test Case 4: Estrés Todos 3 ---");
+    const responses4: Record<string, number> = {};
+    for (let i = 1; i <= 31; i++) responses4[String(i)] = 3;
+    const result4 = scoreQuestionnaire(responses4, "A", "STRESS", { jobLevel: "AUXILIAR" });
+    assertEq("Case 4 - Estrés Raw", result4.total.rawScore, 30);
+    assertEq("Case 4 - Estrés Transformed", result4.total.transformedScore, 49.1);
+
+    // --- Caso 5: Integridad / Faltantes ---
+    console.log("\n--- Test Case 5: Reglas de Integridad ---");
+    // Liderazgo (tolerante): faltan 1
+    const responses5: Record<string, number> = {};
+    for (let i = 63; i <= 75; i++) responses5[String(i)] = 1; // 13 ítems. 
+    delete responses5["63"]; // Falta 1
+    // Respuestas dadas: 12. Suma raw original (sin imputar) = 12.
+    // Imputación: avg = 12/12 = 1. Faltan 1 -> raw = 12 + 1 = 13.
+    // Max = 13 * 4 = 52. Transf = (13/52)*100 = 25.0
+    const result5 = scoreQuestionnaire(responses5, "A", "INTRALABORAL");
+    const liderazgo = result5.dimensions["liderazgo_caracteristicas"];
+    assertEq("Case 5 - Liderazgo con 1 faltante es Válido", liderazgo.isValid, true);
+    assertEq("Case 5 - Liderazgo Raw con imputación", liderazgo.rawScore, 13);
+    assertEq("Case 5 - Liderazgo Transformed", liderazgo.transformedScore, 25.0);
+
+    // Falta 1 en Claridad Rol (No tolerante)
+    const responses6: Record<string, number> = {};
+    for (let i = 53; i <= 59; i++) responses6[String(i)] = 0; // 7 ítems.
+    delete responses6["53"]; // Falta 1
+    const result6 = scoreQuestionnaire(responses6, "A", "INTRALABORAL");
+    const clarity2 = result6.dimensions["claridad_rol"];
+    assertEq("Case 5 - Claridad Rol con 1 faltante es INVÁLIDO", clarity2.isValid, false);
+    assertEq("Case 5 - Total también es INVÁLIDO", result6.total.rawScore, 0);
+    
+    // --- Caso 6: Filtros ---
+    console.log("\n--- Test Case 6: Filtros Condicionales ---");
+    const responses7: Record<string, number> = {};
+    for (let i = 106; i <= 114; i++) responses7[String(i)] = 4; // Demandas emocionales
+    const result7 = scoreQuestionnaire(responses7, "A", "INTRALABORAL", { hasCustomerInteraction: false });
+    const emocionales = result7.dimensions["demandas_emocionales"];
+    assertEq("Case 6 - Demandas emocionales filtradas a 0", emocionales.rawScore, 0);
+    assertEq("Case 6 - Demandas emocionales son válidas pero 0", emocionales.isValid, true);
+
+    console.log(`\n🏁 Verificación: ${passed} PASSED, ${failed} FAILED.`);
 }
 
 testScoring();

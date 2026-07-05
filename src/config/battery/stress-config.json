@@ -2,6 +2,7 @@
     "formType": "A",
     "questionnaireType": "STRESS",
     "totalItems": 31,
+    "totalTransformationFactor": 61.16,
     "dimensions": [
         {
             "key": "sintomas_fisiologicos",

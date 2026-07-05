@@ -2,6 +2,7 @@
     "formType": "B",
     "questionnaireType": "INTRALABORAL",
     "totalItems": 97,
+    "totalTransformationFactor": 388,
     "domains": [
         {
             "key": "liderazgo_relaciones",
@@ -10,7 +11,8 @@
                 "liderazgo_caracteristicas",
                 "relaciones_sociales",
                 "retroalimentacion_desempeno"
-            ]
+            ],
+            "transformationFactor": 120
         },
         {
             "key": "control_trabajo",
@@ -21,7 +23,8 @@
                 "participacion_cambio",
                 "oportunidades_desarrollo",
                 "control_autonomia"
-            ]
+            ],
+            "transformationFactor": 72
         },
         {
             "key": "demandas_trabajo",
@@ -33,7 +36,8 @@
                 "influencia_trabajo_extralaboral",
                 "demandas_carga_mental",
                 "demandas_jornada"
-            ]
+            ],
+            "transformationFactor": 156
         },
         {
             "key": "recompensa",
@@ -41,7 +45,8 @@
             "dimensionKeys": [
                 "reconocimiento_compensacion",
                 "recompensas_pertenencia"
-            ]
+            ],
+            "transformationFactor": 40
         }
     ],
     "dimensions": [

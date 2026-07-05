@@ -2,6 +2,7 @@
     "formType": "A",
     "questionnaireType": "EXTRALABORAL",
     "totalItems": 31,
+    "totalTransformationFactor": 124,
     "dimensions": [
         {
             "key": "tiempo_fuera_trabajo",
