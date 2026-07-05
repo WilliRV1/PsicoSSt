@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { FileText, Download } from "lucide-react";
 
-export default function GroupReportPage() {
+function GroupReportContent() {
     const searchParams = useSearchParams();
     const orgId = searchParams.get("org");
     const [data, setData] = useState<any>(null);
@@ -137,5 +137,13 @@ export default function GroupReportPage() {
                 La información contenida en este informe está sometida a reserva legal según la Ley 1090 de 2006 y la Resolución 2346 de 2007.
             </div>
         </div>
+    );
+}
+
+export default function GroupReportPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center">Cargando la aplicación...</div>}>
+            <GroupReportContent />
+        </Suspense>
     );
 }

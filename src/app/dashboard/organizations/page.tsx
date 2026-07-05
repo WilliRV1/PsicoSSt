@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Plus, Building2, Users, MapPin, Loader2, Trash2 } from "lucide-react";
+import { Plus, Building2, Users, MapPin, Loader2, Trash2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import CreateOrganizationModal from "@/components/dashboard/create-organization-modal";
 
 const FormTooltip = ({ text }: { text: string }) => (

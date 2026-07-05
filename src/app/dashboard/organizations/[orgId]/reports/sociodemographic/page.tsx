@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
-import { PrintButton } from "../diagnostic/print-button";
+import { BrowserPrintButton } from "./browser-print-button";
 import "../diagnostic/organizational-report.css";
 
 interface PageProps {
@@ -116,7 +116,7 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                     <a href={`/dashboard/organizations/${orgId}`} className="px-6 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-all">
                         ← Volver
                     </a>
-                    <PrintButton />
+                    <BrowserPrintButton />
                 </footer>
             </div>
         </div>
