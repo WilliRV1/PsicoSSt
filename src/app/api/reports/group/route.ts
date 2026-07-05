@@ -17,8 +17,11 @@ export async function GET(request: Request) {
                 }
             },
             include: {
-                worker: true,
-                assessment: true
+                assessment: {
+                    include: {
+                        worker: true
+                    }
+                }
             }
         });
 
@@ -28,12 +31,13 @@ export async function GET(request: Request) {
         const stressRisk = { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 };
 
         results.forEach(res => {
-            const risk = (res.totalRisk as any) || "SIN_RIESGO";
-            if (res.questionnaireType === "INTRALABORAL") {
+            const risk = res.overallRiskCategory || "SIN_RIESGO";
+            const type = res.assessment?.questionnaireType;
+            if (type === "INTRALABORAL") {
                 intralaboralRisk[risk as keyof typeof intralaboralRisk]++;
-            } else if (res.questionnaireType === "EXTRALABORAL") {
+            } else if (type === "EXTRALABORAL") {
                 extralaboralRisk[risk as keyof typeof extralaboralRisk]++;
-            } else if (res.questionnaireType === "STRESS") {
+            } else if (type === "STRESS") {
                 stressRisk[risk as keyof typeof stressRisk]++;
             }
         });
