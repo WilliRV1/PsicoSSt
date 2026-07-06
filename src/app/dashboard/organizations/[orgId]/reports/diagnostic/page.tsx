@@ -5,7 +5,9 @@ import "./organizational-report.css";
 
 import { getBaremos } from "@/config/battery";
 import { RECOMMENDED_ACTIONS } from "@/lib/scoring/recommendations";
+import { RECOMMENDED_ACTIONS } from "@/lib/scoring/recommendations";
 import { PrintButton } from "./print-button";
+import { GaugeChart } from "@/components/reports/GaugeChart";
 
 const RISK_LABELS: Record<string, string> = {
     SIN_RIESGO: "Sin Riesgo",
@@ -279,7 +281,63 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     </div>
                 </section>
 
-                {/* ═══════════════ 5. ANÁLISIS POR DIMENSIONES ═══════════════ */}
+                {/* ═══════════════ 5. EVALUACIÓN POR DOMINIOS (FORMA A - JEFATURAS) ═══════════════ */}
+                {domainsFormaA.length > 0 && (
+                    <section className="report-section">
+                        <h2 className="section-title">5. Evaluación por Dominios (Jefaturas - Forma A)</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {domainsFormaA.map((domain: any, idx: number) => (
+                                <div key={idx} className="chart-container flex flex-col items-center">
+                                    <h3 className="font-bold text-sm text-center mb-2 text-slate-700">{domain.name}</h3>
+                                    <div className="w-full h-48 flex items-center justify-center">
+                                        <GaugeChart
+                                            title=""
+                                            value={domain.average}
+                                            baremos={{
+                                                maxSinRiesgo: domain.thresholds[0],
+                                                maxBajo: domain.thresholds[1],
+                                                maxMedio: domain.thresholds[2],
+                                                maxAlto: domain.thresholds[3],
+                                                maxMuyAlto: domain.thresholds[4]
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-xl font-black text-slate-800">{domain.average.toFixed(1)}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* ═══════════════ 6. EVALUACIÓN POR DOMINIOS (FORMA B - OPERATIVOS) ═══════════════ */}
+                {domainsFormaB.length > 0 && (
+                    <section className="report-section">
+                        <h2 className="section-title">6. Evaluación por Dominios (Auxiliares y Operativos - Forma B)</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {domainsFormaB.map((domain: any, idx: number) => (
+                                <div key={idx} className="chart-container flex flex-col items-center">
+                                    <h3 className="font-bold text-sm text-center mb-2 text-slate-700">{domain.name}</h3>
+                                    <div className="w-full h-48 flex items-center justify-center">
+                                        <GaugeChart
+                                            title=""
+                                            value={domain.average}
+                                            baremos={{
+                                                maxSinRiesgo: domain.thresholds[0],
+                                                maxBajo: domain.thresholds[1],
+                                                maxMedio: domain.thresholds[2],
+                                                maxAlto: domain.thresholds[3],
+                                                maxMuyAlto: domain.thresholds[4]
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-xl font-black text-slate-800">{domain.average.toFixed(1)}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* ═══════════════ 7. ANÁLISIS POR DIMENSIONES ═══════════════ */}
                 {dimensionAnalysis.length > 0 && (
                     <section className="report-section">
                         <h2 className="section-title">5. Análisis por Dimensiones</h2>
@@ -328,7 +386,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     </section>
                 )}
 
-                {/* ═══════════════ 6. PRIORIZACIÓN DE INTERVENCIÓN ═══════════════ */}
+                {/* ═══════════════ 8. PRIORIZACIÓN DE INTERVENCIÓN ═══════════════ */}
                 {dimensionAnalysis.length > 0 && (
                     <section className="report-section">
                         <h2 className="section-title">6. Priorización de Intervención</h2>
@@ -373,7 +431,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     </section>
                 )}
 
-                {/* ═══════════════ 7. ANÁLISIS POR ÁREAS ═══════════════ */}
+                {/* ═══════════════ 9. ANÁLISIS POR ÁREAS ═══════════════ */}
                 <section className="report-section">
                     <h2 className="section-title">7. Análisis por Áreas de Trabajo</h2>
                     <div className="segment-grid">
@@ -389,9 +447,9 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     </div>
                 </section>
 
-                {/* ═══════════════ 8. CONCLUSIONES Y RECOMENDACIONES ═══════════════ */}
+                {/* ═══════════════ 10. CONCLUSIONES Y RECOMENDACIONES ═══════════════ */}
                 <section className="report-section">
-                    <h2 className="section-title">8. Conclusiones y Recomendaciones</h2>
+                    <h2 className="section-title">10. Conclusiones y Recomendaciones</h2>
                     <div className="chart-container">
                         <div className="text-sm text-slate-700 leading-relaxed space-y-3">
                             <h3 className="font-bold text-slate-800 text-base">Conclusiones</h3>
@@ -460,7 +518,33 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                 </li>
                             </ul>
 
-                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="mt-8">
+                                <h3 className="font-bold text-slate-800 text-base mb-4">Matriz de Acciones Recomendadas (SVE)</h3>
+                                {recommendations.length > 0 ? (
+                                    <div className="overflow-x-auto border border-slate-200 rounded-lg">
+                                        <table className="w-full text-sm text-left">
+                                            <thead className="bg-slate-50 text-slate-700 uppercase text-[10px] font-bold">
+                                                <tr>
+                                                    <th className="px-4 py-3 border-b border-slate-200">Dimensión en Riesgo Crítico</th>
+                                                    <th className="px-4 py-3 border-b border-slate-200">Acción de Intervención Recomendada</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-200">
+                                                {recommendations.map((rec: any, idx: number) => (
+                                                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                                        <td className="px-4 py-3 font-medium text-slate-800">{rec.dimension}</td>
+                                                        <td className="px-4 py-3 text-slate-600">{rec.recommendation}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-slate-500">No se encontraron dimensiones en nivel de riesgo alto o muy alto que requieran intervención obligatoria según la matriz.</p>
+                                )}
+                            </div>
+
+                            <div className="mt-8 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                 <p className="text-xs text-blue-800">
                                     <strong>Nota legal:</strong> Este informe diagnóstico organizacional es un documento
                                     técnico que forma parte del Sistema de Gestión de Seguridad y Salud en el Trabajo (SG-SST)
