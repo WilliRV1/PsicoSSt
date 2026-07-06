@@ -8,6 +8,13 @@ import { RECOMMENDED_ACTIONS } from "@/lib/scoring/recommendations";
 import { PrintButton } from "./print-button";
 import { GaugeChart } from "@/components/reports/GaugeChart";
 
+const DOMAIN_DESCRIPTIONS: Record<string, string> = {
+    "liderazgo y relaciones sociales en el trabajo": "Características de la jefatura y dinámicas de interacción entre compañeros, que pueden ser fuente de apoyo o tensión.",
+    "control sobre el trabajo": "Margen de autonomía del trabajador para tomar decisiones sobre su tarea, desarrollo de habilidades y participación.",
+    "demandas del trabajo": "Exigencias físicas, mentales, emocionales y de jornada que el trabajo impone sobre la persona.",
+    "recompensa": "Sentimiento de retribución justa que recibe el trabajador (financiera, reconocimiento, estabilidad) en compensación por su esfuerzo."
+};
+
 const RISK_LABELS: Record<string, string> = {
     SIN_RIESGO: "Sin Riesgo",
     BAJO: "Bajo",
@@ -290,6 +297,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                     <div className="w-full h-48 flex items-center justify-center pt-4">
                                         <GaugeChart
                                             title={domain.name}
+                                            description={DOMAIN_DESCRIPTIONS[domain.name.toLowerCase()]}
                                             value={domain.average}
                                             baremos={{
                                                 maxSinRiesgo: domain.thresholds[0],
@@ -316,6 +324,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                     <div className="w-full h-48 flex items-center justify-center pt-4">
                                         <GaugeChart
                                             title={domain.name}
+                                            description={DOMAIN_DESCRIPTIONS[domain.name.toLowerCase()]}
                                             value={domain.average}
                                             baremos={{
                                                 maxSinRiesgo: domain.thresholds[0],

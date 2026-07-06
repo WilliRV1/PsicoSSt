@@ -1,16 +1,18 @@
 "use client";
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { Info } from 'lucide-react';
 
 interface GaugeChartProps {
     value: number;
     title: string;
+    description?: string;
     baremos: { maxSinRiesgo: number, maxBajo: number, maxMedio: number, maxAlto: number, maxMuyAlto: number };
 }
 
 const RADIAN = Math.PI / 180;
 
-export const GaugeChart: React.FC<GaugeChartProps> = ({ value, title, baremos }) => {
+export const GaugeChart: React.FC<GaugeChartProps> = ({ value, title, description, baremos }) => {
     const total = baremos.maxMuyAlto;
     
     const data = [
@@ -50,8 +52,15 @@ export const GaugeChart: React.FC<GaugeChartProps> = ({ value, title, baremos })
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <h3 className="text-sm font-bold text-gray-700 text-center h-10">{title}</h3>
+        <div className="flex flex-col items-center w-full max-w-[300px]">
+            <div className="flex items-center justify-center min-h-[3rem] px-2 w-full gap-2 mb-2">
+                <h3 className="text-[13px] font-black text-slate-800 text-center uppercase tracking-wide leading-tight">{title}</h3>
+                {description && (
+                    <div title={description} className="text-slate-400 hover:text-blue-600 cursor-help transition-colors flex-shrink-0">
+                        <Info className="w-4 h-4" />
+                    </div>
+                )}
+            </div>
             <div style={{ width: 300, height: 160 }}>
                 <ResponsiveContainer>
                     <PieChart>
