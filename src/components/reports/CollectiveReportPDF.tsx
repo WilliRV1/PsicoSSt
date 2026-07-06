@@ -74,7 +74,6 @@ const styles = StyleSheet.create({
         fontSize: 9,
         color: '#64748b',
         marginTop: 5,
-        fontStyle: 'italic',
     },
     footer: {
         position: 'absolute',
