@@ -287,10 +287,9 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {domainsFormaA.map((domain: any, idx: number) => (
                                 <div key={idx} className="chart-container flex flex-col items-center">
-                                    <h3 className="font-bold text-sm text-center mb-2 text-slate-700">{domain.name}</h3>
-                                    <div className="w-full h-48 flex items-center justify-center">
+                                    <div className="w-full h-48 flex items-center justify-center pt-4">
                                         <GaugeChart
-                                            title=""
+                                            title={domain.name}
                                             value={domain.average}
                                             baremos={{
                                                 maxSinRiesgo: domain.thresholds[0],
@@ -301,7 +300,6 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                             }}
                                         />
                                     </div>
-                                    <p className="text-xl font-black text-slate-800">{domain.average.toFixed(1)}</p>
                                 </div>
                             ))}
                         </div>
@@ -315,10 +313,9 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {domainsFormaB.map((domain: any, idx: number) => (
                                 <div key={idx} className="chart-container flex flex-col items-center">
-                                    <h3 className="font-bold text-sm text-center mb-2 text-slate-700">{domain.name}</h3>
-                                    <div className="w-full h-48 flex items-center justify-center">
+                                    <div className="w-full h-48 flex items-center justify-center pt-4">
                                         <GaugeChart
-                                            title=""
+                                            title={domain.name}
                                             value={domain.average}
                                             baremos={{
                                                 maxSinRiesgo: domain.thresholds[0],
@@ -329,7 +326,6 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                             }}
                                         />
                                     </div>
-                                    <p className="text-xl font-black text-slate-800">{domain.average.toFixed(1)}</p>
                                 </div>
                             ))}
                         </div>
