@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import "./organizational-report.css";
 
+import { getBaremos } from "@/config/battery";
+import { RECOMMENDED_ACTIONS } from "@/lib/scoring/recommendations";
 import { PrintButton } from "./print-button";
 
 const RISK_LABELS: Record<string, string> = {
@@ -83,7 +85,10 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
         );
     }
 
-    const { stats, stressCorrelation, segmentedData, dimensionAnalysis, executiveSummary } = processStats(assessments);
+    const { 
+        stats, stressCorrelation, segmentedData, dimensionAnalysis, 
+        executiveSummary, domainsFormaA, domainsFormaB, recommendations 
+    } = processStats(assessments);
 
     // Date range of assessments
     const dates = assessments.map(a => new Date(a.assessmentDate).getTime());
@@ -105,6 +110,32 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                         <p className="text-[10px] text-slate-400 mt-2 uppercase tracking-tighter">Fecha: {new Date().toLocaleDateString('es-CO')}</p>
                     </div>
                 </header>
+
+                <div className="flex justify-end mb-6 -mt-16">
+                    <PrintButton data={{
+                        orgInfo: {
+                            organizationName: org.name,
+                            organizationNit: org.nit,
+                            reportDate: new Date().toLocaleDateString('es-CO'),
+                            psychologistName: org.psychologist.fullName,
+                            psychologistLicense: org.psychologist.licenseNumber
+                        },
+                        executiveSummary: {
+                            totalWorkers: executiveSummary.uniqueWorkers,
+                            criticalPercent: executiveSummary.criticalPercent,
+                            predominantRisk: executiveSummary.predominantRisk,
+                            priorityMatrix: {
+                                group1D: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'ALTO' || k === 'MUY_ALTO' ? stressCorrelation[k]['ALTO'] + stressCorrelation[k]['MUY_ALTO'] : 0), 0),
+                                vulnerables: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['ALTO'] + stressCorrelation[k]['MUY_ALTO'] : 0), 0),
+                                adaptados: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'ALTO' || k === 'MUY_ALTO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
+                                sanos: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
+                            }
+                        },
+                        domainsFormaA,
+                        domainsFormaB,
+                        recommendations
+                    }} />
+                </div>
 
                 <div className="anonymity-notice">
                     <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -446,15 +477,29 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     <a href={`/dashboard/organizations/${orgId}`} className="px-6 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-all">
                         ← Volver
                     </a>
-                    <PrintButton 
-                        orgName={org.name}
-                        orgNit={org.nit}
-                        orgCity={org.city || undefined}
-                        psychologistName={org.psychologist.fullName}
-                        psychologistLicense={org.psychologist.licenseNumber}
-                        totalWorkers={executiveSummary.uniqueWorkers}
-                        reportDate={new Date().toLocaleDateString('es-CO')}
-                    />
+                    <PrintButton data={{
+                        orgInfo: {
+                            organizationName: org.name,
+                            organizationNit: org.nit,
+                            reportDate: new Date().toLocaleDateString('es-CO'),
+                            psychologistName: org.psychologist.fullName,
+                            psychologistLicense: org.psychologist.licenseNumber
+                        },
+                        executiveSummary: {
+                            totalWorkers: executiveSummary.uniqueWorkers,
+                            criticalPercent: executiveSummary.criticalPercent,
+                            predominantRisk: executiveSummary.predominantRisk,
+                            priorityMatrix: {
+                                group1D: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'ALTO' || k === 'MUY_ALTO' ? stressCorrelation[k]['ALTO'] + stressCorrelation[k]['MUY_ALTO'] : 0), 0),
+                                vulnerables: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['ALTO'] + stressCorrelation[k]['MUY_ALTO'] : 0), 0),
+                                adaptados: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'ALTO' || k === 'MUY_ALTO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
+                                sanos: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
+                            }
+                        },
+                        domainsFormaA,
+                        domainsFormaB,
+                        recommendations
+                    }} />
                 </footer>
             </div>
         </div>
@@ -531,7 +576,7 @@ function processStats(assessments: any[]) {
         stress: calculateDist(stressAssessments),
     };
 
-    // Stress correlation
+    // Stress correlation & Domain aggregations
     const correlation: any = {
         SIN_RIESGO: { SIN_RIESGO: 0, BAJO: 0, MEDIO: 0, ALTO: 0, MUY_ALTO: 0 },
         BAJO: { SIN_RIESGO: 0, BAJO: 0, MEDIO: 0, ALTO: 0, MUY_ALTO: 0 },
@@ -539,6 +584,10 @@ function processStats(assessments: any[]) {
         ALTO: { SIN_RIESGO: 0, BAJO: 0, MEDIO: 0, ALTO: 0, MUY_ALTO: 0 },
         MUY_ALTO: { SIN_RIESGO: 0, BAJO: 0, MEDIO: 0, ALTO: 0, MUY_ALTO: 0 }
     };
+
+    const domainMapA: Record<string, { sum: number, count: number }> = {};
+    const domainMapB: Record<string, { sum: number, count: number }> = {};
+    const recommendationsSet = new Set<string>();
 
     const workers: any = {};
     assessments.forEach(a => {
@@ -586,8 +635,22 @@ function processStats(assessments: any[]) {
             }
             if (dim.riskCategory) {
                 dimensionMap[key].riskCategories.push(dim.riskCategory);
+                if (dim.riskCategory === "ALTO" || dim.riskCategory === "MUY_ALTO") {
+                    recommendationsSet.add(dim.dimensionName || dim.dimensionKey);
+                }
             }
         });
+
+        // Domains for A and B
+        if (sr.domainScores) {
+            Object.values(sr.domainScores as Record<string, any>).forEach((dom: any) => {
+                if (!dom.domainName) return;
+                const dMap = a.formType === "A" ? domainMapA : domainMapB;
+                if (!dMap[dom.domainName]) dMap[dom.domainName] = { sum: 0, count: 0 };
+                dMap[dom.domainName].sum += dom.transformedScore || 0;
+                dMap[dom.domainName].count++;
+            });
+        }
     });
 
     const dimensionAnalysis: DimensionStat[] = Object.entries(dimensionMap)
@@ -636,11 +699,45 @@ function processStats(assessments: any[]) {
         predominantRisk,
     };
 
+    const baremos = getBaremos();
+    
+    const getThresholds = (domainName: string, isFormA: boolean) => {
+        const formKey = isFormA ? 'intralaboral_a' : 'intralaboral_b';
+        const baremosAny = baremos as any;
+        const key = Object.keys(baremosAny[formKey].domains || {}).find(k => k.includes(domainName.toLowerCase().split(' ')[0]) || domainName.toLowerCase().includes(k));
+        if (key && baremosAny[formKey].domains[key]) {
+            const d = baremosAny[formKey].domains[key];
+            return [d.sinRiesgo[1], d.bajo[1], d.medio[1], d.alto[1], d.muyAlto[1]];
+        }
+        return [20, 40, 60, 80, 100]; // default fallback
+    };
+
+    const formatDomains = (dMap: any, isFormA: boolean) => {
+        return Object.entries(dMap).map(([name, val]: [string, any]) => ({
+            name,
+            average: parseFloat((val.sum / val.count).toFixed(1)),
+            thresholds: getThresholds(name, isFormA)
+        }));
+    };
+
+    const domainsFormaA = formatDomains(domainMapA, true);
+    const domainsFormaB = formatDomains(domainMapB, false);
+
+    const recommendations = Array.from(recommendationsSet).map(dim => {
+        // match dimension string against keys in recommendations object
+        const keyMatch = Object.keys(RECOMMENDED_ACTIONS).find(k => k === dim || k.replace(/_/g, ' ').toLowerCase() === dim.toLowerCase());
+        const rec = keyMatch ? RECOMMENDED_ACTIONS[keyMatch as keyof typeof RECOMMENDED_ACTIONS] : "Implementar programa de vigilancia y control específico para este factor.";
+        return { dimension: dim, recommendation: rec };
+    });
+
     return {
         stats,
         stressCorrelation: correlation,
         segmentedData: { byArea: segmentedArea },
         dimensionAnalysis,
         executiveSummary,
+        domainsFormaA,
+        domainsFormaB,
+        recommendations
     };
 }

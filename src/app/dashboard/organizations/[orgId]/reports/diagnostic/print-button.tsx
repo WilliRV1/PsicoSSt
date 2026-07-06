@@ -3,59 +3,21 @@
 import { useState } from "react";
 import { Loader2, Download } from "lucide-react";
 import { pdf } from '@react-pdf/renderer';
-import { toPng } from 'html-to-image';
-import CollectiveReportPDF from "@/components/reports/CollectiveReportPDF";
+import OrganizationalReportPDF, { OrganizationalReportData } from "@/components/reports/OrganizationalReportPDF";
 import { toast } from "sonner";
 
 interface PrintButtonProps {
-    orgName: string;
-    orgNit: string;
-    orgCity?: string;
-    psychologistName: string;
-    psychologistLicense: string;
-    totalWorkers: number;
-    reportDate: string;
+    data: OrganizationalReportData;
 }
 
-export function PrintButton({ 
-    orgName, orgNit, orgCity, psychologistName, psychologistLicense, totalWorkers, reportDate 
-}: PrintButtonProps) {
+export function PrintButton({ data }: PrintButtonProps) {
     const [isGenerating, setIsGenerating] = useState(false);
 
     const generatePDF = async () => {
         setIsGenerating(true);
         try {
-            // Capture the charts using html-to-image.
-            // We expect these elements to exist on the page with these IDs.
-            const generalRiskEl = document.querySelector('.risk-summary-grid') as HTMLElement;
-            const segmentedEl = document.querySelector('.segment-grid') as HTMLElement;
-
-            let generalRiskImg;
-            let riskByAreaImg;
-
-            if (generalRiskEl) {
-                generalRiskImg = await toPng(generalRiskEl, { cacheBust: true, backgroundColor: '#ffffff', style: { transform: 'scale(1)' } });
-            }
-            if (segmentedEl) {
-                riskByAreaImg = await toPng(segmentedEl, { cacheBust: true, backgroundColor: '#ffffff' });
-            }
-
-            // Create PDF Document
-            const doc = (
-                <CollectiveReportPDF 
-                    organizationName={orgName}
-                    organizationNit={orgNit}
-                    organizationCity={orgCity || ""}
-                    psychologistName={psychologistName}
-                    psychologistLicense={psychologistLicense}
-                    totalWorkers={totalWorkers}
-                    reportDate={reportDate}
-                    chartImages={{
-                        generalRisk: generalRiskImg,
-                        riskByArea: riskByAreaImg
-                    }}
-                />
-            );
+            // Create PDF Document using the native SVG vector charts
+            const doc = <OrganizationalReportPDF data={data} />;
 
             // Generate Blob and download
             const asPdf = pdf();
@@ -65,13 +27,13 @@ export function PrintButton({
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Diagnostico_Grupal_${orgNit}.pdf`;
+            a.download = `Diagnostico_Organizacional_BRP_${data.orgInfo.organizationNit}.pdf`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            toast.success("PDF generado exitosamente");
+            toast.success("PDF de Diagnóstico BRP generado exitosamente");
         } catch (error) {
             console.error("Error generating PDF:", error);
             toast.error("Hubo un error al generar el PDF. Intente nuevamente.");
@@ -89,7 +51,7 @@ export function PrintButton({
             {isGenerating ? (
                 <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Generando PDF...
+                    Generando BRP...
                 </>
             ) : (
                 <>

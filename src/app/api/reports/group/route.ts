@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getBaremos } from "@/config/battery";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -35,7 +36,6 @@ export async function GET(request: Request) {
         });
 
         // 1. Anonimato Técnico
-        // Contamos cuántos trabajadores únicos hay en la muestra
         const uniqueWorkers = new Set(results.map(r => r.assessment.workerId));
         const workerCount = uniqueWorkers.size;
         
@@ -46,18 +46,29 @@ export async function GET(request: Request) {
             });
         }
 
-        // Agregaciones de Riesgo por Cuestionario
-        const intralaboralRisk = { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 };
+        // Agregaciones de Riesgo
+        const intralaboralFormaARisk = { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 };
+        const intralaboralFormaBRisk = { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 };
         const extralaboralRisk = { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 };
         const stressRisk = { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 };
 
-        // 2. Matriz de Priorización (Intralaboral vs Estrés)
+        // Agregaciones por dimensiones para extraer promedios o conteos
+        // Para simplificar, acumularemos los scores transformados y el total de evaluaciones para promediar
+        const dimensionAveragesA: Record<string, { sum: number, count: number, risks: Record<string, number> }> = {};
+        const dimensionAveragesB: Record<string, { sum: number, count: number, risks: Record<string, number> }> = {};
+        
+        const domainAveragesA: Record<string, { sum: number, count: number }> = {};
+        const domainAveragesB: Record<string, { sum: number, count: number }> = {};
+
+        // 2. Matriz de Priorización
         const workerMatrix = new Map<string, { intra: string | null, stress: string | null }>();
 
         results.forEach(res => {
             const risk = res.overallRiskCategory || "SIN_RIESGO";
             const type = res.assessment?.questionnaireType;
+            const form = res.assessment?.formType;
             const workerId = res.assessment.workerId;
+            const dimensions = res.dimensionScores as Record<string, any>;
 
             if (!workerMatrix.has(workerId)) {
                 workerMatrix.set(workerId, { intra: null, stress: null });
@@ -66,8 +77,54 @@ export async function GET(request: Request) {
             const w = workerMatrix.get(workerId)!;
 
             if (type === "INTRALABORAL") {
-                intralaboralRisk[risk as keyof typeof intralaboralRisk]++;
                 w.intra = risk;
+                if (form === "A") {
+                    intralaboralFormaARisk[risk as keyof typeof intralaboralFormaARisk]++;
+                    if (res.domainScores) {
+                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                            if (!dom.domainName) return;
+                            if (!domainAveragesA[dom.domainName]) domainAveragesA[dom.domainName] = { sum: 0, count: 0 };
+                            domainAveragesA[dom.domainName].sum += dom.transformedScore || 0;
+                            domainAveragesA[dom.domainName].count++;
+                        });
+                    }
+                    if (dimensions) {
+                        Object.values(dimensions).forEach((dim: any) => {
+                            if (!dim.dimensionName) return;
+                            if (!dimensionAveragesA[dim.dimensionName]) {
+                                dimensionAveragesA[dim.dimensionName] = { sum: 0, count: 0, risks: { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 } };
+                            }
+                            dimensionAveragesA[dim.dimensionName].sum += dim.transformedScore || 0;
+                            dimensionAveragesA[dim.dimensionName].count++;
+                            if (dim.riskCategory) {
+                                dimensionAveragesA[dim.dimensionName].risks[dim.riskCategory]++;
+                            }
+                        });
+                    }
+                } else {
+                    intralaboralFormaBRisk[risk as keyof typeof intralaboralFormaBRisk]++;
+                    if (res.domainScores) {
+                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                            if (!dom.domainName) return;
+                            if (!domainAveragesB[dom.domainName]) domainAveragesB[dom.domainName] = { sum: 0, count: 0 };
+                            domainAveragesB[dom.domainName].sum += dom.transformedScore || 0;
+                            domainAveragesB[dom.domainName].count++;
+                        });
+                    }
+                    if (dimensions) {
+                        Object.values(dimensions).forEach((dim: any) => {
+                            if (!dim.dimensionName) return;
+                            if (!dimensionAveragesB[dim.dimensionName]) {
+                                dimensionAveragesB[dim.dimensionName] = { sum: 0, count: 0, risks: { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 } };
+                            }
+                            dimensionAveragesB[dim.dimensionName].sum += dim.transformedScore || 0;
+                            dimensionAveragesB[dim.dimensionName].count++;
+                            if (dim.riskCategory) {
+                                dimensionAveragesB[dim.dimensionName].risks[dim.riskCategory]++;
+                            }
+                        });
+                    }
+                }
             } else if (type === "EXTRALABORAL") {
                 extralaboralRisk[risk as keyof typeof extralaboralRisk]++;
             } else if (type === "STRESS") {
@@ -80,10 +137,10 @@ export async function GET(request: Request) {
             Object.entries(data).map(([name, value]) => ({ name, value }));
 
         // Evaluar Matriz de Priorización
-        let priorityGroup1D = 0; // Prioridad de Intervención (Alto/Muy Alto en Intra Y Alto/Muy Alto en Estrés)
-        let groupVulnerables = 0; // Alto/Muy Alto en Estrés pero Bajo/Medio/Sin Riesgo Intra
-        let groupSanos = 0; // Sin Riesgo/Bajo en ambos
-        let groupAdaptados = 0; // Alto/Muy Alto en Intra pero Sin Riesgo/Bajo en Estrés
+        let priorityGroup1D = 0;
+        let groupVulnerables = 0;
+        let groupAdaptados = 0;
+        let groupSanos = 0;
 
         workerMatrix.forEach((val) => {
             if (val.intra && val.stress) {
@@ -97,7 +154,22 @@ export async function GET(request: Request) {
             }
         });
 
-        // Get list of all departments in org for the dropdown filter (only if no department filter was applied so we have the full list)
+        // Formatear promedios de dominios/dimensiones para el frontend
+        const formatAverages = (avgMap: Record<string, any>) => {
+            return Object.entries(avgMap).map(([name, stats]: [string, any]) => ({
+                name,
+                average: parseFloat((stats.sum / stats.count).toFixed(1)),
+                risks: stats.risks
+            }));
+        };
+
+        const formatDomainAverages = (avgMap: Record<string, any>) => {
+            return Object.entries(avgMap).map(([name, stats]: [string, any]) => ({
+                name,
+                average: parseFloat((stats.sum / stats.count).toFixed(1))
+            }));
+        };
+
         let departments: string[] = [];
         if (!department || department === "ALL") {
             departments = Array.from(new Set(results.map(r => r.assessment.worker.departmentArea).filter(Boolean))) as string[];
@@ -105,9 +177,15 @@ export async function GET(request: Request) {
 
         return NextResponse.json({
             privacyWarning: false,
-            intralaboral: formatChartData(intralaboralRisk),
+            intralaboralFormaA: formatChartData(intralaboralFormaARisk),
+            intralaboralFormaB: formatChartData(intralaboralFormaBRisk),
             extralaboral: formatChartData(extralaboralRisk),
             stress: formatChartData(stressRisk),
+            dimensionsFormaA: formatAverages(dimensionAveragesA),
+            dimensionsFormaB: formatAverages(dimensionAveragesB),
+            domainsFormaA: formatDomainAverages(domainAveragesA),
+            domainsFormaB: formatDomainAverages(domainAveragesB),
+            baremos: getBaremos(),
             totalAssessments: results.length,
             workerCount,
             departments,
