@@ -5,7 +5,6 @@ import "./organizational-report.css";
 
 import { getBaremos } from "@/config/battery";
 import { RECOMMENDED_ACTIONS } from "@/lib/scoring/recommendations";
-import { RECOMMENDED_ACTIONS } from "@/lib/scoring/recommendations";
 import { PrintButton } from "./print-button";
 import { GaugeChart } from "@/components/reports/GaugeChart";
 
