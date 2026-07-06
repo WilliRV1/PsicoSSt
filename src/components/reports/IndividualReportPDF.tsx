@@ -177,6 +177,8 @@ interface IndividualReportPDFProps {
   gender?: string;
   jobTitle?: string;
   department?: string;
+  tenure?: string;
+  educationLevel?: string;
   orgName: string;
   psychologistName: string;
   licenseNumber: string;
@@ -201,6 +203,8 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
   gender,
   jobTitle,
   department,
+  tenure,
+  educationLevel,
   orgName,
   psychologistName,
   licenseNumber,
@@ -264,6 +268,12 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
             <Text><Text style={styles.label}>Departamento/Área: </Text><Text style={styles.value}>{department || 'N/A'}</Text></Text>
           </View>
           <View style={styles.gridItem}>
+            <Text><Text style={styles.label}>Antigüedad: </Text><Text style={styles.value}>{tenure || 'N/A'}</Text></Text>
+          </View>
+          <View style={styles.gridItem}>
+            <Text><Text style={styles.label}>Escolaridad: </Text><Text style={styles.value}>{educationLevel || 'N/A'}</Text></Text>
+          </View>
+          <View style={styles.gridItem}>
             <Text><Text style={styles.label}>Empresa: </Text><Text style={styles.value}>{orgName}</Text></Text>
           </View>
         </View>
@@ -324,7 +334,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
       {/* Clinical Analysis */}
       {analysis && !isAnonymous && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. ANÁLISIS CLÍNICO Y CONCEPTUAL</Text>
+          <Text style={styles.sectionTitle}>5. OBSERVACIONES Y COMENTARIOS DEL EVALUADOR</Text>
           <Text style={{ fontSize: 9, lineHeight: 1.4 }}>{analysis}</Text>
         </View>
       )}
@@ -332,7 +342,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
       {/* Recommendations */}
       {recommendations && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{isAnonymous ? "5" : "6"}. RECOMENDACIONES TÉCNICAS</Text>
+          <Text style={styles.sectionTitle}>{isAnonymous ? "5" : "6"}. RECOMENDACIONES PARTICULARES</Text>
           <Text style={{ fontSize: 9, lineHeight: 1.4 }}>{recommendations}</Text>
         </View>
       )}
@@ -355,7 +365,7 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
 
       {/* Footer with Mandatory Attribution */}
       <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-        `La información contenida en este informe está sometida a reserva legal según la Ley 1090 de 2006 y la Resolución 2346 de 2007.\nBatería de Riesgo Psicosocial © Ministerio de la Protección Social - Pontificia Universidad Javeriana\nPsicoSST - Página ${pageNumber} de ${totalPages}`
+        `La información contenida en este informe está sometida a estricta reserva legal según la Ley 1090 de 2006 y la Resolución 2346 de 2007.\nEstos resultados individuales son confidenciales, solo pueden conocerse con autorización escrita del trabajador y mediación del médico ocupacional, y deben reposar en la historia clínica ocupacional bajo custodia médica por 20 años.\nBatería de Riesgo Psicosocial © Ministerio de la Protección Social - Pontificia Universidad Javeriana | PsicoSST - Página ${pageNumber} de ${totalPages}`
       )} fixed />
     </Page>
   </Document>

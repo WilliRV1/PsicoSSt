@@ -95,6 +95,8 @@ export async function GET(
       gender: worker.gender || undefined,
       jobTitle: worker.jobTitle || undefined,
       department: worker.departmentArea || undefined,
+      tenure: worker.yearsInCompany !== null && worker.yearsInCompany !== undefined ? `${worker.yearsInCompany} años` : undefined,
+      educationLevel: worker.educationLevel || undefined,
       orgName: organization.name,
       psychologistName: psychologist.fullName,
       licenseNumber: psychologist.licenseNumber,

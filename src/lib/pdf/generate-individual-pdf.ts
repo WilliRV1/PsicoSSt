@@ -7,7 +7,7 @@ interface AssessmentForPDF {
     assessmentDate: Date;
     questionnaireType: string;
     formType: string;
-    worker: { fullName: string; documentType: string; documentId: string; birthYear?: number | null; gender?: string | null; jobTitle?: string | null; departmentArea?: string | null };
+    worker: { fullName: string; documentType: string; documentId: string; birthYear?: number | null; gender?: string | null; jobTitle?: string | null; departmentArea?: string | null; yearsInCompany?: number | null; educationLevel?: string | null };
     organization: { name: string };
     psychologist: { fullName: string; licenseNumber: string; professionalCard?: string; sstCredential?: string; sstLicenseDate?: Date | null; signature?: string | null; signatures?: { signatureType: string; dataUrl?: string | null; imageUrl?: string | null }[] };
     scoredResult: {
@@ -62,6 +62,8 @@ export async function generateIndividualPDF(assessment: AssessmentForPDF): Promi
         gender: worker.gender || undefined,
         jobTitle: worker.jobTitle || undefined,
         department: worker.departmentArea || undefined,
+        tenure: worker.yearsInCompany !== null && worker.yearsInCompany !== undefined ? `${worker.yearsInCompany} años` : undefined,
+        educationLevel: worker.educationLevel || undefined,
         orgName: organization.name,
         psychologistName: psychologist.fullName,
         licenseNumber: psychologist.licenseNumber,
