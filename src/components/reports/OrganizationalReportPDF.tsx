@@ -153,6 +153,20 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                     <Text style={styles.coverNit}>Licencia SST: {data.orgInfo.psychologistLicense}</Text>
                 </View>
 
+                {(!data.orgInfo.psychologistLicense || data.orgInfo.psychologistLicense.trim() === '') && (
+                    <View style={{ marginTop: 30, backgroundColor: '#fee2e2', border: '2 solid #dc2626', padding: 15, borderRadius: 8 }}>
+                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#b91c1c', textAlign: 'center' }}>
+                            INFORME INVÁLIDO
+                        </Text>
+                        <Text style={{ fontSize: 10, color: '#991b1b', textAlign: 'center', marginTop: 8 }}>
+                            Carencia de Fecha de Expedición de Licencia SST según manual técnico.
+                        </Text>
+                        <Text style={{ fontSize: 8, color: '#7f1d1d', textAlign: 'center', marginTop: 4 }}>
+                            Todo informe que carezca de estos datos no será válido.
+                        </Text>
+                    </View>
+                )}
+
                 <Text style={styles.coverNote}>
                     * Según la Resolución 2764 de 2022 del Ministerio del Trabajo de Colombia, este diagnóstico tiene una vigencia legal de {vigencia}, debido a que el riesgo global hallado requiere evaluación con esta periodicidad.
                 </Text>
@@ -287,7 +301,7 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                 </View>
 
                 <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-                    `Este informe fue procesado automáticamente por PsicoSST con base en los resultados ingresados. Custodia médica 20 años (Resolución 2346/2007) | Página ${pageNumber} de ${totalPages}`
+                    `Ley 1090 de 2006 (Secreto Profesional) y Resolución 2346/2007 (Custodia Historia Clínica 20 años) | Página ${pageNumber} de ${totalPages}`
                 )} fixed />
             </Page>
         </Document>

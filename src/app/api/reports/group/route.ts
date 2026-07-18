@@ -42,8 +42,8 @@ export async function GET(request: Request) {
         if (workerCount < 5 && workerCount > 0 && department !== "ALL") {
             return NextResponse.json({ 
                 privacyWarning: true, 
-                message: "Datos insuficientes para garantizar el anonimato legal según la Resolución 2646 de 2008." 
-            });
+                message: "Reserva Legal por Muestra Insuficiente" 
+            }, { status: 403 });
         }
 
         // Agregaciones de Riesgo

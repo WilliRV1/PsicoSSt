@@ -56,10 +56,11 @@ export interface DomainScore {
 /** Total score for a questionnaire */
 export interface TotalScore {
     rawScore: number;
-    maxPossible: number;
     transformedScore: number;
     riskCategory: RiskCategory;
     riskLevel: number;
+    maxPossible?: number;
+    isValid?: boolean;
 }
 
 /** Complete scored result structure (stored as JSONB) */

@@ -367,7 +367,8 @@ export function scoreQuestionnaire(
         maxPossible: config.totalTransformationFactor,
         transformedScore: allDimensionsValid ? roundedTotalTransformed : 0,
         riskCategory: allDimensionsValid ? totalCategory : "SIN_RIESGO",
-        riskLevel: allDimensionsValid ? getRiskLevel(totalCategory) : 1
+        riskLevel: allDimensionsValid ? getRiskLevel(totalCategory) : 1,
+        isValid: allDimensionsValid
     };
 
     return {
