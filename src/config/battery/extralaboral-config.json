@@ -13,7 +13,10 @@
                 3,
                 4
             ],
-            "invertedItems": []
+            "invertedItems": [
+                2,
+                3
+            ]
         },
         {
             "key": "relaciones_familiares",
@@ -23,7 +26,9 @@
                 6,
                 7
             ],
-            "invertedItems": []
+            "invertedItems": [
+                6
+            ]
         },
         {
             "key": "comunicacion_relaciones",
@@ -61,7 +66,9 @@
                 23,
                 24
             ],
-            "invertedItems": []
+            "invertedItems": [
+                24
+            ]
         },
         {
             "key": "influencia_entorno_extralaboral",
@@ -71,7 +78,9 @@
                 26,
                 27
             ],
-            "invertedItems": []
+            "invertedItems": [
+                26
+            ]
         },
         {
             "key": "desplazamiento_vivienda",
@@ -82,7 +91,11 @@
                 30,
                 31
             ],
-            "invertedItems": []
+            "invertedItems": [
+                28,
+                30,
+                31
+            ]
         }
     ]
 }

@@ -1,8 +1,8 @@
 {
-    "formType": "A",
+    "formType": "B",
     "questionnaireType": "INTRALABORAL",
-    "totalItems": 123,
-    "totalTransformationFactor": 492,
+    "totalItems": 97,
+    "totalTransformationFactor": 388,
     "domains": [
         {
             "key": "liderazgo_relaciones",
@@ -10,10 +10,9 @@
             "dimensionKeys": [
                 "liderazgo_caracteristicas",
                 "relaciones_sociales",
-                "retroalimentacion_desempeno",
-                "relacion_colaboradores"
+                "retroalimentacion_desempeno"
             ],
-            "transformationFactor": 164
+            "transformationFactor": 120
         },
         {
             "key": "control_trabajo",
@@ -25,7 +24,7 @@
                 "oportunidades_desarrollo",
                 "control_autonomia"
             ],
-            "transformationFactor": 84
+            "transformationFactor": 72
         },
         {
             "key": "demandas_trabajo",
@@ -35,12 +34,10 @@
                 "demandas_emocionales",
                 "demandas_cuantitativas",
                 "influencia_trabajo_extralaboral",
-                "exigencias_responsabilidad",
                 "demandas_carga_mental",
-                "consistencia_rol",
                 "demandas_jornada"
             ],
-            "transformationFactor": 200
+            "transformationFactor": 156
         },
         {
             "key": "recompensa",
@@ -49,7 +46,7 @@
                 "reconocimiento_compensacion",
                 "recompensas_pertenencia"
             ],
-            "transformationFactor": 44
+            "transformationFactor": 40
         }
     ],
     "dimensions": [
@@ -58,6 +55,28 @@
             "name": "Características del liderazgo",
             "domainKey": "liderazgo_relaciones",
             "items": [
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61
+            ],
+            "invertedItems": []
+        },
+        {
+            "key": "relaciones_sociales",
+            "name": "Relaciones sociales en el trabajo",
+            "domainKey": "liderazgo_relaciones",
+            "items": [
+                62,
                 63,
                 64,
                 65,
@@ -68,34 +87,10 @@
                 70,
                 71,
                 72,
-                73,
-                74,
-                75
-            ],
-            "invertedItems": []
-        },
-        {
-            "key": "relaciones_sociales",
-            "name": "Relaciones sociales en el trabajo",
-            "domainKey": "liderazgo_relaciones",
-            "items": [
-                76,
-                77,
-                78,
-                79,
-                80,
-                81,
-                82,
-                83,
-                84,
-                85,
-                86,
-                87,
-                88,
-                89
+                73
             ],
             "invertedItems": [
-                80
+                66
             ]
         },
         {
@@ -103,53 +98,24 @@
             "name": "Retroalimentación del desempeño",
             "domainKey": "liderazgo_relaciones",
             "items": [
-                90,
-                91,
-                92,
-                93,
-                94
+                74,
+                75,
+                76,
+                77,
+                78
             ],
             "invertedItems": []
-        },
-        {
-            "key": "relacion_colaboradores",
-            "name": "Relación con los colaboradores",
-            "domainKey": "liderazgo_relaciones",
-            "items": [
-                115,
-                116,
-                117,
-                118,
-                119,
-                120,
-                121,
-                122,
-                123
-            ],
-            "invertedItems": [
-                115,
-                116,
-                117,
-                118,
-                119,
-                120,
-                121,
-                122,
-                123
-            ]
         },
         {
             "key": "claridad_rol",
             "name": "Claridad de rol",
             "domainKey": "control_trabajo",
             "items": [
-                53,
-                54,
-                55,
-                56,
-                57,
-                58,
-                59
+                41,
+                42,
+                43,
+                44,
+                45
             ],
             "invertedItems": []
         },
@@ -158,9 +124,9 @@
             "name": "Capacitación",
             "domainKey": "control_trabajo",
             "items": [
-                60,
-                61,
-                62
+                46,
+                47,
+                48
             ],
             "invertedItems": []
         },
@@ -169,10 +135,9 @@
             "name": "Participación y manejo del cambio",
             "domainKey": "control_trabajo",
             "items": [
-                48,
-                49,
-                50,
-                51
+                38,
+                39,
+                40
             ],
             "invertedItems": []
         },
@@ -181,10 +146,10 @@
             "name": "Oportunidades de desarrollo y uso de habilidades",
             "domainKey": "control_trabajo",
             "items": [
-                39,
-                40,
-                41,
-                42
+                29,
+                30,
+                31,
+                32
             ],
             "invertedItems": []
         },
@@ -193,9 +158,9 @@
             "name": "Control y autonomía sobre el trabajo",
             "domainKey": "control_trabajo",
             "items": [
-                44,
-                45,
-                46
+                34,
+                35,
+                36
             ],
             "invertedItems": []
         },
@@ -232,26 +197,25 @@
             "name": "Demandas emocionales",
             "domainKey": "demandas_trabajo",
             "items": [
-                106,
-                107,
-                108,
-                109,
-                110,
-                111,
-                112,
-                113,
-                114
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96,
+                97
             ],
             "invertedItems": [
-                106,
-                107,
-                108,
-                109,
-                110,
-                111,
-                112,
-                113,
-                114
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96
             ]
         },
         {
@@ -261,10 +225,7 @@
             "items": [
                 13,
                 14,
-                15,
-                32,
-                43,
-                47
+                15
             ],
             "invertedItems": [
                 13,
@@ -276,37 +237,16 @@
             "name": "Influencia del trabajo sobre el entorno extralaboral",
             "domainKey": "demandas_trabajo",
             "items": [
-                35,
-                36,
-                37,
-                38
+                25,
+                26,
+                27,
+                28
             ],
             "invertedItems": [
-                35,
-                36,
-                37,
-                38
-            ]
-        },
-        {
-            "key": "exigencias_responsabilidad",
-            "name": "Exigencias de responsabilidad del cargo",
-            "domainKey": "demandas_trabajo",
-            "items": [
-                19,
-                22,
-                23,
-                24,
                 25,
-                26
-            ],
-            "invertedItems": [
-                19,
-                22,
-                23,
-                24,
-                25,
-                26
+                26,
+                27,
+                28
             ]
         },
         {
@@ -317,34 +257,15 @@
                 16,
                 17,
                 18,
-                20,
-                21
+                19,
+                20
             ],
             "invertedItems": [
                 16,
                 17,
                 18,
-                20,
-                21
-            ]
-        },
-        {
-            "key": "consistencia_rol",
-            "name": "Consistencia del rol",
-            "domainKey": "demandas_trabajo",
-            "items": [
-                27,
-                28,
-                29,
-                30,
-                52
-            ],
-            "invertedItems": [
-                27,
-                28,
-                29,
-                30,
-                52
+                19,
+                20
             ]
         },
         {
@@ -352,13 +273,16 @@
             "name": "Demandas de la jornada de trabajo",
             "domainKey": "demandas_trabajo",
             "items": [
-                31,
+                21,
+                22,
+                23,
+                24,
                 33,
-                34
+                37
             ],
             "invertedItems": [
-                31,
-                33
+                21,
+                23
             ]
         },
         {
@@ -366,25 +290,24 @@
             "name": "Reconocimiento y compensación",
             "domainKey": "recompensa",
             "items": [
-                96,
-                97,
-                98,
-                99,
-                100,
-                101
+                79,
+                80,
+                81,
+                82,
+                83,
+                84
             ],
             "invertedItems": []
         },
         {
             "key": "recompensas_pertenencia",
-            "name": "Recompensas de la pertenencia a la organización",
+            "name": "Recompensas derivadas de la pertenencia a la organización",
             "domainKey": "recompensa",
             "items": [
-                95,
-                102,
-                103,
-                104,
-                105
+                85,
+                86,
+                87,
+                88
             ],
             "invertedItems": []
         }

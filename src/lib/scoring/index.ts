@@ -318,23 +318,39 @@ export function scoreQuestionnaire(
         allDimensionsValid = Object.keys(rawResponses).length >= 31;
         
         if (allDimensionsValid) {
-            // Grupo 1: 1-8
             let sum1 = 0; for(let i=1; i<=8; i++) sum1 += rawResponses[String(i)] || 0;
-            const avg1 = sum1 / 8;
-            
-            // Grupo 2: 9-12
             let sum2 = 0; for(let i=9; i<=12; i++) sum2 += rawResponses[String(i)] || 0;
-            const avg2 = sum2 / 4;
-            
-            // Grupo 3: 13-22
             let sum3 = 0; for(let i=13; i<=22; i++) sum3 += rawResponses[String(i)] || 0;
-            const avg3 = sum3 / 10;
-            
-            // Grupo 4: 23-31
             let sum4 = 0; for(let i=23; i<=31; i++) sum4 += rawResponses[String(i)] || 0;
-            const avg4 = sum4 / 9;
             
-            totalRaw = (avg1 * 4) + (avg2 * 3) + (avg3 * 2) + (avg4 * 1);
+            // Map 0-4 values back to original weights: 4->9, 3->6, 2->3, 1->0
+            // Since we receive inputs 0,1,2,3 from UI as "Nunca(0)", "A veces(1)", "Casi Siempre(2)", "Siempre(3)"
+            // Wait, UI uses 0 to 4 (Nunca to Siempre) for stress or 1 to 4? 
+            // In stress-config.json it says:
+            // "Siempre = 9, Casi sempre = 6, A veces = 3, Nunca = 0"
+            // Let's assume UI stores 3 for Siempre, 2 for Casi Siempre, 1 for A veces, 0 for Nunca (based on max values and normal Likert).
+            // Actually, Manual: Nunca = 0, Rara vez = 1 (?), A veces = 3? Wait, stress doesn't have Rara Vez, it's 4 options.
+            // Let's apply a translation function to all values.
+            const mapValue = (val: number) => {
+                if (val === 0) return 9;
+                if (val === 1) return 6;
+                if (val === 2) return 3;
+                if (val === 3) return 0;
+                return 0; 
+            };
+
+            const translateSum = (start: number, end: number) => {
+                let sum = 0;
+                for (let i = start; i <= end; i++) {
+                    const val = rawResponses[String(i)];
+                    if (val !== undefined && val !== null) {
+                        sum += mapValue(val);
+                    }
+                }
+                return sum;
+            };
+
+            totalRaw = translateSum(1, 31);
             totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
         }
     }

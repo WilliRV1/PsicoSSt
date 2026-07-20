@@ -194,7 +194,24 @@ interface IndividualReportPDFProps {
   reportDate?: string;
   submittedTime?: string;
   isAnonymous?: boolean;
+  questionnaireType?: string;
 }
+
+const riskLabels: Record<string, string> = {
+  SIN_RIESGO: "Sin Riesgo",
+  BAJO: "Riesgo Bajo",
+  MEDIO: "Riesgo Medio",
+  ALTO: "Riesgo Alto",
+  MUY_ALTO: "Riesgo Muy Alto"
+};
+
+const stressRiskLabels: Record<string, string> = {
+  SIN_RIESGO: "Muy Bajo",
+  BAJO: "Bajo",
+  MEDIO: "Medio",
+  ALTO: "Alto",
+  MUY_ALTO: "Muy Alto"
+};
 
 const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
   workerName,
@@ -220,8 +237,15 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
   reportDate,
   submittedTime,
   isAnonymous = false,
+  questionnaireType,
 }) => {
   const displayWorkerName = isAnonymous ? "TRABAJADOR ANÓNIMO" : workerName;
+  
+  const isStress = questionnaireType === "STRESS";
+  const getLabel = (cat: string) => {
+    const map = isStress ? stressRiskLabels : riskLabels;
+    return map[cat] || cat;
+  };
   // Mask ID by extracting last 4 digits if possible
   const maskedId = typeof workerId === 'string' && workerId.length > 4 
     ? `WK-***${workerId.slice(-4)}` 
@@ -284,9 +308,9 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
         <Text style={styles.sectionTitle}>2. RESULTADO GLOBAL DE RIESGO</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Text style={styles.label}>Nivel de Riesgo General:</Text>
-          <View style={[styles.riskBadge, styles[overallRisk]]}>
-            <Text>{overallRisk.replace('_', ' ')}</Text>
-          </View>
+          <Text style={[styles.riskBadge, (styles as any)[overallRisk]]}>
+            {getLabel(overallRisk)}
+          </Text>
         </View>
       </View>
 
@@ -303,8 +327,8 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
             <View key={index} style={styles.tableRow}>
               <View style={styles.tableCol}><Text>{dim.name}</Text></View>
               <View style={styles.tableColSmall}><Text>{dim.score.toFixed(1)}</Text></View>
-              <View style={[styles.tableColSmall, styles[dim.level as RiskCategory]]}>
-                <Text style={{ fontSize: 8 }}>{dim.level.replace('_', ' ')}</Text>
+              <View style={[styles.tableColSmall, (styles as any)[dim.level]]}>
+                <Text style={{ fontSize: 8 }}>{getLabel(dim.level)}</Text>
               </View>
             </View>
           ))}
@@ -315,19 +339,19 @@ const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>4. INTERPRETACIÓN GENÉRICA DEL RIESGO</Text>
         <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• Sin Riesgo o Riesgo Despreciable:</Text> Ausencia de riesgo o riesgo tan bajo que no amerita acciones diferentes a mantener las condiciones actuales.
+          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Muy Bajo" : "Sin Riesgo o Riesgo Despreciable"}:</Text> Ausencia de riesgo o riesgo tan bajo que no amerita acciones diferentes a mantener las condiciones actuales.
         </Text>
         <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• Riesgo Bajo:</Text> No se espera que cause efectos adversos significativos, pero se sugiere mantener promoción y prevención.
+          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Bajo" : "Riesgo Bajo"}:</Text> No se espera que la exposición genere enfermedad. Se sugiere intervención preventiva.
         </Text>
         <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• Riesgo Medio:</Text> Nivel de riesgo que amerita observación y acciones de intervención para prevenir efectos perjudiciales en la salud.
+          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Medio" : "Riesgo Medio"}:</Text> Nivel de exposición que amerita observación y acciones sistemáticas preventivas.
         </Text>
         <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• Riesgo Alto:</Text> Nivel de riesgo que tiene importante posibilidad de asociación con respuestas de estrés alto. Requiere intervención a corto plazo.
+          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Alto" : "Riesgo Alto"}:</Text> Nivel que amerita intervención dentro del marco de un sistema de vigilancia epidemiológica.
         </Text>
-        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• Riesgo Muy Alto:</Text> Nivel de riesgo con amplia posibilidad de asociarse a respuestas muy altas de estrés y enfermedades asociadas. Requiere intervención inmediata (Resolución 2764 de 2022).
+        <Text style={{ fontSize: 9, lineHeight: 1.4 }}>
+          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Muy Alto" : "Riesgo Muy Alto"}:</Text> Nivel con amplia posibilidad de asociarse a respuestas de alto estrés y enfermedad. Intervención inmediata (Resolución 2764 de 2022).
         </Text>
       </View>
 

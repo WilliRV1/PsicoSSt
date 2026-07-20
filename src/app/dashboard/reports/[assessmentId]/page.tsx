@@ -16,6 +16,14 @@ const riskLabels: Record<string, string> = {
     MUY_ALTO: "Riesgo Muy Alto"
 };
 
+const stressRiskLabels: Record<string, string> = {
+    SIN_RIESGO: "Muy Bajo",
+    BAJO: "Bajo",
+    MEDIO: "Medio",
+    ALTO: "Alto",
+    MUY_ALTO: "Muy Alto"
+};
+
 const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Factores Intralaborales",
     EXTRALABORAL: "Factores Extralaborales",
@@ -298,7 +306,7 @@ export default async function ReportPage({ params }: PageProps) {
                                                 <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
                                                 <td className="center">
                                                     <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                        {riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                        {isStress ? stressRiskLabels[dim.riskCategory] : riskLabels[dim.riskCategory] || dim.riskCategory}
                                                     </span>
                                                 </td>
                                                 <td className="center" style={{ fontWeight: 700 }}>{dim.transformedScore.toFixed(1)}%</td>
@@ -374,7 +382,7 @@ export default async function ReportPage({ params }: PageProps) {
                                 <>
                                     <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
                                         <div className="total-result-label">Nivel de Síntomas de Estrés</div>
-                                        <div className="total-result-value">{riskLabels[(stressResults as any).overallRiskCategory] || (stressResults as any).overallRiskCategory}</div>
+                                        <div className="total-result-value">{stressRiskLabels[(stressResults as any).overallRiskCategory] || (stressResults as any).overallRiskCategory}</div>
                                     </div>
                                     <table className="results-table">
                                         <thead>
@@ -390,7 +398,7 @@ export default async function ReportPage({ params }: PageProps) {
                                                     <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
                                                     <td className="center">
                                                         <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                            {riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                            {stressRiskLabels[dim.riskCategory] || dim.riskCategory}
                                                         </span>
                                                     </td>
                                                     <td className="center">{dim.transformedScore.toFixed(1)}%</td>
@@ -435,7 +443,7 @@ export default async function ReportPage({ params }: PageProps) {
                                         <td className="center" style={{ fontWeight: 800, color: "#0f172a" }}>{totalScores.transformedScore.toFixed(1)}%</td>
                                         <td className="center">
                                             <span className={`risk-badge ${getRiskClass(overallRisk)}`} style={{ fontWeight: 800 }}>
-                                                {riskLabels[overallRisk] || overallRisk}
+                                                {isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}
                                             </span>
                                         </td>
                                     </tr>
@@ -452,7 +460,7 @@ export default async function ReportPage({ params }: PageProps) {
                                 Con base en los resultados obtenidos mediante la aplicación del cuestionario de
                                 {" "}{questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}, el/la
                                 trabajador/a <strong>{assessment.worker.fullName}</strong> presenta un nivel de
-                                riesgo general clasificado como <strong>{riskLabels[overallRisk] || overallRisk}</strong>.
+                                riesgo general clasificado como <strong>{isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}</strong>.
                             </p>
                             {(overallRisk === "ALTO" || overallRisk === "MUY_ALTO") && (
                                 <p style={{ marginTop: "0.5rem", color: "#dc2626" }}>
