@@ -38,6 +38,8 @@ interface IndividualReportPDFProps {
   assessmentDate: string;
   reportDate: string;
   submittedTime: string;
+
+  isAnonymous?: boolean;
 }
 
 const IndividualReportPDF = (props: IndividualReportPDFProps) => {
@@ -51,7 +53,7 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           primaryColor={props.primaryColor}
           consultingRoomName={props.consultingRoomName}
           logoUrl={props.logoUrl}
-          workerName={props.workerName}
+          workerName={props.isAnonymous ? "TRABAJADOR ANÓNIMO" : props.workerName}
           organizationName={props.orgName}
           assessmentDate={props.assessmentDate}
           psychologistName={props.psychologistName}

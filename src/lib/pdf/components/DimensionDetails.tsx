@@ -57,7 +57,7 @@ export const DimensionDetails = ({
         const isHighRisk = dim.level === 'ALTO' || dim.level === 'MUY_ALTO';
 
         return (
-          <View key={idx} style={[styles.section, { breakInside: 'avoid' }]}>
+          <View key={idx} style={styles.section} wrap={false}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F8FAFC', padding: 8, borderLeftWidth: 3, borderLeftColor: getRiskColor(dim.level) }}>
               <Text style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>{dim.name}</Text>
               <Text style={{ fontSize: 10, fontWeight: 700, color: getRiskColor(dim.level) }}>{riskLabel} ({dim.score.toFixed(1)})</Text>

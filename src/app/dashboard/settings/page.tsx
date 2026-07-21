@@ -2,8 +2,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import PasswordForm from "./password-form";
-import { Shield, User, KeyRound, Activity, Clock, FileText, Building2 } from "lucide-react";
+import { Shield, User, KeyRound, Activity, Clock, FileText, Building2, Palette } from "lucide-react";
 import Link from "next/link";
+import BrandingForm from "./branding-form";
 
 export default async function SettingsPage() {
     const session = await auth();
@@ -175,6 +176,20 @@ export default async function SettingsPage() {
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Branding / White Label */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="rounded-lg bg-blue-50 p-2">
+                        <Palette className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-foreground">Marca y Branding (White Label)</h3>
+                        <p className="text-xs text-muted-foreground">Personaliza la apariencia de los informes PDF que entregas a tus clientes.</p>
+                    </div>
+                </div>
+                <BrandingForm />
             </div>
 
             {/* Password change */}

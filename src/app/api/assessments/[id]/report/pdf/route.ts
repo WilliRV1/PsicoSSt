@@ -116,7 +116,6 @@ export async function GET(
       reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
       submittedTime: submittedTime,
       isAnonymous: isAnonymous,
-      questionnaireType: assessment.questionnaireType,
     });
 
     // @ts-expect-error react-pdf renderToStream typing mismatch with React 19
