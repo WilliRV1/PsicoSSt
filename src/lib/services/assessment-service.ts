@@ -173,4 +173,103 @@ export class AssessmentService {
             orderBy: { createdAt: "desc" }
         });
     }
+
+    /**
+     * Updates an existing assessment, recalculating scores using the strict scoring engine.
+     */
+    static async updateAssessment(assessmentId: string, psychologistId: string, newResponses: ItemResponses) {
+        // 0. Validate response values are in range 0-4
+        for (const [itemKey, value] of Object.entries(newResponses)) {
+            if (typeof value !== "number" || value < 0 || value > 4 || !Number.isInteger(value)) {
+                throw new Error(`Ítem ${itemKey}: valor inválido "${value}". Debe ser un entero entre 0 y 4.`);
+            }
+        }
+
+        // 1. Fetch existing assessment to get metadata
+        const existing = await prisma.assessment.findUnique({
+            where: { id: assessmentId },
+            include: {
+                worker: true,
+                responseSet: true
+            }
+        });
+
+        if (!existing) throw new Error("Evaluación no encontrada");
+        // Extra check to ensure the psychologist editing it is the owner
+        if (existing.psychologistId !== psychologistId) {
+            throw new Error("No tienes permisos para editar esta evaluación");
+        }
+
+        // 2. Calculate scores using the pure scoring engine (NO MODIFICATIONS to the engine)
+        console.log("Recalculando puntajes tras edición para:", existing.workerId);
+        const scoredResult: ScoredResultData = scoreQuestionnaire(
+            newResponses,
+            existing.formType as FormType,
+            existing.questionnaireType as QuestionnaireType,
+            {
+                occupationalGroup: existing.worker.jobLevel === "AUXILIAR" || existing.worker.jobLevel === "OPERATIVO" ? "auxiliares_operativos" : "jefes_profesionales_tecnicos",
+                gender: (existing.worker as any).gender || "F",
+                jobLevel: (existing.worker as any).jobLevel,
+                hasCustomerInteraction: (existing.worker as any).hasCustomerInteraction
+            }
+        );
+
+        // 3. Update database in a transaction
+        try {
+            return await prisma.$transaction(async (tx) => {
+                // Update ResponseSet
+                await tx.responseSet.update({
+                    where: { assessmentId: assessmentId },
+                    data: {
+                        responses: newResponses as any,
+                        totalItems: Object.keys(newResponses).length,
+                        updatedAt: new Date()
+                    }
+                });
+
+                // Update ScoredResult
+                await tx.scoredResult.update({
+                    where: { assessmentId: assessmentId },
+                    data: {
+                        dimensionScores: scoredResult.dimensions as any,
+                        domainScores: scoredResult.domains as any,
+                        totalScores: scoredResult.total as any,
+                        overallRiskCategory: scoredResult.total.riskCategory,
+                        scoredAt: new Date()
+                    }
+                });
+
+                // Update Assessment timestamp
+                const updatedAssessment = await tx.assessment.update({
+                    where: { id: assessmentId },
+                    data: {
+                        updatedAt: new Date()
+                    }
+                });
+
+                // Log the edit
+                await tx.auditLog.create({
+                    data: {
+                        userId: psychologistId,
+                        action: "UPDATE",
+                        resourceType: "ASSESSMENT",
+                        resourceId: assessmentId,
+                        metadata: {
+                            note: "Evaluación editada manualmente"
+                        }
+                    }
+                });
+
+                console.log("Evaluación editada y recalculada exitosamente:", assessmentId);
+                return {
+                    id: updatedAssessment.id,
+                    result: scoredResult
+                };
+            });
+        } catch (error: any) {
+            console.error("Error DETALLADO al editar Assessment:", error);
+            throw new Error(`Error en base de datos: ${error.message}`);
+        }
+    }
 }
+

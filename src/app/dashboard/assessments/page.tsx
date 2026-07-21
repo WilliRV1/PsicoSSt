@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock } from "lucide-react";
+import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
@@ -276,6 +276,14 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                                                         <FileDown className="h-3.5 w-3.5" />
                                                         PDF
                                                     </a>
+                                                    <Link
+                                                        href={`/dashboard/assessments/${assessment.id}/edit`}
+                                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 shadow-sm hover:bg-amber-100 transition-colors"
+                                                        title="Editar Respuestas"
+                                                    >
+                                                        <Edit className="h-3.5 w-3.5" />
+                                                        Editar
+                                                    </Link>
                                                     <DeleteAssessmentButton id={assessment.id} />
                                                 </div>
                                             </td>

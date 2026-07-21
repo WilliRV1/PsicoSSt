@@ -19,9 +19,23 @@ interface ManualFormProps {
     organizationId: string;
     hasCustomerInteraction?: boolean;
     onSuccess: (result: any) => void;
+    // Props for editing an existing assessment
+    initialAssessmentId?: string;
+    initialFormType?: FormType;
+    initialQType?: QuestionnaireType;
+    initialResponses?: ItemResponses;
 }
 
-export default function ManualForm({ workerId, organizationId, hasCustomerInteraction = true, onSuccess }: ManualFormProps) {
+export default function ManualForm({ 
+    workerId, 
+    organizationId, 
+    hasCustomerInteraction = true, 
+    onSuccess,
+    initialAssessmentId,
+    initialFormType,
+    initialQType,
+    initialResponses
+}: ManualFormProps) {
     const [attendsCustomers, setAttendsCustomers] = useState<boolean>(hasCustomerInteraction);
 
     useEffect(() => {
@@ -30,12 +44,12 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
 
     const [isBoss, setIsBoss] = useState<boolean>(true);
 
-    const [formType, setFormType] = useState<FormType>("A");
-    const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
+    const [formType, setFormType] = useState<FormType>(initialFormType || "A");
+    const [qType, setQType] = useState<QuestionnaireType>(initialQType || "INTRALABORAL");
     const [responsesCache, setResponsesCache] = useState<Record<QuestionnaireType, ItemResponses>>({
-        INTRALABORAL: {},
-        EXTRALABORAL: {},
-        STRESS: {}
+        INTRALABORAL: (initialQType === "INTRALABORAL" && initialResponses) ? initialResponses : {},
+        EXTRALABORAL: (initialQType === "EXTRALABORAL" && initialResponses) ? initialResponses : {},
+        STRESS: (initialQType === "STRESS" && initialResponses) ? initialResponses : {}
     });
     const responses = responsesCache[qType];
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -43,6 +57,9 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
     const [error, setError] = useState<string | null>(null);
     const [realTimeScore, setRealTimeScore] = useState<ScoredResultData | null>(null);
     const [assessmentDate, setAssessmentDate] = useState<string>(new Date().toISOString().substring(0, 10));
+    
+    // In edit mode, we bypass the informed consent physical check (since it was already confirmed initially)
+    const [consentGranted, setConsentGranted] = useState(initialAssessmentId ? true : false);
 
     const config = getFormConfig(formType, qType);
     const rawTotalItems = config?.totalItems || 0;
@@ -118,7 +135,6 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
         }
     };
 
-    const [consentGranted, setConsentGranted] = useState(false);
 
     const handleSubmit = async () => {
         if (Object.keys(responses).length < totalItems) {
@@ -133,27 +149,40 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
 
         setIsSubmitting(true);
         setError(null);
-
         try {
-            const res = await fetch("/api/assessments", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    workerId,
-                    organizationId,
-                    formType,
-                    questionnaireType: qType,
-                    responses,
-                    assessmentDate: new Date(assessmentDate).toISOString(),
-                    hasCustomerInteraction: attendsCustomers,
-                    occupationalGroup: isBoss ? "JEFATURA" : "PROFESIONAL",
-                    informedConsent: {
-                        consentGranted: true,
-                        consentMethod: "WRITTEN",
-                        consentText: "Confirmación de consentimiento físico firmado (capturado vía digitalización manual)."
-                    }
-                })
-            });
+            let res;
+            if (initialAssessmentId) {
+                // EDIT MODE: Update existing assessment
+                res = await fetch(`/api/assessments/${initialAssessmentId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        responses: responses
+                    })
+                });
+            } else {
+                // CREATE MODE: Create new assessment
+                res = await fetch("/api/assessments", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        workerId,
+                        organizationId,
+                        formType,
+                        questionnaireType: qType,
+                        assessmentDate,
+                        responses: responses,
+                        hasCustomerInteraction: attendsCustomers,
+                        occupationalGroup: formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
+                        inputMethod: "MANUAL",
+                        informedConsent: {
+                            consentGranted: true,
+                            consentMethod: "WRITTEN",
+                            consentText: "Confirmación de consentimiento físico firmado (capturado vía digitalización manual)."
+                        }
+                    })
+                });
+            }
 
             if (!res.ok) {
                 const data = await res.json();
@@ -189,7 +218,8 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
                                 setCurrentIndex(0);
                                 setConsentGranted(false);
                             }}
-                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium"
+                            disabled={!!initialAssessmentId}
+                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <option value="INTRALABORAL">Intralaboral</option>
                             <option value="EXTRALABORAL">Extralaboral</option>
@@ -218,7 +248,8 @@ export default function ManualForm({ workerId, organizationId, hasCustomerIntera
                                     setCurrentIndex(0);
                                     setConsentGranted(false);
                                 }}
-                                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium"
+                                disabled={!!initialAssessmentId}
+                                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <option value="A">Forma A (Jefes/Profesionales)</option>
                                 <option value="B">Forma B (Auxiliares/Operativos)</option>
