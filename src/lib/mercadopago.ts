@@ -9,6 +9,12 @@
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || "";
 const MP_BASE_URL = "https://api.mercadopago.com";
 
+const getBaseUrl = () => {
+    if (process.env.APP_URL) return process.env.APP_URL;
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+    return "http://localhost:3000";
+};
+
 export interface MPPreference {
     id: string;
     init_point: string;
@@ -63,12 +69,12 @@ export async function createMPPreference(opts: {
         ],
         external_reference: opts.externalReference,
         back_urls: opts.backUrls || {
-            success: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/store?status=approved`,
-            failure: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/store?status=failure`,
-            pending: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/store?status=pending`,
+            success: `${getBaseUrl()}/dashboard/store?status=approved`,
+            failure: `${getBaseUrl()}/dashboard/store?status=failure`,
+            pending: `${getBaseUrl()}/dashboard/store?status=pending`,
         },
         auto_return: "approved",
-        notification_url: opts.notificationUrl || `${process.env.APP_URL || "http://localhost:3000"}/api/payments/webhook`,
+        notification_url: opts.notificationUrl || `${getBaseUrl()}/api/payments/webhook`,
         statement_descriptor: "PsicoSST",
     };
 

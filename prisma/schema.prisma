@@ -523,7 +523,6 @@ model PaymentOrder {
   packageId      String        @map("package_id")
   amountCents    Int           @map("amount_cents")
   wompiRef       String?       @unique @map("wompi_ref")
-  mercadoPagoId  String?       @unique @map("mercadopago_id")
   internalRef    String        @unique @map("internal_ref")
   status         PaymentStatus @default(PENDING)
   paymentMethod  String?       @map("payment_method")
