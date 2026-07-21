@@ -70,18 +70,38 @@ export default function OrganizationsPage() {
         }
     };
 
+    const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+
     return (
         <div className="space-y-6 animate-in">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-black text-foreground tracking-tight">Mis Empresas</h1>
-                    <p className="mt-1 text-sm text-muted-foreground font-medium">Gestiona las organizaciones que est&aacute;s evaluando.</p>
+                    <h1 className="text-[24px] font-bold text-foreground font-heading tracking-tight">Empresas</h1>
+                    <p className="mt-1 text-sm text-text-secondary">Gestiona las organizaciones de tu workspace.</p>
                 </div>
-                <Button onClick={() => setShowModal(true)}>
-                    <Plus className="w-5 h-5" />
-                    Nueva Empresa
-                </Button>
+                <div className="flex items-center gap-3">
+                    <div className="flex bg-surface-muted p-1 rounded-lg border border-border">
+                        <button 
+                            onClick={() => setViewMode("cards")}
+                            className={`p-1.5 rounded-md transition-colors ${viewMode === "cards" ? "bg-surface shadow-sm text-primary" : "text-text-muted hover:text-text"}`}
+                            title="Vista de Tarjetas"
+                        >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        </button>
+                        <button 
+                            onClick={() => setViewMode("table")}
+                            className={`p-1.5 rounded-md transition-colors ${viewMode === "table" ? "bg-surface shadow-sm text-primary" : "text-text-muted hover:text-text"}`}
+                            title="Vista de Tabla"
+                        >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <Button onClick={() => setShowModal(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nueva Empresa
+                    </Button>
+                </div>
             </div>
 
             {/* Content */}
@@ -90,17 +110,17 @@ export default function OrganizationsPage() {
                     <Loader2 className="animate-spin h-8 w-8 text-primary" />
                 </div>
             ) : orgs.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-border bg-muted/50 text-center py-16 px-6">
-                    <div className="w-16 h-16 bg-card border border-border rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <Building2 className="w-8 h-8 text-muted-foreground" />
+                <div className="rounded-xl border border-dashed border-border bg-surface-muted text-center py-16 px-6 shadow-sm">
+                    <div className="w-16 h-16 bg-surface border border-border rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <Building2 className="w-8 h-8 text-text-muted" />
                     </div>
-                    <h2 className="text-lg font-bold text-foreground mb-2">Sin empresas registradas</h2>
-                    <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">Crea tu primera empresa para comenzar a agregar trabajadores y realizar evaluaciones psicosociales.</p>
+                    <h2 className="text-lg font-bold text-foreground font-heading mb-2">Sin empresas registradas</h2>
+                    <p className="text-sm text-text-secondary mb-6 max-w-sm mx-auto">Crea tu primera empresa para comenzar a agregar trabajadores y realizar evaluaciones psicosociales.</p>
                     <Button onClick={() => setShowModal(true)} className="mx-auto">
-                        Crear Primera Empresa
+                        Crear Empresa
                     </Button>
                 </div>
-            ) : (
+            ) : viewMode === "cards" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {orgs.map(org => (
                         <div key={org.id} className="relative group">
@@ -110,17 +130,17 @@ export default function OrganizationsPage() {
                             >
                                 <div>
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                        <div className="w-10 h-10 bg-primary/5 text-primary rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors border border-primary/10">
                                             <Building2 className="w-5 h-5" />
                                         </div>
-                                        <span className="px-2.5 py-1 bg-muted text-muted-foreground text-[10px] font-bold uppercase tracking-wider rounded-md border border-border">
+                                        <span className="px-2.5 py-1 bg-surface-muted text-text-secondary text-[10px] font-bold uppercase tracking-wider rounded-md border border-border-muted font-mono">
                                             NIT: {org.nit}
                                         </span>
                                     </div>
-                                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">{org.name}</h3>
+                                    <h3 className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">{org.name}</h3>
                                 </div>
 
-                                <div className="mt-6 pt-4 border-t border-border flex items-center gap-4 text-sm text-muted-foreground font-medium">
+                                <div className="mt-6 pt-4 border-t border-border flex items-center gap-4 text-sm text-text-secondary font-medium">
                                     <div className="flex items-center gap-1.5">
                                         <Users className="w-4 h-4" />
                                         {org._count.workers} trab.
@@ -138,12 +158,69 @@ export default function OrganizationsPage() {
                             <button
                                 onClick={(e) => handleDeleteOrg(e, org)}
                                 title="Eliminar empresa"
-                                className="absolute top-3 right-3 w-7 h-7 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground border border-destructive/20"
+                                className="absolute top-3 right-3 w-8 h-8 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/20"
                             >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                             </button>
                         </div>
                     ))}
+                </div>
+            ) : (
+                <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-surface-muted border-b border-border">
+                            <tr>
+                                <th className="px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">Empresa</th>
+                                <th className="px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">NIT</th>
+                                <th className="px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">Ubicación</th>
+                                <th className="px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">Trabajadores</th>
+                                <th className="px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {orgs.map((org) => (
+                                <tr key={org.id} className="hover:bg-surface-muted/50 transition-colors group">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <Link href={`/dashboard/organizations/${org.id}`} className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-md bg-primary/5 text-primary flex items-center justify-center border border-primary/10">
+                                                <Building2 className="w-4 h-4" />
+                                            </div>
+                                            <span className="font-semibold text-text group-hover:text-primary transition-colors">{org.name}</span>
+                                        </Link>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-text-secondary font-mono text-[13px]">
+                                        {org.nit}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-text-secondary">
+                                        {org.city ? `${org.city}${org.department ? `, ${org.department}` : ''}` : "—"}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-surface text-text-secondary border border-border">
+                                            <Users className="w-3.5 h-3.5" />
+                                            {org._count.workers}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link
+                                                href={`/dashboard/organizations/${org.id}`}
+                                                className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text hover:bg-surface-muted transition-colors"
+                                            >
+                                                Gestionar
+                                            </Link>
+                                            <button
+                                                onClick={(e) => handleDeleteOrg(e, org)}
+                                                className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
 

@@ -354,7 +354,7 @@ export default function ManualForm({
                                     onKeyDown={(e) => handleKeyDown(e, idx)}
                                     readOnly
                                     placeholder="?"
-                                    className={`w-14 h-12 text-center font-black text-xl border-2 rounded-lg focus:outline-none transition-colors ${currentIndex === idx ? 'border-indigo-500 bg-card text-indigo-700 focus:ring-4 focus:ring-indigo-500/20' : 'border-border bg-muted text-foreground'}`}
+                                    className={`w-16 h-16 text-center font-black text-2xl border-2 rounded-xl focus:outline-none transition-all ${currentIndex === idx ? 'border-primary bg-background text-primary shadow-[0_0_0_4px_rgba(20,184,166,0.2)] scale-110 z-10' : 'border-border bg-surface-muted text-foreground'}`}
                                 />
                                 <div className="ml-6 flex gap-2">
                                     {(qType === 'STRESS' ? [1, 2, 3, 4] : [1, 2, 3, 4, 5]).map(v => (
@@ -494,7 +494,7 @@ export default function ManualForm({
                                     Finalizar y Guardar Evaluación
                                 </Button>
                                 <p className="text-center text-xs text-muted-foreground mt-4 font-medium flex items-center justify-center gap-1.5">
-                                    <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">0</kbd> a <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">{qType === 'STRESS' ? '3' : '4'}</kbd> para ingreso rápido
+                                    Teclas <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">1</kbd> a <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">{qType === 'STRESS' ? '4' : '5'}</kbd> para ingreso ultra rápido
                                 </p>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { DashboardShell } from "./dashboard-shell";
+import { AppShell } from "@/components/ui/organisms/AppShell";
 import SupportWidget from "@/components/dashboard/support-widget";
 
 export default async function DashboardLayout({
@@ -23,15 +23,9 @@ export default async function DashboardLayout({
     }
 
     return (
-        <DashboardShell
-            user={{
-                fullName: session.user.fullName,
-                licenseNumber: session.user.licenseNumber,
-                isAdmin: session.user.isAdmin,
-            }}
-        >
+        <AppShell>
             {children}
             <SupportWidget />
-        </DashboardShell>
+        </AppShell>
     );
 }
