@@ -102,14 +102,14 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                     <Text style={styles.h3}>Evaluación de Intervención</Text>
                     <View style={{ flexDirection: 'row', marginTop: 10 }}>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>¿Requiere Intervención?</Text>
-                            <Text style={[styles.value, { fontSize: 16, color: metrics.healthScore < 80 ? colors.critical : colors.adequate }]}>
+                            <Text style={styles.metricLabel}>¿Requiere Intervención?</Text>
+                            <Text style={[styles.metricValue, { fontSize: 16, color: metrics.healthScore < 80 ? colors.critical : colors.adequate }]}>
                                 {metrics.healthScore < 80 ? 'SÍ, INMEDIATA' : 'SÍ, PREVENTIVA'}
                             </Text>
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>Nivel de Urgencia</Text>
-                            <Text style={[styles.value, { fontSize: 16 }]}>{metrics.healthScore < 80 ? 'ALTA' : 'MODERADA'}</Text>
+                            <Text style={styles.metricLabel}>Nivel de Urgencia</Text>
+                            <Text style={[styles.metricValue, { fontSize: 16 }]}>{metrics.healthScore < 80 ? 'ALTA' : 'MODERADA'}</Text>
                         </View>
                     </View>
                 </View>
@@ -146,7 +146,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                     <View style={{ width: '48%', backgroundColor: '#F8FAFC', padding: 20, borderRadius: 8, alignItems: 'center' }}>
-                        <Text style={styles.label}>Health Score Organizacional</Text>
+                        <Text style={styles.metricLabel}>Health Score Organizacional</Text>
                         <Text style={{ fontSize: 48, fontWeight: 700, color: metrics.healthScore >= 80 ? colors.adequate : (metrics.healthScore >= 60 ? colors.attention : colors.critical) }}>
                             {metrics.healthScore}<Text style={{ fontSize: 16, color: '#94A3B8' }}>/100</Text>
                         </Text>
@@ -155,7 +155,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                         </Text>
                     </View>
                     <View style={{ width: '48%', backgroundColor: '#F8FAFC', padding: 20, borderRadius: 8, justifyContent: 'center' }}>
-                        <Text style={styles.label}>Cobertura de Evaluación</Text>
+                        <Text style={styles.metricLabel}>Cobertura de Evaluación</Text>
                         <Text style={{ fontSize: 24, fontWeight: 700, color: primaryColor }}>{metrics.totalEvaluated}</Text>
                         <Text style={{ fontSize: 10, color: '#64748B', marginTop: 4 }}>Trabajadores evaluados</Text>
                     </View>
