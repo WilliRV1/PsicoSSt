@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import ManualForm from "../../new/manual/manual-form";
+import EditAssessmentForm from "./edit-form";
 
 export const metadata = {
     title: "Editar Evaluación | PsicoSST",
@@ -21,6 +21,7 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
             worker: true,
             responseSet: true,
             organization: true,
+            scoredResult: true,
         }
     });
 
@@ -44,38 +45,51 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Evaluación sin respuestas</h2>
                 <p className="text-slate-500 max-w-md">
-                    Esta evaluación no tiene un conjunto de respuestas asociadas o está corrupta. No es posible editarla.
+                    Esta evaluación no tiene un conjunto de respuestas asociadas. No es posible editarla.
                 </p>
             </div>
         );
     }
 
+    // Build savedScore from the DB scoredResult
+    const scoredResult = assessment.scoredResult;
+    const totalScores = scoredResult?.totalScores as any;
+    const dimensionScores = scoredResult?.dimensionScores as any ?? {};
+
+    const savedScore = {
+        overallRiskCategory: scoredResult?.overallRiskCategory ?? "SIN_RIESGO",
+        transformedScore: totalScores?.transformedScore ?? 0,
+        dimensions: dimensionScores,
+    };
+
     return (
-        <div className="container mx-auto p-4 max-w-5xl">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                    <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Modificar Evaluación Existente
-                </h1>
-                <p className="text-slate-500 mt-1 flex items-center gap-2">
-                    Trabajador: <span className="font-semibold text-slate-700">{assessment.worker.fullName}</span> | 
-                    Empresa: <span className="font-semibold text-slate-700">{assessment.organization.name}</span>
-                </p>
-                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-start gap-3">
-                    <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                        <p className="font-bold mb-1">Modo Edición</p>
-                        <p>Estás alterando las respuestas de una evaluación previamente guardada. El sistema recalculará los puntajes de riesgo automáticamente utilizando el motor pericial de PsicoSST al guardar los cambios.</p>
+        <div className="flex flex-col h-[calc(100vh-64px)] p-4 gap-4 max-w-[1600px] mx-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between flex-shrink-0">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Modo Edición
+                        </span>
                     </div>
+                    <h1 className="text-xl font-bold text-foreground">
+                        {assessment.worker.fullName}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        {assessment.organization.name} · {assessment.questionnaireType} · Forma {assessment.formType}
+                    </p>
                 </div>
+                <p className="text-xs text-muted-foreground bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 max-w-xs text-right leading-relaxed">
+                    Solo se guardan las respuestas. El motor de calificación recalculará los riesgos automáticamente en el servidor.
+                </p>
             </div>
 
-            <div className="rounded-xl shadow-lg border border-border bg-card">
-                <ManualForm
+            {/* Editor */}
+            <div className="flex-1 min-h-0">
+                <EditAssessmentForm
                     workerId={assessment.workerId}
                     organizationId={assessment.organizationId}
                     hasCustomerInteraction={assessment.worker.hasCustomerInteraction}
@@ -83,14 +97,7 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
                     initialFormType={assessment.formType as any}
                     initialQType={assessment.questionnaireType as any}
                     initialResponses={assessment.responseSet.responses as any}
-                    onSuccess={() => {
-                        // In Next.js client component we would typically router.push,
-                        // but since onSuccess just receives the data, the client component
-                        // will need to handle redirect, or we can just window.location
-                        if (typeof window !== "undefined") {
-                            window.location.href = "/dashboard/assessments";
-                        }
-                    }}
+                    savedScore={savedScore}
                 />
             </div>
         </div>
