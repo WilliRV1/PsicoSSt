@@ -573,7 +573,8 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                             organizationNit: org.nit,
                             reportDate: new Date().toLocaleDateString('es-CO'),
                             psychologistName: org.psychologist.fullName,
-                            psychologistLicense: org.psychologist.licenseNumber
+                            psychologistLicense: org.psychologist.licenseNumber,
+                            psychologistLicenseDate: null
                         },
                         executiveSummary: {
                             totalWorkers: executiveSummary.uniqueWorkers,
@@ -586,9 +587,10 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                 sanos: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
                             }
                         },
-                        domainsFormaA,
-                        domainsFormaB,
-                        recommendations
+                        domainsFormaA: domainsFormaA.map((d: any) => ({ ...d, key: d.name })),
+                        domainsFormaB: domainsFormaB.map((d: any) => ({ ...d, key: d.name })),
+                        areaPyramid: [],
+                        recommendations: Array.isArray(recommendations) ? recommendations.map((r: any) => r.recommendation).join('\n') : (recommendations || undefined)
                     }} />
                 </footer>
             </div>
