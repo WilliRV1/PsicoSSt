@@ -94,6 +94,7 @@ export function Sidebar({ user }: SidebarProps) {
                     
                     <Link
                       href={item.href}
+                      prefetch={false}
                       className={`
                         group flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50
                         ${isActive 
