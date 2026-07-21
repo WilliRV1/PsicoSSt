@@ -11,7 +11,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { HealthScore } from "@/components/dashboard/HealthScore";
 import { RiskDistribution } from "@/components/dashboard/RiskDistribution";
 import { DecisionCard } from "@/components/ai/DecisionCard";
-import { DataGrid } from "@/components/ui/organisms/DataGrid";
+import { RecentAssessmentsGrid } from "@/components/dashboard/recent-assessments-grid";
 import { RiskBadge, RiskLevel } from "@/components/ui/atoms/RiskBadge";
 import EmptyDashboardState from "@/components/dashboard/empty-dashboard-state";
 
@@ -421,46 +421,7 @@ export default async function DashboardPage() {
                     </Link>
                 </div>
                 
-                <DataGrid 
-                    data={recentAssessments}
-                    searchable={false}
-                    filterable={false}
-                    exportable={false}
-                    columns={[
-                        {
-                            key: 'worker',
-                            header: 'Trabajador',
-                            render: (row) => (
-                                <div className="flex flex-col">
-                                    <span className="font-medium text-text">{row.worker.fullName}</span>
-                                    <span className="text-xs text-text-muted">{row.organization.name}</span>
-                                </div>
-                            )
-                        },
-                        {
-                            key: 'assessmentDate',
-                            header: 'Fecha',
-                            render: (row) => (
-                                <span className="text-text-secondary">
-                                    {new Date(row.assessmentDate).toLocaleDateString("es-CO")}
-                                </span>
-                            )
-                        },
-                        {
-                            key: 'status',
-                            header: 'Estado',
-                            render: (row) => {
-                                const st = row.status;
-                                if (st === 'SIGNED') return <RiskBadge level="NONE" showDot={false} />;
-                                if (st === 'SCORED') return <RiskBadge level="MEDIUM" showDot={false} />;
-                                return <RiskBadge level="LOW" showDot={false} />;
-                            }
-                        }
-                    ]}
-                    onRowClick={(row) => {
-                        window.location.href = `/dashboard/reports/${row.id}`;
-                    }}
-                />
+                <RecentAssessmentsGrid data={recentAssessments} />
             </div>
         </div>
     );
