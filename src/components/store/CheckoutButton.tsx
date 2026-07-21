@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatCOP } from "@/config/credit-packages";
 
 interface CheckoutButtonProps {
     packageId: string;
@@ -49,18 +50,18 @@ export function CheckoutButton({ packageId, priceCOP, popular }: CheckoutButtonP
         <button
             onClick={handleCheckout}
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-2.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50 ${
                 popular 
-                ? "bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg disabled:bg-teal-500/50" 
-                : "bg-surface-muted hover:bg-slate-200 dark:hover:bg-slate-800 text-foreground border border-border disabled:opacity-50"
+                ? "bg-[#00B49F] hover:bg-[#009e8b] text-white disabled:opacity-70" 
+                : "bg-transparent border-2 border-[#00B49F] hover:bg-[#00B49F]/5 text-[#00B49F] disabled:opacity-50"
             }`}
         >
             {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
                 <>
-                    <ShoppingCart className="w-5 h-5" />
-                    <span>Adquirir por ${priceCOP.toLocaleString("es-CO")}</span>
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>Adquirir por {formatCOP(priceCOP)}</span>
                 </>
             )}
         </button>
