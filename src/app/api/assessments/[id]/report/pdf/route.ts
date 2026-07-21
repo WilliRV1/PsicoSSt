@@ -37,6 +37,7 @@ export async function GET(
             signatures: {
               orderBy: { uploadedAt: 'desc' },
             },
+            settings: true,
           },
         },
         scoredResult: true,
@@ -97,6 +98,9 @@ export async function GET(
       department: worker.departmentArea || undefined,
       tenure: worker.yearsInCompany !== null && worker.yearsInCompany !== undefined ? `${worker.yearsInCompany} años` : undefined,
       educationLevel: worker.educationLevel || undefined,
+      primaryColor: psychologist.settings?.primaryColor || undefined,
+      consultingRoomName: psychologist.settings?.consultingRoomName || undefined,
+      logoUrl: psychologist.settings?.logoUrl || undefined,
       orgName: organization.name,
       psychologistName: psychologist.fullName,
       licenseNumber: psychologist.licenseNumber,

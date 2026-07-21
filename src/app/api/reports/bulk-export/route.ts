@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
             include: {
                 worker: { select: { fullName: true, documentType: true, documentId: true } },
                 organization: { select: { name: true } },
-                psychologist: { include: { signatures: true } },
+                psychologist: { include: { signatures: true, settings: true } },
                 scoredResult: true,
                 generatedReports: {
                     take: 1,

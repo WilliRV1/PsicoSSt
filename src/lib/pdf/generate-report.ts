@@ -1,9 +1,9 @@
-import { ScoredResult, Report, Assessment, Worker, Psychologist } from '@/generated/prisma';
+import { ScoredResult, GeneratedReport, Assessment, Worker, Psychologist } from '@/generated/prisma';
 
 interface ReportData {
   assessment: Assessment & { worker: Worker; psychologist: Psychologist };
   scoredResult: ScoredResult;
-  report: Report;
+  report: GeneratedReport;
   signatureImage?: string; // Base64 image
 }
 

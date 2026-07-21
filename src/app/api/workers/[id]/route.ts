@@ -188,7 +188,7 @@ export async function DELETE(
 
             if (assessmentIds.length > 0) {
                 await (prisma.informedConsent as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
-                await (prisma.report as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
+                await (prisma.generatedReport as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
                 await (prisma.responseSet as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
                 await (prisma.scoredResult as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
                 await (prisma.assessment as any).deleteMany({ where: { workerId: id } });

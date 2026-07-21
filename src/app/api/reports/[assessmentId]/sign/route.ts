@@ -77,11 +77,11 @@ export async function POST(
             ? (psychologistSignature.dataUrl || psychologistSignature.imageUrl)
             : assessment.psychologist.signature ?? null;
 
-        const report = await prisma.report.upsert({
+        const report = await prisma.generatedReport.upsert({
             where: { assessmentId: assessment.id },
             update: {
                 status: "SIGNED",
-                signatureHash: hash,
+                contentHash: hash,
                 signatureImage: signatureImage,
                 signedBy: assessment.psychologist.fullName,
                 signedAt: new Date(),
@@ -92,7 +92,7 @@ export async function POST(
                 assessmentId: assessment.id,
                 psychologistId: session.user.id,
                 status: "SIGNED",
-                signatureHash: hash,
+                contentHash: hash,
                 signatureImage: signatureImage,
                 signedBy: assessment.psychologist.fullName,
                 signedAt: new Date(),

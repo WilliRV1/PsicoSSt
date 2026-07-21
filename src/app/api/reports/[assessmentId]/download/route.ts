@@ -25,13 +25,12 @@ export async function GET(
     const scoredResult = await prisma.scoredResult.findUnique({ where: { assessmentId } });
     if (!scoredResult) return NextResponse.json({ error: 'No scored result' }, { status: 404 });
 
-    let report = await prisma.report.findFirst({ where: { assessmentId } });
+    let report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
     if (!report) {
-      report = await prisma.report.create({
+      report = await prisma.generatedReport.create({
         data: {
           assessmentId,
           psychologistId: assessment.psychologistId,
-          reportType: 'individual',
           reportData: {},
           status: 'DRAFT',
         },
@@ -57,7 +56,7 @@ export async function GET(
 
     // Mark as signed if signature present and not finalized
     if (signatureImage && !(report as any).isFinalized) {
-      await prisma.report.update({
+      await prisma.generatedReport.update({
         where: { id: report.id },
         data: {
           signedBy: assessment.psychologist.email,

@@ -246,7 +246,7 @@ model InformedConsent {
 /// Generated and signed reports with versioning and immutable hashes
 model GeneratedReport {
   id                String       @id @default(uuid()) @db.Uuid
-  assessmentId      String       @map("assessment_id") @db.Uuid
+  assessmentId      String       @unique @map("assessment_id") @db.Uuid
   psychologistId    String       @map("psychologist_id") @db.Uuid
   
   reportType        String       @default("individual") @map("report_type")

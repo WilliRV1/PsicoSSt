@@ -9,7 +9,7 @@ interface AssessmentForPDF {
     formType: string;
     worker: { fullName: string; documentType: string; documentId: string; birthYear?: number | null; gender?: string | null; jobTitle?: string | null; departmentArea?: string | null; yearsInCompany?: number | null; educationLevel?: string | null };
     organization: { name: string };
-    psychologist: { fullName: string; licenseNumber: string; professionalCard?: string; sstCredential?: string; sstLicenseDate?: Date | null; signature?: string | null; signatures?: { signatureType: string; dataUrl?: string | null; imageUrl?: string | null }[] };
+    psychologist: { fullName: string; licenseNumber: string; professionalCard?: string; sstCredential?: string; sstLicenseDate?: Date | null; signature?: string | null; signatures?: { signatureType: string; dataUrl?: string | null; imageUrl?: string | null }[]; settings?: { primaryColor?: string | null; logoUrl?: string | null; consultingRoomName?: string | null; } | null; };
     scoredResult: {
         overallRiskCategory: string;
         dimensionScores: unknown;
@@ -22,7 +22,7 @@ interface AssessmentForPDF {
 }
 
 export async function generateIndividualPDF(assessment: AssessmentForPDF): Promise<Buffer> {
-    const { worker, organization, psychologist, scoredResult, reports } = assessment;
+    const { worker, organization, psychologist, scoredResult, generatedReports } = assessment;
     const report = generatedReports[0];
 
     const dimensionScoresRaw = scoredResult.dimensionScores as Record<string, { dimensionName?: string; transformedScore: number; riskCategory: string }>;
@@ -64,6 +64,9 @@ export async function generateIndividualPDF(assessment: AssessmentForPDF): Promi
         department: worker.departmentArea || undefined,
         tenure: worker.yearsInCompany !== null && worker.yearsInCompany !== undefined ? `${worker.yearsInCompany} años` : undefined,
         educationLevel: worker.educationLevel || undefined,
+        primaryColor: psychologist.settings?.primaryColor || undefined,
+        consultingRoomName: psychologist.settings?.consultingRoomName || undefined,
+        logoUrl: psychologist.settings?.logoUrl || undefined,
         orgName: organization.name,
         psychologistName: psychologist.fullName,
         licenseNumber: psychologist.licenseNumber,

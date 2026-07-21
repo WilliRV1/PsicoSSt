@@ -97,7 +97,7 @@ export default async function ReportPage({ params }: PageProps) {
             },
             scoredResult: true,
             consent: true,
-            reports: {
+            generatedReports: {
                 take: 1,
                 orderBy: { generatedAt: "desc" }
             }
@@ -108,7 +108,7 @@ export default async function ReportPage({ params }: PageProps) {
         return notFound();
     }
 
-    const report = assessment.reports[0];
+    const report = assessment.generatedReports[0];
     const isSigned = report?.status === "SIGNED";
 
     if (!assessment.scoredResult) {

@@ -1,176 +1,17 @@
 import React from 'react';
-import {
-  Page,
-  Text,
-  View,
-  Document,
-  StyleSheet,
-  Font,
-  Image,
-} from '@react-pdf/renderer';
-import { RiskCategory } from '@/generated/prisma';
-
-// Register a professional font if needed, or use defaults
-// Font.register({ family: 'Helvetica', src: ... });
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    fontSize: 10,
-    fontFamily: 'Helvetica',
-    color: '#333',
-  },
-  header: {
-    marginBottom: 20,
-    borderBottom: 2,
-    borderBottomColor: '#0051BA',
-    paddingBottom: 10,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0051BA',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 10,
-    color: '#666',
-    textTransform: 'uppercase',
-  },
-  section: {
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    backgroundColor: '#F0F4F8',
-    padding: 5,
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#0051BA',
-    borderLeft: 4,
-    borderLeftColor: '#0051BA',
-    marginBottom: 8,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
-  },
-  gridItem: {
-    width: '50%',
-    marginBottom: 5,
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  value: {
-    color: '#000',
-  },
-  table: {
-    display: 'flex',
-    width: 'auto',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    marginTop: 10,
-  },
-  tableRow: {
-    margin: 'auto',
-    flexDirection: 'row',
-  },
-  tableColHeader: {
-    width: '60%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    backgroundColor: '#1E88E5',
-    color: '#fff',
-    padding: 5,
-  },
-  tableColHeaderSmall: {
-    width: '20%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    backgroundColor: '#1E88E5',
-    color: '#fff',
-    padding: 5,
-    textAlign: 'center',
-  },
-  tableCol: {
-    width: '60%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-  },
-  tableColSmall: {
-    width: '20%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-    textAlign: 'center',
-  },
-  riskBadge: {
-    padding: '2 6',
-    borderRadius: 3,
-    fontSize: 9,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  MUY_ALTO: { backgroundColor: '#FFEBEE', color: '#C62828' },
-  ALTO: { backgroundColor: '#FFF3E0', color: '#E65100' },
-  MEDIO: { backgroundColor: '#FFFDE7', color: '#F57F17' },
-  BAJO: { backgroundColor: '#E8F5E9', color: '#1B5E20' },
-  SIN_RIESGO: { backgroundColor: '#E0F2F1', color: '#004D40' },
-  
-  signatureContainer: {
-    marginTop: 40,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  signatureBlock: {
-    width: 200,
-    textAlign: 'center',
-  },
-  signatureImage: {
-    width: 150,
-    height: 60,
-    marginBottom: 5,
-    alignSelf: 'center',
-  },
-  signatureLine: {
-    borderTopWidth: 1,
-    borderTopColor: '#000',
-    marginBottom: 5,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#EEE',
-    paddingTop: 10,
-    textAlign: 'center',
-    fontSize: 8,
-    color: '#999',
-  }
-});
+import { Document, Page, Text, View } from '@react-pdf/renderer';
+import { getThemeStyles } from '../../lib/pdf/components/Theme';
+import { Cover } from '../../lib/pdf/components/Cover';
+import { ExecutiveSummary } from '../../lib/pdf/components/ExecutiveSummary';
+import { DimensionDetails } from '../../lib/pdf/components/DimensionDetails';
+import { IntegratedAnalysis } from '../../lib/pdf/components/IntegratedAnalysis';
+import { DictionaryAppendix } from '../../lib/pdf/components/DictionaryAppendix';
 
 interface IndividualReportPDFProps {
+  primaryColor?: string;
+  consultingRoomName?: string;
+  logoUrl?: string;
+
   workerName: string;
   workerId: string;
   age?: string;
@@ -179,220 +20,92 @@ interface IndividualReportPDFProps {
   department?: string;
   tenure?: string;
   educationLevel?: string;
+
   orgName: string;
+
   psychologistName: string;
   licenseNumber: string;
-  professionalCard: string;
-  sstCredential: string;
+  professionalCard?: string;
+  sstCredential?: string;
   sstLicenseDate?: string;
-  overallRisk: RiskCategory;
-  dimensionScores: any[];
+  signatureImage?: string;
+
+  overallRisk: string;
+  dimensionScores: Array<{ name: string; score: number; level: string }>;
   analysis?: string;
   recommendations?: string;
-  signatureImage?: string;
+
   assessmentDate: string;
-  reportDate?: string;
-  submittedTime?: string;
-  isAnonymous?: boolean;
-  questionnaireType?: string;
+  reportDate: string;
+  submittedTime: string;
 }
 
-const riskLabels: Record<string, string> = {
-  SIN_RIESGO: "Sin Riesgo",
-  BAJO: "Riesgo Bajo",
-  MEDIO: "Riesgo Medio",
-  ALTO: "Riesgo Alto",
-  MUY_ALTO: "Riesgo Muy Alto"
-};
-
-const stressRiskLabels: Record<string, string> = {
-  SIN_RIESGO: "Muy Bajo",
-  BAJO: "Bajo",
-  MEDIO: "Medio",
-  ALTO: "Alto",
-  MUY_ALTO: "Muy Alto"
-};
-
-const IndividualReportPDF: React.FC<IndividualReportPDFProps> = ({
-  workerName,
-  workerId,
-  age,
-  gender,
-  jobTitle,
-  department,
-  tenure,
-  educationLevel,
-  orgName,
-  psychologistName,
-  licenseNumber,
-  professionalCard,
-  sstCredential,
-  sstLicenseDate,
-  overallRisk,
-  dimensionScores,
-  analysis,
-  recommendations,
-  signatureImage,
-  assessmentDate,
-  reportDate,
-  submittedTime,
-  isAnonymous = false,
-  questionnaireType,
-}) => {
-  const displayWorkerName = isAnonymous ? "TRABAJADOR ANÓNIMO" : workerName;
-  
-  const isStress = questionnaireType === "STRESS";
-  const getLabel = (cat: string) => {
-    const map = isStress ? stressRiskLabels : riskLabels;
-    return map[cat] || cat;
-  };
-  // Mask ID by extracting last 4 digits if possible
-  const maskedId = typeof workerId === 'string' && workerId.length > 4 
-    ? `WK-***${workerId.slice(-4)}` 
-    : "WK-ANON";
-  const displayWorkerId = isAnonymous ? maskedId : workerId;
+const IndividualReportPDF = (props: IndividualReportPDFProps) => {
+  const styles = getThemeStyles(props.primaryColor);
 
   return (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <View>
-            <Text style={styles.title}>Informe Individual de Factores de Riesgo</Text>
-            <Text style={styles.subtitle}>Batería de Instrumentos Oficial (Resolución 2764 de 2022)</Text>
-          </View>
-          <View style={{ textAlign: 'right', fontSize: 9, color: '#666' }}>
-            <Text>Fecha de Aplicación: {assessmentDate}</Text>
-            {reportDate && <Text>Fecha de Elaboración: {reportDate}</Text>}
-            {submittedTime && <Text>Hora de Digitación: {submittedTime}</Text>}
-          </View>
-        </View>
-      </View>
+    <Document>
+      {/* Cover Page */}
+      <Page size="LETTER" style={styles.page}>
+        <Cover
+          primaryColor={props.primaryColor}
+          consultingRoomName={props.consultingRoomName}
+          logoUrl={props.logoUrl}
+          workerName={props.workerName}
+          organizationName={props.orgName}
+          assessmentDate={props.assessmentDate}
+          psychologistName={props.psychologistName}
+        />
+        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+        )} fixed />
+      </Page>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>1. DATOS DEMOGRÁFICOS Y OCUPACIONALES</Text>
-        <View style={styles.grid}>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Trabajador: </Text><Text style={styles.value}>{displayWorkerName}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Identificación: </Text><Text style={styles.value}>{displayWorkerId}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Edad: </Text><Text style={styles.value}>{age || 'N/A'}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Sexo: </Text><Text style={styles.value}>{gender || 'N/A'}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Cargo: </Text><Text style={styles.value}>{jobTitle || 'N/A'}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Departamento/Área: </Text><Text style={styles.value}>{department || 'N/A'}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Antigüedad: </Text><Text style={styles.value}>{tenure || 'N/A'}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Escolaridad: </Text><Text style={styles.value}>{educationLevel || 'N/A'}</Text></Text>
-          </View>
-          <View style={styles.gridItem}>
-            <Text><Text style={styles.label}>Empresa: </Text><Text style={styles.value}>{orgName}</Text></Text>
-          </View>
-        </View>
-      </View>
+      {/* Executive Summary Page */}
+      <Page size="LETTER" style={styles.page}>
+        <ExecutiveSummary
+          primaryColor={props.primaryColor}
+          overallRiskCategory={props.overallRisk}
+          analysisText={props.analysis}
+          recommendationsAIText={props.recommendations}
+        />
+        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+        )} fixed />
+      </Page>
 
-      {/* Overall Results */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>2. RESULTADO GLOBAL DE RIESGO</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text style={styles.label}>Nivel de Riesgo General:</Text>
-          <Text style={[styles.riskBadge, (styles as any)[overallRisk]]}>
-            {getLabel(overallRisk)}
-          </Text>
-        </View>
-      </View>
+      {/* Dimension Details Page */}
+      <Page size="LETTER" style={styles.page}>
+        <DimensionDetails
+          primaryColor={props.primaryColor}
+          dimensions={props.dimensionScores}
+        />
+        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+        )} fixed />
+      </Page>
 
-      {/* Dimension Table */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>3. DETALLE POR DIMENSIONES</Text>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={styles.tableColHeader}><Text>Dimensión Evaluada</Text></View>
-            <View style={styles.tableColHeaderSmall}><Text>Puntaje</Text></View>
-            <View style={styles.tableColHeaderSmall}><Text>Nivel</Text></View>
-          </View>
-          {dimensionScores.map((dim, index) => (
-            <View key={index} style={styles.tableRow}>
-              <View style={styles.tableCol}><Text>{dim.name}</Text></View>
-              <View style={styles.tableColSmall}><Text>{dim.score.toFixed(1)}</Text></View>
-              <View style={[styles.tableColSmall, (styles as any)[dim.level]]}>
-                <Text style={{ fontSize: 8 }}>{getLabel(dim.level)}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
+      {/* Integrated Analysis Page */}
+      <Page size="LETTER" style={styles.page}>
+        <IntegratedAnalysis
+          primaryColor={props.primaryColor}
+          analysisText={props.analysis}
+        />
+        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+        )} fixed />
+      </Page>
 
-      {/* Interpretación Genérica */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>4. INTERPRETACIÓN GENÉRICA DEL RIESGO</Text>
-        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Muy Bajo" : "Sin Riesgo o Riesgo Despreciable"}:</Text> Ausencia de riesgo o riesgo tan bajo que no amerita acciones diferentes a mantener las condiciones actuales.
-        </Text>
-        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Bajo" : "Riesgo Bajo"}:</Text> No se espera que la exposición genere enfermedad. Se sugiere intervención preventiva.
-        </Text>
-        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Medio" : "Riesgo Medio"}:</Text> Nivel de exposición que amerita observación y acciones sistemáticas preventivas.
-        </Text>
-        <Text style={{ fontSize: 9, lineHeight: 1.4, marginBottom: 4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Alto" : "Riesgo Alto"}:</Text> Nivel que amerita intervención dentro del marco de un sistema de vigilancia epidemiológica.
-        </Text>
-        <Text style={{ fontSize: 9, lineHeight: 1.4 }}>
-          <Text style={{ fontWeight: 'bold' }}>• {isStress ? "Muy Alto" : "Riesgo Muy Alto"}:</Text> Nivel con amplia posibilidad de asociarse a respuestas de alto estrés y enfermedad. Intervención inmediata (Resolución 2764 de 2022).
-        </Text>
-      </View>
-
-      {/* Clinical Analysis */}
-      {analysis && !isAnonymous && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. OBSERVACIONES Y COMENTARIOS DEL EVALUADOR</Text>
-          <Text style={{ fontSize: 9, lineHeight: 1.4 }}>{analysis}</Text>
-        </View>
-      )}
-
-      {/* Recommendations */}
-      {recommendations && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{isAnonymous ? "5" : "6"}. RECOMENDACIONES PARTICULARES</Text>
-          <Text style={{ fontSize: 9, lineHeight: 1.4 }}>{recommendations}</Text>
-        </View>
-      )}
-
-      {/* Signature */}
-      <View style={styles.signatureContainer}>
-        <View style={styles.signatureBlock}>
-          {signatureImage ? (
-            <Image src={signatureImage} style={styles.signatureImage} />
-          ) : (
-            <View style={{ height: 60 }} />
-          )}
-          <View style={styles.signatureLine} />
-          <Text style={{ fontWeight: 'bold' }}>{psychologistName}</Text>
-          <Text>T.P.: {professionalCard || 'N/A'}</Text>
-          <Text>Licencia SST: {sstCredential || licenseNumber}</Text>
-          {sstLicenseDate && <Text>Fecha Exp: {new Date(sstLicenseDate).toLocaleDateString('es-CO')}</Text>}
-        </View>
-      </View>
-
-      {/* Footer with Mandatory Attribution */}
-      <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-        `La información contenida en este informe está sometida a estricta reserva legal según la Ley 1090 de 2006 y la Resolución 2346 de 2007.\nEstos resultados individuales son confidenciales, solo pueden conocerse con autorización escrita del trabajador y mediación del médico ocupacional, y deben reposar en la historia clínica ocupacional bajo custodia médica por 20 años.\nBatería de Riesgo Psicosocial © Ministerio de la Protección Social - Pontificia Universidad Javeriana | PsicoSST - Página ${pageNumber} de ${totalPages}`
-      )} fixed />
-    </Page>
-  </Document>
+      {/* Dictionary Appendix Page */}
+      <Page size="LETTER" style={styles.page}>
+        <DictionaryAppendix
+          primaryColor={props.primaryColor}
+        />
+        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+        )} fixed />
+      </Page>
+    </Document>
   );
 };
 
