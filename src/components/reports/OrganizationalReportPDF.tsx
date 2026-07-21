@@ -4,8 +4,10 @@ import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Circle, Rect }
 Font.register({
     family: 'Inter',
     fonts: [
-        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZJhjp-Ek-_EeA.woff' },
-        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZJhjp-Ek-_EeA.woff', fontWeight: 'bold' }
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZJhjp-Ek-_EeA.woff', fontWeight: 400, fontStyle: 'normal' },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZJhjp-Ek-_EeA.woff', fontWeight: 700, fontStyle: 'normal' },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZJhjp-Ek-_EeA.woff', fontWeight: 400, fontStyle: 'italic' },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZJhjp-Ek-_EeA.woff', fontWeight: 700, fontStyle: 'italic' }
     ]
 });
 
@@ -16,7 +18,7 @@ const styles = StyleSheet.create({
     coverSubtitle: { fontSize: 16, color: '#94a3b8', marginBottom: 40 },
     coverOrg: { fontSize: 24, fontWeight: 'bold', color: '#ffffff', marginBottom: 5 },
     coverNit: { fontSize: 12, color: '#cbd5e1' },
-    coverNote: { position: 'absolute', bottom: 50, left: 40, fontSize: 10, color: '#64748b', fontStyle: 'italic' },
+    coverNote: { position: 'absolute', bottom: 50, left: 40, fontSize: 10, color: '#94a3b8' },
     
     header: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 2, borderBottomColor: '#2563eb', paddingBottom: 15, marginBottom: 20 },
     headerTitle: { fontSize: 16, fontWeight: 'bold', color: '#1e3a8a' },
