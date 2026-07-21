@@ -35,7 +35,8 @@ import {
   ArrowRight,
   ArrowLeft,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ShoppingCart
 } from 'lucide-react';
 
 export const Icons = {
@@ -47,6 +48,7 @@ export const Icons = {
   intervention: Activity,
   analytics: BarChart3,
   settings: Settings,
+  shoppingCart: ShoppingCart,
   
   // Directions
   chevronRight: ChevronRight,
