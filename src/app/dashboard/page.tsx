@@ -191,7 +191,7 @@ export default async function DashboardPage() {
         }),
     ]);
 
-    const firstName = session.user.fullName.split(" ")[0];
+    const firstName = session.user.fullName?.split(" ")[0] || "Profesional";
 
     // Build monthly data for the last 12 months
     const monthKeys: string[] = [];

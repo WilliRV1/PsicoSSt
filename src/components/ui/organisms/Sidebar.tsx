@@ -8,11 +8,10 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { name: "Centro de Control", href: "/dashboard", icon: "dashboard" },
-  { name: "Empresas", href: "/companies", icon: "company" },
-  { name: "Trabajadores", href: "/workers", icon: "worker" },
-  { name: "Evaluaciones", href: "/evaluations", icon: "report" },
-  { name: "Intervenciones", href: "/interventions", icon: "intervention" },
-  { name: "Analítica", href: "/analytics", icon: "analytics" },
+  { name: "Empresas", href: "/dashboard/organizations", icon: "company" },
+  { name: "Trabajadores", href: "/dashboard/workers", icon: "worker" },
+  { name: "Evaluaciones", href: "/dashboard/assessments", icon: "report" },
+  { name: "Reportes", href: "/dashboard/reports", icon: "analytics" },
 ];
 
 export function Sidebar() {
