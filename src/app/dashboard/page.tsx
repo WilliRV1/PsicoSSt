@@ -51,10 +51,12 @@ interface OrgSummary {
     id: string;
     name: string;
     workerCount: number;
+    totalAssessments: number;
     signed: number;
     pending: number;
-    dominantRisk: string;
-    monthlyData: MonthlyData[];
+    criticalCount: number;
+    predominantRisk: string | null;
+    riskDistribution: { key: string; count: number; }[];
 }
 export default async function DashboardPage() {
     const session = await auth();
