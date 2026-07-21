@@ -201,7 +201,8 @@ export function scoreQuestionnaire(
         occupationalGroup?: string, // 'jefes_profesionales_tecnicos' o 'auxiliares_operativos'
         gender?: string,
         jobLevel?: string,
-        hasCustomerInteraction?: boolean
+        hasCustomerInteraction?: boolean,
+        hasPersonnelManagement?: boolean
     }
 ): ScoredResultData {
     let config: any;
