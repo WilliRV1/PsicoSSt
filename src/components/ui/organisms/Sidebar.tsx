@@ -61,7 +61,7 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-[#1e293b]/50">
         <Link
-          href="/settings"
+          href="/dashboard/settings"
           className="flex items-center gap-4 px-3 py-2 text-[15px] text-slate-400 hover:text-white rounded-lg transition-colors hover:bg-slate-800/30"
         >
           <Icons.settings className="w-5 h-5 text-slate-500" />
