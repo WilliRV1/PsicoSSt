@@ -39,6 +39,23 @@ const statusColors: Record<string, string> = {
     DRAFT:     "bg-gray-100 text-gray-500",
 };
 
+interface MonthlyData {
+    month: string;
+    label: string;
+    intralaboral: number;
+    extralaboral: number;
+    stress: number;
+}
+
+interface OrgSummary {
+    id: string;
+    name: string;
+    workerCount: number;
+    signed: number;
+    pending: number;
+    dominantRisk: string;
+    monthlyData: MonthlyData[];
+}
 export default async function DashboardPage() {
     const session = await auth();
     if (!session?.user) redirect("/login");
