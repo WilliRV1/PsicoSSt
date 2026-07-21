@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Coins, Check, ArrowDown, ArrowUp, Gift, AlertTriangle } from "lucide-react";
-import { WompiCheckout } from "@/components/psicosst/wompi-checkout";
+import { MercadoPagoCheckout } from "@/components/psicosst/mercadopago-checkout";
 
 interface CreditPackage {
     id: string;
@@ -192,8 +192,11 @@ export default function CreditsPage() {
                                 </div>
                             </div>
 
-                            <WompiCheckout
+                            <MercadoPagoCheckout
                                 packageId={pkg.id}
+                                packageName={pkg.name}
+                                priceCOP={pkg.priceCOP}
+                                credits={pkg.credits}
                                 popular={pkg.popular}
                                 disabled={purchasing !== null && purchasing !== pkg.id}
                                 onSuccess={handleSuccess}

@@ -1,44 +1,67 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getWompiTransaction, verifyWebhookChecksum } from "@/lib/wompi";
+import { getMPPayment, verifyMPWebhook } from "@/lib/mercadopago";
 import { CreditService } from "@/lib/services/credit-service";
 import { getPackageById } from "@/config/credit-packages";
-import { sendEmail } from "@/lib/email/resend";
-import { paymentReceiptEmail } from "@/lib/email/templates";
 
+/**
+ * MercadoPago Webhook Handler
+ * 
+ * MercadoPago sends POST notifications when payment status changes.
+ * We verify the payment server-side and grant credits if approved.
+ * 
+ * NOTE: This handler ONLY touches payment/credit logic.
+ * The scoring engine is NOT involved here in any way.
+ */
 export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        // Verify webhook signature
-        if (body.signature) {
-            const props: Record<string, string | number> = {};
-            for (const key of body.signature.properties) {
-                // Navigate nested path like "transaction.id"
-                const value = key.split(".").reduce((obj: Record<string, unknown>, k: string) => obj?.[k] as Record<string, unknown>, body.data);
-                if (value !== undefined) props[key] = value as string | number;
-            }
+        // MercadoPago sends different notification types
+        // We only care about "payment" notifications
+        const topic = body.type || body.topic;
+        const dataId = body.data?.id?.toString() || body.id?.toString();
 
-            const valid = verifyWebhookChecksum(props, body.signature.checksum);
-            if (!valid) {
-                console.error("[WEBHOOK] Invalid signature");
-                return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-            }
-        }
-
-        const transaction = body.data?.transaction;
-        if (!transaction?.reference) {
+        if (!dataId) {
             return NextResponse.json({ received: true });
         }
 
-        // Find our order
+        // Only process payment notifications
+        if (topic !== "payment" && topic !== "payment.created" && topic !== "payment.updated") {
+            return NextResponse.json({ received: true });
+        }
+
+        // Optional: Verify webhook signature
+        const xSignature = request.headers.get("x-signature");
+        const xRequestId = request.headers.get("x-request-id");
+        const isValid = verifyMPWebhook(xSignature, xRequestId, dataId);
+        if (!isValid) {
+            console.error("[MP-WEBHOOK] Invalid signature");
+            return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+        }
+
+        // Fetch the full payment details from MercadoPago API
+        let payment;
+        try {
+            payment = await getMPPayment(dataId);
+        } catch (err) {
+            console.error("[MP-WEBHOOK] Could not fetch payment:", err);
+            return NextResponse.json({ received: true });
+        }
+
+        if (!payment.external_reference) {
+            console.warn("[MP-WEBHOOK] Payment without external_reference:", dataId);
+            return NextResponse.json({ received: true });
+        }
+
+        // Find our order by the internal reference
         const order = await prisma.paymentOrder.findUnique({
-            where: { internalRef: transaction.reference },
+            where: { internalRef: payment.external_reference },
             include: { psychologist: { select: { email: true, fullName: true } } },
         });
 
         if (!order) {
-            console.error("[WEBHOOK] Order not found:", transaction.reference);
+            console.error("[MP-WEBHOOK] Order not found:", payment.external_reference);
             return NextResponse.json({ received: true });
         }
 
@@ -47,71 +70,68 @@ export async function POST(request: Request) {
             return NextResponse.json({ received: true });
         }
 
-        const wompiStatus = transaction.status as string;
+        // Map MercadoPago status to our status
         const statusMap: Record<string, "APPROVED" | "DECLINED" | "VOIDED" | "ERROR"> = {
-            APPROVED: "APPROVED",
-            DECLINED: "DECLINED",
-            VOIDED: "VOIDED",
-            ERROR: "ERROR",
+            approved: "APPROVED",
+            rejected: "DECLINED",
+            cancelled: "VOIDED",
+            charged_back: "VOIDED",
+            in_process: "PENDING" as any, // still pending
+            pending: "PENDING" as any,
         };
 
-        const newStatus = statusMap[wompiStatus] || "ERROR";
+        const newStatus = statusMap[payment.status];
+        if (!newStatus || newStatus === ("PENDING" as any)) {
+            // Still pending, don't update yet
+            return NextResponse.json({ received: true });
+        }
 
         // Update order status
         await prisma.paymentOrder.update({
             where: { id: order.id },
             data: {
                 status: newStatus,
-                wompiRef: transaction.id,
-                paymentMethod: transaction.payment_method_type || null,
+                wompiRef: payment.id.toString(), // reusing existing DB column for MP payment ID
+                paymentMethod: payment.payment_method_id || null,
                 completedAt: new Date(),
             },
         });
 
-        // If approved, verify with Wompi API and grant credits
+        // If approved, grant credits
         if (newStatus === "APPROVED") {
-            // Double-check with Wompi API (don't trust webhook alone)
-            try {
-                const verified = await getWompiTransaction(transaction.id);
-                if (verified.status !== "APPROVED") {
-                    console.error("[WEBHOOK] Wompi verification failed:", verified.status);
-                    await prisma.paymentOrder.update({
-                        where: { id: order.id },
-                        data: { status: "ERROR" },
-                    });
-                    return NextResponse.json({ received: true });
-                }
-            } catch (err) {
-                // If we can't verify, still process (Wompi sandbox might not support this)
-                console.warn("[WEBHOOK] Could not verify with Wompi API:", err);
-            }
-
-            // Grant credits
             await CreditService.purchasePackage(
                 order.psychologistId,
                 order.packageId,
-                transaction.id
+                payment.id.toString()
             );
 
-            // Send receipt email
-            const pkg = getPackageById(order.packageId);
-            if (pkg && order.psychologist) {
-                const template = paymentReceiptEmail(
-                    order.psychologist.fullName,
-                    pkg.name,
-                    pkg.credits,
-                    pkg.priceCOP,
-                    transaction.id,
-                    new Date()
-                );
-                sendEmail({ to: order.psychologist.email, ...template }).catch(console.error);
+            console.log(`[MP-WEBHOOK] Credits granted for order ${order.id}, payment ${payment.id}`);
+
+            // Optional: Send receipt email (if email service is configured)
+            try {
+                const { sendEmail } = await import("@/lib/email/resend");
+                const { paymentReceiptEmail } = await import("@/lib/email/templates");
+                const pkg = getPackageById(order.packageId);
+                if (pkg && order.psychologist) {
+                    const template = paymentReceiptEmail(
+                        order.psychologist.fullName,
+                        pkg.name,
+                        pkg.credits,
+                        pkg.priceCOP,
+                        payment.id.toString(),
+                        new Date()
+                    );
+                    sendEmail({ to: order.psychologist.email, ...template }).catch(console.error);
+                }
+            } catch {
+                // Email is optional, don't fail the webhook
             }
         }
 
         return NextResponse.json({ received: true });
     } catch (error) {
-        console.error("[WEBHOOK] Error:", error);
-        // Always return 200 to Wompi
+        console.error("[MP-WEBHOOK] Error:", error);
+        // Always return 200 to MercadoPago to prevent retries
         return NextResponse.json({ received: true });
     }
 }

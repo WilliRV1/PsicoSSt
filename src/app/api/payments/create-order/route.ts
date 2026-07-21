@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getPackageById } from "@/config/credit-packages";
-import { generateIntegritySignature } from "@/lib/wompi";
+import { createMPPreference } from "@/lib/mercadopago";
 import crypto from "crypto";
 
 export async function POST(request: Request) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         const amountCents = pkg.priceCOP * 100;
         const internalRef = `psicosst-${crypto.randomUUID()}`;
 
-        // Create payment order
+        // Create payment order in our database
         const order = await prisma.paymentOrder.create({
             data: {
                 psychologistId: session.user.id,
@@ -37,21 +37,28 @@ export async function POST(request: Request) {
             },
         });
 
-        // Generate integrity signature for Wompi widget
-        const signature = generateIntegritySignature(internalRef, amountCents);
+        // Create MercadoPago preference
+        const preference = await createMPPreference({
+            title: `PsicoSST - Paquete ${pkg.name}`,
+            description: `${pkg.credits} créditos para evaluaciones de batería de riesgo psicosocial`,
+            unitPrice: pkg.priceCOP,
+            quantity: 1,
+            externalReference: internalRef,
+        });
 
         return NextResponse.json({
             orderId: order.id,
             reference: internalRef,
             amountCents,
             currency: "COP",
-            publicKey: process.env.WOMPI_PUBLIC_KEY,
-            signature,
+            publicKey: process.env.MP_PUBLIC_KEY,
+            preferenceId: preference.id,
+            initPoint: preference.sandbox_init_point || preference.init_point,
             packageName: pkg.name,
             credits: pkg.credits,
         });
     } catch (error) {
         console.error("[PAYMENTS] Create order error:", error);
-        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+        return NextResponse.json({ error: "Error interno al crear la orden de pago" }, { status: 500 });
     }
 }
