@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
     if (organizationId) {
        const org = await prisma.organization.findUnique({ where: { id: organizationId } });
        if (!org) return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-       if (org.psychologistId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+       if (org.createdByPsychologist !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
        const plan = await prisma.interventionPlan.findFirst({ where: { organizationId }, include: { actions: true } });
        const action = plan?.actions.find(a => a.measure.startsWith('Recomendaciones AI:'));

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Organización no encontrada" }, { status: 404 });
         }
         
-        if (organization.psychologistId !== session.user.id) {
+        if (organization.createdByPsychologist !== session.user.id) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
