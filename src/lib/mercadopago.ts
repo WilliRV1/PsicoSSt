@@ -63,9 +63,9 @@ export async function createMPPreference(opts: {
         ],
         external_reference: opts.externalReference,
         back_urls: opts.backUrls || {
-            success: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/credits?status=approved`,
-            failure: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/credits?status=failure`,
-            pending: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/credits?status=pending`,
+            success: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/store?status=approved`,
+            failure: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/store?status=failure`,
+            pending: `${process.env.APP_URL || "http://localhost:3000"}/dashboard/store?status=pending`,
         },
         auto_return: "approved",
         notification_url: opts.notificationUrl || `${process.env.APP_URL || "http://localhost:3000"}/api/payments/webhook`,
