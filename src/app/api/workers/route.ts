@@ -28,14 +28,44 @@ export async function GET(request: NextRequest) {
             where,
             include: {
                 organization: {
-                    select: { name: true, nit: true }
+                    select: { id: true, name: true, nit: true }
+                },
+                assessments: {
+                    select: {
+                        assessmentDate: true,
+                        scoredResult: { select: { overallRiskCategory: true } }
+                    },
+                    orderBy: { assessmentDate: "desc" },
+                    take: 1
                 }
             },
             orderBy: { createdAt: "desc" },
             take: 100
         });
 
-        return NextResponse.json({ data: workers });
+        const enrichedWorkers = workers.map(worker => {
+            const lastAssessment = worker.assessments[0];
+            const lastRisk = lastAssessment?.scoredResult?.overallRiskCategory || null;
+            const lastDate = lastAssessment?.assessmentDate || null;
+            
+            // Check if expired (simulating 1 year expiration)
+            const isExpired = lastDate ? (new Date().getTime() - new Date(lastDate).getTime()) > 31536000000 : false;
+
+            return {
+                id: worker.id,
+                fullName: worker.fullName,
+                documentId: worker.documentId,
+                jobTitle: worker.jobTitle,
+                jobLevel: worker.jobLevel,
+                organization: worker.organization,
+                lastRisk,
+                lastDate,
+                isExpired,
+                isExpiring: false // Simulated
+            };
+        });
+
+        return NextResponse.json({ data: enrichedWorkers });
     } catch (error) {
         console.error("[WORKERS] GET Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -41,16 +41,22 @@ export default function WorkersPage() {
 
     const fetchWorkers = useCallback(async () => {
         try {
-            // We simulate the backend call. In reality, we'd hit /api/workers with params.
-            const res = await fetch("/api/workers/list"); // Assuming we have an endpoint that returns the enriched list
-            if (!res.ok) {
-                // fallback to empty if endpoint doesn't exist yet
+            const [workersRes, orgsRes] = await Promise.all([
+                fetch("/api/workers"),
+                fetch("/api/organizations")
+            ]);
+
+            if (workersRes.ok) {
+                const data = await workersRes.json();
+                setWorkers(data.data || []);
+            } else {
                 setWorkers([]);
-                return;
             }
-            const data = await res.json();
-            setWorkers(data.workers || []);
-            setOrganizations(data.organizations || []);
+
+            if (orgsRes.ok) {
+                const orgsData = await orgsRes.json();
+                setOrganizations(orgsData.data || []);
+            }
         } catch {
             console.error("Error fetching workers");
             setWorkers([]);
