@@ -89,7 +89,7 @@ export function AppShell({ children, user }: AppShellProps) {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar />
+      <Sidebar user={user} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header user={user} />
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 focus-visible:outline-none" tabIndex={-1}>
