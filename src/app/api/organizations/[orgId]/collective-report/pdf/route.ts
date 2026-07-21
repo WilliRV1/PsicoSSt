@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { renderToStream } from "@react-pdf/renderer";
 import React from "react";
 import { ExecutiveReportPDF } from "@/components/organizations/executive-report-pdf";
+import { TechnicalReportPDF } from "@/components/organizations/technical-report-pdf";
 import { computeCollectiveMetrics } from "@/lib/pdf/engine/metrics";
 
 export async function GET(
@@ -127,7 +128,9 @@ Genera de 3 a 5 acciones estratégicas para la projectMatrix basadas en los hall
         aiProjectMatrix
     };
 
-    const docElement = React.createElement(ExecutiveReportPDF, pdfProps);
+    const docElement = reportType === "technical" 
+        ? React.createElement(TechnicalReportPDF, pdfProps)
+        : React.createElement(ExecutiveReportPDF, pdfProps);
 
     const stream = await renderToStream(docElement as any);
 

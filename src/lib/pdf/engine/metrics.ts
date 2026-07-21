@@ -5,6 +5,8 @@ export interface CollectiveMetrics {
     topFindings: Array<{ name: string; risk: string; value: number }>;
     protectiveFactors: Array<{ name: string; risk: string; value: number }>;
     criticalAreas: Array<{ name: string; highRiskPercentage: number }>;
+    rawDimensions: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }>;
+    rawDomains: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }>;
 }
 
 export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]): CollectiveMetrics {
@@ -12,7 +14,8 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
     let highRiskCount = 0;
     
     // Flatten all dimensions from all workers' assessments
-    const dimensionCounts: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number }> = {};
+    const dimensionCounts: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }> = {};
+    const domainCounts: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }> = {};
     const areaCounts: Record<string, { total: number; highRisk: number }> = {};
 
     workers.forEach(worker => {
@@ -33,14 +36,31 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
             if (dims) {
                 for (const [dimName, data] of Object.entries(dims)) {
                     if (!dimensionCounts[dimName]) {
-                        dimensionCounts[dimName] = { sinRiesgo: 0, bajo: 0, medio: 0, alto: 0, muyAlto: 0 };
+                        dimensionCounts[dimName] = { sinRiesgo: 0, bajo: 0, medio: 0, alto: 0, muyAlto: 0, total: 0 };
                     }
                     const dimRisk = data.riskCategory;
+                    dimensionCounts[dimName].total++;
                     if (dimRisk === "SIN_RIESGO") dimensionCounts[dimName].sinRiesgo++;
                     if (dimRisk === "BAJO") dimensionCounts[dimName].bajo++;
                     if (dimRisk === "MEDIO") dimensionCounts[dimName].medio++;
                     if (dimRisk === "ALTO") dimensionCounts[dimName].alto++;
                     if (dimRisk === "MUY_ALTO") dimensionCounts[dimName].muyAlto++;
+                }
+            }
+
+            const doms = result.domainScores as Record<string, any>;
+            if (doms) {
+                for (const [domName, data] of Object.entries(doms)) {
+                    if (!domainCounts[domName]) {
+                        domainCounts[domName] = { sinRiesgo: 0, bajo: 0, medio: 0, alto: 0, muyAlto: 0, total: 0 };
+                    }
+                    const domRisk = data.riskCategory;
+                    domainCounts[domName].total++;
+                    if (domRisk === "SIN_RIESGO") domainCounts[domName].sinRiesgo++;
+                    if (domRisk === "BAJO") domainCounts[domName].bajo++;
+                    if (domRisk === "MEDIO") domainCounts[domName].medio++;
+                    if (domRisk === "ALTO") domainCounts[domName].alto++;
+                    if (domRisk === "MUY_ALTO") domainCounts[domName].muyAlto++;
                 }
             }
         });
@@ -96,6 +116,8 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
         healthScoreTrend: null, 
         topFindings,
         protectiveFactors,
-        criticalAreas
+        criticalAreas,
+        rawDimensions: dimensionCounts,
+        rawDomains: domainCounts
     };
 }
