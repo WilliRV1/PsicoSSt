@@ -17,13 +17,31 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // Check credit balance before creating assessment
-        const hasCredits = await CreditService.hasCredits(session.user.id);
-        if (!hasCredits) {
-            return NextResponse.json(
-                { error: "No tienes créditos suficientes. Adquiere un paquete de créditos para continuar.", code: "INSUFFICIENT_CREDITS" },
-                { status: 402 }
-            );
+        // Validar si el trabajador ya tiene evaluaciones en los últimos 3 meses
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+        const { prisma } = await import("@/lib/prisma");
+        const recentAssessmentsCount = await prisma.assessment.count({
+            where: {
+                workerId: data.workerId,
+                createdAt: {
+                    gte: threeMonthsAgo
+                }
+            }
+        });
+
+        const isFirstAssessment = recentAssessmentsCount === 0;
+
+        // Check credit balance before creating assessment ONLY if it's the first one
+        if (isFirstAssessment) {
+            const hasCredits = await CreditService.hasCredits(session.user.id);
+            if (!hasCredits) {
+                return NextResponse.json(
+                    { error: "No tienes créditos suficientes. Adquiere un paquete de créditos para continuar.", code: "INSUFFICIENT_CREDITS" },
+                    { status: 402 }
+                );
+            }
         }
 
         const result = await AssessmentService.createAssessment({
@@ -39,12 +57,14 @@ export async function POST(request: NextRequest) {
             informedConsent: data.informedConsent
         });
 
-        // Consume 1 credit after successful assessment creation
-        try {
-            await CreditService.consumeCredit(session.user.id, result.id);
-        } catch (creditError) {
-            console.error("[CREDITS] Failed to consume credit:", creditError);
-            // Assessment was created successfully, don't fail the request
+        // Consume 1 credit ONLY if it's the first assessment for this worker in the cycle
+        if (isFirstAssessment) {
+            try {
+                await CreditService.consumeCredit(session.user.id, result.id);
+            } catch (creditError) {
+                console.error("[CREDITS] Failed to consume credit:", creditError);
+                // Assessment was created successfully, don't fail the request
+            }
         }
 
         return NextResponse.json(result);
