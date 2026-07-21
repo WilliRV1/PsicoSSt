@@ -143,10 +143,10 @@ export default function SociodemographicReport({
     const renderBar = (dataArray: DataPoint[]) => (
         <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dataArray} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <BarChart data={dataArray} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 12}} />
+                    <YAxis dataKey="name" type="category" width={140} tick={{fontSize: 11}} />
                     <Tooltip />
                     <Bar dataKey="value" fill="#3b82f6">
                         {dataArray.map((entry, index) => (

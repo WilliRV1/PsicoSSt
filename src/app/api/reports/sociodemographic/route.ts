@@ -157,15 +157,81 @@ export async function GET(request: Request) {
             paymentData[payment] = (paymentData[payment] || 0) + 1;
         }
 
+        const FRIENDLY_NAMES: Record<string, string> = {
+            // Sexo
+            "MASCULINO": "Masculino",
+            "FEMENINO": "Femenino",
+            "NO_BINARIO": "No Binario",
+            "NO_RESPONDE": "No Responde",
+            
+            // Estado Civil
+            "SOLTERO": "Soltero/a",
+            "CASADO": "Casado/a",
+            "UNION_LIBRE": "Unión Libre",
+            "DIVORCIADO": "Divorciado/a",
+            "VIUDO": "Viudo/a",
+            "NO RESPONDE": "No responde",
+
+            // Escolaridad / Nivel Educativo
+            "primaria_incompleta": "Primaria incompleta",
+            "primaria_completa": "Primaria completa",
+            "bachillerato_incompleto": "Bachillerato incompleto",
+            "hillerato_incompleto": "Bachillerato incompleto", // handle DB typo
+            "bachillerato_completo": "Bachillerato completo",
+            "achillerato_completo": "Bachillerato completo", // handle DB typo
+            "tecnico_incompleto": "Técnico incompleto",
+            "tecnico_completo": "Técnico completo",
+            "tecnologo_incompleto": "Tecnólogo incompleto",
+            "cnologo_incompleto": "Tecnólogo incompleto", // handle DB typo
+            "tecnologo_completo": "Tecnólogo completo",
+            "profesional_incompleto": "Profesional incompleto",
+            "fesional_incompleto": "Profesional incompleto", // handle DB typo
+            "profesional_completo": "Profesional completo",
+            "rofesional_completo": "Profesional completo", // handle DB typo
+            "especializacion": "Especialización",
+            "maestria": "Maestría",
+            "doctorado": "Doctorado",
+            "carrera_militar_policia": "Carrera militar/policía",
+            "arrera_militar_policia": "Carrera militar/policía", // handle DB typo
+
+            // Tipo de Vivienda
+            "PROPIA": "Propia",
+            "ARRENDADA": "Arriendo",
+            "Arriendo": "Arriendo",
+            "FAMILIAR": "Familiar",
+            "OTRA": "Otra",
+
+            // Tipo de Contrato
+            "Prestacion_services": "Prestación de servicios",
+            "Temporal_1_ano_o_mas": "Temporal (1 año o más)",
+            "Temporal_menos_1_ano": "Temporal (Menos de 1 año)",
+            "Termino_indefinido": "Término indefinido",
+            "Cooperativa": "Cooperativa / Otro",
+
+            // Modalidad de pago
+            "Fijo": "Fijo",
+            "Destajo": "Destajo / Variable",
+            "Comision": "Comisión",
+        };
+
+        const mapFriendly = (name: string): string => {
+            if (FRIENDLY_NAMES[name]) return FRIENDLY_NAMES[name];
+            if (FRIENDLY_NAMES[name.trim()]) return FRIENDLY_NAMES[name.trim()];
+            // Default formatting: replace underscores and title case
+            return name
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (c) => c.toUpperCase());
+        };
+
         const formatData = (obj: Record<string, number>) => {
             return Object.entries(obj)
                 .filter(([_, v]) => v > 0)
-                .map(([name, value]) => ({ name, value }))
+                .map(([name, value]) => ({ name: mapFriendly(name), value }))
                 .sort((a, b) => b.value - a.value);
         };
 
         const formatDataFixed = (obj: Record<string, number>) => {
-            return Object.entries(obj).map(([name, value]) => ({ name, value }));
+            return Object.entries(obj).map(([name, value]) => ({ name: mapFriendly(name), value }));
         };
 
         const reportData = {
