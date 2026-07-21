@@ -42,6 +42,9 @@
   --color-border: #E2E8F0;
   --color-border-muted: #F1F5F9;
   --color-border-focus: #3B82F6;
+
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #0F172A;
   
   --color-text: #0F172A;
   --color-text-secondary: #64748B;
@@ -94,7 +97,10 @@
   
   --color-border: #334155;
   --color-border-muted: #1e293b;
-  
+
+  --color-popover: #0F172A;
+  --color-popover-foreground: #FFFFFF;
+
   --color-text: #FFFFFF;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;

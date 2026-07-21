@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/ui/organisms/AppShell";
 import SupportWidget from "@/components/dashboard/support-widget";
+import { prisma } from "@/lib/prisma";
 
 export default async function DashboardLayout({
     children,
@@ -22,8 +23,13 @@ export default async function DashboardLayout({
         redirect("/mfa-verify");
     }
 
+    const psychologist = await prisma.psychologist.findUnique({
+        where: { id: session.user.id },
+        select: { fullName: true, email: true, creditBalance: true }
+    });
+
     return (
-        <AppShell>
+        <AppShell user={psychologist}>
             {children}
             <SupportWidget />
         </AppShell>

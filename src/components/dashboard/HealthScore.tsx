@@ -65,7 +65,7 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
 
       <div className="pt-4 border-t border-border-muted">
         <h4 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-4">Factores de impacto</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
           <FactorItem label="Evaluaciones" value={factors.evaluations} />
           <FactorItem label="Cumplimiento" value={factors.compliance} />
           <FactorItem label="Intervenciones" value={factors.interventions} />
@@ -81,10 +81,10 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
 function FactorItem({ label, value }: { label: string; value: number }) {
   // value is 0-100, we represent it as a tiny bar
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex justify-between items-center text-[12px]">
-        <span className="text-text-secondary font-medium">{label}</span>
-        <span className="font-mono text-text-muted">{value}%</span>
+    <div className="flex flex-col gap-1.5 w-full">
+      <div className="flex justify-between items-center text-[12px] w-full">
+        <span className="text-text-secondary font-medium truncate pr-2" title={label}>{label}</span>
+        <span className="font-mono text-text-muted flex-shrink-0 font-semibold">{value}%</span>
       </div>
       <div className="w-full bg-surface-muted h-1.5 rounded-full overflow-hidden">
         <div 

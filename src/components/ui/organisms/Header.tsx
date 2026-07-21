@@ -1,54 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Icons } from "@/components/icons";
-import { Moon, Sun, Building2, Check, ChevronsUpDown } from "lucide-react";
+import { Moon, Sun, Building2, Check, ChevronsUpDown, Coins, LogOut, User } from "lucide-react";
+import { useTheme } from "next-themes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
-export function Header() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [showOrgDropdown, setShowOrgDropdown] = useState(false);
-  const [activeOrg, setActiveOrg] = useState("Clínica ABC");
+interface HeaderProps {
+  user?: {
+    fullName: string;
+    email: string;
+    creditBalance: number;
+  } | null;
+}
+
+export function Header({ user }: HeaderProps) {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.classList.toggle("dark");
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
+  const getInitials = (name?: string) => {
+    if (!name) return "US";
+    return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase();
+  };
   return (
-    <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-border bg-surface">
+    <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b border-border bg-white dark:bg-slate-900">
       <div className="flex items-center gap-6">
-        {/* Active Organization Selector */}
-        <div className="relative">
-          <button 
-            onClick={() => setShowOrgDropdown(!showOrgDropdown)}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-foreground bg-surface hover:bg-surface-muted rounded-md border border-transparent hover:border-border transition-colors group"
-          >
-            <Building2 className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
-            <span className="max-w-[150px] truncate">{activeOrg}</span>
-            <ChevronsUpDown className="w-3.5 h-3.5 text-text-muted" />
-          </button>
-          
-          {showOrgDropdown && (
-            <div className="absolute top-full left-0 mt-1 w-[240px] bg-card border border-border shadow-elevated rounded-xl py-1 z-50">
-              <div className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                Tus Empresas
-              </div>
-              <button 
-                onClick={() => { setActiveOrg("Clínica ABC"); setShowOrgDropdown(false); }}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-surface-muted transition-colors"
-              >
-                <span>Clínica ABC</span>
-                {activeOrg === "Clínica ABC" && <Check className="w-4 h-4 text-primary" />}
-              </button>
-              <button 
-                onClick={() => { setActiveOrg("Industrias XYZ"); setShowOrgDropdown(false); }}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-surface-muted transition-colors"
-              >
-                <span>Industrias XYZ</span>
-                {activeOrg === "Industrias XYZ" && <Check className="w-4 h-4 text-primary" />}
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Command Palette Trigger */}
         <button 
@@ -64,11 +54,31 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Credits Badge */}
+        {user && (
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950 border border-amber-200 dark:border-amber-900">
+            <Coins className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+            <span className="text-sm font-bold text-amber-700 dark:text-amber-400">{user.creditBalance}</span>
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-500">créditos</span>
+          </div>
+        )}
+
         {/* Notifications */}
-        <button className="relative p-2 text-text-secondary hover:text-text transition-colors rounded-full hover:bg-surface-muted">
-          <Icons.alert className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-surface" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative p-2 text-text-secondary hover:text-text transition-colors rounded-full hover:bg-surface-muted">
+              <Icons.alert className="w-5 h-5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-surface" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="p-4 text-center text-sm text-text-muted">
+              No hay notificaciones nuevas
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         {/* Theme Toggle */}
         <button 
@@ -76,20 +86,42 @@ export function Header() {
           className="p-2 text-text-secondary hover:text-text transition-colors rounded-full hover:bg-surface-muted"
           title="Cambiar tema"
         >
-          {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          {mounted && theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
         
         {/* User Profile */}
-        <div className="flex items-center gap-2 pl-4 border-l border-border">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
-            DG
-          </div>
-          <div className="hidden md:block text-left">
-            <p className="text-sm font-medium leading-none text-foreground">Dra. Gómez</p>
-            <p className="text-xs text-text-secondary mt-1">Psicóloga SST</p>
-          </div>
-          <Icons.chevronDown className="w-4 h-4 text-text-muted ml-2" />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 pl-4 border-l border-border outline-none group">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary group-hover:bg-primary/20 transition-colors">
+                {getInitials(user?.fullName)}
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-semibold leading-none text-foreground">{user?.fullName || "Cargando..."}</p>
+                <p className="text-xs text-text-secondary mt-1 truncate max-w-[120px]">{user?.email || ""}</p>
+              </div>
+              <Icons.chevronDown className="w-4 h-4 text-text-muted ml-1 group-hover:text-text transition-colors" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/settings" className="cursor-pointer flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                <span>Perfil</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => {
+              // Sign out logic
+              window.location.href = "/api/auth/signout";
+            }} className="cursor-pointer text-danger focus:text-danger focus:bg-danger/10">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar Sesión</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
