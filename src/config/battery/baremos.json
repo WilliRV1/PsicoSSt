@@ -670,32 +670,32 @@
             "claridad_rol": {
                 "sinRiesgo": [
                     0,
-                    0.9
-                ],
-                "bajo": [
-                    1,
                     5
                 ],
-                "medio": [
+                "bajo": [
                     5.1,
                     15
                 ],
-                "alto": [
+                "medio": [
                     15.1,
                     30
                 ],
-                "muyAlto": [
+                "alto": [
                     30.1,
+                    45
+                ],
+                "muyAlto": [
+                    45.1,
                     100
                 ]
             },
             "capacitacion": {
                 "sinRiesgo": [
                     0,
-                    0.9
+                    4.2
                 ],
                 "bajo": [
-                    1,
+                    4.3,
                     16.7
                 ],
                 "medio": [
@@ -704,10 +704,10 @@
                 ],
                 "alto": [
                     25.1,
-                    50
+                    45.8
                 ],
                 "muyAlto": [
-                    50.1,
+                    45.9,
                     100
                 ]
             },
