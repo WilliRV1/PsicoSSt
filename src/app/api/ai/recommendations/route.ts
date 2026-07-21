@@ -119,9 +119,9 @@ export async function POST(req: NextRequest) {
     }
     // If manual override — just save it
     if (overrideText !== undefined) {
-      const report = await prisma.report.findFirst({ where: { assessmentId } });
+      const report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
       if (report) {
-        await prisma.report.update({
+        await prisma.generatedReport.update({
           where: { id: report.id },
           data: { recommendationsAI: overrideText } as any,
         });
@@ -147,9 +147,9 @@ export async function POST(req: NextRequest) {
     });
 
     // Save to report
-    const report = await prisma.report.findFirst({ where: { assessmentId } });
+    const report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
     if (report) {
-      await prisma.report.update({
+      await prisma.generatedReport.update({
         where: { id: report.id },
         data: { recommendationsAI: recommendations } as any,
       });
@@ -201,7 +201,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const report = await prisma.report.findFirst({ where: { assessmentId: assessmentId as string } });
+    const report = await prisma.generatedReport.findFirst({ where: { assessmentId: assessmentId as string } });
     return NextResponse.json({
       success: true,
       recommendations: (report as any)?.recommendationsAI ?? null,

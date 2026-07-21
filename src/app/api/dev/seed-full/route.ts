@@ -309,7 +309,7 @@ async function handler() {
     ];
 
     let totalAssessments = 0;
-    const reportStatuses = ['DRAFT', 'REVIEWED', 'SIGNED', 'DRAFT', 'REVIEWED', 'DRAFT'];
+    const ReportStatuses = ['DRAFT', 'REVIEWED', 'SIGNED', 'DRAFT', 'REVIEWED', 'DRAFT'];
 
     for (let i = 0; i < createdWorkers.length; i++) {
       const { workerId, orgId, formType, responseValue, psychId } = createdWorkers[i];
@@ -358,7 +358,7 @@ async function handler() {
         },
       });
 
-      const reportStatus = reportStatuses[i % reportStatuses.length];
+      const ReportStatus = ReportStatuses[i % ReportStatuses.length];
       await db.report.create({
         data: {
           assessmentId: intraAssessment.id,
@@ -368,9 +368,9 @@ async function handler() {
             recommendations: 'Ver sección de recomendaciones generadas por IA.',
             completedAt: baseDate.toISOString(),
           },
-          status: reportStatus,
+          status: ReportStatus,
           recommendationsAI: aiRecommendations[i % aiRecommendations.length],
-          ...(reportStatus === 'SIGNED' ? {
+          ...(ReportStatus === 'SIGNED' ? {
             signedBy: admin.email,
             signedAt: new Date(),
             isFinalized: true,

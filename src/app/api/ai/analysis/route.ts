@@ -20,10 +20,10 @@ export async function POST(req: NextRequest) {
 
     // If manual override — just save it to reportData.analysis
     if (overrideText !== undefined) {
-      const report = await prisma.report.findFirst({ where: { assessmentId } });
+      const report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
       if (report) {
         const existing = (report.reportData as any) || {};
-        await prisma.report.update({
+        await prisma.generatedReport.update({
           where: { id: report.id },
           data: { reportData: { ...existing, analysis: overrideText } },
         });
@@ -47,10 +47,10 @@ export async function POST(req: NextRequest) {
     });
 
     // Save to reportData.analysis
-    const report = await prisma.report.findFirst({ where: { assessmentId } });
+    const report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
     if (report) {
       const existing = (report.reportData as any) || {};
-      await prisma.report.update({
+      await prisma.generatedReport.update({
         where: { id: report.id },
         data: { reportData: { ...existing, analysis } },
       });

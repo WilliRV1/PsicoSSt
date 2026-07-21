@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
                 organization: { select: { name: true } },
                 psychologist: { include: { signatures: true } },
                 scoredResult: true,
-                reports: {
+                generatedReports: {
                     take: 1,
                     orderBy: { generatedAt: "desc" },
                 },

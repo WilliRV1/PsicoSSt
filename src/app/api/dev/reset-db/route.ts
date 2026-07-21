@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     // Deleting in reverse order of dependencies
     await prisma.responseSet.deleteMany({});
     await prisma.scoredResult.deleteMany({});
-    await prisma.report.deleteMany({});
+    await prisma.generatedReport.deleteMany({});
     await prisma.informedConsent.deleteMany({});
     await prisma.assessment.deleteMany({});
     await prisma.worker.deleteMany({});

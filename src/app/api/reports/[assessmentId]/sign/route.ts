@@ -30,9 +30,9 @@ export async function POST(
                         signatures: true
                     }
                 },
-                reports: {
+                generatedReports: {
                     take: 1,
-                    orderBy: { generatedAt: "desc" }
+                    orderBy: { generatedAt: 'desc' }
                 }
             }
         });

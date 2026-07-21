@@ -40,7 +40,7 @@ export async function GET(
           },
         },
         scoredResult: true,
-        reports: {
+        generatedReports: {
           take: 1,
           orderBy: { generatedAt: 'desc' }
         }
@@ -51,8 +51,8 @@ export async function GET(
       return NextResponse.json({ error: 'Evaluación no encontrada o no calificada' }, { status: 404 });
     }
 
-    const { worker, organization, psychologist, scoredResult, reports } = assessment;
-    const report = reports[0];
+    const { worker, organization, psychologist, scoredResult, generatedReports } = assessment;
+    const report = generatedReports[0];
 
     // Prepare dimension data for the PDF
     const dimensionScoresRaw = scoredResult.dimensionScores as unknown as Record<string, DimensionScore>;

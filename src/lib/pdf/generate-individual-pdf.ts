@@ -14,7 +14,7 @@ interface AssessmentForPDF {
         overallRiskCategory: string;
         dimensionScores: unknown;
     };
-    reports: {
+    generatedReports: {
         status: string;
         signatureImage?: string | null;
         reportData: unknown;
@@ -23,7 +23,7 @@ interface AssessmentForPDF {
 
 export async function generateIndividualPDF(assessment: AssessmentForPDF): Promise<Buffer> {
     const { worker, organization, psychologist, scoredResult, reports } = assessment;
-    const report = reports[0];
+    const report = generatedReports[0];
 
     const dimensionScoresRaw = scoredResult.dimensionScores as Record<string, { dimensionName?: string; transformedScore: number; riskCategory: string }>;
     const dimensionScores = Object.entries(dimensionScoresRaw).map(([key, data]) => ({

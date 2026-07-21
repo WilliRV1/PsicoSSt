@@ -35,12 +35,13 @@ model Psychologist {
   assessments        Assessment[]
   auditLogs          AuditLog[]
   organizations      Organization[]
-  reports            Report[]
+  generatedReports   GeneratedReport[]
   signatures         PsychologistSignature[]
   interventionPlans  InterventionPlan[]
   creditTransactions CreditTransaction[]
   resetTokens        PasswordResetToken[]
   paymentOrders      PaymentOrder[]
+  settings           PsychologistSettings?
 
   @@map("psychologists")
 }
@@ -64,6 +65,35 @@ model PsychologistSignature {
   /// One psychologist can have one drawn and one uploaded signature
   @@unique([psychologistId, signatureType])
   @@map("psychologist_signatures")
+}
+
+/// Global configuration and White Label settings for the psychologist
+model PsychologistSettings {
+  id                 String       @id @default(uuid()) @db.Uuid
+  psychologistId     String       @unique @map("psychologist_id") @db.Uuid
+  
+  // Branding
+  logoUrl            String?      @map("logo_url")
+  consultingRoomName String?      @map("consulting_room_name")
+  tradeName          String?      @map("trade_name")
+  primaryColor       String?      @map("primary_color")
+  secondaryColor     String?      @map("secondary_color")
+  typography         String?      @default("inter")
+  
+  // Contact
+  address            String?
+  city               String?
+  phone              String?
+  website            String?
+  email              String?
+  
+  // Preferences
+  locale             String?      @default("es-CO")
+  timezone           String?      @default("America/Bogota")
+  
+  psychologist       Psychologist @relation(fields: [psychologistId], references: [id], onDelete: Cascade)
+  
+  @@map("psychologist_settings")
 }
 
 /// Company or organization being evaluated
@@ -155,7 +185,7 @@ model Assessment {
   psychologist      Psychologist      @relation(fields: [psychologistId], references: [id])
   worker            Worker            @relation(fields: [workerId], references: [id])
   consent           InformedConsent?
-  reports           Report[]
+  generatedReports  GeneratedReport[]
   responseSet       ResponseSet?
   scoredResult      ScoredResult?
 
@@ -213,34 +243,48 @@ model InformedConsent {
   @@map("informed_consents")
 }
 
-/// Generated and signed reports
-model Report {
-  id               String       @id @default(uuid()) @db.Uuid
-  assessmentId     String       @unique @map("assessment_id") @db.Uuid
-  psychologistId   String       @map("psychologist_id") @db.Uuid
-  reportType       String       @default("individual") @map("report_type")
+/// Generated and signed reports with versioning and immutable hashes
+model GeneratedReport {
+  id                String       @id @default(uuid()) @db.Uuid
+  assessmentId      String       @map("assessment_id") @db.Uuid
+  psychologistId    String       @map("psychologist_id") @db.Uuid
+  
+  reportType        String       @default("individual") @map("report_type")
+  
+  // Versioning and Identification
+  templateVersion   String       @default("classic-v1") @map("template_version")
+  brandingVersion   String?      @map("branding_version")
+  dictionaryVersion String       @default("v1.0") @map("dictionary_version")
+  
+  // Immutability and Verification
+  contentHash       String?      @map("content_hash")
+  versionHash       String?      @map("version_hash")
+  pdfSize           Int?         @map("pdf_size")
+  pages             Int?
+  generatedBy       String?      @map("generated_by")
+  
   /// JSONB: complete report data including narratives, recommendations
-  reportData       Json         @map("report_data")
-  status           ReportStatus @default(DRAFT)
-  /// SHA-256 hash of report content at time of signing
-  signatureHash    String?      @map("signature_hash")
+  reportData        Json         @map("report_data")
+  status            ReportStatus @default(DRAFT)
+  
   /// Base64 encoded signature image included in the PDF
-  signatureImage   String?      @map("signature_image") @db.Text
-  /// Email of psychologist who signed
-  signedBy         String?      @map("signed_by")
-  /// Whether the report is finalized and cannot be modified
-  isFinalized      Boolean      @default(false) @map("is_finalized")
+  signatureImage    String?      @map("signature_image") @db.Text
+  signedBy          String?      @map("signed_by")
+  isFinalized       Boolean      @default(false) @map("is_finalized")
+  
   /// IA-generated recommendations/next steps
   recommendationsAI String?      @map("recommendations_ai") @db.Text
-  generatedAt      DateTime     @default(now()) @map("generated_at")
-  signedAt         DateTime?    @map("signed_at")
-  updatedAt        DateTime     @updatedAt @map("updated_at")
-  assessment       Assessment   @relation(fields: [assessmentId], references: [id])
-  psychologist     Psychologist @relation(fields: [psychologistId], references: [id])
+  
+  generatedAt       DateTime     @default(now()) @map("generated_at")
+  signedAt          DateTime?    @map("signed_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  assessment        Assessment   @relation(fields: [assessmentId], references: [id])
+  psychologist      Psychologist @relation(fields: [psychologistId], references: [id])
 
   @@index([assessmentId, status])
   @@index([psychologistId])
-  @@map("reports")
+  @@map("generated_reports")
 }
 
 /// Immutable audit log (append-only)
