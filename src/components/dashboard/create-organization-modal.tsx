@@ -69,8 +69,8 @@ export default function CreateOrganizationModal({ isOpen, onClose, onSuccess }: 
     };
 
     return (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
-            <div className="bg-card rounded-2xl w-full max-w-lg shadow-2xl border border-border overflow-hidden">
+        <div className="fixed inset-0 bg-background/90 z-50 flex items-center justify-center p-4 animate-in">
+            <div className="bg-card rounded-[20px] w-full max-w-lg shadow-sm border border-border overflow-hidden">
                 <div className="p-6 border-b border-border">
                     <h2 className="text-xl font-bold text-foreground">Nueva Empresa</h2>
                 </div>

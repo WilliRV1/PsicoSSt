@@ -18,7 +18,10 @@ export function Header({ user }: HeaderProps) {
     <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-40 shrink-0">
       {/* Left Area: Global Search */}
       <div className="flex-1 max-w-md">
-        <button className="flex items-center gap-3 w-full max-w-sm px-3 py-2 rounded-lg border border-border bg-surface-muted hover:bg-surface text-text-muted hover:text-text transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+        <button 
+          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+          className="flex items-center gap-3 w-full max-w-sm px-3 py-2 rounded-lg border border-border bg-surface-muted hover:bg-surface text-text-muted hover:text-text transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+        >
           <Search className="w-4 h-4 shrink-0" />
           <span className="text-[14px] font-medium flex-1 text-left">Buscar...</span>
           <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-surface border border-border text-text-muted">

@@ -30,12 +30,13 @@ export function CommandPalette() {
   }, []);
 
   const commands = [
-    { name: "Ir al Dashboard", icon: <Building2 className="w-4 h-4" />, action: () => router.push("/dashboard") },
-    { name: "Ver Empresas", icon: <Building2 className="w-4 h-4" />, action: () => router.push("/dashboard/organizations") },
-    { name: "Ver Trabajadores", icon: <Users className="w-4 h-4" />, action: () => router.push("/dashboard/workers") },
-    { name: "Digitalizar Batería", icon: <ClipboardList className="w-4 h-4" />, action: () => router.push("/dashboard/assessments/new/manual") },
-    { name: "Ver Reportes", icon: <FileText className="w-4 h-4" />, action: () => router.push("/dashboard/reports") },
-    { name: "Configuración", icon: <Settings className="w-4 h-4" />, action: () => router.push("/dashboard/settings") },
+    { name: "Buscar empresa", icon: <Search className="w-4 h-4" />, action: () => router.push("/dashboard/organizations") },
+    { name: "Buscar trabajador", icon: <Search className="w-4 h-4" />, action: () => router.push("/dashboard/workers") },
+    { name: "Nueva evaluación", icon: <ClipboardList className="w-4 h-4" />, action: () => router.push("/dashboard/assessments/new/manual") },
+    { name: "Nuevo trabajador", icon: <Users className="w-4 h-4" />, action: () => router.push("/dashboard/workers?new=true") },
+    { name: "Nueva empresa", icon: <Building2 className="w-4 h-4" />, action: () => router.push("/dashboard/organizations?new=true") },
+    { name: "Nueva intervención", icon: <FileText className="w-4 h-4" />, action: () => router.push("/dashboard/interventions/new") },
+    { name: "Ir a configuración", icon: <Settings className="w-4 h-4" />, action: () => router.push("/dashboard/settings") },
     { name: "Cerrar Sesión", icon: <LogOut className="w-4 h-4" />, action: () => router.push("/api/auth/signout") },
   ];
 

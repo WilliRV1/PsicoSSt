@@ -16,12 +16,57 @@ export async function GET() {
         const organizations = await prisma.organization.findMany({
             where: { createdByPsychologist: session.user.id },
             include: {
-                _count: { select: { workers: true } }
+                _count: { select: { workers: true, assessments: true, interventionPlans: true } },
+                assessments: {
+                    select: {
+                        assessmentDate: true,
+                        scoredResult: { select: { overallRiskCategory: true } }
+                    },
+                    orderBy: { assessmentDate: "desc" }
+                }
             },
             orderBy: { createdAt: "desc" }
         });
 
-        return NextResponse.json({ data: organizations });
+        const enrichedOrgs = organizations.map(org => {
+            const totalAssessments = org.assessments.length;
+            const highRiskCount = org.assessments.filter(a => 
+                a.scoredResult?.overallRiskCategory === "ALTO" || 
+                a.scoredResult?.overallRiskCategory === "MUY_ALTO"
+            ).length;
+
+            // Health Score calculation (simplified for demo: 100% minus the percentage of high risk)
+            const healthScore = totalAssessments === 0 ? 100 : Math.max(0, Math.round(100 - (highRiskCount / totalAssessments) * 100));
+            
+            // Simulated trend (could be calculated comparing with previous month)
+            const trendValue = healthScore > 80 ? 5 : (healthScore > 50 ? -2 : -10);
+            const trendLabel = trendValue > 0 ? `+${trendValue}` : `${trendValue}`;
+            const trendDirection = trendValue > 0 ? "up" : (trendValue < 0 ? "down" : "flat");
+            let healthLabel = "Excelente";
+            if (healthScore <= 80 && healthScore > 50) healthLabel = "Atención";
+            if (healthScore <= 50) healthLabel = "Crítico";
+
+            const lastActivity = org.assessments.length > 0 ? org.assessments[0].assessmentDate : org.createdAt;
+
+            return {
+                id: org.id,
+                name: org.name,
+                nit: org.nit,
+                city: org.city,
+                department: org.department,
+                workersCount: org._count.workers,
+                evaluationsCount: org._count.assessments,
+                healthScore,
+                healthLabel,
+                trend: trendLabel,
+                trendDirection,
+                lastActivity,
+                pendingInterventions: org._count.interventionPlans,
+                highRiskCount
+            };
+        });
+
+        return NextResponse.json({ data: enrichedOrgs });
     } catch (error) {
         console.error("[ORGANIZATIONS] GET Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
