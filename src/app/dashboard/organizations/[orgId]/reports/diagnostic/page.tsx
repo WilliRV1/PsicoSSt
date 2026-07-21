@@ -126,7 +126,8 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                             organizationNit: org.nit,
                             reportDate: new Date().toLocaleDateString('es-CO'),
                             psychologistName: org.psychologist.fullName,
-                            psychologistLicense: org.psychologist.licenseNumber
+                            psychologistLicense: org.psychologist.licenseNumber,
+                            psychologistLicenseDate: null
                         },
                         executiveSummary: {
                             totalWorkers: executiveSummary.uniqueWorkers,
