@@ -271,5 +271,227 @@ export class AssessmentService {
             throw new Error(`Error en base de datos: ${error.message}`);
         }
     }
+
+    /**
+     * Consolidates organizational report data, ensuring exact thresholds and privacy constraints (N<5).
+     */
+    static async getOrganizationalReportData(organizationId: string, departmentArea?: string) {
+        const { baremos } = await import("@/config/battery");
+        const orgInfo = await prisma.organization.findUnique({
+            where: { id: organizationId },
+            include: { psychologist: true }
+        });
+        
+        if (!orgInfo) throw new Error("Organización no encontrada");
+
+        const whereClause: any = { organizationId, status: { in: ["COMPLETED", "SCORED", "SIGNED"] } };
+        if (departmentArea && departmentArea !== "ALL") {
+            whereClause.worker = { departmentArea };
+        }
+
+        const results = await prisma.scoredResult.findMany({
+            where: { assessment: whereClause },
+            include: {
+                assessment: {
+                    include: { worker: true }
+                }
+            }
+        });
+
+        // 1. Algoritmo de Anonimato Inquebrantable
+        const uniqueWorkers = new Set(results.map(r => r.assessment.workerId));
+        const workerCount = uniqueWorkers.size;
+        
+        if (workerCount < 5 && workerCount > 0) {
+            return {
+                isRestricted: true,
+                workerCount,
+                message: "Reserva de Información por Muestra Insuficiente (N<5)."
+            };
+        }
+
+        if (workerCount === 0) {
+            throw new Error("No hay evaluaciones completadas para consolidar.");
+        }
+
+        // Estructuras de promedios
+        let totalScoreA = 0;
+        let countA = 0;
+        let totalScoreB = 0;
+        let countB = 0;
+
+        const domainSumsA: Record<string, { sum: number, count: number }> = {};
+        const domainSumsB: Record<string, { sum: number, count: number }> = {};
+        
+        // Estructura para Pirámide de Riesgo por Áreas
+        const areaRisks: Record<string, { total: number, muyAlto: number }> = {};
+        
+        // Matriz de Priorización
+        const workerMatrix = new Map<string, { intra: string | null, stress: string | null }>();
+
+        results.forEach(res => {
+            const risk = res.overallRiskCategory || "SIN_RIESGO";
+            const type = res.assessment.questionnaireType;
+            const form = res.assessment.formType;
+            const worker = res.assessment.worker;
+            const workerId = worker.id;
+
+            if (!workerMatrix.has(workerId)) {
+                workerMatrix.set(workerId, { intra: null, stress: null });
+            }
+            const w = workerMatrix.get(workerId)!;
+
+            if (type === "INTRALABORAL") {
+                w.intra = risk;
+                
+                // Pirámide de áreas
+                const area = worker.departmentArea || "Sin Área";
+                if (!areaRisks[area]) areaRisks[area] = { total: 0, muyAlto: 0 };
+                areaRisks[area].total++;
+                if (risk === "MUY_ALTO") areaRisks[area].muyAlto++;
+
+                // Promedios por Forma (Usando Puntaje Transformado Directo)
+                const totalScore = (res.totalScores as any)?.transformedScore || 0;
+                if (form === "A") {
+                    totalScoreA += totalScore;
+                    countA++;
+                    if (res.domainScores) {
+                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                            if (!dom.domainKey) return;
+                            if (!domainSumsA[dom.domainKey]) domainSumsA[dom.domainKey] = { sum: 0, count: 0 };
+                            domainSumsA[dom.domainKey].sum += dom.transformedScore || 0;
+                            domainSumsA[dom.domainKey].count++;
+                        });
+                    }
+                } else {
+                    totalScoreB += totalScore;
+                    countB++;
+                    if (res.domainScores) {
+                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                            if (!dom.domainKey) return;
+                            if (!domainSumsB[dom.domainKey]) domainSumsB[dom.domainKey] = { sum: 0, count: 0 };
+                            domainSumsB[dom.domainKey].sum += dom.transformedScore || 0;
+                            domainSumsB[dom.domainKey].count++;
+                        });
+                    }
+                }
+            } else if (type === "STRESS") {
+                w.stress = risk;
+            }
+        });
+
+        // 2. Matriz de Priorización (Cálculo)
+        let group1D = 0;
+        let vulnerables = 0;
+        let adaptados = 0;
+        let sanos = 0;
+
+        workerMatrix.forEach((val) => {
+            if (val.intra && val.stress) {
+                const isIntraHigh = val.intra === "ALTO" || val.intra === "MUY_ALTO";
+                const isStressHigh = val.stress === "ALTO" || val.stress === "MUY_ALTO";
+                
+                if (isIntraHigh && isStressHigh) group1D++;
+                else if (!isIntraHigh && isStressHigh) vulnerables++;
+                else if (isIntraHigh && !isStressHigh) adaptados++;
+                else sanos++;
+            }
+        });
+        const validMatrixTotal = group1D + vulnerables + adaptados + sanos;
+        const criticalPercent = validMatrixTotal > 0 ? (group1D / validMatrixTotal) * 100 : 0;
+
+        // Formateador de promedios a 1 decimal estricto
+        const round1 = (val: number) => Math.round(val * 10) / 10;
+        
+        // Helper para extraer umbrales (Gauges) de baremos.json
+        const getThresholds = (obj: any) => {
+            if (!obj) return [20, 40, 60, 80, 100];
+            return [
+                obj.sinRiesgo[1],
+                obj.bajo[1],
+                obj.medio[1],
+                obj.alto[1],
+                obj.muyAlto[1]
+            ];
+        };
+
+        const bData: any = baremos;
+
+        // Construir dominios Forma A con umbrales
+        const domainsFormaA = [];
+        if (countA > 0) {
+            domainsFormaA.push({
+                key: 'total_a',
+                name: 'Puntaje Total Intralaboral (Forma A)',
+                average: round1(totalScoreA / countA),
+                thresholds: getThresholds(bData.intralaboral_a.total)
+            });
+            for (const [key, stats] of Object.entries(domainSumsA)) {
+                const bThresholds = bData.intralaboral_a.domains[key];
+                domainsFormaA.push({
+                    key,
+                    name: key.replace(/_/g, ' ').toUpperCase(),
+                    average: round1(stats.sum / stats.count),
+                    thresholds: getThresholds(bThresholds)
+                });
+            }
+        }
+
+        // Construir dominios Forma B con umbrales
+        const domainsFormaB = [];
+        if (countB > 0) {
+            domainsFormaB.push({
+                key: 'total_b',
+                name: 'Puntaje Total Intralaboral (Forma B)',
+                average: round1(totalScoreB / countB),
+                thresholds: getThresholds(bData.intralaboral_b.total)
+            });
+            for (const [key, stats] of Object.entries(domainSumsB)) {
+                const bThresholds = bData.intralaboral_b.domains[key];
+                domainsFormaB.push({
+                    key,
+                    name: key.replace(/_/g, ' ').toUpperCase(),
+                    average: round1(stats.sum / stats.count),
+                    thresholds: getThresholds(bThresholds)
+                });
+            }
+        }
+
+        // Pirámide de Riesgo por Áreas (Top 5 más críticos)
+        const areaPyramid = Object.entries(areaRisks).map(([area, stats]) => ({
+            area,
+            totalEvaluated: stats.total,
+            criticalPercent: round1((stats.muyAlto / stats.total) * 100)
+        })).sort((a, b) => b.criticalPercent - a.criticalPercent);
+
+        return {
+            isRestricted: false,
+            workerCount,
+            orgInfo: {
+                organizationName: orgInfo.name,
+                organizationNit: orgInfo.nit,
+                reportDate: new Date().toLocaleDateString('es-CO'),
+                psychologistName: orgInfo.psychologist.fullName,
+                psychologistLicense: orgInfo.psychologist.sstCredential || orgInfo.psychologist.licenseNumber,
+                psychologistLicenseDate: orgInfo.psychologist.sstLicenseDate ? new Date(orgInfo.psychologist.sstLicenseDate).toISOString() : null,
+                psychologistId: orgInfo.psychologist.id
+            },
+            executiveSummary: {
+                totalWorkers: workerCount,
+                criticalPercent: round1(criticalPercent),
+                predominantRisk: criticalPercent > 30 ? "Riesgo Alto/Muy Alto predominante" : "Estabilidad General",
+                priorityMatrix: {
+                    group1D,
+                    vulnerables,
+                    adaptados,
+                    sanos
+                }
+            },
+            domainsFormaA,
+            domainsFormaB,
+            areaPyramid,
+            recommendations: [] // Will be populated by AI or DB
+        };
+    }
 }
 

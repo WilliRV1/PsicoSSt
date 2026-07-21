@@ -10,12 +10,104 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { assessmentId, overrideText } = body;
+    const { assessmentId, organizationId, overrideText } = body;
 
-    if (!assessmentId) {
-      return NextResponse.json({ error: 'assessmentId is required' }, { status: 400 });
+    if (!assessmentId && !organizationId) {
+      return NextResponse.json({ error: 'assessmentId or organizationId is required' }, { status: 400 });
     }
 
+    // --- ORGANIZATIONAL LOGIC ---
+    if (organizationId) {
+      if (overrideText !== undefined) {
+        // Find existing plan to update
+        const plan = await prisma.interventionPlan.findFirst({ where: { organizationId } });
+        if (plan) {
+          // Since InterventionPlan doesn't have a recommendationsAI field, we can use a generic action or note
+          // But wait, the simplest is to create an InterventionAction or just use Prisma schema correctly.
+          // Wait, InterventionPlan has `title`, `period`, `status`. No generic text field.
+          // Maybe we can create an action?
+          // Let's create an action for it.
+          const action = await prisma.interventionAction.findFirst({ where: { planId: plan.id, measure: { startsWith: 'Recomendaciones AI:' } } });
+          if (action) {
+             await prisma.interventionAction.update({
+               where: { id: action.id },
+               data: { notes: overrideText }
+             });
+          } else {
+             await prisma.interventionAction.create({
+               data: {
+                 planId: plan.id,
+                 measure: 'Recomendaciones AI: Plan Organizacional',
+                 responsible: 'Psicólogo SST',
+                 notes: overrideText
+               }
+             });
+          }
+        } else {
+           const newPlan = await prisma.interventionPlan.create({
+             data: {
+               organizationId,
+               psychologistId: session.user.id,
+               title: 'Plan de Intervención Organizacional',
+               period: new Date().getFullYear().toString(),
+               actions: {
+                 create: [{
+                   measure: 'Recomendaciones AI: Plan Organizacional',
+                   responsible: 'Psicólogo SST',
+                   notes: overrideText
+                 }]
+               }
+             }
+           });
+        }
+        return NextResponse.json({ success: true, recommendations: overrideText, organizationId });
+      }
+
+      // Generate with AI
+      const { AssessmentService } = await import('@/lib/services/assessment-service');
+      const orgData = await AssessmentService.getOrganizationalReportData(organizationId, 'ALL');
+      
+      if (orgData.isRestricted) {
+        return NextResponse.json({ error: 'Muestra insuficiente (N<5). Reserva legal activa.' }, { status: 403 });
+      }
+
+      const { generateOrganizationalRecommendations } = await import('@/lib/ai/openrouter-client');
+      const recommendations = await generateOrganizationalRecommendations(orgData);
+
+      // Save to plan
+      let plan = await prisma.interventionPlan.findFirst({ where: { organizationId } });
+      if (!plan) {
+         plan = await prisma.interventionPlan.create({
+             data: {
+               organizationId,
+               psychologistId: session.user.id,
+               title: 'Plan de Intervención Organizacional',
+               period: new Date().getFullYear().toString(),
+             }
+         });
+      }
+
+      const action = await prisma.interventionAction.findFirst({ where: { planId: plan.id, measure: { startsWith: 'Recomendaciones AI:' } } });
+      if (action) {
+         await prisma.interventionAction.update({
+           where: { id: action.id },
+           data: { notes: recommendations }
+         });
+      } else {
+         await prisma.interventionAction.create({
+           data: {
+             planId: plan.id,
+             measure: 'Recomendaciones AI: Plan Organizacional',
+             responsible: 'Psicólogo SST',
+             notes: recommendations
+           }
+         });
+      }
+
+      return NextResponse.json({ success: true, recommendations, organizationId });
+    }
+
+    // --- INDIVIDUAL LOGIC ---
     // Verify assessment ownership
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId },
@@ -76,22 +168,40 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** GET /api/ai/recommendations?assessmentId=... */
+/** GET /api/ai/recommendations?assessmentId=...&organizationId=... */
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const assessmentId = req.nextUrl.searchParams.get('assessmentId');
-    if (!assessmentId) return NextResponse.json({ error: 'assessmentId required' }, { status: 400 });
+    const organizationId = req.nextUrl.searchParams.get('organizationId');
 
-    const assessment = await prisma.assessment.findUnique({ where: { id: assessmentId } });
+    if (!assessmentId && !organizationId) return NextResponse.json({ error: 'assessmentId or organizationId required' }, { status: 400 });
+
+    if (organizationId) {
+       const org = await prisma.organization.findUnique({ where: { id: organizationId } });
+       if (!org) return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+       if (org.psychologistId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+       const plan = await prisma.interventionPlan.findFirst({ where: { organizationId }, include: { actions: true } });
+       const action = plan?.actions.find(a => a.measure.startsWith('Recomendaciones AI:'));
+       
+       return NextResponse.json({
+         success: true,
+         recommendations: action ? action.notes : null,
+         organizationId,
+       });
+    }
+
+    // Individual logic
+    const assessment = await prisma.assessment.findUnique({ where: { id: assessmentId as string } });
     if (!assessment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (assessment.psychologistId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const report = await prisma.report.findFirst({ where: { assessmentId } });
+    const report = await prisma.report.findFirst({ where: { assessmentId: assessmentId as string } });
     return NextResponse.json({
       success: true,
       recommendations: (report as any)?.recommendationsAI ?? null,

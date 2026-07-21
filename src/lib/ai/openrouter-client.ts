@@ -234,3 +234,36 @@ export async function listAvailableModels(): Promise<Array<{ id: string; name: s
     return [];
   }
 }
+
+/**
+ * Generate Organizational Recommendations based on the Technical Guide
+ */
+export async function generateOrganizationalRecommendations(
+  orgData: any
+): Promise<string> {
+  const prompt = `Eres un psicólogo experto en salud ocupacional en Colombia.
+Basado estrictamente en los protocolos de intervención de la Resolución 2764 de Colombia, 
+selecciona y adapta la acción correspondiente del Protocolo de Acciones Generales (Acciones 3.1 a 3.34) para el plan de mejoramiento.
+
+Datos de la empresa:
+- Porcentaje de población en riesgo (Alto/Muy Alto): ${orgData.executiveSummary?.criticalPercent || 0}%
+- Total de trabajadores evaluados: ${orgData.executiveSummary?.totalWorkers || 0}
+- Riesgo Predominante: ${orgData.executiveSummary?.predominantRisk || 'Ninguno'}
+
+Redacta de 3 a 5 recomendaciones organizacionales específicas basadas en los resultados, orientadas al ciclo PHVA del Sistema de Gestión de Seguridad y Salud en el Trabajo (SG-SST).
+El texto generado irá directo al reporte, así que usa un tono profesional de consultor experto y abstente de frases introductorias (ej. "Aquí están las recomendaciones").`;
+
+  const response = await callOpenRouter({
+    model: 'anthropic/claude-3-5-haiku',
+    messages: [
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    max_tokens: 1500,
+    temperature: 0.5,
+  });
+
+  return response;
+}
