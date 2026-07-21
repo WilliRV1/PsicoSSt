@@ -381,5 +381,3 @@ export default async function WorkersPage({ searchParams }: PageProps) {
         </div>
     );
 }
-    );
-}
