@@ -91,7 +91,7 @@ Genera de 3 a 5 acciones estratégicas para la projectMatrix basadas en los hall
                     "X-Title": "PsicoSST",
                 },
                 body: JSON.stringify({
-                    model: "anthropic/claude-3.5-haiku",
+                    model: "anthropic/claude-3.5-sonnet",
                     messages: [{ role: "user", content: prompt }],
                 })
             });
