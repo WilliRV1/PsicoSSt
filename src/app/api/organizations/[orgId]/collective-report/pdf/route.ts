@@ -3,14 +3,19 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { renderToStream } from "@react-pdf/renderer";
 import React from "react";
-import { CollectiveDiagnosticPDF } from "@/components/organizations/collective-diagnostic-pdf";
+import { ExecutiveReportPDF } from "@/components/organizations/executive-report-pdf";
+import { computeCollectiveMetrics } from "@/lib/pdf/engine/metrics";
 
 export async function GET(
-    _req: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ orgId: string }> }
 ) {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    const url = new URL(req.url);
+    const reportType = url.searchParams.get("type") || "executive"; // executive or technical
+    
     const { orgId } = await params;
 
     const org = await prisma.organization.findUnique({
@@ -42,32 +47,39 @@ export async function GET(
         select: { fullName: true, licenseNumber: true, professionalCard: true },
     });
 
-    // 1. Prepare risk summary for AI
-    const riskSummary = { workersEvaluated: workers.length, highRiskCount: 0 };
-    workers.forEach(w => {
-        const hasHighRisk = w.assessments.some(a => 
-            a.scoredResult?.overallRiskCategory === "ALTO" || 
-            a.scoredResult?.overallRiskCategory === "MUY_ALTO"
-        );
-        if (hasHighRisk) riskSummary.highRiskCount++;
+    const settings = await prisma.psychologistSettings.findUnique({
+        where: { psychologistId: session.user.id },
     });
+
+    // 1. Prepare risk summary for AI using the new Metrics engine
+    const metrics = computeCollectiveMetrics(workers);
 
     // 2. Fetch AI Recommendations locally
     let aiRecommendations = "";
+    let aiProjectMatrix = [];
     try {
         const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
         if (!OPENROUTER_API_KEY) {
-             aiRecommendations = `[SIMULACIÓN IA] Basado en los riesgos encontrados en la empresa ${org.name}, se recomienda:
-1. Implementar pausas activas para mitigar demandas físicas.
-2. Mejorar canales de comunicación para reducir fricciones en relaciones interpersonales.
-3. Evaluar la carga de trabajo en los departamentos con mayor riesgo.`;
+             aiRecommendations = `Los resultados muestran una organización con condiciones psicosociales mayoritariamente favorables. Sin embargo, el comportamiento observado en las Demandas Psicológicas representa un foco de atención prioritario debido a su impacto potencial sobre la productividad y el clima organizacional.`;
+             aiProjectMatrix = [
+                 { priority: "Alta", action: "Capacitación a líderes en manejo de estrés", responsible: "SST", time: "30 días", impact: "Alto" }
+             ];
         } else {
-             const prompt = `Eres un psicólogo especialista en Seguridad y Salud en el Trabajo (SST) en Colombia.
-Basado en los siguientes resultados de la Batería de Riesgo Psicosocial para la empresa ${org.name}:
+             const prompt = `Actúa como un consultor senior de una firma top mundial (ej. Deloitte) especializado en Riesgo Psicosocial y Salud Ocupacional.
+Analiza las siguientes métricas de la organización ${org.name}:
+- Health Score: ${metrics.healthScore}/100
+- Trabajadores Evaluados: ${metrics.totalEvaluated}
+- Hallazgos principales: ${JSON.stringify(metrics.topFindings)}
+- Factores protectores: ${JSON.stringify(metrics.protectiveFactors)}
 
-${JSON.stringify(riskSummary)}
-
-Redacta en un tono profesional, objetivo y en primera persona, las conclusiones generales y un plan de acción sugerido (a corto, mediano y largo plazo) enfocado en los posibles riesgos. Máximo 150 palabras.`;
+Debes responder estrictamente en un bloque de código JSON con este formato:
+{
+  "narrative": "Un solo párrafo (máximo 120 palabras) interpretando la situación general en tono de consultoría de alto nivel. Céntrate en decisiones estratégicas e impacto de negocio, no solo en repetir porcentajes.",
+  "projectMatrix": [
+    { "priority": "Alta|Media|Baja", "action": "Breve descripción de la acción", "responsible": "Ej: Talento Humano", "time": "Ej: 30 días", "impact": "Alto|Medio|Bajo" }
+  ]
+}
+Genera de 3 a 5 acciones estratégicas para la projectMatrix basadas en los hallazgos.`;
 
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
@@ -84,7 +96,16 @@ Redacta en un tono profesional, objetivo y en primera persona, las conclusiones 
             });
             if (response.ok) {
                 const data = await response.json();
-                aiRecommendations = data.choices[0].message.content;
+                const content = data.choices[0].message.content;
+                // Extraer el JSON del string
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    aiRecommendations = parsed.narrative;
+                    aiProjectMatrix = parsed.projectMatrix;
+                } else {
+                    aiRecommendations = content;
+                }
             }
         }
     } catch (e) {
@@ -92,17 +113,21 @@ Redacta en un tono profesional, objetivo y en primera persona, las conclusiones 
     }
 
     // 3. Render PDF
-    const docElement = React.createElement(CollectiveDiagnosticPDF, {
+    const pdfProps = {
         organization: { name: org.name, nit: org.nit || "", city: org.city },
         psychologist: { 
             fullName: psychologist?.fullName || "", 
             licenseNumber: psychologist?.licenseNumber || "", 
             professionalCard: psychologist?.professionalCard || "" 
         },
-        totalWorkers: workers.length,
+        settings: settings || undefined,
+        metrics,
         generatedAt: new Date().toISOString(),
-        aiRecommendations
-    });
+        aiRecommendations,
+        aiProjectMatrix
+    };
+
+    const docElement = React.createElement(ExecutiveReportPDF, pdfProps);
 
     const stream = await renderToStream(docElement as any);
 
