@@ -1,529 +1,476 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-    FormType,
-    QuestionnaireType,
-    ItemResponses,
-    DimensionScore,
-    ScoredResultData
-} from "@/types/battery";
-import { getFormConfig } from "@/config/battery";
+import { FormType, QuestionnaireType, ItemResponses, ScoredResultData } from "@/types/battery";
 import { scoreQuestionnaire } from "@/lib/scoring";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface ManualFormProps {
     workerId: string;
     organizationId: string;
-    hasCustomerInteraction?: boolean;
-    onSuccess: (result: any) => void;
-    // Props for editing an existing assessment
-    initialAssessmentId?: string;
-    initialFormType?: FormType;
-    initialQType?: QuestionnaireType;
-    initialResponses?: ItemResponses;
+    workerName: string;
+    organizationName: string;
+    onReset: () => void;
 }
 
-export default function ManualForm({ 
-    workerId, 
-    organizationId, 
-    hasCustomerInteraction = true, 
-    onSuccess,
-    initialAssessmentId,
-    initialFormType,
-    initialQType,
-    initialResponses
-}: ManualFormProps) {
-    const [attendsCustomers, setAttendsCustomers] = useState<boolean>(hasCustomerInteraction);
+type Mode = "SETUP" | "QUESTIONNAIRE" | "CONTROL_CLIENTS" | "CONTROL_BOSS" | "SUCCESS";
 
-    useEffect(() => {
-        setAttendsCustomers(hasCustomerInteraction);
-    }, [hasCustomerInteraction]);
-
-    const [isBoss, setIsBoss] = useState<boolean>(true);
-
-    const [formType, setFormType] = useState<FormType>(initialFormType || "A");
-    const [qType, setQType] = useState<QuestionnaireType>(initialQType || "INTRALABORAL");
-    const [responsesCache, setResponsesCache] = useState<Record<QuestionnaireType, ItemResponses>>({
-        INTRALABORAL: (initialQType === "INTRALABORAL" && initialResponses) ? initialResponses : {},
-        EXTRALABORAL: (initialQType === "EXTRALABORAL" && initialResponses) ? initialResponses : {},
-        STRESS: (initialQType === "STRESS" && initialResponses) ? initialResponses : {}
-    });
-    const responses = responsesCache[qType];
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [realTimeScore, setRealTimeScore] = useState<ScoredResultData | null>(null);
+export default function ManualForm({ workerId, organizationId, workerName, organizationName, onReset }: ManualFormProps) {
+    // 1. Setup State
+    const [mode, setMode] = useState<Mode>("SETUP");
+    const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
+    const [formType, setFormType] = useState<FormType>("A");
     const [assessmentDate, setAssessmentDate] = useState<string>(new Date().toISOString().substring(0, 10));
     
-    // In edit mode, we bypass the informed consent physical check (since it was already confirmed initially)
-    const [consentGranted, setConsentGranted] = useState(initialAssessmentId ? true : false);
+    // 2. Control Questions State
+    const [hasCustomerInteraction, setHasCustomerInteraction] = useState<boolean | null>(null);
+    const [isBoss, setIsBoss] = useState<boolean | null>(null);
 
-    const config = getFormConfig(formType, qType);
-    const rawTotalItems = config?.totalItems || 0;
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    // 3. Responses State
+    const [responses, setResponses] = useState<ItemResponses>({});
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [scoreResult, setScoreResult] = useState<ScoredResultData | null>(null);
+    const [startTime, setStartTime] = useState<number>(0);
+    const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-    // Items list (1 to totalItems), filtering out omitted ones
-    const items = Array.from({ length: rawTotalItems }, (_, i) => i + 1).filter(item => {
+    const inputRef = useRef<HTMLDivElement>(null);
+
+    // Generate Items list dynamically based on control answers
+    const getItems = () => {
+        let total = 0;
+        if (qType === "STRESS" || qType === "EXTRALABORAL") total = 31;
+        if (qType === "INTRALABORAL" && formType === "A") total = 123;
+        if (qType === "INTRALABORAL" && formType === "B") total = 97;
+
+        let items = Array.from({ length: total }, (_, i) => i + 1);
+
         if (qType === "INTRALABORAL") {
-            const dim = config?.dimensions?.find((d: any) => d.items.includes(item));
-            if (dim?.key === "demandas_emocionales" && attendsCustomers === false) {
-                return false;
+            // Remove client items if worker doesn't attend clients
+            if (hasCustomerInteraction === false) {
+                if (formType === "A") items = items.filter(i => i < 106 || i > 114);
+                if (formType === "B") items = items.filter(i => i < 80 || i > 88);
             }
-            if (formType === "A" && dim?.key === "relacion_colaboradores" && isBoss === false) {
-                return false;
+            // Remove boss items if worker is not boss (Form A only)
+            if (formType === "A" && isBoss === false) {
+                items = items.filter(i => i < 115 || i > 123);
             }
         }
-        return true;
-    });
-    const totalItems = items.length;
+        return items;
+    };
 
-    // Calculate real-time score when responses change
+    const items = getItems();
+    const currentItem = items[currentIndex];
+    const isStress = qType === "STRESS";
+    const maxVal = isStress ? 4 : 5;
+
+    // Timer logic
     useEffect(() => {
-        if (Object.keys(responses).length > 0) {
-            try {
-                const score = scoreQuestionnaire(responses, formType, qType, {
-                    hasCustomerInteraction: attendsCustomers,
-                    jobLevel: isBoss ? "JEFATURA" : "PROFESIONAL"
-                } as any);
-                setRealTimeScore(score);
-            } catch (e) {
-                console.error(e);
-            }
+        let interval: NodeJS.Timeout;
+        if (mode === "QUESTIONNAIRE") {
+            if (startTime === 0) setStartTime(Date.now());
+            interval = setInterval(() => {
+                setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000));
+            }, 1000);
         }
-    }, [responses, formType, qType, attendsCustomers, isBoss]);
+        return () => clearInterval(interval);
+    }, [mode, startTime]);
 
-    const handleValueChange = (item: number, value: number) => {
-        if (value < 0 || value > 4) return;
+    // Keyboard Navigation
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if (mode !== "QUESTIONNAIRE" && mode !== "CONTROL_CLIENTS" && mode !== "CONTROL_BOSS") return;
 
-        setResponsesCache(prev => ({
-            ...prev,
-            [qType]: {
-                ...prev[qType],
-                [String(item)]: value
+            // Handle Control Questions via Keyboard
+            if (mode === "CONTROL_CLIENTS") {
+                if (e.key === "1") { handleControlAnswer("CLIENTS", true); }
+                if (e.key === "2") { handleControlAnswer("CLIENTS", false); }
+                return;
             }
-        }));
+            if (mode === "CONTROL_BOSS") {
+                if (e.key === "1") { handleControlAnswer("BOSS", true); }
+                if (e.key === "2") { handleControlAnswer("BOSS", false); }
+                return;
+            }
 
-        // Auto-tab to next item if it's a fast entry (keyboard)
-        if (currentIndex < totalItems - 1) {
-            const nextIndex = currentIndex + 1;
-            setCurrentIndex(nextIndex);
-            inputRefs.current[nextIndex]?.focus();
+            // Handle Questionnaire
+            const keyVal = parseInt(e.key);
+            if (!isNaN(keyVal) && keyVal >= 1 && keyVal <= maxVal) {
+                e.preventDefault();
+                handleAnswer(keyVal - 1); // 0-indexed likert
+            } else if (e.key === "Backspace" || e.key === "ArrowUp") {
+                e.preventDefault();
+                goBack();
+            } else if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (responses[String(currentItem)] !== undefined && currentIndex < items.length - 1) {
+                    setCurrentIndex(prev => prev + 1);
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleGlobalKeyDown);
+        return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+    }, [mode, currentIndex, items, responses, maxVal]);
+
+    const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
+        if (type === "CLIENTS") {
+            setHasCustomerInteraction(value);
+            setMode("QUESTIONNAIRE");
+        } else {
+            setIsBoss(value);
+            setMode("QUESTIONNAIRE");
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
-        const maxVal = qType === 'STRESS' ? 4 : 5;
-        const keyVal = parseInt(e.key);
-        if (!isNaN(keyVal) && keyVal >= 1 && keyVal <= maxVal) {
-            e.preventDefault();
-            handleValueChange(items[index], keyVal - 1);
-        } else if (e.key === "ArrowDown" || e.key === "Enter") {
-            e.preventDefault();
-            if (index < totalItems - 1) {
-                setCurrentIndex(index + 1);
-                inputRefs.current[index + 1]?.focus();
+    // Auto-save simulation & actual local state save
+    const handleAnswer = (val: number) => {
+        setResponses(prev => ({ ...prev, [String(currentItem)]: val }));
+        
+        // Let user see the answer for a tiny fraction of time, then advance
+        setTimeout(() => {
+            advanceNext();
+        }, 150);
+    };
+
+    const advanceNext = () => {
+        // Intercept for control questions
+        if (qType === "INTRALABORAL") {
+            // Form A: Clients starts at 106
+            if (formType === "A" && currentItem === 105 && hasCustomerInteraction === null) {
+                setMode("CONTROL_CLIENTS");
+                return;
             }
-        } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            if (index > 0) {
-                setCurrentIndex(index - 1);
-                inputRefs.current[index - 1]?.focus();
+            // Form A: Boss starts at 115
+            if (formType === "A" && currentItem === (hasCustomerInteraction ? 114 : 105) && isBoss === null) {
+                setMode("CONTROL_BOSS");
+                return;
             }
+            // Form B: Clients starts at 80
+            if (formType === "B" && currentItem === 79 && hasCustomerInteraction === null) {
+                setMode("CONTROL_CLIENTS");
+                return;
+            }
+        }
+
+        if (currentIndex < items.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+        } else if (currentIndex === items.length - 1) {
+            // Reached the end!
+            submitAssessment();
         }
     };
 
-
-    const handleSubmit = async () => {
-        if (Object.keys(responses).length < totalItems) {
-            setError(`Faltan ${totalItems - Object.keys(responses).length} ítems por completar.`);
-            return;
+    const goBack = () => {
+        if (currentIndex > 0) {
+            setCurrentIndex(prev => prev - 1);
+        } else if (currentIndex === 0) {
+            // If we are at 0 and they want to go back, maybe let them re-do control questions?
+            // For now, do nothing.
         }
+    };
 
-        if (!consentGranted) {
-            setError("Debe confirmar que cuenta con el consentimiento informado firmado.");
-            return;
-        }
-
+    const submitAssessment = async () => {
         setIsSubmitting(true);
-        setError(null);
         try {
-            let res;
-            if (initialAssessmentId) {
-                // EDIT MODE: Update existing assessment
-                res = await fetch(`/api/assessments/${initialAssessmentId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        responses: responses
-                    })
-                });
-            } else {
-                // CREATE MODE: Create new assessment
-                res = await fetch("/api/assessments", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        workerId,
-                        organizationId,
-                        formType,
-                        questionnaireType: qType,
-                        assessmentDate,
-                        responses: responses,
-                        hasCustomerInteraction: attendsCustomers,
-                        occupationalGroup: formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
-                        inputMethod: "MANUAL",
-                        informedConsent: {
-                            consentGranted: true,
-                            consentMethod: "WRITTEN",
-                            consentText: "Confirmación de consentimiento físico firmado (capturado vía digitalización manual)."
-                        }
-                    })
-                });
-            }
+            // 1. Calculate Score locally (optimistic)
+            const score = scoreQuestionnaire(responses, formType, qType, {
+                hasCustomerInteraction: hasCustomerInteraction ?? false,
+                jobLevel: isBoss ? "JEFATURA" : "PROFESIONAL"
+            } as any);
+
+            // 2. Send to backend
+            const payload = {
+                workerId,
+                organizationId,
+                formType,
+                questionnaireType: qType,
+                assessmentDate,
+                responses,
+                hasCustomerInteraction: hasCustomerInteraction ?? false,
+                occupationalGroup: formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
+                inputMethod: "MANUAL",
+                informedConsent: {
+                    consentGranted: true,
+                    consentMethod: "WRITTEN",
+                    consentText: "Digitación manual confirma consentimiento físico."
+                }
+            };
+
+            const res = await fetch("/api/assessments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
             if (!res.ok) {
                 const data = await res.json();
-                if (data.code === "INSUFFICIENT_CREDITS") {
-                    setError("INSUFFICIENT_CREDITS");
-                    return;
-                }
-                throw new Error(data.error || "Error al guardar la evaluación");
+                throw new Error(data.error || "Error al guardar");
             }
 
-            const result = await res.json();
-            toast.success("Evaluación guardada exitosamente");
-            onSuccess(result);
-        } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message || "Error al guardar la evaluación");
+            setScoreResult(score);
+            setMode("SUCCESS");
+        } catch (error: any) {
+            toast.error(error.message);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    return (
-        <div className="bg-card overflow-hidden rounded-b-xl">
-            {/* Header / Selector */}
-            <div className="p-6 border-b border-border bg-muted">
-                <div className="flex flex-wrap gap-6 items-end">
-                    <div className="flex-1 min-w-[200px]">
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de Cuestionario</label>
-                        <select
-                            value={qType}
-                            onChange={(e) => {
-                                setQType(e.target.value as QuestionnaireType);
-                                setCurrentIndex(0);
-                                setConsentGranted(false);
-                            }}
-                            disabled={!!initialAssessmentId}
-                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <option value="INTRALABORAL">Intralaboral</option>
-                            <option value="EXTRALABORAL">Extralaboral</option>
-                            <option value="STRESS">Estrés</option>
-                        </select>
+    const formatTime = (secs: number) => {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    if (mode === "SETUP") {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 animate-in fade-in slide-in-from-bottom-4">
+                <div className="w-full bg-card border border-border shadow-xl rounded-3xl overflow-hidden p-8">
+                    <div className="text-center mb-8">
+                        <h2 className="text-xl font-bold text-foreground">Configurar Evaluación</h2>
+                        <p className="text-muted-foreground mt-1 text-sm">{workerName} • {organizationName}</p>
                     </div>
-                    <div className="flex-1 min-w-[150px]">
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Fecha Aplicación</label>
-                        <Input
-                            type="date"
-                            value={assessmentDate}
-                            onChange={(e) => setAssessmentDate(e.target.value)}
-                            max={new Date().toISOString().substring(0, 10)}
-                            className="h-9 font-medium"
-                        />
-                    </div>
-                    {qType === "INTRALABORAL" && (
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Forma</label>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Cuestionario</label>
                             <select
-                                value={formType}
-                                onChange={(e) => {
-                                    setFormType(e.target.value as FormType);
-                                    // Limpiamos intralaboral al cambiar la forma A/B
-                                    setResponsesCache(prev => ({ ...prev, INTRALABORAL: {} }));
-                                    setCurrentIndex(0);
-                                    setConsentGranted(false);
-                                }}
-                                disabled={!!initialAssessmentId}
-                                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                value={qType}
+                                onChange={(e) => setQType(e.target.value as QuestionnaireType)}
+                                className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
                             >
-                                <option value="A">Forma A (Jefes/Profesionales)</option>
-                                <option value="B">Forma B (Auxiliares/Operativos)</option>
+                                <option value="INTRALABORAL">Intralaboral</option>
+                                <option value="EXTRALABORAL">Extralaboral</option>
+                                <option value="STRESS">Estrés</option>
                             </select>
                         </div>
-                    )}
-                    {qType === "INTRALABORAL" && (
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">¿Atiende clientes?</label>
-                            <div className="flex h-9 rounded-md border border-input p-0.5 bg-muted/30">
-                                <button
-                                    onClick={() => setAttendsCustomers(true)}
-                                    className={`flex-1 rounded text-xs font-bold transition-colors ${attendsCustomers ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
-                                >
-                                    SÍ
-                                </button>
-                                <button
-                                    onClick={() => setAttendsCustomers(false)}
-                                    className={`flex-1 rounded text-xs font-bold transition-colors ${!attendsCustomers ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
-                                >
-                                    NO
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    {qType === "INTRALABORAL" && formType === "A" && (
-                        <div className="flex-1 min-w-[200px]">
-                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">¿Es jefe de otras personas?</label>
-                            <div className="flex h-9 rounded-md border border-input p-0.5 bg-muted/30">
-                                <button
-                                    onClick={() => setIsBoss(true)}
-                                    className={`flex-1 rounded text-xs font-bold transition-colors ${isBoss ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
-                                >
-                                    SÍ
-                                </button>
-                                <button
-                                    onClick={() => setIsBoss(false)}
-                                    className={`flex-1 rounded text-xs font-bold transition-colors ${!isBoss ? 'bg-indigo-600 text-white shadow' : 'text-muted-foreground hover:bg-muted'}`}
-                                >
-                                    NO
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    <div className="w-full lg:w-auto lg:ml-auto flex flex-col gap-2 min-w-[250px]">
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Progreso</span>
-                            <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{Object.keys(responses).length} / {totalItems}</span>
-                        </div>
-                        <div className="w-full h-2.5 rounded-full overflow-hidden bg-muted-foreground/20">
-                            <div
-                                className="h-full bg-indigo-600 transition-all duration-300 ease-out"
-                                style={{ width: `${(Object.keys(responses).length / totalItems) * 100}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-border">
-                {/* Entry Area */}
-                <div className="p-6 h-[600px] overflow-y-auto lg:col-span-3 bg-muted/30 relative scroll-smooth flex flex-col gap-4">
-                    {/* Legend */}
-                    <div className="bg-white border border-border rounded-xl p-4 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Convenciones del Cuestionario</p>
-                        {qType === 'STRESS' ? (
-                            <div className="flex flex-wrap gap-3 text-sm">
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = Casi siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = A veces</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">4</kbd> = Nunca</span>
-                            </div>
-                        ) : (
-                            <div className="flex flex-wrap gap-3 text-sm">
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">1</kbd> = Siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">2</kbd> = Casi siempre</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">3</kbd> = Algunas veces</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">4</kbd> = Casi nunca</span>
-                                <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 bg-muted rounded font-mono text-xs">5</kbd> = Nunca</span>
+                        {qType === "INTRALABORAL" && (
+                            <div>
+                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Forma</label>
+                                <select
+                                    value={formType}
+                                    onChange={(e) => setFormType(e.target.value as FormType)}
+                                    className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                                >
+                                    <option value="A">Forma A (Jefaturas / Profesionales / Técnicos)</option>
+                                    <option value="B">Forma B (Auxiliares / Operativos)</option>
+                                </select>
                             </div>
                         )}
-                    </div>
-                    
-                    <div className="space-y-3">
-                        {items.map((item, idx) => (
-                            <div
-                                key={item}
-                                className={`flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer ${currentIndex === idx
-                                    ? "border-indigo-500 bg-indigo-50/50 shadow-sm"
-                                    : "border-border bg-card hover:border-indigo-300"
-                                    }`}
+
+                        <div>
+                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Fecha de Aplicación</label>
+                            <input
+                                type="date"
+                                value={assessmentDate}
+                                onChange={(e) => setAssessmentDate(e.target.value)}
+                                className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                            />
+                        </div>
+
+                        <div className="pt-4 flex gap-4">
+                            <Button variant="outline" onClick={onReset} className="h-12 flex-1 rounded-xl text-base">Cancelar</Button>
+                            <Button 
                                 onClick={() => {
-                                    setCurrentIndex(idx);
-                                    inputRefs.current[idx]?.focus();
-                                }}
+                                    setStartTime(Date.now());
+                                    setMode("QUESTIONNAIRE");
+                                }} 
+                                className="h-12 flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base shadow-md"
                             >
-                                <span className="w-12 font-black text-muted-foreground text-lg">#{item}</span>
-                                <input
-                                    ref={el => { inputRefs.current[idx] = el; }}
-                                    type="text"
-                                    value={responses[String(item)] !== undefined ? responses[String(item)] + 1 : ""}
-                                    onKeyDown={(e) => handleKeyDown(e, idx)}
-                                    readOnly
-                                    placeholder="?"
-                                    className={`w-16 h-16 text-center font-black text-2xl border-2 rounded-xl focus:outline-none transition-all ${currentIndex === idx ? 'border-primary bg-background text-primary shadow-[0_0_0_4px_rgba(20,184,166,0.2)] scale-110 z-10' : 'border-border bg-surface-muted text-foreground'}`}
-                                />
-                                <div className="ml-6 flex gap-2">
-                                    {(qType === 'STRESS' ? [1, 2, 3, 4] : [1, 2, 3, 4, 5]).map(v => (
-                                        <button
-                                            key={v}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleValueChange(item, v - 1);
-                                            }}
-                                            className={`w-10 h-10 text-sm font-bold rounded-lg flex items-center justify-center transition-all ${responses[String(item)] === v - 1
-                                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 scale-105"
-                                                : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                                                }`}
-                                        >
-                                            {v}
-                                        </button>
-                                    ))}
-                                </div>
-                                {responses[String(item)] !== undefined && (
-                                    <span className="ml-auto text-xs font-bold text-muted-foreground bg-muted px-3 py-1.5 rounded-md hidden sm:block">
-                                        {responses[String(item)] === 0 && "Siempre"}
-                                        {responses[String(item)] === 1 && "Casi siempre"}
-                                        {responses[String(item)] === 2 && (qType === 'STRESS' ? "A veces" : "Algunas veces")}
-                                        {responses[String(item)] === 3 && (qType === 'STRESS' ? "Nunca" : "Casi nunca")}
-                                        {responses[String(item)] === 4 && "Nunca"}
-                                    </span>
-                                )}
-                            </div>
-                        ))}
+                                Iniciar Digitación
+                            </Button>
+                        </div>
                     </div>
-                </div>
-
-                {/* Real-time Result Area */}
-                <div className="p-6 flex flex-col lg:col-span-2 bg-card">
-                    <h3 className="text-lg font-black text-foreground mb-6 flex items-center gap-2 border-b border-border pb-4">
-                        <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Puntuación en Tiempo Real
-                    </h3>
-
-                    {realTimeScore ? (
-                        <div className="space-y-6 flex-1 flex flex-col">
-                            {/* Total Risk Card */}
-                            <div className="p-5 rounded-xl border border-border shadow-sm bg-muted">
-                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Riesgo Total Estimado</span>
-                                <div className="flex items-end justify-between">
-                                    <span className={`text-2xl font-black px-3 py-1 rounded-md ${realTimeScore.total.riskCategory === "MUY_ALTO" ? "bg-red-100 text-red-700" :
-                                        realTimeScore.total.riskCategory === "ALTO" ? "bg-orange-100 text-orange-700" :
-                                            realTimeScore.total.riskCategory === "MEDIO" ? "bg-yellow-100 text-yellow-700" :
-                                                realTimeScore.total.riskCategory === "BAJO" ? "bg-emerald-100 text-emerald-700" :
-                                                    "bg-teal-100 text-teal-700"
-                                        }`}>
-                                        {realTimeScore.total.riskCategory.replace("_", " ")}
-                                    </span>
-                                    <div className="text-right">
-                                        <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider block">Puntaje</span>
-                                        <span className="text-foreground text-lg font-black">{realTimeScore.total.transformedScore.toFixed(1)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Dimension Breakdown */}
-                            <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                {Object.values(realTimeScore.dimensions)
-                                    .filter(d => d.itemCount > 0)
-                                    .map(dim => (
-                                        <div key={dim.dimensionKey} className="flex flex-col gap-1.5">
-                                            <div className="flex justify-between text-xs font-bold text-foreground">
-                                                <span className="truncate pr-2">{dim.dimensionName}</span>
-                                                <span className={`flex-shrink-0 px-2 py-0.5 rounded ${dim.riskCategory === "MUY_ALTO" ? "bg-red-50 text-red-600" :
-                                                    dim.riskCategory === "ALTO" ? "bg-orange-50 text-orange-600" :
-                                                        "bg-muted text-muted-foreground"
-                                                    }`}>{dim.riskCategory.replace("_", " ")}</span>
-                                            </div>
-                                            <div className="w-full h-1.5 rounded-full overflow-hidden bg-muted">
-                                                <div
-                                                    className={`h-full transition-all duration-500 ${dim.riskCategory === "MUY_ALTO" ? "bg-red-500" :
-                                                        dim.riskCategory === "ALTO" ? "bg-orange-500" :
-                                                            dim.riskCategory === "MEDIO" ? "bg-yellow-500" :
-                                                                "bg-emerald-500"
-                                                        }`}
-                                                    style={{ width: `${dim.transformedScore}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                            </div>
-
-                            {/* Actions */}
-                            <div className="mt-auto pt-6 border-t border-border">
-                                {/* Consent Checkbox */}
-                                {Object.keys(responses).length >= totalItems && (
-                                    <div className="mb-5 p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 transition-all animate-in fade-in slide-in-from-bottom-2">
-                                        <label className="flex items-start gap-3 cursor-pointer group">
-                                            <div className="relative flex items-center justify-center mt-0.5">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={consentGranted}
-                                                    onChange={(e) => setConsentGranted(e.target.checked)}
-                                                    className="w-5 h-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 transition-colors cursor-pointer"
-                                                />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-foreground group-hover:text-indigo-700 transition-colors">Consentimiento Informado</span>
-                                                <span className="text-[11px] text-muted-foreground leading-relaxed mt-1">
-                                                    Confirmo bajo mi responsabilidad profesional que el trabajador ha firmado el <strong>Consentimiento Informado</strong> físico.
-                                                </span>
-                                            </div>
-                                        </label>
-                                    </div>
-                                )}
-
-                                {error && (
-                                    <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center gap-2 font-medium">
-                                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                                        {error === "INSUFFICIENT_CREDITS" ? (
-                                            <span>
-                                                No tienes créditos suficientes.{" "}
-                                                <a href="/dashboard/credits" className="underline font-bold hover:text-red-900">
-                                                    Comprar créditos →
-                                                </a>
-                                            </span>
-                                        ) : error}
-                                    </div>
-                                )}
-                                <Button
-                                    onClick={handleSubmit}
-                                    disabled={isSubmitting || Object.keys(responses).length < totalItems || !consentGranted}
-                                    className="w-full py-4 text-base shadow-md shadow-indigo-200"
-                                >
-                                    {isSubmitting ? (
-                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    ) : (
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                    )}
-                                    Finalizar y Guardar Evaluación
-                                </Button>
-                                <p className="text-center text-xs text-muted-foreground mt-4 font-medium flex items-center justify-center gap-1.5">
-                                    Teclas <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">1</kbd> a <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded font-mono text-[10px] text-muted-foreground">{qType === 'STRESS' ? '4' : '5'}</kbd> para ingreso ultra rápido
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground text-center p-8 border-2 border-dashed border-border rounded-xl bg-muted">
-                            <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center mb-4 shadow-sm">
-                                <svg className="w-8 h-8 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            </div>
-                            <p className="font-medium">Comienza a ingresar puntajes para ver el análisis de riesgo automático.</p>
-                        </div>
-                    )}
                 </div>
             </div>
-            <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f5f9;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #cbd5e1;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #94a3b8;
-                }
-            `}</style>
+        );
+    }
+
+    if (mode === "CONTROL_CLIENTS" || mode === "CONTROL_BOSS") {
+        const isClient = mode === "CONTROL_CLIENTS";
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-full text-center space-y-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-100 text-amber-600 mb-4 shadow-sm border border-amber-200">
+                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-foreground mb-3">Pregunta de Control</h2>
+                        <p className="text-xl text-muted-foreground font-medium">
+                            {isClient ? "¿El trabajador atiende clientes o usuarios?" : "¿El trabajador es jefe de otras personas?"}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-4 mt-8 max-w-sm mx-auto">
+                        <button onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true)} className="flex items-center justify-between p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all hover:scale-[1.02] active:scale-95 shadow-sm group">
+                            <span className="text-xl font-bold text-indigo-900">SÍ</span>
+                            <kbd className="px-3 py-1 bg-white border border-indigo-200 rounded-lg shadow-sm font-mono font-black text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">1</kbd>
+                        </button>
+                        <button onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false)} className="flex items-center justify-between p-5 rounded-2xl border-2 border-border bg-card hover:border-indigo-300 hover:bg-muted/50 transition-all hover:scale-[1.02] active:scale-95 group">
+                            <span className="text-xl font-bold text-foreground">NO</span>
+                            <kbd className="px-3 py-1 bg-muted rounded-lg font-mono font-black text-muted-foreground border border-border group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">2</kbd>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (mode === "SUCCESS" && scoreResult) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 animate-in fade-in slide-in-from-bottom-4">
+                <div className="w-full bg-card border border-border shadow-xl rounded-3xl p-10 text-center relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                    
+                    <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-emerald-100">
+                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <h2 className="text-3xl font-black text-foreground mb-2 tracking-tight">¡Evaluación Registrada!</h2>
+                    
+                    <div className="flex items-center justify-center gap-8 mt-10 mb-12">
+                        <div className="text-center">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Nivel</span>
+                            <span className={`inline-block px-4 py-1.5 rounded-lg text-lg font-black ${
+                                scoreResult.total.riskCategory === "MUY_ALTO" ? "bg-red-100 text-red-700" :
+                                scoreResult.total.riskCategory === "ALTO" ? "bg-orange-100 text-orange-700" :
+                                scoreResult.total.riskCategory === "MEDIO" ? "bg-yellow-100 text-yellow-700" :
+                                scoreResult.total.riskCategory === "BAJO" ? "bg-emerald-100 text-emerald-700" :
+                                "bg-teal-100 text-teal-700"
+                            }`}>
+                                {scoreResult.total.riskCategory.replace("_", " ")}
+                            </span>
+                        </div>
+                        <div className="h-14 w-px bg-border"></div>
+                        <div className="text-center">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Puntaje</span>
+                            <span className="text-3xl font-black text-foreground">{scoreResult.total.transformedScore.toFixed(1)}</span>
+                        </div>
+                        <div className="h-14 w-px bg-border"></div>
+                        <div className="text-center">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Tiempo</span>
+                            <span className="text-2xl font-bold text-muted-foreground font-mono">{formatTime(elapsedSeconds)}</span>
+                        </div>
+                    </div>
+
+                    <Button onClick={onReset} className="w-full h-14 text-lg font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200/50">
+                        Siguiente Trabajador
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    // mode === "QUESTIONNAIRE"
+    const currentVal = responses[String(currentItem)];
+
+    return (
+        <div className="flex-1 flex flex-col h-full bg-background animate-in fade-in">
+            {/* Top Navigation Bar */}
+            <div className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="flex flex-col">
+                        <span className="text-sm font-bold text-foreground leading-tight">{workerName}</span>
+                        <span className="text-xs text-muted-foreground font-medium">{qType} {qType === "INTRALABORAL" && `· Forma ${formType}`}</span>
+                    </div>
+                </div>
+
+                <div className="flex-1 max-w-md mx-8 hidden sm:block">
+                    <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Progreso</span>
+                        <span className="text-[10px] font-bold text-muted-foreground font-mono">{currentIndex + 1} / {items.length}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                            style={{ width: `${((currentIndex) / items.length) * 100}%` }}
+                        ></div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-mono font-bold text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-lg shadow-sm">
+                        ⏱ {formatTime(elapsedSeconds)}
+                    </span>
+                </div>
+            </div>
+
+            {/* Main Question Area */}
+            <div className="flex-1 flex flex-col items-center justify-center px-4 relative">
+                {isSubmitting ? (
+                    <div className="flex flex-col items-center animate-pulse">
+                        <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6 shadow-lg"></div>
+                        <h2 className="text-xl font-bold text-foreground">Procesando resultados...</h2>
+                        <p className="text-muted-foreground mt-2 text-sm">Calculando niveles de riesgo y consumiendo crédito</p>
+                    </div>
+                ) : (
+                    <div className="w-full max-w-4xl text-center space-y-12 relative animate-in slide-in-from-right-8 duration-300">
+                        
+                        {/* Question Number */}
+                        <div className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black text-lg shadow-sm tracking-tight">
+                            Pregunta {currentItem}
+                        </div>
+
+                        {/* Question Text */}
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-[1.1] tracking-tight">
+                            ¿Pregunta {currentItem}?
+                        </h2>
+                        
+                        {/* Subtitle / Helper (optional) */}
+                        <p className="text-lg text-muted-foreground font-medium">
+                            En el último mes, ¿con qué frecuencia...
+                        </p>
+
+                        {/* Likert Buttons */}
+                        <div className="grid grid-cols-2 sm:flex sm:justify-center gap-3 md:gap-5 mt-12">
+                            {[1, 2, 3, 4, ...(isStress ? [] : [5])].map((val) => {
+                                const isSelected = currentVal === val - 1;
+                                
+                                let label = "";
+                                if (isStress) {
+                                    label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "A veces" : "Nunca";
+                                } else {
+                                    label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "A veces" : val === 4 ? "Casi nunca" : "Nunca";
+                                }
+
+                                return (
+                                    <button
+                                        key={val}
+                                        onClick={() => handleAnswer(val - 1)}
+                                        className={`flex flex-col items-center justify-center w-full sm:w-[130px] h-[130px] rounded-3xl border-2 transition-all duration-150 group relative ${
+                                            isSelected 
+                                            ? "border-indigo-600 bg-indigo-50 shadow-[0_8px_24px_-8px_rgba(79,70,229,0.4)] scale-105 z-10" 
+                                            : "border-border bg-card hover:border-indigo-300 hover:bg-muted/50 hover:-translate-y-1 hover:shadow-md"
+                                        }`}
+                                    >
+                                        <kbd className={`absolute top-3 left-1/2 -translate-x-1/2 font-mono text-sm font-black px-2.5 py-0.5 rounded-lg border transition-colors ${
+                                            isSelected ? "bg-indigo-600 border-indigo-600 text-white" : "bg-muted border-border text-muted-foreground group-hover:bg-indigo-100 group-hover:border-indigo-200 group-hover:text-indigo-600"
+                                        }`}>
+                                            {val}
+                                        </kbd>
+                                        <span className={`mt-7 text-sm font-black text-center leading-tight px-3 ${
+                                            isSelected ? "text-indigo-900" : "text-muted-foreground group-hover:text-foreground"
+                                        }`}>
+                                            {label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom Keyboard Hints */}
+            <div className="h-14 flex items-center justify-center gap-8 text-xs font-bold text-muted-foreground bg-card border-t border-border shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+                <span className="flex items-center gap-2"><kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">1</kbd> a <kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">{maxVal}</kbd> para Responder</span>
+                <span className="flex items-center gap-2"><kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">⌫</kbd> Anterior</span>
+                <span className="flex items-center gap-2"><kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">↓</kbd> Siguiente</span>
+            </div>
         </div>
     );
 }
