@@ -64,6 +64,7 @@ export default async function DashboardPage() {
 
     const psychId = session.user.id;
 
+    try {
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
     twelveMonthsAgo.setDate(1);
@@ -464,4 +465,7 @@ export default async function DashboardPage() {
             </div>
         </div>
     );
+} catch (e: any) {
+    return (<div className='p-10 text-red-500 font-bold text-xl'><h1>Debug Error:</h1><pre className='mt-4 p-4 bg-red-50 text-red-900 rounded whitespace-pre-wrap'>{e.message}</pre><pre className='mt-4 p-4 bg-red-50 text-red-900 rounded whitespace-pre-wrap text-sm'>{e.stack}</pre></div>);
+}
 }
