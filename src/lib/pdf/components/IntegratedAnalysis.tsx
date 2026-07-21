@@ -28,7 +28,7 @@ export const IntegratedAnalysis = ({
         </View>
       ) : (
         <View style={[styles.card, { marginTop: 12 }]}>
-          <Text style={[styles.body, { fontStyle: 'italic', color: '#94A3B8' }]}>
+          <Text style={[styles.body, { color: '#94A3B8' }]}>
             El evaluador no ha redactado un análisis integrado para esta evaluación.
           </Text>
         </View>

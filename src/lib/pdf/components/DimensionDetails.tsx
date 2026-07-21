@@ -86,7 +86,7 @@ export const DimensionDetails = ({
               </View>
             ) : (
               <View style={{ marginTop: 8, paddingLeft: 10 }}>
-                <Text style={[styles.body, { fontStyle: 'italic' }]}>No hay información clínica registrada para este nivel de riesgo.</Text>
+                <Text style={[styles.body]}>No hay información clínica registrada para este nivel de riesgo.</Text>
               </View>
             )}
           </View>

@@ -70,7 +70,7 @@ export const ExecutiveSummary = ({
         {analysisText ? (
           <Text style={styles.body}>{analysisText}</Text>
         ) : (
-          <Text style={[styles.body, { fontStyle: 'italic', color: '#94A3B8' }]}>
+          <Text style={[styles.body, { color: '#94A3B8' }]}>
             No se ha proporcionado un análisis cualitativo para esta evaluación.
           </Text>
         )}
@@ -83,7 +83,7 @@ export const ExecutiveSummary = ({
             <Text style={styles.body}>{recommendationsAIText}</Text>
           </View>
         ) : (
-          <Text style={[styles.body, { fontStyle: 'italic', color: '#94A3B8' }]}>
+          <Text style={[styles.body, { color: '#94A3B8' }]}>
             Las recomendaciones se detallarán en las secciones correspondientes de cada dimensión.
           </Text>
         )}
