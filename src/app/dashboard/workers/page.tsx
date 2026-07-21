@@ -135,7 +135,7 @@ export default function WorkersPage() {
                     </p>
                 </div>
             ) : (
-                <div className="w-full bg-card border-none overflow-hidden">
+                <div className="w-full bg-card border-none overflow-x-auto">
                     <table className="w-full text-[13px] text-left">
                         <thead className="bg-transparent border-b border-border">
                             <tr>
@@ -149,16 +149,16 @@ export default function WorkersPage() {
                         <tbody className="divide-y divide-border">
                             {workers.map((worker) => (
                                 <tr key={worker.id} className="hover:bg-muted/20 transition-colors group">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className="font-semibold text-foreground">{worker.fullName}</span>
                                             <span className="text-[11px] text-text-secondary font-mono mt-0.5">{worker.documentId}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-text-secondary hover:text-primary transition-colors cursor-pointer">
+                                    <td className="px-6 py-4 text-text-secondary hover:text-primary transition-colors cursor-pointer">
                                         {worker.organization.name}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className="text-text">{worker.jobTitle || "—"}</span>
                                             <span className="text-[11px] text-text-muted mt-0.5">{jobLevelLabels[worker.jobLevel] || worker.jobLevel}</span>

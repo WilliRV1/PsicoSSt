@@ -191,11 +191,11 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
                                     return (
                                         <tr key={assessment.id} className="hover:bg-muted/30 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-6 py-4">
                                                 <div className="font-medium text-foreground">{assessment.worker.fullName}</div>
                                                 <div className="text-xs text-muted-foreground mt-0.5">{assessment.worker.jobTitle}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                                            <td className="px-6 py-4 text-muted-foreground">
                                                 {assessment.organization.name}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
