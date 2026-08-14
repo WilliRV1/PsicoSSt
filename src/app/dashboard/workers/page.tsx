@@ -69,10 +69,15 @@ export default function WorkersPage() {
         fetchWorkers();
     }, [fetchWorkers]);
 
-    // Simulated Stats (in a real app, these come from backend)
     const totalWorkers = workers.length;
     const expiredCount = workers.filter(w => w.isExpired || !w.lastDate).length;
     const highRiskCount = workers.filter(w => w.lastRisk === "ALTO" || w.lastRisk === "MUY_ALTO").length;
+
+    const filteredWorkers = workers.filter(w => {
+        if (activeRiskFilter && w.lastRisk !== activeRiskFilter) return false;
+        if (activeStatusFilter === "expiring" && !w.isExpiring) return false;
+        return true;
+    });
 
     const quickFilters = [
         { label: "Todos", risk: "", status: "" },
@@ -134,6 +139,13 @@ export default function WorkersPage() {
                         Agrega trabajadores a tus empresas para comenzar a aplicarles baterías de riesgo psicosocial.
                     </p>
                 </div>
+            ) : filteredWorkers.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border bg-surface-muted py-16 text-center flex flex-col items-center">
+                    <h2 className="text-lg font-semibold text-foreground font-heading mb-2">Sin resultados</h2>
+                    <p className="text-[14px] text-text-secondary max-w-sm">
+                        Ningún trabajador coincide con el filtro seleccionado.
+                    </p>
+                </div>
             ) : (
                 <div className="w-full bg-card border-none overflow-x-auto">
                     <table className="w-full text-[13px] text-left">
@@ -147,7 +159,7 @@ export default function WorkersPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {workers.map((worker) => (
+                            {filteredWorkers.map((worker) => (
                                 <tr key={worker.id} className="hover:bg-muted/20 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">

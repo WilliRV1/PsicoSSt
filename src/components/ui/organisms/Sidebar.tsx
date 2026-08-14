@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 
@@ -57,15 +56,31 @@ export function Sidebar({ user }: SidebarProps) {
     >
       {/* Logo */}
       <div className="px-6 pt-7 pb-6 shrink-0">
-        <Link href="/dashboard">
-          <Image
-            src="/logo-dark.png"
-            alt="PsicoSST"
-            width={136}
-            height={38}
-            className="h-8 w-auto object-contain"
-            priority
-          />
+        <Link href="/dashboard" className="block">
+          <span
+            style={{
+              fontFamily: "var(--font-barlow)",
+              fontWeight: 700,
+              fontSize: "1.15rem",
+              letterSpacing: "-0.01em",
+              color: "var(--color-foreground)",
+              lineHeight: 1,
+            }}
+          >
+            Psico<span style={{ color: "var(--color-primary)" }}>SST</span>
+          </span>
+          <span
+            style={{
+              display: "block",
+              fontSize: "0.6rem",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "var(--color-text-muted)",
+              marginTop: "2px",
+            }}
+          >
+            Riesgo Psicosocial
+          </span>
         </Link>
       </div>
 
