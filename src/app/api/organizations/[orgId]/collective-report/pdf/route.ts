@@ -33,7 +33,7 @@ export async function GET(
             departmentArea: true,
             gender: true,
             educationLevel: true,
-            civilStatus: true,
+            maritalStatus: true,
             birthYear: true,
             assessments: {
                 where: {
