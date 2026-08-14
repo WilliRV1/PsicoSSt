@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import ManualForm from "./manual-form";
 import { ScoredResultData } from "@/types/battery";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface Worker {
     id: string;
@@ -94,6 +96,15 @@ export default function ManualEntryPage() {
             {!selectedWorker ? (
                 <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4">
                     <div className="w-full space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Link
+                                href="/dashboard/assessments"
+                                className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-foreground transition-colors"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Volver a Evaluaciones
+                            </Link>
+                        </div>
                         <div className="text-center mb-8">
                             <h1 className="text-2xl font-semibold text-foreground tracking-tight">Selecciona un Trabajador</h1>
                             <p className="text-muted-foreground mt-2">Busca por nombre o número de documento para comenzar a digitar la batería.</p>
