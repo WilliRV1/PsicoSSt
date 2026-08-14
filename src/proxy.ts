@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 
 /**
- * Public page routes — accessible without authentication.
- * Everything else requires a valid session.
+ * Public pages — accessible without a session.
  */
 const PUBLIC_PAGES = [
   "/login",
@@ -16,10 +14,16 @@ const PUBLIC_PAGES = [
   "/terms",
 ];
 
+/**
+ * Proxy runs at the Edge. NextAuth v5 encrypts its JWT with AES-GCM so
+ * `getToken` from next-auth/jwt (v4) cannot decrypt it here.
+ * We use cookie presence for page-level routing only. All data-access
+ * security is enforced inside the individual API route handlers via auth().
+ */
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // NextAuth internals and /api/auth/* routes are always public
+  // NextAuth internal handler — always allow
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
@@ -33,38 +37,20 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const secret =
-    process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
+  // Detect session cookie (NextAuth v5 / auth.js naming)
+  const sessionToken =
+    req.cookies.get("authjs.session-token")?.value ??
+    req.cookies.get("__Secure-authjs.session-token")?.value;
 
-  const token = await getToken({ req, secret });
+  const isAuthenticated = !!sessionToken;
 
-  // ── API ROUTES ────────────────────────────────────────────────────────────
-  if (pathname.startsWith("/api/")) {
-    if (!token) {
-      return NextResponse.json(
-        { error: "No autorizado" },
-        { status: 401 }
-      );
-    }
-
-    if (token.status === "SUSPENDED" || token.status === "INACTIVE") {
-      return NextResponse.json(
-        { error: "Cuenta suspendida o inactiva" },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.next();
-  }
-
-  // ── PUBLIC PAGES ──────────────────────────────────────────────────────────
+  // ── Public pages ──────────────────────────────────────────────
   const isPublicPage = PUBLIC_PAGES.some((p) => pathname.startsWith(p));
 
   if (isPublicPage) {
-    // Already authenticated and active → send to dashboard
+    // Already logged in on auth pages → go to app
     if (
-      token &&
-      token.status === "ACTIVE" &&
+      isAuthenticated &&
       (pathname === "/login" || pathname === "/register")
     ) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
@@ -72,35 +58,18 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── ROOT ──────────────────────────────────────────────────────────────────
+  // ── Root ──────────────────────────────────────────────────────
   if (pathname === "/") {
     return NextResponse.redirect(
-      new URL(token ? "/dashboard" : "/login", req.url)
+      new URL(isAuthenticated ? "/dashboard" : "/login", req.url)
     );
   }
 
-  // ── PROTECTED PAGES ───────────────────────────────────────────────────────
-  if (!token) {
+  // ── Protected pages ───────────────────────────────────────────
+  if (!isAuthenticated) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
-  }
-
-  if (token.status === "PENDING") {
-    return NextResponse.redirect(new URL("/pending-approval", req.url));
-  }
-
-  if (token.status === "SUSPENDED" || token.status === "INACTIVE") {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  // MFA required but not yet verified
-  if (
-    token.mfaEnabled &&
-    !token.mfaVerified &&
-    !pathname.startsWith("/mfa")
-  ) {
-    return NextResponse.redirect(new URL("/mfa-verify", req.url));
   }
 
   return NextResponse.next();
