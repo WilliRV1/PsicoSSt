@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { CreditService } from '@/lib/services/credit-service';
 import { logAudit, extractRequestMeta } from '@/lib/auth/audit';
 
 export async function POST(req: NextRequest) {
@@ -23,29 +24,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Monto de tokens inválido o usuario no especificado' }, { status: 400 });
     }
 
-    const psychologist = await prisma.psychologist.findUnique({ where: { id: psychologistId } });
+    const psychologist = await prisma.psychologist.findUnique({
+      where: { id: psychologistId },
+      select: { fullName: true, creditBalance: true }
+    });
     if (!psychologist) {
       return NextResponse.json({ error: 'Psychologist not found' }, { status: 404 });
     }
 
-    const newBalance = psychologist.creditBalance + tokensToAdd;
-
-    // Assign tokens in a transaction
-    const [updated] = await prisma.$transaction([
-      prisma.psychologist.update({
-        where: { id: psychologistId },
-        data: { creditBalance: newBalance }
-      }),
-      prisma.creditTransaction.create({
-        data: {
-          psychologistId,
-          amount: tokensToAdd,
-          balanceAfter: newBalance,
-          type: 'ADMIN_GRANT',
-          description: `Tokens asignados manualmente por el administrador (${admin.email})`
-        }
-      })
-    ]);
+    const previousBalance = psychologist.creditBalance;
+    const newBalance = await CreditService.adminGrant(
+      psychologistId,
+      tokensToAdd,
+      `Tokens asignados manualmente por el administrador (${admin.email})`
+    );
 
     const { ipAddress, userAgent } = extractRequestMeta(req);
     await logAudit({
@@ -53,7 +45,7 @@ export async function POST(req: NextRequest) {
       action: 'UPDATE',
       resourceType: 'Psychologist',
       resourceId: psychologistId,
-      metadata: { action: 'assigned_tokens', amount: tokensToAdd, previousBalance: psychologist.creditBalance },
+      metadata: { action: 'assigned_tokens', amount: tokensToAdd, previousBalance },
       ipAddress,
       userAgent
     });
@@ -61,7 +53,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `${tokensToAdd} tokens asignados a ${psychologist.fullName}`,
-      newBalance: updated.creditBalance
+      newBalance
     });
 
   } catch (error) {

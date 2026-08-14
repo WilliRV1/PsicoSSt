@@ -93,6 +93,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Colombian NIT format: 6–10 digits, dash, 1 check digit (e.g. 900123456-7)
+        if (!/^\d{6,10}-\d$/.test(nit)) {
+            return NextResponse.json(
+                { error: "Formato de NIT inválido. Use el formato: 123456789-0" },
+                { status: 400 }
+            );
+        }
+
         // Check if NIT already exists
         const existing = await prisma.organization.findUnique({
             where: { nit },

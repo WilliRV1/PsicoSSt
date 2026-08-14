@@ -46,6 +46,14 @@ export async function POST(
   const body: ConsentBody = await req.json();
   const { consentMethod, consentText } = body;
 
+  const VALID_METHODS: ConsentMethod[] = ["VERBAL", "WRITTEN", "DIGITAL"];
+  if (!consentMethod || !VALID_METHODS.includes(consentMethod)) {
+    return NextResponse.json(
+      { error: `consentMethod inválido. Debe ser uno de: ${VALID_METHODS.join(", ")}` },
+      { status: 400 }
+    );
+  }
+
   const consent = await prisma.informedConsent.create({
     data: {
       assessmentId: id,

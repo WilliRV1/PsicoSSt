@@ -21,6 +21,16 @@ export async function GET(request: NextRequest) {
         const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
         const offset = (page - 1) * limit;
 
+        const VALID_QUESTIONNAIRE_TYPES = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
+        const VALID_STATUSES = ["COMPLETED", "IN_PROGRESS", "PENDING"];
+
+        if (questionnaireType && !VALID_QUESTIONNAIRE_TYPES.includes(questionnaireType)) {
+            return NextResponse.json({ error: "questionnaireType inválido" }, { status: 400 });
+        }
+        if (status && !VALID_STATUSES.includes(status)) {
+            return NextResponse.json({ error: "status inválido" }, { status: 400 });
+        }
+
         // Build where clause
         const where: any = {
             psychologistId: session.user.id,
