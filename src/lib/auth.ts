@@ -59,8 +59,7 @@ const authConfig: NextAuthConfig = {
                 }
 
                 // Verify password
-                const isDevAdmin = process.env.NODE_ENV !== "production" && email === "admin@psicosst.com";
-                const isValid = isDevAdmin ? true : await verifyPassword(password, psychologist.passwordHash);
+                const isValid = await verifyPassword(password, psychologist.passwordHash);
                 
                 if (!isValid) {
                     await incrementFailedAttempts(psychologist.id);
@@ -118,6 +117,7 @@ const authConfig: NextAuthConfig = {
                 token.mfaEnabled = user.mfaEnabled;
                 token.mfaVerified = user.mfaVerified;
                 token.licenseNumber = user.licenseNumber;
+                token.lastDbCheck = Date.now();
             }
 
             // Handle session updates (e.g., after MFA verification)
@@ -131,6 +131,22 @@ const authConfig: NextAuthConfig = {
                 if (session.status) {
                     token.status = session.status;
                 }
+            }
+
+            // Re-validate status from DB every 5 minutes so that suspensions
+            // and admin revocations take effect without waiting for session expiry.
+            const FIVE_MINUTES = 5 * 60 * 1000;
+            const lastCheck = (token.lastDbCheck as number) ?? 0;
+            if (token.id && Date.now() - lastCheck > FIVE_MINUTES) {
+                const fresh = await prisma.psychologist.findUnique({
+                    where: { id: token.id as string },
+                    select: { status: true, isAdmin: true },
+                });
+                if (fresh) {
+                    token.status = fresh.status;
+                    token.isAdmin = fresh.isAdmin;
+                }
+                token.lastDbCheck = Date.now();
             }
 
             return token;

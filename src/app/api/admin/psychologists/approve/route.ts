@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const admin = await prisma.psychologist.findUnique({ where: { id: session.user.id } });
-    if (!admin?.isAdmin) return NextResponse.json({ error: 'Forbidden: Admin required' }, { status: 403 });
+    if (!admin?.isAdmin || admin.status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden: Admin required' }, { status: 403 });
 
     const { psychologistId, status } = await req.json();
     if (!psychologistId || !['ACTIVE', 'INACTIVE'].includes(status)) {
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const admin = await prisma.psychologist.findUnique({ where: { id: session.user.id } });
-    if (!admin?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!admin?.isAdmin || admin.status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const statusParam = req.nextUrl.searchParams.get('status') as any;
     const psychologists = await prisma.psychologist.findMany({

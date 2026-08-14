@@ -12,11 +12,13 @@ interface DimensionScore {
 interface DimensionDetailsProps {
   primaryColor?: string;
   dimensions: DimensionScore[];
+  questionnaireType?: string;
 }
 
 export const DimensionDetails = ({
   primaryColor = '#0F172A',
   dimensions,
+  questionnaireType,
 }: DimensionDetailsProps) => {
   const styles = getThemeStyles(primaryColor);
 
@@ -48,19 +50,20 @@ export const DimensionDetails = ({
       <Text style={styles.h1}>Resultados por Dimensión</Text>
       <View style={styles.divider} />
       <Text style={styles.body}>
-        A continuación se detallan los resultados obtenidos en cada una de las dimensiones evaluadas, ordenadas por su nivel de riesgo.
+        A continuación se detallan los resultados obtenidos en cada una de las dimensiones evaluadas, ordenadas por su {questionnaireType === 'STRESS' ? 'nivel de síntomas' : 'nivel de riesgo'}.
       </Text>
 
       {sortedDimensions.map((dim, idx) => {
         const dictionaryEntry = getClinicalConcept('dimension', dim.name.toLowerCase().replace(/ /g, '_'), dim.level as any);
         const riskLabel = dim.level.replace(/_/g, ' ');
+        const displayLabel = questionnaireType === 'STRESS' ? `SÍNTOMAS ${riskLabel}` : `RIESGO ${riskLabel}`;
         const isHighRisk = dim.level === 'ALTO' || dim.level === 'MUY_ALTO';
 
         return (
           <View key={idx} style={styles.section} wrap={false}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F8FAFC', padding: 8, borderLeftWidth: 3, borderLeftColor: getRiskColor(dim.level) }}>
               <Text style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>{dim.name}</Text>
-              <Text style={{ fontSize: 10, fontWeight: 700, color: getRiskColor(dim.level) }}>{riskLabel} ({dim.score.toFixed(1)})</Text>
+              <Text style={{ fontSize: 10, fontWeight: 700, color: getRiskColor(dim.level) }}>{displayLabel} ({dim.score.toFixed(1)})</Text>
             </View>
 
             {dictionaryEntry ? (

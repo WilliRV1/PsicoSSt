@@ -75,6 +75,12 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                         <Text style={[styles.th, { width: '40%' }]}>Profesional Responsable</Text>
                         <Text style={[styles.td, { width: '60%' }]}>{psychologist.fullName}</Text>
                     </View>
+                    <View style={styles.tableRow}>
+                        <Text style={[styles.th, { width: '40%', color: primaryColor, fontWeight: 700 }]}>Vigencia Legal (Res. 2764)</Text>
+                        <Text style={[styles.td, { width: '60%', color: metrics.validity?.years === 1 ? colors.priority : colors.adequate, fontWeight: 700 }]}>
+                            {metrics.validity?.years === 1 ? '1 Año' : '2 Años'} (Próxima evaluación: {metrics.validity?.expirationDate || 'N/A'})
+                        </Text>
+                    </View>
                 </View>
 
                 <View style={{ position: 'absolute', bottom: 50, left: 50, right: 50, flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -89,6 +95,9 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                         )}
                     </View>
                 </View>
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
 
             {/* RESUMEN PARA GERENCIA */}
@@ -133,8 +142,10 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
 
                 <Text style={styles.h2}>Análisis Consultivo</Text>
                 <Text style={[styles.body, { fontSize: 11, lineHeight: 1.6 }]}>{aiRecommendations}</Text>
-
-                <Text style={styles.footerText}>Página 2 de 4 • Documento Confidencial</Text>
+                
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
 
             {/* EXECUTIVE DASHBOARD */}
@@ -182,8 +193,45 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                     </View>
                 )}
 
-                <Text style={styles.footerText}>Página 3 de 4 • Documento Confidencial</Text>
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
+
+            {/* ALERTAS EPIDEMIOLÓGICAS (SOCIODEMOGRÁFICAS) */}
+            {metrics.epidemiologicalAlerts && metrics.epidemiologicalAlerts.length > 0 && (
+                <Page size="LETTER" style={styles.page}>
+                    <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
+                    
+                    <Text style={styles.h1}>Alertas Epidemiológicas</Text>
+                    <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
+
+                    <Text style={styles.body}>El sistema ha detectado variaciones estadísticamente significativas (>15 puntos porcentuales respecto a la media global) en la distribución del riesgo según factores sociodemográficos. Estas vulnerabilidades focalizadas requieren priorización en los programas de vigilancia epidemiológica.</Text>
+                    
+                    <View style={{ marginTop: 20 }}>
+                        {metrics.epidemiologicalAlerts.map((alert: any, idx: number) => (
+                            <View key={idx} style={[styles.insightBox, { marginBottom: 15, borderLeftWidth: 4, borderLeftColor: colors.critical }]}>
+                                <Text style={styles.insightTitle}>Vulnerabilidad en {alert.variable === 'gender' ? 'Género' : alert.variable === 'jobLevel' ? 'Cargo' : 'Grupo Etario'}: {alert.group}</Text>
+                                <Text style={styles.body}>{alert.description}</Text>
+                                <View style={{ flexDirection: 'row', marginTop: 10, backgroundColor: '#FFF', padding: 8, borderRadius: 4 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Riesgo del Grupo</Text>
+                                        <Text style={{ fontSize: 14, color: colors.critical, fontWeight: 700 }}>{alert.riskPercentage}%</Text>
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Desviación</Text>
+                                        <Text style={{ fontSize: 14, color: colors.attention, fontWeight: 700 }}>+{alert.difference} pts</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+
+                    <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                        `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                    )} fixed />
+                </Page>
+            )}
 
             {/* MATRIZ DE PROYECTO (PLAN DE ACCION) */}
             <Page size="LETTER" style={styles.page}>
@@ -234,7 +282,9 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                     <Text style={{ fontSize: 9, color: '#64748B' }}>T.P.: {psychologist.professionalCard}</Text>
                 </View>
 
-                <Text style={styles.footerText}>Página 4 de 4 • Documento Confidencial</Text>
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
         </Document>
     );

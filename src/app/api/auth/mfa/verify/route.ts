@@ -3,6 +3,11 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyTOTPCode } from "@/lib/auth/mfa";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import {
+    isAccountLocked,
+    incrementFailedAttempts,
+    resetFailedAttempts,
+} from "@/lib/auth/lockout";
 
 export async function POST(request: Request) {
     try {
@@ -11,6 +16,15 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: "UNAUTHORIZED", message: "No autenticado" },
                 { status: 401 }
+            );
+        }
+
+        // Reuse the same lockout mechanism as login (5 attempts → 15 min lockout).
+        const locked = await isAccountLocked(session.user.id);
+        if (locked) {
+            return NextResponse.json(
+                { error: "ACCOUNT_LOCKED", message: "Demasiados intentos fallidos. Intenta de nuevo en 15 minutos." },
+                { status: 429 }
             );
         }
 
@@ -40,11 +54,27 @@ export async function POST(request: Request) {
         // Verify code
         const isValid = verifyTOTPCode(psychologist.mfaSecret, code);
         if (!isValid) {
+            const { locked: nowLocked, attemptsRemaining } =
+                await incrementFailedAttempts(session.user.id);
+
+            if (nowLocked) {
+                return NextResponse.json(
+                    { error: "ACCOUNT_LOCKED", message: "Demasiados intentos fallidos. Cuenta bloqueada por 15 minutos." },
+                    { status: 429 }
+                );
+            }
+
             return NextResponse.json(
-                { error: "VALIDATION_ERROR", message: "Código inválido. Intenta de nuevo." },
+                {
+                    error: "VALIDATION_ERROR",
+                    message: `Código inválido. Te quedan ${attemptsRemaining} intento${attemptsRemaining !== 1 ? "s" : ""}.`,
+                },
                 { status: 400 }
             );
         }
+
+        // Valid code — reset failed attempts counter
+        await resetFailedAttempts(session.user.id);
 
         // If MFA is not yet enabled, this is the first verification → enable it
         if (!psychologist.mfaEnabled) {
@@ -56,7 +86,7 @@ export async function POST(request: Request) {
             const { ipAddress, userAgent } = extractRequestMeta(request);
             await logAudit({
                 userId: session.user.id,
-                action: "UPDATE",
+                action: "MFA_SETUP",
                 resourceType: "psychologist",
                 resourceId: session.user.id,
                 metadata: { reason: "MFA enabled" },

@@ -95,6 +95,9 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                         )}
                     </View>
                 </View>
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
 
             {/* DOMINIOS - TABLA DE ALTA DENSIDAD */}
@@ -119,7 +122,9 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                     {renderTableRows(metrics.rawDomains)}
                 </View>
 
-                <Text style={styles.footerText}>Página 2 • Informe Técnico Confidencial</Text>
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
 
             {/* DIMENSIONES - TABLA DE ALTA DENSIDAD */}
@@ -155,7 +160,52 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                     <Text style={{ fontSize: 9, color: '#64748B', textAlign: 'right' }}>Licencia: {psychologist.licenseNumber}</Text>
                 </View>
 
-                <Text style={styles.footerText}>Página 3 • Informe Técnico Confidencial</Text>
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
+            </Page>
+
+            {/* FICHA METODOLÓGICA */}
+            <Page size="LETTER" style={styles.page}>
+                <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
+                
+                <Text style={styles.h1}>Anexo 1: Ficha Metodológica de Transformación Lineal</Text>
+                <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
+
+                <Text style={styles.body}>Para dar cumplimiento al rigor estadístico y pericial requerido por el Ministerio del Trabajo de Colombia y las guías técnicas establecidas, este software procesa las respuestas brutas de los cuestionarios utilizando el modelo de transformación lineal.</Text>
+                
+                <View style={[styles.insightBox, { marginTop: 20 }]}>
+                    <Text style={styles.insightTitle}>Fórmula de Transformación Aplicada</Text>
+                    <Text style={[styles.body, { fontFamily: 'Courier', backgroundColor: '#E2E8F0', padding: 10, marginTop: 10 }]}>Puntaje Transformado = (Puntaje Bruto / Factor Constante) * 100</Text>
+                </View>
+
+                <Text style={[styles.h2, { marginTop: 20 }]}>Factores Constantes del Baremo</Text>
+                <View style={styles.table}>
+                    <View style={styles.tableHeader}>
+                        <Text style={[styles.th, { width: '40%' }]}>Instrumento Evaluado</Text>
+                        <Text style={[styles.th, { width: '60%' }]}>Factor de Transformación Lineal</Text>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <Text style={[styles.td, { width: '40%', fontWeight: 700 }]}>Intralaboral (Forma A) - Jefaturas y Profesionales</Text>
+                        <Text style={[styles.td, { width: '60%' }]}>492 (Total de ítems ponderados)</Text>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <Text style={[styles.td, { width: '40%', fontWeight: 700 }]}>Intralaboral (Forma B) - Auxiliares y Operativos</Text>
+                        <Text style={[styles.td, { width: '60%' }]}>388 (Total de ítems ponderados)</Text>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <Text style={[styles.td, { width: '40%', fontWeight: 700 }]}>Extralaboral</Text>
+                        <Text style={[styles.td, { width: '60%' }]}>Depende de los ítems aplicados (Base 124)</Text>
+                    </View>
+                    <View style={styles.tableRow}>
+                        <Text style={[styles.td, { width: '40%', fontWeight: 700 }]}>Cuestionario de Evaluación del Estrés</Text>
+                        <Text style={[styles.td, { width: '60%' }]}>61.16 (Constante paramétrica del Tercer Cuestionario)</Text>
+                    </View>
+                </View>
+
+                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
+                )} fixed />
             </Page>
         </Document>
     );

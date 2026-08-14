@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // Validar si el trabajador ya tiene evaluaciones en los últimos 3 meses
+        // Check if this worker already has an assessment in the last 3 months.
+        // If so, the extra batteries in the same cycle don't consume a credit.
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
@@ -25,46 +26,57 @@ export async function POST(request: NextRequest) {
         const recentAssessmentsCount = await prisma.assessment.count({
             where: {
                 workerId: data.workerId,
-                createdAt: {
-                    gte: threeMonthsAgo
-                }
-            }
+                createdAt: { gte: threeMonthsAgo },
+            },
         });
 
         const isFirstAssessment = recentAssessmentsCount === 0;
 
-        // Check credit balance before creating assessment ONLY if it's the first one
+        // Consume the credit BEFORE creating the assessment so that both
+        // operations either succeed or fail together. consumeCredit is atomic
+        // (read + decrement in a single DB transaction) which also prevents
+        // the race condition where two concurrent requests both pass the
+        // balance check and both get a free assessment.
         if (isFirstAssessment) {
-            const hasCredits = await CreditService.hasCredits(session.user.id);
-            if (!hasCredits) {
-                return NextResponse.json(
-                    { error: "No tienes créditos suficientes. Adquiere un paquete de créditos para continuar.", code: "INSUFFICIENT_CREDITS" },
-                    { status: 402 }
-                );
+            try {
+                await CreditService.consumeCredit(session.user.id);
+            } catch (creditError: any) {
+                if (creditError.message === "INSUFFICIENT_CREDITS") {
+                    return NextResponse.json(
+                        { error: "No tienes créditos suficientes. Adquiere un paquete de créditos para continuar.", code: "INSUFFICIENT_CREDITS" },
+                        { status: 402 }
+                    );
+                }
+                throw creditError;
             }
         }
 
-        const result = await AssessmentService.createAssessment({
-            workerId: data.workerId,
-            psychologistId: session.user.id,
-            companyId: data.organizationId,
-            formType: data.formType,
-            questionnaireType: data.questionnaireType,
-            assessmentDate: new Date(data.assessmentDate || Date.now()),
-            responses: data.responses,
-            occupationalGroup: data.occupationalGroup,
-            hasCustomerInteraction: data.hasCustomerInteraction,
-            informedConsent: data.informedConsent
-        });
-
-        // Consume 1 credit ONLY if it's the first assessment for this worker in the cycle
-        if (isFirstAssessment) {
-            try {
-                await CreditService.consumeCredit(session.user.id, result.id);
-            } catch (creditError) {
-                console.error("[CREDITS] Failed to consume credit:", creditError);
-                // Assessment was created successfully, don't fail the request
+        let result: Awaited<ReturnType<typeof AssessmentService.createAssessment>>;
+        try {
+            result = await AssessmentService.createAssessment({
+                workerId: data.workerId,
+                psychologistId: session.user.id,
+                companyId: data.organizationId,
+                formType: data.formType,
+                questionnaireType: data.questionnaireType,
+                assessmentDate: new Date(data.assessmentDate || Date.now()),
+                responses: data.responses,
+                occupationalGroup: data.occupationalGroup,
+                hasCustomerInteraction: data.hasCustomerInteraction,
+                informedConsent: data.informedConsent,
+            });
+        } catch (assessmentError) {
+            // Assessment creation failed after the credit was already consumed.
+            // Refund it so the psychologist doesn't lose a credit.
+            if (isFirstAssessment) {
+                await CreditService.refundCredit(
+                    session.user.id,
+                    "Error al crear la evaluación"
+                ).catch((refundErr) =>
+                    console.error("[CREDITS] Refund failed after assessment error:", refundErr)
+                );
             }
+            throw assessmentError;
         }
 
         return NextResponse.json(result);

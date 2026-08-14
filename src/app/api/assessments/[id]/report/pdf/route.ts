@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 import { renderToStream } from '@react-pdf/renderer';
 import React from 'react';
 import IndividualReportPDF from '@/components/reports/IndividualReportPDF';
@@ -24,11 +25,20 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const { id: assessmentId } = await params;
     const isAnonymous = req.nextUrl.searchParams.get('anon') === 'true';
 
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: assessmentId },
+    // Admins can access any assessment; regular psychologists only their own.
+    const assessment = await prisma.assessment.findFirst({
+      where: {
+        id: assessmentId,
+        ...(session.user.isAdmin ? {} : { psychologistId: session.user.id }),
+      },
       include: {
         worker: true,
         organization: true,
@@ -116,6 +126,7 @@ export async function GET(
       reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
       submittedTime: submittedTime,
       isAnonymous: isAnonymous,
+      questionnaireType: assessment.questionnaireType,
     });
 
     // @ts-expect-error react-pdf renderToStream typing mismatch with React 19

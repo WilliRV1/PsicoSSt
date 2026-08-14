@@ -7,6 +7,7 @@ interface ExecutiveSummaryProps {
   overallRiskCategory: string;
   analysisText?: string;
   recommendationsAIText?: string;
+  questionnaireType?: string;
 }
 
 export const ExecutiveSummary = ({
@@ -14,6 +15,7 @@ export const ExecutiveSummary = ({
   overallRiskCategory,
   analysisText,
   recommendationsAIText,
+  questionnaireType,
 }: ExecutiveSummaryProps) => {
   const styles = getThemeStyles(primaryColor);
 
@@ -40,6 +42,10 @@ export const ExecutiveSummary = ({
   };
 
   const riskLabel = overallRiskCategory.replace(/_/g, ' ');
+  const titleText = questionnaireType === 'STRESS' ? 'Nivel de Síntomas Global' : 'Nivel de Riesgo Global';
+  const subtitleText = questionnaireType === 'STRESS' 
+    ? 'Este nivel indica la severidad de los síntomas de estrés reportados por el trabajador.'
+    : 'Este nivel indica la exposición general del trabajador a factores de riesgo psicosocial intra y extralaboral.';
 
   return (
     <View style={{ marginTop: 20 }}>
@@ -47,7 +53,7 @@ export const ExecutiveSummary = ({
       <View style={styles.divider} />
 
       <View style={styles.section}>
-        <Text style={styles.h3}>Nivel de Riesgo Global</Text>
+        <Text style={styles.h3}>{titleText}</Text>
         <View style={{ 
           backgroundColor: getRiskBackground(overallRiskCategory), 
           padding: 16, 
@@ -60,7 +66,7 @@ export const ExecutiveSummary = ({
             {riskLabel}
           </Text>
           <Text style={{ fontSize: 10, color: '#475569', marginTop: 8 }}>
-            Este nivel indica la exposición general del trabajador a factores de riesgo psicosocial intra y extralaboral.
+            {subtitleText}
           </Text>
         </View>
       </View>

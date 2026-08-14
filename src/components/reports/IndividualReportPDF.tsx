@@ -6,6 +6,7 @@ import { ExecutiveSummary } from '../../lib/pdf/components/ExecutiveSummary';
 import { DimensionDetails } from '../../lib/pdf/components/DimensionDetails';
 import { IntegratedAnalysis } from '../../lib/pdf/components/IntegratedAnalysis';
 import { DictionaryAppendix } from '../../lib/pdf/components/DictionaryAppendix';
+import { ProfessionalSignature } from '../../lib/pdf/components/ProfessionalSignature';
 
 interface IndividualReportPDFProps {
   primaryColor?: string;
@@ -40,10 +41,24 @@ interface IndividualReportPDFProps {
   submittedTime: string;
 
   isAnonymous?: boolean;
+  questionnaireType?: string;
 }
 
 const IndividualReportPDF = (props: IndividualReportPDFProps) => {
   const styles = getThemeStyles(props.primaryColor);
+  const isInvalid = !props.sstLicenseDate;
+  const legalFooter = "Documento médico-legal sujeto a reserva profesional según la Ley 1090 de 2006. Debe reposar en custodia de la historia clínica ocupacional por un periodo mínimo de 20 años (Resolución 2346 de 2007)";
+
+  const renderInvalidBanner = () => {
+    if (!isInvalid) return null;
+    return (
+      <View style={{ position: 'absolute', top: 50, left: -50, width: 600, transform: 'rotate(-45deg)', backgroundColor: '#EF4444', padding: 10, zIndex: 100 }} fixed>
+        <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: 'bold', textAlign: 'center', letterSpacing: 4 }}>
+          INFORME INVÁLIDO - FALTA FECHA DE EXPEDICIÓN DE LICENCIA
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <Document>
@@ -58,8 +73,9 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           assessmentDate={props.assessmentDate}
           psychologistName={props.psychologistName}
         />
+        {renderInvalidBanner()}
         <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -70,9 +86,11 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           overallRiskCategory={props.overallRisk}
           analysisText={props.analysis}
           recommendationsAIText={props.recommendations}
+          questionnaireType={props.questionnaireType}
         />
+        {renderInvalidBanner()}
         <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -81,9 +99,11 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
         <DimensionDetails
           primaryColor={props.primaryColor}
           dimensions={props.dimensionScores}
+          questionnaireType={props.questionnaireType}
         />
+        {renderInvalidBanner()}
         <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -93,8 +113,18 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           primaryColor={props.primaryColor}
           analysisText={props.analysis}
         />
+        <ProfessionalSignature 
+          primaryColor={props.primaryColor}
+          psychologistName={props.psychologistName}
+          licenseNumber={props.licenseNumber}
+          professionalCard={props.professionalCard}
+          sstCredential={props.sstCredential}
+          sstLicenseDate={props.sstLicenseDate}
+          signatureImage={props.signatureImage}
+        />
+        {renderInvalidBanner()}
         <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
 
@@ -103,8 +133,9 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
         <DictionaryAppendix
           primaryColor={props.primaryColor}
         />
+        {renderInvalidBanner()}
         <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `Generado con PsicoSST • Software para Evaluación Psicosocial | Página ${pageNumber} de ${totalPages}`
+          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
         )} fixed />
       </Page>
     </Document>

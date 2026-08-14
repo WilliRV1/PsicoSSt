@@ -30,6 +30,11 @@ export async function GET(
         where: { organizationId: orgId },
         select: {
             jobLevel: true,
+            departmentArea: true,
+            gender: true,
+            educationLevel: true,
+            civilStatus: true,
+            birthYear: true,
             assessments: {
                 where: {
                     psychologistId: session.user.id,

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Coins, Check, ArrowDown, ArrowUp, Gift, AlertTriangle } from "lucide-react";
-import { MercadoPagoCheckout } from "@/components/psicosst/mercadopago-checkout";
+import { Coins, Check, ArrowDown, ArrowUp, Gift, AlertTriangle, Clock } from "lucide-react";
 
 interface CreditPackage {
     id: string;
@@ -53,7 +52,6 @@ const txTypeConfig: Record<string, { label: string; icon: "up" | "down" | "gift"
 export default function CreditsPage() {
     const [balance, setBalance] = useState<number | null>(null);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [purchasing, setPurchasing] = useState<string | null>(null);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const refreshData = useCallback(() => {
@@ -64,17 +62,6 @@ export default function CreditsPage() {
     useEffect(() => {
         refreshData();
     }, [refreshData]);
-
-    const handleSuccess = useCallback(() => {
-        setPurchasing(null);
-        setMessage({ type: "success", text: "Pago procesado exitosamente. Tus creditos han sido agregados." });
-        refreshData();
-    }, [refreshData]);
-
-    const handleError = useCallback((errorMessage: string) => {
-        setPurchasing(null);
-        setMessage({ type: "error", text: errorMessage });
-    }, []);
 
     const txIcon = (type: string) => {
         const config = txTypeConfig[type];
@@ -192,16 +179,10 @@ export default function CreditsPage() {
                                 </div>
                             </div>
 
-                            <MercadoPagoCheckout
-                                packageId={pkg.id}
-                                packageName={pkg.name}
-                                priceCOP={pkg.priceCOP}
-                                credits={pkg.credits}
-                                popular={pkg.popular}
-                                disabled={purchasing !== null && purchasing !== pkg.id}
-                                onSuccess={handleSuccess}
-                                onError={handleError}
-                            />
+                            <div className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="w-4 h-4" />
+                                <span>Pagos próximamente</span>
+                            </div>
                         </div>
                     ))}
                 </div>

@@ -7,8 +7,8 @@ const publicRoutes = ["/login", "/register", "/pending-approval", "/mfa-setup", 
 const redirectIfAuthenticated = ["/login", "/register"];
 // Routes that require full authentication (dashboard)
 const protectedRoutes = ["/dashboard"];
-// API routes that bypass authentication entirely (auth handler + dev tools)
-const authApiRoutes = ["/api/auth", "/api/dev", "/api/payments/webhook"];
+// API routes that bypass authentication entirely (auth handler only)
+const authApiRoutes = ["/api/auth"];
 
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;

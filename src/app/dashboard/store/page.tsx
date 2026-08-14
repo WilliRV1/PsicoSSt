@@ -1,17 +1,14 @@
-import { CREDIT_PACKAGES, formatCOP } from "@/config/credit-packages";
-import { CheckoutButton } from "@/components/store/CheckoutButton";
+import { CREDIT_PACKAGES } from "@/config/credit-packages";
 import { Icons } from "@/components/icons";
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Info,
+import {
   Check,
   Star,
   ShieldCheck,
   Zap,
   HeadphonesIcon,
   RefreshCw,
-  ShoppingCart
+  ShoppingCart,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -48,16 +45,10 @@ function getFeaturesForPackage(pkg: any) {
   return base;
 }
 
-export default function StorePage({
-  searchParams,
-}: {
-  searchParams: { status?: string };
-}) {
-  const status = searchParams.status;
-
+export default function StorePage() {
   return (
     <div className="flex flex-col gap-10 max-w-6xl mx-auto pb-16 pt-4">
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
         <div className="flex flex-col gap-4 max-w-xl">
@@ -91,34 +82,14 @@ export default function StorePage({
         </div>
       </div>
 
-      {/* Alerts */}
-      {status === "approved" && (
-        <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-xl p-4 flex gap-3 text-emerald-800 dark:text-emerald-400">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold">¡Pago Exitoso!</h3>
-            <p className="text-sm mt-1">Tus créditos han sido añadidos a tu cuenta. Puedes verificarlos en la barra superior.</p>
-          </div>
+      {/* Próximamente banner */}
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-4 flex gap-3 text-amber-800 dark:text-amber-400">
+        <Clock className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div>
+          <h3 className="font-semibold">Pagos en línea próximamente</h3>
+          <p className="text-sm mt-1">La pasarela de pago está en configuración. Para adquirir créditos contáctanos directamente.</p>
         </div>
-      )}
-      {status === "failure" && (
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl p-4 flex gap-3 text-red-800 dark:text-red-400">
-          <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold">Pago Rechazado</h3>
-            <p className="text-sm mt-1">Tu pago no pudo ser procesado por Mercado Pago. Por favor, intenta nuevamente con otro medio de pago.</p>
-          </div>
-        </div>
-      )}
-      {status === "pending" && (
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-4 flex gap-3 text-amber-800 dark:text-amber-400">
-          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold">Pago Pendiente</h3>
-            <p className="text-sm mt-1">Tu pago está siendo procesado por Mercado Pago. Tus créditos se añadirán automáticamente cuando se confirme la transacción.</p>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -172,11 +143,10 @@ export default function StorePage({
                   </div>
                 </div>
                 
-                <CheckoutButton 
-                  packageId={pkg.id} 
-                  priceCOP={pkg.priceCOP} 
-                  popular={pkg.popular}
-                />
+                <div className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Próximamente</span>
+                </div>
               </div>
             </div>
           </div>
@@ -225,11 +195,10 @@ export default function StorePage({
                    </div>
                  </div>
                  
-                 <CheckoutButton 
-                   packageId={pkg.id} 
-                   priceCOP={pkg.priceCOP} 
-                   popular={false}
-                 />
+                 <div className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                   <Clock className="w-4 h-4" />
+                   <span>Próximamente</span>
+                 </div>
                </div>
              </div>
            </div>

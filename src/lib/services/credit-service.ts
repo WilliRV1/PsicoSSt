@@ -81,12 +81,14 @@ export class CreditService {
 
     /**
      * Consume 1 credit for an assessment. Throws if insufficient balance.
+     * assessmentId is optional so it can be called before the assessment is created.
      */
     static async consumeCredit(
         psychologistId: string,
-        assessmentId: string
+        assessmentId?: string
     ): Promise<number> {
         return await prisma.$transaction(async (tx) => {
+            // Read and decrement in the same transaction to prevent race conditions.
             const psych = await tx.psychologist.findUnique({
                 where: { id: psychologistId },
                 select: { creditBalance: true },
@@ -114,6 +116,33 @@ export class CreditService {
             });
 
             return updated.creditBalance;
+        });
+    }
+
+    /**
+     * Refund 1 credit. Used to compensate when assessment creation fails
+     * after a credit was already consumed.
+     */
+    static async refundCredit(
+        psychologistId: string,
+        reason: string
+    ): Promise<void> {
+        await prisma.$transaction(async (tx) => {
+            const psych = await tx.psychologist.update({
+                where: { id: psychologistId },
+                data: { creditBalance: { increment: 1 } },
+                select: { creditBalance: true },
+            });
+
+            await tx.creditTransaction.create({
+                data: {
+                    psychologistId,
+                    type: "REFUND",
+                    amount: 1,
+                    balanceAfter: psych.creditBalance,
+                    description: `Reembolso automático: ${reason}`,
+                },
+            });
         });
     }
 

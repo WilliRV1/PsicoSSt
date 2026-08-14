@@ -42,6 +42,7 @@ model Psychologist {
   resetTokens        PasswordResetToken[]
   paymentOrders      PaymentOrder[]
   settings           PsychologistSettings?
+  assessmentReports  AssessmentReport[]
 
   @@map("psychologists")
 }
@@ -115,6 +116,7 @@ model Organization {
   psychologist          Psychologist @relation(fields: [createdByPsychologist], references: [id])
   workers               Worker[]
   interventionPlans     InterventionPlan[]
+  assessmentReports     AssessmentReport[]
 
   @@map("organizations")
 }
@@ -323,6 +325,25 @@ model InterventionPlan {
 
   @@index([organizationId])
   @@map("intervention_plans")
+}
+
+/// Triangulation report (Qualitative findings) per organization and year
+model AssessmentReport {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  psychologistId String        @map("psychologist_id") @db.Uuid
+  year           Int
+  fieldFindings  String?       @map("field_findings") @db.Text
+  status         ReportStatus  @default(DRAFT)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  psychologist   Psychologist  @relation(fields: [psychologistId], references: [id])
+
+  @@unique([organizationId, year])
+  @@index([organizationId])
+  @@map("assessment_reports")
 }
 
 /// Individual action/measure within an intervention plan

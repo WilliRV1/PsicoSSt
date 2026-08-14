@@ -7,6 +7,38 @@ export interface CollectiveMetrics {
     criticalAreas: Array<{ name: string; highRiskPercentage: number }>;
     rawDimensions: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }>;
     rawDomains: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }>;
+    validity: { years: number; expirationDate: string };
+    epidemiologicalAlerts: Array<{ variable: string; group: string; riskPercentage: number; difference: number; description: string }>;
+}
+
+export function calculateValidity(
+    highRiskPercentage: number,
+    criticalAreas: Array<{ name: string; highRiskPercentage: number }>,
+    domainCounts: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }>
+): { years: number; expirationDate: string } {
+    let isOneYear = false;
+
+    // 1. Prevalencia > 20%
+    if (highRiskPercentage > 20) isOneYear = true;
+
+    // 2. Departamento completo en riesgo alto (100%)
+    if (criticalAreas.some(area => area.highRiskPercentage === 100)) isOneYear = true;
+
+    // 3. Algún dominio con promedio MUY_ALTO (simplificado: si la mayoría son MUY_ALTO)
+    for (const counts of Object.values(domainCounts)) {
+        if (counts.total > 0 && (counts.muyAlto / counts.total) > 0.5) {
+            isOneYear = true;
+        }
+    }
+
+    const years = isOneYear ? 1 : 2;
+    const expirationDate = new Date();
+    expirationDate.setFullYear(expirationDate.getFullYear() + years);
+
+    return {
+        years,
+        expirationDate: expirationDate.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
+    };
 }
 
 export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]): CollectiveMetrics {
@@ -17,11 +49,34 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
     const dimensionCounts: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }> = {};
     const domainCounts: Record<string, { sinRiesgo: number; bajo: number; medio: number; alto: number; muyAlto: number; total: number }> = {};
     const areaCounts: Record<string, { total: number; highRisk: number }> = {};
+    const demoCounts: Record<string, Record<string, { total: number; highRisk: number }>> = {
+        gender: {},
+        jobLevel: {},
+        ageGroup: {}
+    };
 
     workers.forEach(worker => {
         const area = worker.departmentArea || "Sin área";
         if (!areaCounts[area]) areaCounts[area] = { total: 0, highRisk: 0 };
         areaCounts[area].total++;
+
+        const gender = worker.gender || 'No reportado';
+        const jobLevel = worker.jobLevel || 'No reportado';
+        let ageGroup = 'No reportado';
+        if (worker.birthYear) {
+            const age = new Date().getFullYear() - worker.birthYear;
+            if (age < 30) ageGroup = '<30';
+            else if (age <= 45) ageGroup = '30-45';
+            else ageGroup = '>45';
+        }
+
+        if (!demoCounts.gender[gender]) demoCounts.gender[gender] = { total: 0, highRisk: 0 };
+        if (!demoCounts.jobLevel[jobLevel]) demoCounts.jobLevel[jobLevel] = { total: 0, highRisk: 0 };
+        if (!demoCounts.ageGroup[ageGroup]) demoCounts.ageGroup[ageGroup] = { total: 0, highRisk: 0 };
+
+        demoCounts.gender[gender].total++;
+        demoCounts.jobLevel[jobLevel].total++;
+        demoCounts.ageGroup[ageGroup].total++;
 
         let hasHighRisk = false;
 
@@ -68,6 +123,9 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
         if (hasHighRisk) {
             highRiskCount++;
             areaCounts[area].highRisk++;
+            demoCounts.gender[gender].highRisk++;
+            demoCounts.jobLevel[jobLevel].highRisk++;
+            demoCounts.ageGroup[ageGroup].highRisk++;
         }
     });
 
@@ -101,14 +159,47 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
         value: Math.round(d.positivePercentage)
     }));
 
-    // Critical Areas
+    // Critical Areas (N < 5 Rule Applied for anonymity)
     const criticalAreas = Object.entries(areaCounts)
+        .filter(([_, counts]) => counts.total >= 5) // Ocultar áreas con menos de 5 personas por anonimato
         .map(([name, counts]) => ({
             name,
             highRiskPercentage: Math.round((counts.highRisk / counts.total) * 100)
         }))
         .filter(a => a.highRiskPercentage > 30) // Only areas with > 30% high risk
         .sort((a, b) => b.highRiskPercentage - a.highRiskPercentage);
+
+    // Epidemiological Alerts (Crosstabs > 15 points)
+    const epidemiologicalAlerts: Array<{ variable: string; group: string; riskPercentage: number; difference: number; description: string }> = [];
+    const globalHighRiskPct = totalEvaluated > 0 ? (highRiskCount / totalEvaluated) * 100 : 0;
+
+    const analyzeCrosstab = (category: string, counts: Record<string, { total: number; highRisk: number }>, label: string) => {
+        // N < 5 rule for statistical significance and anonymity
+        const validGroups = Object.entries(counts).filter(([_, c]) => c.total >= 5);
+        if (validGroups.length < 2) return;
+
+        validGroups.forEach(([group, c]) => {
+            const riskPct = (c.highRisk / c.total) * 100;
+            const diff = riskPct - globalHighRiskPct;
+            if (diff >= 15) {
+                epidemiologicalAlerts.push({
+                    variable: category,
+                    group,
+                    riskPercentage: Math.round(riskPct),
+                    difference: Math.round(diff),
+                    description: `El grupo ${group} (${label}) presenta un ${Math.round(riskPct)}% de riesgo alto/muy alto, superando el promedio general de la organización por ${Math.round(diff)} puntos porcentuales.`
+                });
+            }
+        });
+    };
+
+    analyzeCrosstab('gender', demoCounts.gender, 'Género');
+    analyzeCrosstab('jobLevel', demoCounts.jobLevel, 'Cargo');
+    analyzeCrosstab('ageGroup', demoCounts.ageGroup, 'Grupo Etario');
+
+    // Calculate Validity
+    const highRiskPercentage = totalEvaluated > 0 ? (highRiskCount / totalEvaluated) * 100 : 0;
+    const validity = calculateValidity(highRiskPercentage, criticalAreas, domainCounts);
 
     return {
         totalEvaluated,
@@ -118,6 +209,8 @@ export function computeCollectiveMetrics(workers: any[], previousWorkers?: any[]
         protectiveFactors,
         criticalAreas,
         rawDimensions: dimensionCounts,
-        rawDomains: domainCounts
+        rawDomains: domainCounts,
+        validity,
+        epidemiologicalAlerts
     };
 }
