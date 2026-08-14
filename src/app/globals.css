@@ -4,176 +4,228 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', sans-serif;
-  --font-heading: var(--font-manrope), 'Manrope', sans-serif;
+  --font-sans: var(--font-source-sans), 'Source Sans 3', sans-serif;
+  --font-heading: var(--font-barlow), 'Barlow Semi Condensed', sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
-  
-  --color-background: #F8FAFC;
-  --color-foreground: #0F172A;
-  
-  --color-primary: #0F172A;
+
+  /* ── Light mode palette ─────────────────────────────────────── */
+  --color-background: #EBF2F9;
+  --color-foreground: #091522;
+
+  --color-primary: #009A80;
   --color-primary-foreground: #FFFFFF;
-  --color-primary-muted: #334155;
-  
-  --color-teal: #14B8A6;
-  --color-teal-light: #ccfbf1;
-  --color-teal-dark: #0f766e;
-  
-  --color-blue: #3B82F6;
-  --color-blue-light: #dbeafe;
-  --color-blue-dark: #1d4ed8;
-  
-  --color-success: #22C55E;
+  --color-primary-muted: #007A65;
+
+  --color-teal: #009A80;
+  --color-teal-light: #B8EFE6;
+  --color-teal-dark: #007A65;
+
+  --color-blue: #1A5CDB;
+  --color-blue-light: #DBEAFE;
+  --color-blue-dark: #1348A8;
+
+  --color-success: #10B981;
   --color-success-foreground: #FFFFFF;
-  
+
   --color-warning: #F59E0B;
   --color-warning-foreground: #FFFFFF;
-  
+
   --color-danger: #EF4444;
   --color-danger-foreground: #FFFFFF;
-  
-  --color-info: #3B82F6;
+
+  --color-info: #1A5CDB;
   --color-info-foreground: #FFFFFF;
-  
+
   --color-surface: #FFFFFF;
-  --color-surface-foreground: #0F172A;
-  --color-surface-muted: #F1F5F9;
-  
-  --color-border: #E2E8F0;
-  --color-border-muted: #F1F5F9;
-  --color-border-focus: #3B82F6;
+  --color-surface-foreground: #091522;
+  --color-surface-muted: #DDE8F4;
+
+  --color-border: #C2D4E5;
+  --color-border-muted: #D5E3F0;
+  --color-border-focus: #009A80;
 
   --color-popover: #FFFFFF;
-  --color-popover-foreground: #0F172A;
-  
-  --color-text: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
+  --color-popover-foreground: #091522;
+
+  --color-text: #091522;
+  --color-text-secondary: #3E5B74;
+  --color-text-muted: #6A8EA8;
   --color-text-inverse: #FFFFFF;
 
-  /* Risk System */
-  --color-risk-none-bg: #F8FAFC;
-  --color-risk-none-text: #64748B;
-  --color-risk-none-border: #E2E8F0;
-  
-  --color-risk-low-bg: #dcfce7;
-  --color-risk-low-text: #15803d;
-  --color-risk-low-border: #bbf7d0;
-  
-  --color-risk-medium-bg: #fef3c7;
-  --color-risk-medium-text: #b45309;
-  --color-risk-medium-border: #fde68a;
-  
-  --color-risk-high-bg: #ffedd5;
-  --color-risk-high-text: #c2410c;
-  --color-risk-high-border: #fed7aa;
-  
-  --color-risk-veryhigh-bg: #fee2e2;
-  --color-risk-veryhigh-text: #b91c1c;
-  --color-risk-veryhigh-border: #fecaca;
-  
-  /* Radii */
+  /* ── Risk System ─────────────────────────────────────────────── */
+  --color-risk-none-bg: #EBF2F9;
+  --color-risk-none-text: #3E5B74;
+  --color-risk-none-border: #C2D4E5;
+
+  --color-risk-low-bg: #DCFCE7;
+  --color-risk-low-text: #15803D;
+  --color-risk-low-border: #BBF7D0;
+
+  --color-risk-medium-bg: #FEF3C7;
+  --color-risk-medium-text: #B45309;
+  --color-risk-medium-border: #FDE68A;
+
+  --color-risk-high-bg: #FFEDD5;
+  --color-risk-high-text: #C2410C;
+  --color-risk-high-border: #FED7AA;
+
+  --color-risk-veryhigh-bg: #FEE2E2;
+  --color-risk-veryhigh-text: #B91C1C;
+  --color-risk-veryhigh-border: #FECACA;
+
+  /* ── Radii & Shadows ─────────────────────────────────────────── */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-2xl: 24px;
-  
-  /* Shadows */
+
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-DEFAULT: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.12), 0 4px 6px -4px rgb(0 0 0 / 0.08);
 }
 
+/* ── Dark mode overrides ───────────────────────────────────────────── */
 .dark {
-  /* Dynamic re-mapping for dark mode */
-  --color-background: #0F172A;
-  --color-foreground: #FFFFFF;
-  
-  --color-surface: #0F172A;
-  --color-surface-foreground: #FFFFFF;
-  --color-surface-muted: #1e293b;
-  
-  --color-border: #334155;
-  --color-border-muted: #1e293b;
+  --color-background: #07101C;
+  --color-foreground: #D4E5F2;
 
-  --color-popover: #0F172A;
-  --color-popover-foreground: #FFFFFF;
+  --color-primary: #00C9A7;
+  --color-primary-foreground: #07101C;
+  --color-primary-muted: #009A80;
 
-  --color-text: #FFFFFF;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
-  --color-text-inverse: #0F172A;
-  
-  /* Re-map risk levels for dark mode legibility if necessary, 
-     keeping them darker/subtler with vibrant text */
-  --color-risk-none-bg: #1e293b;
-  --color-risk-none-text: #94A3B8;
-  --color-risk-none-border: #334155;
-  
-  --color-risk-low-bg: #064e3b;
-  --color-risk-low-text: #4ade80;
-  --color-risk-low-border: #065f46;
-  
-  --color-risk-medium-bg: #78350f;
-  --color-risk-medium-text: #fbbf24;
-  --color-risk-medium-border: #92400e;
-  
-  --color-risk-high-bg: #7c2d12;
-  --color-risk-high-text: #fb923c;
-  --color-risk-high-border: #9a3412;
-  
-  --color-risk-veryhigh-bg: #7f1d1d;
-  --color-risk-veryhigh-text: #f87171;
-  --color-risk-veryhigh-border: #991b1b;
+  --color-teal: #00C9A7;
+  --color-teal-light: #002E27;
+  --color-teal-dark: #009A80;
+
+  --color-blue: #2979FF;
+  --color-blue-light: #0A1F4E;
+  --color-blue-dark: #1A5CDB;
+
+  --color-surface: #0B1929;
+  --color-surface-foreground: #D4E5F2;
+  --color-surface-muted: #081320;
+
+  --color-border: #162638;
+  --color-border-muted: #0F1E2E;
+  --color-border-focus: #00C9A7;
+
+  --color-popover: #0B1929;
+  --color-popover-foreground: #D4E5F2;
+
+  --color-text: #D4E5F2;
+  --color-text-secondary: #5A80A0;
+  --color-text-muted: #2E4A62;
+  --color-text-inverse: #07101C;
+
+  /* Dark mode risk */
+  --color-risk-none-bg: #0B1929;
+  --color-risk-none-text: #5A80A0;
+  --color-risk-none-border: #162638;
+
+  --color-risk-low-bg: #052E1C;
+  --color-risk-low-text: #4ADE80;
+  --color-risk-low-border: #064E30;
+
+  --color-risk-medium-bg: #431A04;
+  --color-risk-medium-text: #FBBF24;
+  --color-risk-medium-border: #78350F;
+
+  --color-risk-high-bg: #431004;
+  --color-risk-high-text: #FB923C;
+  --color-risk-high-border: #7C2D12;
+
+  --color-risk-veryhigh-bg: #430A0A;
+  --color-risk-veryhigh-text: #F87171;
+  --color-risk-veryhigh-border: #7F1D1D;
 }
 
+/* ── Base styles ───────────────────────────────────────────────────── */
 @layer base {
   * {
-    @apply border-border outline-primary/50;
+    @apply border-border;
+    outline-color: rgb(from var(--color-primary) r g b / 0.5);
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-teal selection:text-white;
+    @apply bg-background text-foreground antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  
-  /* Custom scrollbar for DataGrids & general UI */
+
+  ::selection {
+    background-color: rgba(0, 201, 167, 0.25);
+    color: inherit;
+  }
+
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full hover:bg-text-muted transition-colors;
+    background: rgba(22, 38, 56, 0.9);
+    border-radius: 99px;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(22, 38, 56, 0.9);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 201, 167, 0.35);
   }
 }
 
+/* ── Brand utilities ───────────────────────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(135deg, #00C9A7 0%, #2979FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gradient-brand {
+  background: linear-gradient(135deg, #00C9A7 0%, #2979FF 100%);
+}
+
+.border-gradient-brand::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #00C9A7, #2979FF);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Sidebar hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ==========================================================================
-   PRINT LAYOUT (Reglas Estrictas)
-   Fase 5 - Experiencia Premium / Reportes PDF Legales
+   PRINT (unchanged — legal requirement)
    ========================================================================== */
 @media print {
-  /* Forzar fondo blanco y quitar fondos oscuros */
   html, body {
     background-color: white !important;
     color: black !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
-  
-  /* Márgenes de documento legales */
+
   @page {
     margin: 20mm;
     size: A4 portrait;
   }
-  
-  /* Elementos a ocultar para PDF limpios */
-  header, 
-  aside, 
-  button, 
-  .no-print, 
+
+  header,
+  aside,
+  button,
+  .no-print,
   .sidebar,
   .tooltip,
   .hover-states,
@@ -181,31 +233,29 @@
   input[type="submit"] {
     display: none !important;
   }
-  
-  /* Tamaños inmutables para elementos PDF formales */
+
   .pdf-logo {
     width: 160px !important;
     height: auto !important;
   }
-  
+
   .pdf-signature {
     width: 180px !important;
     height: auto !important;
   }
-  
+
   .pdf-qr {
     width: 120px !important;
     height: 120px !important;
   }
-  
+
   .pdf-hash {
     font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace !important;
     font-size: 10px !important;
-    color: #64748B !important; /* text-slate-500 */
+    color: #64748B !important;
     word-break: break-all;
   }
 
-  /* Resetear contenedores que puedan alterar el PDF */
   main, .container, .app-shell, body > div {
     margin: 0 !important;
     padding: 0 !important;
@@ -216,12 +266,11 @@
     overflow: visible !important;
   }
 
-  /* Evitar cortes de página en medio de tablas/gráficas */
   table, figure, img, .avoid-page-break {
     page-break-inside: avoid;
     break-inside: avoid;
   }
-  
+
   h2, h3, h4 {
     page-break-after: avoid;
     break-after: avoid;

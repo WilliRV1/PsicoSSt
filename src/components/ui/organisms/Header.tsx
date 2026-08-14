@@ -1,7 +1,9 @@
 "use client";
 
-import { Bell, Search, Coins } from "lucide-react";
+import { Bell, Search, Zap, Sun, Moon } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   user?: {
@@ -13,46 +15,121 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const credits = user?.creditBalance ?? 0;
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const creditColor =
+    credits <= 0 ? "#EF4444" : credits <= 5 ? "#F59E0B" : "#00C9A7";
 
   return (
-    <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6 sticky top-0 z-40 shrink-0">
-      {/* Left Area: Global Search */}
-      <div className="flex-1 max-w-md">
-        <button 
-          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
-          className="flex items-center gap-3 w-full max-w-sm px-3 py-2 rounded-lg border border-border bg-surface-muted hover:bg-surface text-text-muted hover:text-text transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+    <header
+      className="h-14 flex items-center justify-between px-5 sticky top-0 z-40 shrink-0 backdrop-blur-xl"
+      style={{
+        background: "rgba(7, 16, 28, 0.82)",
+        borderBottom: "1px solid rgba(18, 31, 46, 0.9)",
+      }}
+    >
+      {/* ── Search ──────────────────────────────────────────── */}
+      <div className="flex-1 max-w-xs">
+        <button
+          onClick={() =>
+            window.dispatchEvent(new Event("open-command-palette"))
+          }
+          className="group flex items-center gap-2.5 w-full px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 outline-none text-[#3A5872] hover:text-[#7AAABB] hover:border-[#00C9A7]/25"
+          style={{
+            background: "rgba(11, 25, 42, 0.7)",
+            border: "1px solid rgba(18, 38, 56, 0.9)",
+          }}
         >
-          <Search className="w-4 h-4 shrink-0" />
-          <span className="text-[14px] font-medium flex-1 text-left">Buscar...</span>
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-surface border border-border text-text-muted">
-            <span className="text-[10px]">Ctrl</span> K
+          <Search className="w-3.5 h-3.5 shrink-0" />
+          <span className="flex-1 text-left" style={{ fontFamily: "var(--font-source-sans)" }}>
+            Buscar...
+          </span>
+          <kbd
+            className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold"
+            style={{
+              background: "rgba(18, 38, 56, 0.8)",
+              color: "#2E4A62",
+              fontFamily: "var(--font-jetbrains-mono)",
+            }}
+          >
+            ⌃K
           </kbd>
         </button>
       </div>
 
-      {/* Right Area: Actions */}
-      <div className="flex items-center gap-6">
+      {/* ── Actions ─────────────────────────────────────────── */}
+      <div className="flex items-center gap-1.5 ml-4">
+
+        {/* Theme toggle */}
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#2E4A62] hover:text-[#5A80A0] hover:bg-white/[0.05] transition-all duration-150"
+            title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </button>
+        )}
+
         {/* Notifications */}
-        <button className="relative text-text-muted hover:text-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-full p-1">
-          <Bell className="w-5 h-5" />
-          {/* Unread indicator */}
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 border border-background"></span>
+        <button
+          className="relative w-8 h-8 rounded-lg flex items-center justify-center text-[#2E4A62] hover:text-[#5A80A0] hover:bg-white/[0.05] transition-all duration-150"
+          title="Notificaciones"
+        >
+          <Bell className="w-4 h-4" />
+          <span
+            className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+            style={{ background: "#EF4444" }}
+          />
         </button>
 
+        {/* Separator */}
+        <div
+          className="w-px h-4 mx-1"
+          style={{ background: "rgba(18, 38, 56, 0.9)" }}
+        />
+
         {/* Credits */}
-        <div className="flex items-center gap-3 bg-surface-muted border border-border px-3 py-1.5 rounded-full shadow-sm">
-          <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-500 font-semibold text-[14px]">
-            <Coins className="w-4 h-4" />
-            <span>{credits} créditos</span>
-          </div>
-          <div className="w-px h-4 bg-border" />
-          <Link 
-            href="/dashboard/store"
-            className="text-[13px] font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+        <Link
+          href="/dashboard/store"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-150 hover:bg-white/[0.05]"
+          style={{
+            background: "rgba(11, 25, 42, 0.7)",
+            border: "1px solid rgba(18, 38, 56, 0.9)",
+            color: creditColor,
+            fontFamily: "var(--font-jetbrains-mono)",
+          }}
+        >
+          <Zap
+            className="w-3.5 h-3.5 shrink-0"
+            style={{ color: creditColor }}
+          />
+          <span>{credits}</span>
+          <span
+            className="text-[11px] font-medium"
+            style={{
+              color: "rgba(90, 128, 160, 0.7)",
+              fontFamily: "var(--font-source-sans)",
+            }}
+          >
+            cr.
+          </span>
+          <span
+            className="text-[12px] font-semibold ml-1"
+            style={{ color: "#00C9A7", fontFamily: "var(--font-source-sans)" }}
           >
             + Comprar
-          </Link>
-        </div>
+          </span>
+        </Link>
       </div>
     </header>
   );

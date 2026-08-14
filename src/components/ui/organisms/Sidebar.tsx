@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Icons } from "@/components/icons";
-import { useTheme } from "next-themes";
-import { LogOut, Moon, Sun } from "lucide-react";
-import { useState, useEffect } from "react";
+import { LogOut } from "lucide-react";
 
 interface SidebarProps {
   user?: {
@@ -17,18 +16,17 @@ interface SidebarProps {
 
 const MENU_GROUPS = [
   {
-    title: "CENTRO DE CONTROL",
+    title: "Operaciones",
     items: [
       { name: "Centro de Control", href: "/dashboard", icon: "dashboard" },
       { name: "Empresas", href: "/dashboard/organizations", icon: "company" },
       { name: "Trabajadores", href: "/dashboard/workers", icon: "worker" },
       { name: "Evaluaciones", href: "/dashboard/assessments", icon: "certificate" },
       { name: "Intervenciones", href: "/dashboard/interventions", icon: "intervention" },
-      { name: "Seguimiento", href: "/dashboard/store", icon: "shoppingCart" },
     ],
   },
   {
-    title: "INTELIGENCIA",
+    title: "Inteligencia",
     items: [
       { name: "Analítica", href: "/dashboard/analytics", icon: "analytics" },
       { name: "Decisiones IA", href: "/dashboard/ai", icon: "ai" },
@@ -37,10 +35,8 @@ const MENU_GROUPS = [
     ],
   },
   {
-    title: "ADMINISTRACIÓN",
+    title: "Sistema",
     items: [
-      { name: "Usuarios", href: "/dashboard/users", icon: "user" },
-      { name: "Roles", href: "/dashboard/roles", icon: "shield" },
       { name: "Configuración", href: "/dashboard/settings", icon: "settings" },
     ],
   },
@@ -48,63 +44,107 @@ const MENU_GROUPS = [
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const initials = user?.fullName
+    ?.split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "U";
 
   return (
-    <aside className="w-[280px] h-screen bg-[#0F172A] flex-shrink-0 flex flex-col border-r border-slate-800 text-slate-300 relative">
-      {/* Logo Area */}
-      <div className="pt-8 pb-6 px-6 flex items-center gap-3 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
-          <Icons.shield className="w-5 h-5 text-white" />
-        </div>
-        <div className="flex flex-col">
-          <span className="font-bold text-[17px] text-white tracking-tight leading-none">PsicoSST</span>
-          <span className="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Inteligencia Gerencial</span>
-        </div>
+    <aside
+      className="sidebar w-[248px] h-screen flex-shrink-0 flex flex-col"
+      style={{
+        background: "#07101C",
+        borderRight: "1px solid #121F2E",
+      }}
+    >
+      {/* ── Logo ─────────────────────────────────────────── */}
+      <div className="px-5 pt-6 pb-4 shrink-0">
+        <Link href="/dashboard" className="block w-fit">
+          <Image
+            src="/logo-dark.png"
+            alt="PsicoSST"
+            width={144}
+            height={40}
+            className="object-contain h-9 w-auto"
+            priority
+          />
+        </Link>
       </div>
 
-      {/* Navigation Area */}
-      <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-8 no-scrollbar">
+      {/* Brand accent divider */}
+      <div
+        className="mx-5 h-px shrink-0 mb-5"
+        style={{
+          background:
+            "linear-gradient(90deg, #00C9A7 0%, #2979FF 60%, transparent 100%)",
+          opacity: 0.6,
+        }}
+      />
+
+      {/* ── Navigation ───────────────────────────────────── */}
+      <nav className="flex-1 overflow-y-auto no-scrollbar px-3 space-y-5">
         {MENU_GROUPS.map((group, groupIdx) => (
           <div key={groupIdx}>
-            <div className="px-3 mb-3 flex items-center gap-4">
-              <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
-                {group.title}
-              </h3>
-              <div className="h-px bg-white/5 flex-1" />
-            </div>
-            
-            <ul className="space-y-[6px]">
+            <p
+              className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.22em]"
+              style={{
+                color: "#243C55",
+                fontFamily: "var(--font-barlow)",
+              }}
+            >
+              {group.title}
+            </p>
+
+            <ul className="space-y-0.5">
               {group.items.map((item) => {
-                const Icon = Icons[item.icon as keyof typeof Icons] || Icons.dashboard;
-                // Active state logic
-                const isActive = item.href === "/dashboard" 
-                  ? pathname === "/dashboard" 
-                  : pathname?.startsWith(item.href);
+                const Icon =
+                  Icons[item.icon as keyof typeof Icons] || Icons.dashboard;
+                const isActive =
+                  item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : pathname?.startsWith(item.href);
 
                 return (
                   <li key={item.name} className="relative">
-                    {/* Active Indicator (subtle capsule on the left) */}
-                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-teal-500 transition-transform duration-200 ${isActive ? "scale-y-100" : "scale-y-0"}`} />
-                    
+                    {isActive && (
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, #00C9A7 0%, #2979FF 100%)",
+                        }}
+                      />
+                    )}
+
                     <Link
                       href={item.href}
                       prefetch={false}
-                      className={`
-                        group flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50
-                        ${isActive 
-                          ? "bg-white/5 text-white font-semibold" 
-                          : "font-medium hover:bg-white/5 hover:text-white"
-                        }
-                      `}
+                      className={[
+                        "group flex items-center gap-2.5 pl-4 pr-3 py-[7px] rounded-lg text-[13px] font-medium",
+                        "transition-all duration-150 outline-none",
+                        isActive
+                          ? "text-white"
+                          : "text-[#3A5872] hover:text-[#9ABDD4] hover:bg-white/[0.035]",
+                      ].join(" ")}
+                      style={
+                        isActive
+                          ? {
+                              background:
+                                "linear-gradient(90deg, rgba(0,201,167,0.1) 0%, rgba(41,121,255,0.04) 100%)",
+                            }
+                          : {}
+                      }
                     >
-                      <Icon className={`w-5 h-5 shrink-0 transition-colors ${isActive ? "text-teal-400" : "text-slate-400 group-hover:text-slate-300"}`} />
-                      <span>{item.name}</span>
+                      <Icon
+                        className="w-4 h-4 shrink-0 transition-colors"
+                        style={{ color: isActive ? "#00C9A7" : undefined }}
+                      />
+                      <span style={{ fontFamily: "var(--font-source-sans)" }}>
+                        {item.name}
+                      </span>
                     </Link>
                   </li>
                 );
@@ -114,56 +154,51 @@ export function Sidebar({ user }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Footer Area */}
-      <div className="shrink-0 p-4 border-t border-white/5 space-y-4">
-        {/* Theme Toggle */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[15px] font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50"
-        >
-          <div className="flex items-center gap-3">
-            {mounted && theme === "dark" ? (
-              <Sun className="w-5 h-5 shrink-0 text-slate-400" />
-            ) : (
-              <Moon className="w-5 h-5 shrink-0 text-slate-400" />
-            )}
-            <span>Modo oscuro</span>
+      {/* ── User footer ──────────────────────────────────── */}
+      <div
+        className="shrink-0 p-3 mt-2"
+        style={{ borderTop: "1px solid #121F2E" }}
+      >
+        <div className="flex items-center gap-3 px-2 py-2 rounded-xl">
+          {/* Avatar */}
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 select-none"
+            style={{
+              background: "linear-gradient(135deg, #00C9A7, #2979FF)",
+            }}
+          >
+            {initials}
           </div>
-          {/* Custom Toggle Switch purely visual for aesthetics */}
-          <div className="w-8 h-4 bg-slate-800 rounded-full relative border border-white/10">
-             <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all duration-200 ${mounted && theme === "dark" ? "left-4 bg-teal-400" : "left-0.5 bg-slate-500"}`} />
-          </div>
-        </button>
 
-        <div className="h-px bg-white/5 w-full my-2" />
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p
+              className="text-[13px] font-semibold truncate leading-tight"
+              style={{ color: "#C4DAE8" }}
+            >
+              {user?.fullName || "Usuario"}
+            </p>
+            <p
+              className="text-[10.5px] truncate leading-tight mt-0.5 uppercase tracking-wide"
+              style={{
+                color: "#243C55",
+                fontFamily: "var(--font-barlow)",
+              }}
+            >
+              Psicólogo · v2.0
+            </p>
+          </div>
 
-        {/* User Profile */}
-        <div className="flex flex-col gap-3 px-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-white/10 text-white font-bold text-sm">
-              {user?.fullName?.charAt(0) || "U"}
-            </div>
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-[14px] font-semibold text-white truncate">
-                {user?.fullName || "Usuario"}
-              </span>
-              <span className="text-[12px] text-slate-400 truncate">Administrador</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-[11px] text-slate-500 font-medium">v2.0.0</span>
-            <form action="/api/auth/signout" method="POST">
-              <button 
-                type="submit"
-                className="flex items-center gap-2 text-[13px] font-medium text-slate-400 hover:text-red-400 transition-colors"
-                title="Cerrar sesión"
-              >
-                <LogOut className="w-4 h-4" />
-                Salir
-              </button>
-            </form>
-          </div>
+          {/* Sign out */}
+          <form action="/api/auth/signout" method="POST">
+            <button
+              type="submit"
+              className="p-1.5 rounded-lg transition-all duration-150 text-[#243C55] hover:text-red-400 hover:bg-red-500/10"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </form>
         </div>
       </div>
     </aside>
