@@ -111,10 +111,11 @@ export default function SociodemographicReportPDF({ data }: { data: Sociodemogra
                 </Text>
             </Page>
 
-            {/* SECCION 1: SOCIODEMOGRAFICO */}
-            <Page size="LETTER" style={styles.page}>
+            {/* ALL CONTENT — continuous flow, auto-paginated */}
+            <Page size="LETTER" style={styles.page} wrap>
+                {/* ── 1. Perfil Sociodemográfico ── */}
                 <View style={styles.header}><Text style={styles.headerTitle}>1. Perfil Sociodemográfico</Text></View>
-                
+
                 <Text style={styles.paragraph}>
                     El siguiente apartado detalla la conformación sociodemográfica de la población laboral evaluada ({data.totalWorkers} trabajadores). Esta información es fundamental para diseñar metodologías de intervención con enfoque diferencial (por ejemplo, andragogía para niveles educativos básicos) y para comprender las vulnerabilidades extralaborales que afectan a la organización.
                 </Text>
@@ -128,15 +129,9 @@ export default function SociodemographicReportPDF({ data }: { data: Sociodemogra
                     <DataList title="Tipo de Vivienda" data={data.sociodemographic.housing} />
                 </View>
 
-                <Text style={styles.footer} render={({ pageNumber, totalPages }) => (
-                    `Ley 1090 de 2006 (Secreto Profesional) y Resolución 2346/2007 (Custodia Historia Clínica 20 años) | Página ${pageNumber} de ${totalPages}`
-                )} fixed />
-            </Page>
+                {/* ── 2. Perfil Ocupacional ── */}
+                <View style={{ ...styles.header, marginTop: 20 }}><Text style={styles.headerTitle}>2. Perfil Ocupacional e Indicadores de Riesgo</Text></View>
 
-            {/* SECCION 2: OCUPACIONAL */}
-            <Page size="LETTER" style={styles.page}>
-                <View style={styles.header}><Text style={styles.headerTitle}>2. Perfil Ocupacional e Indicadores de Riesgo</Text></View>
-                
                 <Text style={styles.paragraph}>
                     El perfil ocupacional expone la exposición técnica al riesgo intralaboral. Se analizan tiempos de exposición (antigüedad) y variables estructurales del trabajo (jornada, tipo de contrato y nivel jerárquico).
                 </Text>
@@ -153,7 +148,7 @@ export default function SociodemographicReportPDF({ data }: { data: Sociodemogra
                 {(data.alerts.fatigueRisk || data.alerts.highTurnoverRisk) && (
                     <View style={{ marginTop: 20 }}>
                         <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#dc2626', marginBottom: 5 }}>Alertas de Tendencia Crítica detectadas:</Text>
-                        
+
                         {data.alerts.fatigueRisk && (
                             <View style={{ backgroundColor: '#fef2f2', padding: 10, borderRadius: 5, marginBottom: 5 }}>
                                 <Text style={{ fontSize: 10, color: '#991b1b', fontWeight: 'bold' }}>Riesgo de Fatiga Laboral:</Text>
@@ -170,7 +165,7 @@ export default function SociodemographicReportPDF({ data }: { data: Sociodemogra
                     </View>
                 )}
 
-                <View style={{ marginTop: 40, alignItems: 'center' }}>
+                <View style={{ marginTop: 40, alignItems: 'center' }} wrap={false}>
                     <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#0f172a' }}>{data.orgInfo.psychologistName}</Text>
                     <Text style={{ fontSize: 10, color: '#475569' }}>Psicólogo(a) Especialista SST</Text>
                     <Text style={{ fontSize: 10, color: '#475569' }}>Licencia: {data.orgInfo.psychologistLicense}</Text>

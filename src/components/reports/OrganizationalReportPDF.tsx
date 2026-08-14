@@ -291,9 +291,11 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                 <Text style={s.coverFooter}>* Según la Resolución 2764 de 2022, este diagnóstico tiene vigencia de {vigencia}.</Text>
             </Page>
 
-            {/* ═══════════ 1. RESUMEN EJECUTIVO ═══════════ */}
-            <Page size="LETTER" style={s.page}>
+            {/* ═══════════ ALL CONTENT — continuous flow, auto-paginated ═══════════ */}
+            <Page size="LETTER" style={s.page} wrap>
                 {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
+
+                {/* ── 1. Resumen Ejecutivo ── */}
                 <View style={s.pageHeader}>
                     <Text style={s.pageTitle}>1. Resumen Ejecutivo</Text>
                 </View>
@@ -357,23 +359,21 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                     </View>
                 </View>
 
-                <PageFooter />
-            </Page>
-
-            {/* ═══════════ 3. DOMINIOS FORMA A ═══════════ */}
-            {data.domainsFormaA.length > 0 && (
-                <Page size="LETTER" style={s.page}>
-                    {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
-                    <View style={s.pageHeader}>
-                        <Text style={s.pageTitle}>3. Evaluación por Dominios — Forma A</Text>
+                {/* ── 3. Dominios Forma A ── */}
+                {data.domainsFormaA.length > 0 && (
+                    <View wrap={false}>
+                        <View style={{ ...s.pageHeader, marginTop: 20 }}>
+                            <Text style={s.pageTitle}>3. Evaluación por Dominios — Forma A</Text>
+                        </View>
+                        <Text style={s.body}>Resultados consolidados para Jefaturas y Profesionales. Los velocímetros indican el promedio poblacional frente a los umbrales normativos de la Res. 2764.</Text>
                     </View>
-                    <Text style={s.body}>Resultados consolidados para Jefaturas y Profesionales. Los velocímetros indican el promedio poblacional frente a los umbrales normativos de la Res. 2764.</Text>
-
+                )}
+                {data.domainsFormaA.length > 0 && (
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                         {data.domainsFormaA.map((d, i) => {
                             const desc = DOMAIN_DESCRIPTIONS[d.name.toLowerCase()] || '';
                             return (
-                                <View key={i} style={s.gaugeBox}>
+                                <View key={i} style={s.gaugeBox} wrap={false}>
                                     <Text style={s.gaugeTitle}>{d.name}</Text>
                                     {desc ? <Text style={s.gaugeDesc}>{desc}</Text> : <View style={{ height: 20 }} />}
                                     <PDFGauge value={d.average} thresholds={d.thresholds} />
@@ -382,24 +382,23 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                             );
                         })}
                     </View>
-                    <PageFooter />
-                </Page>
-            )}
+                )}
 
-            {/* ═══════════ 4. DOMINIOS FORMA B ═══════════ */}
-            {data.domainsFormaB.length > 0 && (
-                <Page size="LETTER" style={s.page}>
-                    {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
-                    <View style={s.pageHeader}>
-                        <Text style={s.pageTitle}>4. Evaluación por Dominios — Forma B</Text>
+                {/* ── 4. Dominios Forma B ── */}
+                {data.domainsFormaB.length > 0 && (
+                    <View wrap={false}>
+                        <View style={{ ...s.pageHeader, marginTop: 20 }}>
+                            <Text style={s.pageTitle}>4. Evaluación por Dominios — Forma B</Text>
+                        </View>
+                        <Text style={s.body}>Resultados consolidados para Auxiliares y Operativos. Este segmento poblacional requiere particular atención en las dimensiones vinculadas a la carga física y ritmo de trabajo.</Text>
                     </View>
-                    <Text style={s.body}>Resultados consolidados para Auxiliares y Operativos. Este segmento poblacional requiere particular atención en las dimensiones vinculadas a la carga física y ritmo de trabajo.</Text>
-
+                )}
+                {data.domainsFormaB.length > 0 && (
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                         {data.domainsFormaB.map((d, i) => {
                             const desc = DOMAIN_DESCRIPTIONS[d.name.toLowerCase()] || '';
                             return (
-                                <View key={i} style={s.gaugeBox}>
+                                <View key={i} style={s.gaugeBox} wrap={false}>
                                     <Text style={s.gaugeTitle}>{d.name}</Text>
                                     {desc ? <Text style={s.gaugeDesc}>{desc}</Text> : <View style={{ height: 20 }} />}
                                     <PDFGauge value={d.average} thresholds={d.thresholds} />
@@ -408,145 +407,133 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                             );
                         })}
                     </View>
-                    <PageFooter />
-                </Page>
-            )}
+                )}
 
-            {/* ═══════════ 5. ANÁLISIS POR DIMENSIONES ═══════════ */}
-            {data.dimensionAnalysis.length > 0 && (
-                <Page size="LETTER" style={s.page}>
-                    {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
-                    <View style={s.pageHeader}>
-                        <Text style={s.pageTitle}>5. Análisis por Dimensiones</Text>
-                    </View>
-                    <Text style={s.body}>Dimensiones con mayor puntaje transformado promedio, indicando las áreas que requieren mayor atención.</Text>
-
-                    <View style={s.table}>
-                        <View style={s.tRow}>
-                            <Text style={{ ...s.tHeader, width: '35%' }}>Dimensión</Text>
-                            <Text style={{ ...s.tHeader, width: '18%', textAlign: 'center' }}>Cuestionario</Text>
-                            <Text style={{ ...s.tHeader, width: '15%', textAlign: 'center' }}>Puntaje Prom.</Text>
-                            <Text style={{ ...s.tHeader, width: '15%', textAlign: 'center' }}>Evaluados</Text>
-                            <Text style={{ ...s.tHeader, width: '17%', textAlign: 'center' }}>% Alto/Muy Alto</Text>
+                {/* ── 5. Análisis por Dimensiones ── */}
+                {data.dimensionAnalysis.length > 0 && (
+                    <View>
+                        <View style={{ ...s.pageHeader, marginTop: 20 }}>
+                            <Text style={s.pageTitle}>5. Análisis por Dimensiones</Text>
                         </View>
-                        {data.dimensionAnalysis.slice(0, 15).map((dim, i) => {
-                            const scoreColor = dim.avgScore >= 40 ? C.redText : dim.avgScore >= 30 ? C.orangeText : dim.avgScore >= 20 ? C.yellowText : C.greenText;
-                            const scoreBg = dim.avgScore >= 40 ? C.redBg : dim.avgScore >= 30 ? C.orangeBg : dim.avgScore >= 20 ? C.yellowBg : C.greenBg;
-                            return (
-                                <View key={i} style={{ ...s.tRow, backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
-                                    <Text style={{ ...s.tCell, width: '35%', fontWeight: 'bold', color: C.text }}>{dim.name}</Text>
-                                    <Text style={{ ...s.tCell, width: '18%', textAlign: 'center', fontSize: 8 }}>{dim.questionnaire}</Text>
-                                    <View style={{ width: '15%', padding: 6, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={{ fontSize: 9, fontWeight: 'bold', color: scoreColor, backgroundColor: scoreBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 }}>
-                                            {dim.avgScore.toFixed(1)}%
+                        <Text style={s.body}>Dimensiones con mayor puntaje transformado promedio, indicando las áreas que requieren mayor atención.</Text>
+
+                        <View style={s.table}>
+                            <View style={s.tRow}>
+                                <Text style={{ ...s.tHeader, width: '35%' }}>Dimensión</Text>
+                                <Text style={{ ...s.tHeader, width: '18%', textAlign: 'center' }}>Cuestionario</Text>
+                                <Text style={{ ...s.tHeader, width: '15%', textAlign: 'center' }}>Puntaje Prom.</Text>
+                                <Text style={{ ...s.tHeader, width: '15%', textAlign: 'center' }}>Evaluados</Text>
+                                <Text style={{ ...s.tHeader, width: '17%', textAlign: 'center' }}>% Alto/Muy Alto</Text>
+                            </View>
+                            {data.dimensionAnalysis.slice(0, 15).map((dim, i) => {
+                                const scoreColor = dim.avgScore >= 40 ? C.redText : dim.avgScore >= 30 ? C.orangeText : dim.avgScore >= 20 ? C.yellowText : C.greenText;
+                                const scoreBg = dim.avgScore >= 40 ? C.redBg : dim.avgScore >= 30 ? C.orangeBg : dim.avgScore >= 20 ? C.yellowBg : C.greenBg;
+                                return (
+                                    <View key={i} style={{ ...s.tRow, backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }} wrap={false}>
+                                        <Text style={{ ...s.tCell, width: '35%', fontWeight: 'bold', color: C.text }}>{dim.name}</Text>
+                                        <Text style={{ ...s.tCell, width: '18%', textAlign: 'center', fontSize: 8 }}>{dim.questionnaire}</Text>
+                                        <View style={{ width: '15%', padding: 6, alignItems: 'center', justifyContent: 'center' }}>
+                                            <Text style={{ fontSize: 9, fontWeight: 'bold', color: scoreColor, backgroundColor: scoreBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 }}>
+                                                {dim.avgScore.toFixed(1)}%
+                                            </Text>
+                                        </View>
+                                        <Text style={{ ...s.tCell, width: '15%', textAlign: 'center' }}>{dim.count}</Text>
+                                        <Text style={{ ...s.tCell, width: '17%', textAlign: 'center', fontWeight: 'bold', color: dim.criticalPercent > 30 ? C.red : dim.criticalPercent > 15 ? C.orange : C.textMuted }}>
+                                            {dim.criticalPercent}%
                                         </Text>
                                     </View>
-                                    <Text style={{ ...s.tCell, width: '15%', textAlign: 'center' }}>{dim.count}</Text>
-                                    <Text style={{ ...s.tCell, width: '17%', textAlign: 'center', fontWeight: 'bold', color: dim.criticalPercent > 30 ? C.red : dim.criticalPercent > 15 ? C.orange : C.textMuted }}>
-                                        {dim.criticalPercent}%
-                                    </Text>
+                                );
+                            })}
+                        </View>
+                    </View>
+                )}
+
+                {/* ── 6. Priorización de Intervención ── */}
+                {prioritizedDims.length > 0 && (
+                    <View>
+                        <View style={{ ...s.pageHeader, marginTop: 20 }}>
+                            <Text style={s.pageTitle}>6. Priorización de Intervención</Text>
+                        </View>
+                        <Text style={s.body}>Matriz de prioridad basada en la combinación del nivel de riesgo promedio y el número de trabajadores afectados. Las dimensiones se ordenan por prioridad de intervención.</Text>
+
+                        {prioritizedDims.map((dim, i) => {
+                            const priority = dim.priorityScore >= 70 ? 'CRÍTICA' : dim.priorityScore >= 40 ? 'ALTA' : 'MEDIA';
+                            const pColor = dim.priorityScore >= 70 ? C.red : dim.priorityScore >= 40 ? C.orange : C.yellow;
+                            const badgeBg = dim.priorityScore >= 70 ? C.redBg : dim.priorityScore >= 40 ? C.orangeBg : C.yellowBg;
+                            const badgeColor = dim.priorityScore >= 70 ? C.redText : dim.priorityScore >= 40 ? C.orangeText : C.yellowText;
+
+                            return (
+                                <View key={i} style={s.prioRow} wrap={false}>
+                                    <View style={{ ...s.prioBar, backgroundColor: pColor }} />
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.text }}>{i + 1}. {dim.name}</Text>
+                                            <Text style={{ ...s.prioBadge, backgroundColor: badgeBg, color: badgeColor }}>{priority}</Text>
+                                        </View>
+                                        <Text style={{ fontSize: 8, color: C.textLight, marginTop: 2 }}>
+                                            Promedio: {dim.avgScore.toFixed(1)}% · {dim.criticalPercent}% en zona crítica · {dim.count} evaluados
+                                        </Text>
+                                    </View>
+                                    <View style={{ width: 60, height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
+                                        <View style={{ width: `${Math.min(dim.priorityScore, 100)}%`, height: '100%', backgroundColor: pColor, borderRadius: 3 }} />
+                                    </View>
                                 </View>
                             );
                         })}
+
+                        {/* ── Matriz de Vigilancia Epidemiológica ── */}
+                        <View style={{ ...s.sectionTitle, marginTop: 20 }}><Text>Matriz de Vigilancia Epidemiológica</Text></View>
+                        <Text style={s.body}>Cruce individual entre Riesgo Intralaboral y Nivel de Estrés de la población evaluada.</Text>
+
+                        <View style={s.matrixGrid}>
+                            <View style={{ ...s.matrixBox, borderColor: '#FCA5A5', backgroundColor: C.redBg }}>
+                                <Text style={{ ...s.matrixNum, color: C.red }}>{pm.group1D}</Text>
+                                <Text style={{ ...s.matrixLabel, color: C.redText }}>Prioridad 1D</Text>
+                                <Text style={{ ...s.matrixSub, color: C.redText }}>Riesgo Intralaboral Alto{'\n'}+ Estrés Alto</Text>
+                            </View>
+                            <View style={{ ...s.matrixBox, borderColor: '#FDE047', backgroundColor: C.yellowBg }}>
+                                <Text style={{ ...s.matrixNum, color: C.yellow }}>{pm.vulnerables}</Text>
+                                <Text style={{ ...s.matrixLabel, color: C.yellowText }}>Vulnerables</Text>
+                                <Text style={{ ...s.matrixSub, color: C.yellowText }}>Riesgo Intralaboral Bajo{'\n'}+ Estrés Alto</Text>
+                            </View>
+                            <View style={{ ...s.matrixBox, borderColor: '#FDBA74', backgroundColor: C.orangeBg }}>
+                                <Text style={{ ...s.matrixNum, color: C.orange }}>{pm.adaptados}</Text>
+                                <Text style={{ ...s.matrixLabel, color: C.orangeText }}>Adaptados</Text>
+                                <Text style={{ ...s.matrixSub, color: C.orangeText }}>Riesgo Intralaboral Alto{'\n'}+ Estrés Bajo</Text>
+                            </View>
+                            <View style={{ ...s.matrixBox, borderColor: '#86EFAC', backgroundColor: C.greenBg }}>
+                                <Text style={{ ...s.matrixNum, color: C.green }}>{pm.sanos}</Text>
+                                <Text style={{ ...s.matrixLabel, color: C.greenText }}>Sanos</Text>
+                                <Text style={{ ...s.matrixSub, color: C.greenText }}>Riesgo Intralaboral Bajo{'\n'}+ Estrés Bajo</Text>
+                            </View>
+                        </View>
                     </View>
-                    <PageFooter />
-                </Page>
-            )}
+                )}
 
-            {/* ═══════════ 6. PRIORIZACIÓN DE INTERVENCIÓN ═══════════ */}
-            {prioritizedDims.length > 0 && (
-                <Page size="LETTER" style={s.page}>
-                    {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
-                    <View style={s.pageHeader}>
-                        <Text style={s.pageTitle}>6. Priorización de Intervención</Text>
-                    </View>
-                    <Text style={s.body}>Matriz de prioridad basada en la combinación del nivel de riesgo promedio y el número de trabajadores afectados. Las dimensiones se ordenan por prioridad de intervención.</Text>
+                {/* ── 7. Análisis por Áreas ── */}
+                {areaEntries.length > 0 && (
+                    <View>
+                        <View style={{ ...s.pageHeader, marginTop: 20 }}>
+                            <Text style={s.pageTitle}>7. Análisis por Áreas de Trabajo</Text>
+                        </View>
+                        <Text style={s.body}>Distribución de riesgo segmentada por departamento o área funcional. Permite identificar focos de intervención localizados.</Text>
 
-                    {prioritizedDims.map((dim, i) => {
-                        const priority = dim.priorityScore >= 70 ? 'CRÍTICA' : dim.priorityScore >= 40 ? 'ALTA' : 'MEDIA';
-                        const pColor = dim.priorityScore >= 70 ? C.red : dim.priorityScore >= 40 ? C.orange : C.yellow;
-                        const badgeBg = dim.priorityScore >= 70 ? C.redBg : dim.priorityScore >= 40 ? C.orangeBg : C.yellowBg;
-                        const badgeColor = dim.priorityScore >= 70 ? C.redText : dim.priorityScore >= 40 ? C.orangeText : C.yellowText;
-
-                        return (
-                            <View key={i} style={s.prioRow}>
-                                <View style={{ ...s.prioBar, backgroundColor: pColor }} />
-                                <View style={{ flex: 1 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.text }}>{i + 1}. {dim.name}</Text>
-                                        <Text style={{ ...s.prioBadge, backgroundColor: badgeBg, color: badgeColor }}>{priority}</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                            {areaEntries.map(([area, areaData]: [string, any], i) => (
+                                <View key={i} style={s.areaCard} wrap={false}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: C.border }}>
+                                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.text }}>{area}</Text>
+                                        <Text style={{ fontSize: 7, fontWeight: 'bold', color: C.textLight, backgroundColor: C.borderLight, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 3 }}>N={areaData.count}</Text>
                                     </View>
-                                    <Text style={{ fontSize: 8, color: C.textLight, marginTop: 2 }}>
-                                        Promedio: {dim.avgScore.toFixed(1)}% · {dim.criticalPercent}% en zona crítica · {dim.count} evaluados
-                                    </Text>
+                                    <RiskDistribution distribution={areaData.riskDistribution} />
                                 </View>
-                                <View style={{ width: 60, height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
-                                    <View style={{ width: `${Math.min(dim.priorityScore, 100)}%`, height: '100%', backgroundColor: pColor, borderRadius: 3 }} />
-                                </View>
-                            </View>
-                        );
-                    })}
-
-                    {/* ── Matriz de Vigilancia Epidemiológica ── */}
-                    <View style={{ ...s.sectionTitle, marginTop: 20 }}><Text>Matriz de Vigilancia Epidemiológica</Text></View>
-                    <Text style={s.body}>Cruce individual entre Riesgo Intralaboral y Nivel de Estrés de la población evaluada.</Text>
-
-                    <View style={s.matrixGrid}>
-                        <View style={{ ...s.matrixBox, borderColor: '#FCA5A5', backgroundColor: C.redBg }}>
-                            <Text style={{ ...s.matrixNum, color: C.red }}>{pm.group1D}</Text>
-                            <Text style={{ ...s.matrixLabel, color: C.redText }}>Prioridad 1D</Text>
-                            <Text style={{ ...s.matrixSub, color: C.redText }}>Riesgo Intralaboral Alto{'\n'}+ Estrés Alto</Text>
-                        </View>
-                        <View style={{ ...s.matrixBox, borderColor: '#FDE047', backgroundColor: C.yellowBg }}>
-                            <Text style={{ ...s.matrixNum, color: C.yellow }}>{pm.vulnerables}</Text>
-                            <Text style={{ ...s.matrixLabel, color: C.yellowText }}>Vulnerables</Text>
-                            <Text style={{ ...s.matrixSub, color: C.yellowText }}>Riesgo Intralaboral Bajo{'\n'}+ Estrés Alto</Text>
-                        </View>
-                        <View style={{ ...s.matrixBox, borderColor: '#FDBA74', backgroundColor: C.orangeBg }}>
-                            <Text style={{ ...s.matrixNum, color: C.orange }}>{pm.adaptados}</Text>
-                            <Text style={{ ...s.matrixLabel, color: C.orangeText }}>Adaptados</Text>
-                            <Text style={{ ...s.matrixSub, color: C.orangeText }}>Riesgo Intralaboral Alto{'\n'}+ Estrés Bajo</Text>
-                        </View>
-                        <View style={{ ...s.matrixBox, borderColor: '#86EFAC', backgroundColor: C.greenBg }}>
-                            <Text style={{ ...s.matrixNum, color: C.green }}>{pm.sanos}</Text>
-                            <Text style={{ ...s.matrixLabel, color: C.greenText }}>Sanos</Text>
-                            <Text style={{ ...s.matrixSub, color: C.greenText }}>Riesgo Intralaboral Bajo{'\n'}+ Estrés Bajo</Text>
+                            ))}
                         </View>
                     </View>
+                )}
 
-                    <PageFooter />
-                </Page>
-            )}
-
-            {/* ═══════════ 7. ANÁLISIS POR ÁREAS ═══════════ */}
-            {areaEntries.length > 0 && (
-                <Page size="LETTER" style={s.page}>
-                    {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
-                    <View style={s.pageHeader}>
-                        <Text style={s.pageTitle}>7. Análisis por Áreas de Trabajo</Text>
-                    </View>
-                    <Text style={s.body}>Distribución de riesgo segmentada por departamento o área funcional. Permite identificar focos de intervención localizados.</Text>
-
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                        {areaEntries.map(([area, areaData]: [string, any], i) => (
-                            <View key={i} style={s.areaCard}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: C.border }}>
-                                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.text }}>{area}</Text>
-                                    <Text style={{ fontSize: 7, fontWeight: 'bold', color: C.textLight, backgroundColor: C.borderLight, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 3 }}>N={areaData.count}</Text>
-                                </View>
-                                <RiskDistribution distribution={areaData.riskDistribution} />
-                            </View>
-                        ))}
-                    </View>
-
-                    <PageFooter />
-                </Page>
-            )}
-
-            {/* ═══════════ 8. CONCLUSIONES Y RECOMENDACIONES ═══════════ */}
-            <Page size="LETTER" style={s.page}>
-                {invalidReport && <Text style={s.watermark}>SIN VALIDEZ LEGAL</Text>}
-                <View style={s.pageHeader}>
+                {/* ── 8. Conclusiones y Recomendaciones ── */}
+                <View style={{ ...s.pageHeader, marginTop: 20 }}>
                     <Text style={s.pageTitle}>8. Conclusiones y Recomendaciones</Text>
                 </View>
 
@@ -604,7 +591,7 @@ export default function OrganizationalReportPDF({ data }: { data: Organizational
                                 <Text style={{ ...s.tHeader, width: '70%' }}>Acción de Intervención Recomendada</Text>
                             </View>
                             {data.recommendations.map((rec, i) => (
-                                <View key={i} style={{ ...s.tRow, backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
+                                <View key={i} style={{ ...s.tRow, backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }} wrap={false}>
                                     <Text style={s.recDim}>{rec.dimension}</Text>
                                     <Text style={s.recAction}>{rec.recommendation}</Text>
                                 </View>

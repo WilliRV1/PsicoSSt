@@ -120,7 +120,7 @@ export default function CollectiveReportPDF({
 }: CollectiveReportPDFProps) {
     return (
         <Document>
-            <Page size="LETTER" style={styles.page}>
+            <Page size="LETTER" style={styles.page} wrap>
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.headerTitle}>Diagnóstico Psicosocial Grupal</Text>
@@ -163,7 +163,7 @@ export default function CollectiveReportPDF({
                 )}
 
                 {(chartImages.riskByArea || chartImages.riskByJob) && (
-                    <View style={styles.section} break>
+                    <View style={styles.section}>
                         <Text style={styles.sectionTitle}>3. Segmentación del Riesgo</Text>
                         
                         {chartImages.riskByArea && (

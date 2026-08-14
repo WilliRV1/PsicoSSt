@@ -60,9 +60,15 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
     );
   };
 
+  const footer = (
+    <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
+      `${legalFooter} | Página ${pageNumber} de ${totalPages}`
+    )} fixed />
+  );
+
   return (
     <Document>
-      {/* Cover Page */}
+      {/* Page 1 — Cover (standalone, takes the full page by design) */}
       <Page size="LETTER" style={styles.page}>
         <Cover
           primaryColor={props.primaryColor}
@@ -74,13 +80,11 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           psychologistName={props.psychologistName}
         />
         {renderInvalidBanner()}
-        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
-        )} fixed />
+        {footer}
       </Page>
 
-      {/* Executive Summary Page */}
-      <Page size="LETTER" style={styles.page}>
+      {/* Pages 2+ — All content flows continuously, auto-paginated */}
+      <Page size="LETTER" style={styles.page} wrap>
         <ExecutiveSummary
           primaryColor={props.primaryColor}
           overallRiskCategory={props.overallRisk}
@@ -88,32 +92,19 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           recommendationsAIText={props.recommendations}
           questionnaireType={props.questionnaireType}
         />
-        {renderInvalidBanner()}
-        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
-        )} fixed />
-      </Page>
 
-      {/* Dimension Details Page */}
-      <Page size="LETTER" style={styles.page}>
         <DimensionDetails
           primaryColor={props.primaryColor}
           dimensions={props.dimensionScores}
           questionnaireType={props.questionnaireType}
         />
-        {renderInvalidBanner()}
-        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
-        )} fixed />
-      </Page>
 
-      {/* Integrated Analysis Page */}
-      <Page size="LETTER" style={styles.page}>
         <IntegratedAnalysis
           primaryColor={props.primaryColor}
           analysisText={props.analysis}
         />
-        <ProfessionalSignature 
+
+        <ProfessionalSignature
           primaryColor={props.primaryColor}
           psychologistName={props.psychologistName}
           licenseNumber={props.licenseNumber}
@@ -122,21 +113,15 @@ const IndividualReportPDF = (props: IndividualReportPDFProps) => {
           sstLicenseDate={props.sstLicenseDate}
           signatureImage={props.signatureImage}
         />
-        {renderInvalidBanner()}
-        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
-        )} fixed />
-      </Page>
 
-      {/* Dictionary Appendix Page */}
-      <Page size="LETTER" style={styles.page}>
+        <View style={{ marginTop: 30 }} />
+
         <DictionaryAppendix
           primaryColor={props.primaryColor}
         />
+
         {renderInvalidBanner()}
-        <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-          `${legalFooter} | Página ${pageNumber} de ${totalPages}`
-        )} fixed />
+        {footer}
       </Page>
     </Document>
   );

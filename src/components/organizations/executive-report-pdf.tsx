@@ -100,14 +100,15 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                 )} fixed />
             </Page>
 
-            {/* RESUMEN PARA GERENCIA */}
-            <Page size="LETTER" style={styles.page}>
+            {/* ALL CONTENT — continuous flow, auto-paginated */}
+            <Page size="LETTER" style={styles.page} wrap>
                 <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                
+
+                {/* ── Resumen para Gerencia ── */}
                 <Text style={styles.h1}>Resumen para Gerencia</Text>
                 <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
-                <View style={[styles.insightBox, { padding: 20, marginBottom: 20, borderLeftWidth: 4 }]}>
+                <View style={[styles.insightBox, { padding: 20, marginBottom: 20, borderLeftWidth: 4 }]} wrap={false}>
                     <Text style={styles.h3}>Evaluación de Intervención</Text>
                     <View style={{ flexDirection: 'row', marginTop: 10 }}>
                         <View style={{ flex: 1 }}>
@@ -125,7 +126,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
 
                 <Text style={styles.h2}>Top 3 Prioridades Estratégicas</Text>
                 {metrics.topFindings.slice(0, 3).map((finding: any, i: number) => (
-                    <View key={i} style={styles.tableRow}>
+                    <View key={i} style={styles.tableRow} wrap={false}>
                         <View style={{ width: '10%', justifyContent: 'center' }}>
                             <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                                 <Text style={{ fontSize: 10, fontWeight: 700, color: '#64748B' }}>{i + 1}</Text>
@@ -142,20 +143,12 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
 
                 <Text style={styles.h2}>Análisis Consultivo</Text>
                 <Text style={[styles.body, { fontSize: 11, lineHeight: 1.6 }]}>{aiRecommendations}</Text>
-                
-                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
-                )} fixed />
-            </Page>
 
-            {/* EXECUTIVE DASHBOARD */}
-            <Page size="LETTER" style={styles.page}>
-                <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                
-                <Text style={styles.h1}>Executive Dashboard</Text>
+                {/* ── Executive Dashboard ── */}
+                <Text style={[styles.h1, { marginTop: 30 }]}>Executive Dashboard</Text>
                 <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }} wrap={false}>
                     <View style={{ width: '48%', backgroundColor: '#F8FAFC', padding: 20, borderRadius: 8, alignItems: 'center' }}>
                         <Text style={styles.metricLabel}>Health Score Organizacional</Text>
                         <Text style={{ fontSize: 48, fontWeight: 700, color: metrics.healthScore >= 80 ? colors.adequate : (metrics.healthScore >= 60 ? colors.attention : colors.critical) }}>
@@ -176,7 +169,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                     <View style={{ marginBottom: 20 }}>
                         <Text style={styles.h3}>Principales Fortalezas (Factores Protectores)</Text>
                         {metrics.protectiveFactors.map((f: any, i: number) => (
-                            <View key={i} style={styles.tableRow}>
+                            <View key={i} style={styles.tableRow} wrap={false}>
                                 <Text style={[styles.td, { width: '80%', fontWeight: 600 }]}>{f.name}</Text>
                                 <Text style={{ width: '20%', fontSize: 9, color: colors.adequate, textAlign: 'right', fontWeight: 600 }}>ADECUADO</Text>
                             </View>
@@ -185,7 +178,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                 )}
 
                 {metrics.criticalAreas && metrics.criticalAreas.length > 0 && (
-                    <View style={styles.insightBox}>
+                    <View style={styles.insightBox} wrap={false}>
                         <Text style={styles.insightTitle}>Alerta de Segmentación</Text>
                         <Text style={styles.body}>
                             El área de <Text style={{ fontWeight: 700, color: primaryColor }}>{metrics.criticalAreas[0].name}</Text> concentra la mayor densidad de riesgo, con un {metrics.criticalAreas[0].highRiskPercentage}% de su personal en niveles prioritarios.
@@ -193,51 +186,37 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                     </View>
                 )}
 
-                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
-                )} fixed />
-            </Page>
+                {/* ── Alertas Epidemiológicas ── */}
+                {metrics.epidemiologicalAlerts && metrics.epidemiologicalAlerts.length > 0 && (
+                    <View>
+                        <Text style={[styles.h1, { marginTop: 30 }]}>Alertas Epidemiológicas</Text>
+                        <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
-            {/* ALERTAS EPIDEMIOLÓGICAS (SOCIODEMOGRÁFICAS) */}
-            {metrics.epidemiologicalAlerts && metrics.epidemiologicalAlerts.length > 0 && (
-                <Page size="LETTER" style={styles.page}>
-                    <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                    
-                    <Text style={styles.h1}>Alertas Epidemiológicas</Text>
-                    <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
+                        <Text style={styles.body}>{"El sistema ha detectado variaciones estadísticamente significativas (>15 puntos porcentuales respecto a la media global) en la distribución del riesgo según factores sociodemográficos. Estas vulnerabilidades focalizadas requieren priorización en los programas de vigilancia epidemiológica."}</Text>
 
-                    <Text style={styles.body}>{"El sistema ha detectado variaciones estadísticamente significativas (>15 puntos porcentuales respecto a la media global) en la distribución del riesgo según factores sociodemográficos. Estas vulnerabilidades focalizadas requieren priorización en los programas de vigilancia epidemiológica."}</Text>
-                    
-                    <View style={{ marginTop: 20 }}>
-                        {metrics.epidemiologicalAlerts.map((alert: any, idx: number) => (
-                            <View key={idx} style={[styles.insightBox, { marginBottom: 15, borderLeftWidth: 4, borderLeftColor: colors.critical }]}>
-                                <Text style={styles.insightTitle}>Vulnerabilidad en {alert.variable === 'gender' ? 'Género' : alert.variable === 'jobLevel' ? 'Cargo' : 'Grupo Etario'}: {alert.group}</Text>
-                                <Text style={styles.body}>{alert.description}</Text>
-                                <View style={{ flexDirection: 'row', marginTop: 10, backgroundColor: '#FFF', padding: 8, borderRadius: 4 }}>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Riesgo del Grupo</Text>
-                                        <Text style={{ fontSize: 14, color: colors.critical, fontWeight: 700 }}>{alert.riskPercentage}%</Text>
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Desviación</Text>
-                                        <Text style={{ fontSize: 14, color: colors.attention, fontWeight: 700 }}>+{alert.difference} pts</Text>
+                        <View style={{ marginTop: 20 }}>
+                            {metrics.epidemiologicalAlerts.map((alert: any, idx: number) => (
+                                <View key={idx} style={[styles.insightBox, { marginBottom: 15, borderLeftWidth: 4, borderLeftColor: colors.critical }]} wrap={false}>
+                                    <Text style={styles.insightTitle}>Vulnerabilidad en {alert.variable === 'gender' ? 'Género' : alert.variable === 'jobLevel' ? 'Cargo' : 'Grupo Etario'}: {alert.group}</Text>
+                                    <Text style={styles.body}>{alert.description}</Text>
+                                    <View style={{ flexDirection: 'row', marginTop: 10, backgroundColor: '#FFF', padding: 8, borderRadius: 4 }}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Riesgo del Grupo</Text>
+                                            <Text style={{ fontSize: 14, color: colors.critical, fontWeight: 700 }}>{alert.riskPercentage}%</Text>
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>Desviación</Text>
+                                            <Text style={{ fontSize: 14, color: colors.attention, fontWeight: 700 }}>+{alert.difference} pts</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        ))}
+                            ))}
+                        </View>
                     </View>
+                )}
 
-                    <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-                        `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
-                    )} fixed />
-                </Page>
-            )}
-
-            {/* MATRIZ DE PROYECTO (PLAN DE ACCION) */}
-            <Page size="LETTER" style={styles.page}>
-                <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                
-                <Text style={styles.h1}>Matriz de Intervención Estratégica</Text>
+                {/* ── Matriz de Intervención Estratégica ── */}
+                <Text style={[styles.h1, { marginTop: 30 }]}>Matriz de Intervención Estratégica</Text>
                 <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
                 <Text style={styles.body}>Las siguientes acciones son sugeridas con base en el análisis de las dimensiones más críticas. Deben ser validadas y ajustadas por el equipo de Talento Humano y SST.</Text>
@@ -250,14 +229,14 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                         <Text style={[styles.th, { width: '15%' }]}>Tiempo</Text>
                         <Text style={[styles.th, { width: '10%' }]}>Impacto</Text>
                     </View>
-                    
+
                     {aiProjectMatrix && aiProjectMatrix.map((item, idx) => (
-                        <View key={idx} style={styles.tableRow}>
+                        <View key={idx} style={styles.tableRow} wrap={false}>
                             <View style={{ width: '15%' }}>
-                                <Text style={{ 
-                                    fontSize: 8, 
+                                <Text style={{
+                                    fontSize: 8,
                                     fontWeight: 700,
-                                    color: item.priority === 'Alta' ? colors.critical : (item.priority === 'Media' ? colors.attention : colors.adequate) 
+                                    color: item.priority === 'Alta' ? colors.critical : (item.priority === 'Media' ? colors.attention : colors.adequate)
                                 }}>
                                     {item.priority ? item.priority.toUpperCase() : 'MEDIA'}
                                 </Text>
@@ -271,7 +250,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                 </View>
 
                 {/* FIRMA */}
-                <View style={{ marginTop: 60, alignItems: 'center' }}>
+                <View style={{ marginTop: 60, alignItems: 'center' }} wrap={false}>
                     {settings?.signatureUrl && (
                         <Image src={settings.signatureUrl} style={{ height: 60, marginBottom: 5 }} />
                     )}

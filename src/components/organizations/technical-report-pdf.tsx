@@ -100,10 +100,11 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                 )} fixed />
             </Page>
 
-            {/* DOMINIOS - TABLA DE ALTA DENSIDAD */}
-            <Page size="LETTER" style={styles.page}>
+            {/* ALL CONTENT — continuous flow, auto-paginated */}
+            <Page size="LETTER" style={styles.page} wrap>
                 <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                
+
+                {/* ── Resultados por Dominio ── */}
                 <Text style={styles.h1}>Resultados por Dominio</Text>
                 <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
@@ -118,20 +119,12 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                         <Text style={[styles.th, { width: '13%', textAlign: 'center', color: colors.priority }]}>Alto</Text>
                         <Text style={[styles.th, { width: '13%', textAlign: 'center', color: colors.critical }]}>Muy Alto</Text>
                     </View>
-                    
+
                     {renderTableRows(metrics.rawDomains)}
                 </View>
 
-                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
-                )} fixed />
-            </Page>
-
-            {/* DIMENSIONES - TABLA DE ALTA DENSIDAD */}
-            <Page size="LETTER" style={styles.page}>
-                <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                
-                <Text style={styles.h1}>Resultados por Dimensión</Text>
+                {/* ── Resultados por Dimensión ── */}
+                <Text style={[styles.h1, { marginTop: 30 }]}>Resultados por Dimensión</Text>
                 <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
                 <Text style={styles.body}>Desglose pormenorizado de todas las dimensiones intralaborales y extralaborales. Las dimensiones constituyen la unidad de análisis más específica para orientar las acciones de intervención clínica e institucional.</Text>
@@ -145,12 +138,12 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                         <Text style={[styles.th, { width: '13%', textAlign: 'center' }]}>Alto</Text>
                         <Text style={[styles.th, { width: '13%', textAlign: 'center' }]}>Muy Alto</Text>
                     </View>
-                    
+
                     {renderTableRows(metrics.rawDimensions)}
                 </View>
 
                 {/* FIRMA TÉCNICA */}
-                <View style={{ marginTop: 60, alignItems: 'flex-end', paddingRight: 40 }}>
+                <View style={{ marginTop: 60, alignItems: 'flex-end', paddingRight: 40 }} wrap={false}>
                     {settings?.signatureUrl && (
                         <Image src={settings.signatureUrl} style={{ height: 60, marginBottom: 5 }} />
                     )}
@@ -160,21 +153,13 @@ export const TechnicalReportPDF: React.FC<PDFReportProps> = ({
                     <Text style={{ fontSize: 9, color: '#64748B', textAlign: 'right' }}>Licencia: {psychologist.licenseNumber}</Text>
                 </View>
 
-                <Text style={styles.footerText} render={({ pageNumber, totalPages }) => (
-                    `Documento médico-legal sujeto a reserva profesional (Ley 1090/06, Res 2346/07). | Página ${pageNumber} de ${totalPages}`
-                )} fixed />
-            </Page>
-
-            {/* FICHA METODOLÓGICA */}
-            <Page size="LETTER" style={styles.page}>
-                <Text style={styles.headerText}>ID: {documentId} • {organization.name}</Text>
-                
-                <Text style={styles.h1}>Anexo 1: Ficha Metodológica de Transformación Lineal</Text>
+                {/* ── Ficha Metodológica ── */}
+                <Text style={[styles.h1, { marginTop: 30 }]}>Anexo 1: Ficha Metodológica de Transformación Lineal</Text>
                 <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
                 <Text style={styles.body}>Para dar cumplimiento al rigor estadístico y pericial requerido por el Ministerio del Trabajo de Colombia y las guías técnicas establecidas, este software procesa las respuestas brutas de los cuestionarios utilizando el modelo de transformación lineal.</Text>
-                
-                <View style={[styles.insightBox, { marginTop: 20 }]}>
+
+                <View style={[styles.insightBox, { marginTop: 20 }]} wrap={false}>
                     <Text style={styles.insightTitle}>Fórmula de Transformación Aplicada</Text>
                     <Text style={[styles.body, { fontFamily: 'Courier', backgroundColor: '#E2E8F0', padding: 10, marginTop: 10 }]}>Puntaje Transformado = (Puntaje Bruto / Factor Constante) * 100</Text>
                 </View>
