@@ -206,7 +206,7 @@ export const ExecutiveReportPDF: React.FC<PDFReportProps> = ({
                     <Text style={styles.h1}>Alertas Epidemiológicas</Text>
                     <View style={{ width: 40, height: 4, backgroundColor: primaryColor, marginBottom: 20 }} />
 
-                    <Text style={styles.body}>El sistema ha detectado variaciones estadísticamente significativas (>15 puntos porcentuales respecto a la media global) en la distribución del riesgo según factores sociodemográficos. Estas vulnerabilidades focalizadas requieren priorización en los programas de vigilancia epidemiológica.</Text>
+                    <Text style={styles.body}>{"El sistema ha detectado variaciones estadísticamente significativas (>15 puntos porcentuales respecto a la media global) en la distribución del riesgo según factores sociodemográficos. Estas vulnerabilidades focalizadas requieren priorización en los programas de vigilancia epidemiológica."}</Text>
                     
                     <View style={{ marginTop: 20 }}>
                         {metrics.epidemiologicalAlerts.map((alert: any, idx: number) => (
