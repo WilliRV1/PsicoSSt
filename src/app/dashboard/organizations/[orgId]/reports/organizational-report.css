@@ -1,161 +1,517 @@
-/* Professional styles for organizational reports */
-.org-report-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 3rem;
-    background: white;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    color: #1a202c;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    border-radius: 8px;
+/* ============================================================
+   PsicoSST — Informe Organizacional
+   Design: Premium Clinical Document
+   ============================================================ */
+
+/* -- Wrapper ------------------------------------------------ */
+.org-report-wrapper {
+  background: #0C1520;
+  min-height: 100vh;
+  padding: 2rem 1rem 4rem;
 }
 
+/* -- Paper -------------------------------------------------- */
+.org-report-container {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #FAFAF9;
+  font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  color: #111827;
+  line-height: 1.6;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.06),
+    0 8px 40px rgba(0,0,0,0.28),
+    0 32px 80px rgba(0,0,0,0.18);
+}
+
+/* -- Header ------------------------------------------------- */
 .org-report-header {
-    border-bottom: 3px solid #f3f4f6;
-    padding-bottom: 2rem;
-    margin-bottom: 3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  background: #0C1520;
+  padding: 3rem 3.5rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.org-report-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 3.5rem; right: 3.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, #00C9A7, transparent);
+}
+
+.org-report-header-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.org-report-brand-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #00C9A7;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.org-report-brand-tagline {
+  font-size: 0.72rem;
+  color: #293D50;
+}
+
+.org-report-ref {
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: #4E6478;
+}
+
+.org-report-ref-label {
+  display: block;
+  font-size: 0.62rem;
+  color: #1E3245;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 2px;
 }
 
 .org-report-header h1 {
-    font-size: 2rem;
-    color: #1a365d;
-    margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #C8D5DE;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
+.org-report-header h2 {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #4E6478;
+  margin: 0 0 1.5rem;
+}
+
+.org-report-header h3 {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #4E6478;
+  margin: 0 0 1.5rem;
+}
+
+.org-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(0,201,167,0.08);
+  border: 1px solid rgba(0,201,167,0.2);
+  border-radius: 2px;
+}
+
+.org-type-dot {
+  width: 6px; height: 6px;
+  background: #00C9A7;
+  border-radius: 50%;
+}
+
+.org-type-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00C9A7;
+}
+
+/* -- Body --------------------------------------------------- */
+.org-report-body {
+  padding: 3rem 3.5rem;
+}
+
+/* -- Sections ----------------------------------------------- */
 .report-section {
-    margin-bottom: 4rem;
+  margin-bottom: 2.75rem;
 }
 
 .section-title {
-    font-size: 1.5rem;
-    color: #2d3748;
-    border-left: 5px solid #3182ce;
-    padding-left: 1rem;
-    margin-bottom: 2rem;
-    font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 14px;
+  background: #00C9A7;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* -- Anonymity notice --------------------------------------- */
+.anonymity-notice {
+  background: #FFFBEB;
+  border-left: 3px solid #F59E0B;
+  padding: 0.875rem 1.125rem;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: #92400E;
+  line-height: 1.6;
+}
+
+/* -- KPI Grid ---------------------------------------------- */
 .risk-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: #E5E7EB;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
 }
 
+.kpi-card {
+  background: #FAFAF9;
+  padding: 1.25rem 1.5rem;
+}
+
+.kpi-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9CA3AF;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.kpi-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.kpi-sub {
+  font-size: 0.72rem;
+  color: #6B7280;
+}
+
+/* -- Chart container --------------------------------------- */
 .chart-container {
-    background: #f8fafc;
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+  background: #F9FAFB;
+  padding: 1.5rem;
+  border-radius: 4px;
+  border: 1px solid #E5E7EB;
+  margin-bottom: 1rem;
 }
 
 .chart-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    color: #4a5568;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6B7280;
+  margin-bottom: 1.25rem;
 }
 
-/* Custom CSS Bar Chart */
+/* -- Bar rows ---------------------------------------------- */
 .bar-row {
-    margin-bottom: 1rem;
+  margin-bottom: 0.875rem;
 }
+
+.bar-row:last-child { margin-bottom: 0; }
 
 .bar-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
-    color: #4a5568;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.bar-label span:last-child {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: #6B7280;
 }
 
 .bar-outer {
-    height: 12px;
-    background: #edf2f7;
-    border-radius: 6px;
-    overflow: hidden;
+  height: 6px;
+  background: #E5E7EB;
+  border-radius: 99px;
+  overflow: hidden;
 }
 
 .bar-inner {
-    height: 100%;
-    transition: width 0.5s ease;
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease;
 }
 
-/* Risk Colors */
-.bg-sin-riesgo {
-    background: #48bb78;
-}
+/* -- Risk colors ------------------------------------------- */
+.bg-sin-riesgo  { background: #10B981; }
+.bg-bajo        { background: #22C55E; }
+.bg-medio       { background: #F59E0B; }
+.bg-alto        { background: #F97316; }
+.bg-muy-alto    { background: #EF4444; }
 
-.bg-bajo {
-    background: #81e6d9;
-}
-
-.bg-medio {
-    background: #f6e05e;
-}
-
-.bg-alto {
-    background: #ed8936;
-}
-
-.bg-muy-alto {
-    background: #f56565;
-}
-
-/* Correlation Table */
+/* -- Correlation table ------------------------------------- */
 .correlation-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-    font-size: 0.9rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
 }
 
 .correlation-table th {
-    background: #f1f5f9;
-    padding: 1rem;
-    text-align: center;
+  padding: 0.625rem 0.875rem;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  border-bottom: 2px solid #111827;
 }
 
 .correlation-table td {
-    padding: 1rem;
-    text-align: center;
-    border: 1px solid #e2e8f0;
+  padding: 0.625rem 0.875rem;
+  text-align: center;
+  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
 }
 
-.heat-cell {
-    font-weight: bold;
-}
+.correlation-table tr:last-child td { border-bottom: none; }
+.heat-cell { font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
 
-.anonymity-notice {
-    background: #fffaf0;
-    border: 1px solid #feebc8;
-    color: #c05621;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-size: 0.9rem;
-}
-
+/* -- Segment grid ------------------------------------------ */
 .segment-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
 }
 
-@media print {
-    .org-report-container {
-        box-shadow: none;
-        margin: 0;
-        padding: 0;
-    }
+/* -- Risk badges ------------------------------------------- */
+.risk-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
 
-    .no-print {
-        display: none !important;
-    }
+.risk-badge.risk-none     { background: #D1FAE5; color: #065F46; }
+.risk-badge.risk-low      { background: #DCFCE7; color: #15803D; }
+.risk-badge.risk-medium   { background: #FEF3C7; color: #B45309; }
+.risk-badge.risk-high     { background: #FFEDD5; color: #C2410C; }
+.risk-badge.risk-very-high { background: #FEE2E2; color: #B91C1C; }
+
+/* -- Info grid --------------------------------------------- */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.info-item {
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid #E5E7EB;
+  border-right: 1px solid #E5E7EB;
+}
+
+.info-item:nth-child(3n) { border-right: none; }
+.info-item:nth-last-child(-n+3) { border-bottom: none; }
+
+.info-item label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9CA3AF;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.info-item span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* -- Dimension table --------------------------------------- */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.results-table thead tr { border-bottom: 2px solid #111827; }
+
+.results-table th {
+  padding: 0.625rem 0.875rem 0.625rem 0;
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6B7280;
+}
+
+.results-table th.center { text-align: center; }
+
+.results-table td {
+  padding: 0.75rem 0.875rem 0.75rem 0;
+  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.results-table .center { text-align: center; }
+.results-table tbody tr:last-child td { border-bottom: none; }
+
+/* -- Score bar -------------------------------------------- */
+.score-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-bar-track {
+  flex: 1;
+  height: 3px;
+  background: #E5E7EB;
+  border-radius: 99px;
+  overflow: hidden;
+  max-width: 80px;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+}
+
+.score-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* -- Signature -------------------------------------------- */
+.signature-section {
+  margin-top: 4rem;
+  display: flex;
+  justify-content: center;
+  padding-top: 3rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.signature-box { text-align: center; width: 300px; }
+
+.signature-img-wrap {
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.5rem;
+}
+
+.signature-line {
+  height: 1px;
+  background: #111827;
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.signature-name { font-size: 0.9375rem; font-weight: 700; color: #111827; margin: 0; }
+.signature-detail { font-size: 0.75rem; color: #6B7280; margin: 3px 0; }
+
+/* -- Footer ----------------------------------------------- */
+.org-report-footer {
+  background: #F3F4F6;
+  padding: 1.25rem 3.5rem;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.org-report-footer p {
+  font-size: 0.68rem;
+  color: #9CA3AF;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.footer-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #00C9A7;
+  background: rgba(0,201,167,0.08);
+  border: 1px solid rgba(0,201,167,0.2);
+  padding: 4px 10px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* -- No print --------------------------------------------- */
+.no-print { /* shown on screen, hidden on print */ }
+
+/* -- Print ------------------------------------------------- */
+@media print {
+  .no-print { display: none !important; }
+
+  .org-report-wrapper {
+    background: #fff !important;
+    padding: 0 !important;
+  }
+
+  .org-report-container {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .org-report-header {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body { background: #fff !important; }
 }

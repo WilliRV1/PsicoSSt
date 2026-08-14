@@ -142,18 +142,24 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
     const latestDate = new Date(Math.max(...dates)).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 px-4">
+        <div className="org-report-wrapper">
             <div className="org-report-container">
                 <header className="org-report-header">
-                    <div>
-                        <span className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1 block">SGSST - Reporte Oficial</span>
-                        <h1>Informe Diagnóstico Organizacional</h1>
-                        <p className="text-slate-500 font-medium mt-1">{org.name} <span className="mx-2 text-slate-300">|</span> NIT: {org.nit}</p>
+                    <div className="org-report-header-meta">
+                        <div>
+                            <span className="org-report-brand-name">PsicoSST</span>
+                            <span className="org-report-brand-tagline">Batería de Riesgo Psicosocial · Colombia</span>
+                        </div>
+                        <div className="org-report-ref">
+                            <span className="org-report-ref-label">Fecha</span>
+                            {new Date().toLocaleDateString("es-CO")}
+                        </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-sm text-slate-600 font-bold">{org.psychologist.fullName}</p>
-                        <p className="text-xs text-slate-500">Licencia SST: {org.psychologist.licenseNumber}</p>
-                        <p className="text-[10px] text-slate-400 mt-2 uppercase tracking-tighter">Fecha: {new Date().toLocaleDateString('es-CO')}</p>
+                    <h1>Informe Diagnóstico Organizacional</h1>
+                    <h2>{org.name} · NIT: {org.nit}</h2>
+                    <div className="org-type-badge">
+                        <span className="org-type-dot" />
+                        <span className="org-type-text">Diagnóstico General · Res. 2764/2022</span>
                     </div>
                 </header>
 

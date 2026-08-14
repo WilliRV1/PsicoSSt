@@ -31,7 +31,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className="dark" suppressHydrationWarning>
       <body className={`${barlow.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"

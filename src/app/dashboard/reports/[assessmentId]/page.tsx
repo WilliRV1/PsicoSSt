@@ -60,6 +60,17 @@ function getRiskClass(category: string): string {
     return map[category] || "risk-none";
 }
 
+function getRiskBarColor(category: string): string {
+    const map: Record<string, string> = {
+        SIN_RIESGO: "#10B981",
+        BAJO: "#22C55E",
+        MEDIO: "#F59E0B",
+        ALTO: "#F97316",
+        MUY_ALTO: "#EF4444"
+    };
+    return map[category] || "#10B981";
+}
+
 interface PageProps {
     params: Promise<{ assessmentId: string }>;
 }
@@ -78,7 +89,7 @@ export default async function ReportPage({ params }: PageProps) {
                         where: {
                             status: { in: ["SCORED", "SIGNED"] },
                             assessmentDate: {
-                                gte: new Date(new Date().getFullYear(), 0, 1) // Current year
+                                gte: new Date(new Date().getFullYear(), 0, 1)
                             }
                         },
                         include: { scoredResult: true }
@@ -113,7 +124,7 @@ export default async function ReportPage({ params }: PageProps) {
 
     if (!assessment.scoredResult) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
+            <div style={{ padding: "2rem", textAlign: "center", color: "#C8D5DE" }}>
                 <h2>No hay resultados de calificación para esta evaluación.</h2>
             </div>
         );
@@ -125,22 +136,16 @@ export default async function ReportPage({ params }: PageProps) {
     const overallRisk = assessment.scoredResult.overallRiskCategory;
 
     const assessmentDate = new Date(assessment.assessmentDate).toLocaleDateString("es-CO", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
+        year: "numeric", month: "long", day: "numeric"
     });
 
     const generationDate = new Date().toLocaleDateString("es-CO", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
+        year: "numeric", month: "long", day: "numeric"
     });
 
-    // Extract other assessment results for aggregation
     const assessments = (assessment.worker as any)?.assessments || [];
     const otherAssessments = assessments.filter((a: any) => a.id !== assessment.id);
-    
-    // Determine which complementary results to show
+
     const isIntra = assessment.questionnaireType === "INTRALABORAL";
     const isExtra = assessment.questionnaireType === "EXTRALABORAL";
     const isStress = assessment.questionnaireType === "STRESS";
@@ -154,14 +159,11 @@ export default async function ReportPage({ params }: PageProps) {
         return new Date().getFullYear() - birthYear;
     };
 
-    // Group dimensions by domain for intralaboral reports
     const domainDimensionGroups: { domainKey: string; domainName: string; riskCategory: string; transformedScore: number; dimensions: DimensionScore[] }[] = [];
 
     if (Object.keys(domainScores).length > 0) {
         for (const [key, domain] of Object.entries(domainScores)) {
-            const dims = domain.dimensions
-                .map(dk => dimensionScores[dk])
-                .filter(Boolean);
+            const dims = domain.dimensions.map(dk => dimensionScores[dk]).filter(Boolean);
             domainDimensionGroups.push({
                 domainKey: key,
                 domainName: domain.domainName,
@@ -171,7 +173,6 @@ export default async function ReportPage({ params }: PageProps) {
             });
         }
     } else {
-        // Extralaboral / Stress — no domains, just flat dimensions
         domainDimensionGroups.push({
             domainKey: "total",
             domainName: questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType,
@@ -184,9 +185,10 @@ export default async function ReportPage({ params }: PageProps) {
     const savedRecommendations = report?.recommendationsAI ?? (report?.reportData as any)?.recommendations ?? null;
     const savedAnalysis = (report?.reportData as any)?.analysis ?? null;
 
+    const shortRef = `PST-${assessmentId.slice(-8).toUpperCase()}`;
+
     return (
         <>
-            {/* Toolbar (hidden on print) */}
             <ReportToolbar
                 assessmentId={assessmentId}
                 isSigned={isSigned}
@@ -198,372 +200,441 @@ export default async function ReportPage({ params }: PageProps) {
 
             <div className="report-view-wrapper">
                 <div className="report-container">
-                    {/* ═══════════════ HEADER ═══════════════ */}
+
+                    {/* ══════════════ HEADER ══════════════ */}
                     <header className="report-header">
+                        <div className="report-header-meta">
+                            <div className="report-header-brand">
+                                <span className="report-header-brand-name">PsicoSST</span>
+                                <span className="report-header-brand-tagline">Batería de Riesgo Psicosocial · Colombia</span>
+                            </div>
+                            <div className="report-header-ref">
+                                <span className="report-header-ref-label">Referencia</span>
+                                <span className="report-header-ref-value">{shortRef}</span>
+                            </div>
+                        </div>
+
                         <h1>Informe Individual de Evaluación</h1>
-                        <h2>Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial</h2>
-                        <p className="subtitle">
-                            Cuestionario {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}
-                            {" — "}Forma {assessment.formType}
-                        </p>
+                        <h2>Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial · Res. 2764/2022</h2>
+
+                        <div className="report-header-type">
+                            <span className="report-header-type-dot" />
+                            <span className="report-header-type-text">
+                                {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}
+                                {assessment.formType ? ` — Forma ${assessment.formType}` : ""}
+                            </span>
+                        </div>
                     </header>
 
-                    {/* ═══════════════ CONFIDENTIALITY NOTICE ═══════════════ */}
-                    <div className="confidentiality-notice">
-                        <p><strong>AVISO DE CONFIDENCIALIDAD:</strong> En Colombia, el informe individual de la Batería de Riesgo Psicosocial (regulado por las Resoluciones 2646 de 2008 y 2764 de 2022) es un documento confidencial que debe ser entregado únicamente al trabajador por un psicólogo especialista en Seguridad y Salud en el Trabajo. La empresa no puede conocer el contenido de los informes individuales; solo tiene acceso al informe diagnóstico general o consolidado.</p>
-                    </div>
+                    {/* ══════════════ BODY ══════════════ */}
+                    <div className="report-body">
 
-                    {/* ═══════════════ MARCO NORMATIVO ═══════════════ */}
-                    <section className="report-section">
-                        <h3>1. Marco Normativo</h3>
-                        <div style={{ fontSize: "0.8rem", lineHeight: 1.7, color: "#374151" }}>
-                            <p>El presente informe se enmarca en la normatividad colombiana vigente sobre riesgo psicosocial laboral:</p>
-                            <ul style={{ marginTop: "0.5rem", paddingLeft: "1.2rem", listStyleType: "disc" }}>
-                                <li><strong>Resolución 2646 de 2008</strong> — Define las responsabilidades para la identificación, evaluación, prevención, intervención y monitoreo permanente de la exposición a factores de riesgo psicosocial en el trabajo.</li>
-                                <li><strong>Resolución 2764 de 2022</strong> — Adopta la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial, la Guía Técnica General para la promoción, prevención e intervención de los factores psicosociales y sus efectos en la población trabajadora, y sus protocolos específicos.</li>
-                                <li><strong>Ley 1090 de 2006</strong> — Reglamenta el ejercicio profesional de la Psicología, garantizando la confidencialidad de la información obtenida en el proceso evaluativo.</li>
-                            </ul>
-                            <p style={{ marginTop: "0.5rem" }}>La aplicación e interpretación de estos instrumentos debe ser realizada exclusivamente por un psicólogo especialista en Seguridad y Salud en el Trabajo con licencia vigente.</p>
-                        </div>
-                    </section>
-
-                    {/* ═══════════════ WORKER INFO ═══════════════ */}
-                    <section className="report-section">
-                        <h3>2. Datos Generales e Identificación</h3>
-                        <div className="info-grid">
-                            <div className="info-item">
-                                <label>Nombre completo</label>
-                                <span>{assessment.worker.fullName}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Documento</label>
-                                <span>{assessment.worker.documentType} {assessment.worker.documentId}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Cargo</label>
-                                <span>{assessment.worker.jobTitle || "–"}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Nivel del cargo</label>
-                                <span>{jobLevelLabels[assessment.worker.jobLevel] || assessment.worker.jobLevel}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Edad</label>
-                                <span>{calculateAge(assessment.worker.birthYear)} años</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Estado Civil</label>
-                                <span>{assessment.worker.maritalStatus || "–"}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Escolaridad</label>
-                                <span>{assessment.worker.educationLevel ? (educationLabels[assessment.worker.educationLevel] || assessment.worker.educationLevel) : "–"}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Antigüedad en Empresa</label>
-                                <span>{assessment.worker.yearsInCompany !== null ? `${assessment.worker.yearsInCompany} años` : "–"}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Organización</label>
-                                <span>{assessment.organization.name}</span>
-                            </div>
-                            <div className="info-item">
-                                <label>Fecha de evaluación</label>
-                                <span>{assessmentDate}</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ═══════════════ MAIN ASSESSMENT RESULTS ═══════════════ */}
-                    <section className="report-section">
-                        <h3>3. Resultados de {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}</h3>
-                        <div className={`total-result-card ${getRiskClass(overallRisk)}`}>
-                            <div className="total-result-label">Nivel de Riesgo Total ({questionnaireLabels[assessment.questionnaireType]})</div>
-                            <div className="total-result-value">{riskLabels[overallRisk] || overallRisk}</div>
+                        {/* AVISO */}
+                        <div className="confidentiality-notice">
+                            <strong>Confidencial — Uso exclusivo del trabajador</strong>
+                            <p style={{ marginTop: "0.35rem" }}>
+                                De acuerdo con las Resoluciones 2646/2008 y 2764/2022 del Ministerio del Trabajo,
+                                este informe debe ser entregado únicamente al trabajador por un psicólogo especialista
+                                en SST. La organización no tiene acceso a los resultados individuales.
+                            </p>
                         </div>
 
-                        {domainDimensionGroups.map((group) => (
-                            <div key={group.domainKey} className="domain-group">
-                                {Object.keys(domainScores).length > 0 && (
-                                    <div className={`domain-header ${getRiskClass(group.riskCategory)}`}>
-                                        <span className="domain-name">{group.domainName}</span>
-                                        <span className="domain-risk">
-                                            {riskLabels[group.riskCategory]} — {group.transformedScore.toFixed(1)}%
-                                        </span>
-                                    </div>
-                                )}
-                                <table className="results-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Dimensión</th>
-                                            <th className="center">Categoría de Riesgo</th>
-                                            <th className="center">Puntaje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {group.dimensions.map((dim) => (
-                                            <tr key={dim.dimensionKey}>
-                                                <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
-                                                <td className="center">
-                                                    <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                        {isStress ? stressRiskLabels[dim.riskCategory] : riskLabels[dim.riskCategory] || dim.riskCategory}
-                                                    </span>
-                                                </td>
-                                                <td className="center" style={{ fontWeight: 700 }}>{dim.transformedScore.toFixed(1)}%</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ))}
-                    </section>
-
-                    {/* ═══════════════ COMPLEMENTARY RESULTS ═══════════════ */}
-                    
-                    {!isIntra && (
+                        {/* 1. MARCO NORMATIVO */}
                         <section className="report-section">
-                            <h3>4. Resultados de Factores Intralaborales</h3>
-                            {intralaboralResults ? (
-                                <>
-                                    <div className={`total-result-card ${getRiskClass((intralaboralResults as any).overallRiskCategory)}`}>
-                                        <div className="total-result-label">Nivel de Riesgo Intralaboral Total</div>
-                                        <div className="total-result-value">{riskLabels[(intralaboralResults as any).overallRiskCategory] || (intralaboralResults as any).overallRiskCategory}</div>
-                                    </div>
-                                    <p className="no-data" style={{ padding: "1rem", textAlign: "left" }}>* Los detalles por dominio y dimensión están disponibles en el informe específico Intralaboral.</p>
-                                </>
-                            ) : (
-                                <p className="no-data">No se registran valoraciones intralaborales en el ciclo actual.</p>
-                            )}
+                            <h3>1. Marco Normativo</h3>
+                            <div style={{ fontSize: "0.83rem", lineHeight: 1.75, color: "#374151" }}>
+                                <p>El presente informe se enmarca en la normatividad colombiana vigente:</p>
+                                <ul style={{ marginTop: "0.5rem", paddingLeft: "1.2rem", listStyleType: "disc", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                                    <li><strong>Resolución 2646 de 2008</strong> — Define responsabilidades para la identificación, evaluación, prevención e intervención de factores de riesgo psicosocial.</li>
+                                    <li><strong>Resolución 2764 de 2022</strong> — Adopta oficialmente la Batería de Instrumentos y sus protocolos de evaluación e intervención.</li>
+                                    <li><strong>Decreto 0728 de 2025</strong> — Establece acciones de promoción de salud mental y prevención de trastornos mentales en el trabajo.</li>
+                                    <li><strong>Ley 1090 de 2006</strong> — Garantiza la confidencialidad de la información obtenida en el proceso evaluativo.</li>
+                                </ul>
+                            </div>
                         </section>
-                    )}
 
-                    {!isExtra && (
+                        {/* 2. DATOS GENERALES */}
                         <section className="report-section">
-                            <h3>{isIntra ? "4." : "5."} Resultados de Factores Extralaborales</h3>
-                            {extralaboralResults ? (
-                                <>
-                                    <div className={`total-result-card ${getRiskClass((extralaboralResults as any).overallRiskCategory)}`}>
-                                        <div className="total-result-label">Nivel de Riesgo Extralaboral Total</div>
-                                        <div className="total-result-value">{riskLabels[(extralaboralResults as any).overallRiskCategory] || (extralaboralResults as any).overallRiskCategory}</div>
+                            <h3>2. Identificación del Trabajador</h3>
+                            <div className="info-grid">
+                                <div className="info-item">
+                                    <label>Nombre completo</label>
+                                    <span>{assessment.worker.fullName}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Documento de identidad</label>
+                                    <span>{assessment.worker.documentType} {assessment.worker.documentId}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Cargo</label>
+                                    <span>{assessment.worker.jobTitle || "–"}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Nivel del cargo</label>
+                                    <span>{jobLevelLabels[assessment.worker.jobLevel] || assessment.worker.jobLevel}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Edad</label>
+                                    <span>{calculateAge(assessment.worker.birthYear)} años</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Estado civil</label>
+                                    <span>{assessment.worker.maritalStatus || "–"}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Escolaridad</label>
+                                    <span>{assessment.worker.educationLevel ? (educationLabels[assessment.worker.educationLevel] || assessment.worker.educationLevel) : "–"}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Antigüedad en la empresa</label>
+                                    <span>{assessment.worker.yearsInCompany !== null ? `${assessment.worker.yearsInCompany} años` : "–"}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Organización</label>
+                                    <span>{assessment.organization.name}</span>
+                                </div>
+                                <div className="info-item">
+                                    <label>Fecha de evaluación</label>
+                                    <span>{assessmentDate}</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 3. RESULTADOS PRINCIPALES */}
+                        <section className="report-section">
+                            <h3>3. Resultados — {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}</h3>
+
+                            <div className={`total-result-card ${getRiskClass(overallRisk)}`}>
+                                <div>
+                                    <div className="total-result-label">Nivel de riesgo total</div>
+                                    <div className="total-result-value">
+                                        {isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}
                                     </div>
+                                </div>
+                                <div className="total-result-score">
+                                    {totalScores.transformedScore.toFixed(0)}
+                                </div>
+                            </div>
+
+                            {domainDimensionGroups.map((group) => (
+                                <div key={group.domainKey} className="domain-group">
+                                    {Object.keys(domainScores).length > 0 && (
+                                        <div className={`domain-header ${getRiskClass(group.riskCategory)}`}>
+                                            <span className="domain-name">{group.domainName}</span>
+                                            <span className="domain-risk">
+                                                <span className={`risk-badge ${getRiskClass(group.riskCategory)}`}>
+                                                    {riskLabels[group.riskCategory]}
+                                                </span>
+                                                {group.transformedScore.toFixed(1)}%
+                                            </span>
+                                        </div>
+                                    )}
                                     <table className="results-table">
                                         <thead>
                                             <tr>
                                                 <th>Dimensión</th>
-                                                <th className="center">Categoría de Riesgo</th>
+                                                <th className="center">Nivel de riesgo</th>
                                                 <th className="center">Puntaje</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {Object.values((extralaboralResults as any).dimensionScores).map((dim: any) => (
+                                            {group.dimensions.map((dim) => (
                                                 <tr key={dim.dimensionKey}>
                                                     <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
                                                     <td className="center">
                                                         <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                            {riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                            {isStress ? stressRiskLabels[dim.riskCategory] : riskLabels[dim.riskCategory] || dim.riskCategory}
                                                         </span>
                                                     </td>
-                                                    <td className="center">{dim.transformedScore.toFixed(1)}%</td>
+                                                    <td className="center">
+                                                        <div className="score-bar-wrap" style={{ justifyContent: "center" }}>
+                                                            <div className="score-bar-track">
+                                                                <div
+                                                                    className={`score-bar-fill ${getRiskClass(dim.riskCategory)}`}
+                                                                    style={{ width: `${dim.transformedScore}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="score-value">{dim.transformedScore.toFixed(1)}%</span>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
-                                </>
-                            ) : (
-                                <p className="no-data">No se registran valoraciones extralaborales en el ciclo actual.</p>
-                            )}
+                                </div>
+                            ))}
                         </section>
-                    )}
 
-                    {!isStress && (
-                        <section className="report-section">
-                            <h3>{isIntra && isExtra ? "6." : (isIntra || isExtra ? "5." : "4.")} Evaluación del Estrés</h3>
-                            {stressResults ? (
-                                <>
-                                    <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
-                                        <div className="total-result-label">Nivel de Síntomas de Estrés</div>
-                                        <div className="total-result-value">{stressRiskLabels[(stressResults as any).overallRiskCategory] || (stressResults as any).overallRiskCategory}</div>
+                        {/* RESULTADOS COMPLEMENTARIOS */}
+                        {!isIntra && (
+                            <section className="report-section">
+                                <h3>4. Factores Intralaborales</h3>
+                                {intralaboralResults ? (
+                                    <div className={`total-result-card ${getRiskClass((intralaboralResults as any).overallRiskCategory)}`}>
+                                        <div>
+                                            <div className="total-result-label">Riesgo Intralaboral Total</div>
+                                            <div className="total-result-value">{riskLabels[(intralaboralResults as any).overallRiskCategory] || (intralaboralResults as any).overallRiskCategory}</div>
+                                        </div>
+                                        <div className="total-result-score">{((intralaboralResults as any).totalScores?.transformedScore || 0).toFixed(0)}</div>
                                     </div>
-                                    <table className="results-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Categoría de Síntomas</th>
-                                                <th className="center">Categoría de Riesgo</th>
-                                                <th className="center">Puntaje</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {Object.values((stressResults as any).dimensionScores).map((dim: any) => (
-                                                <tr key={dim.dimensionKey}>
-                                                    <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
-                                                    <td className="center">
-                                                        <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                            {stressRiskLabels[dim.riskCategory] || dim.riskCategory}
-                                                        </span>
-                                                    </td>
-                                                    <td className="center">{dim.transformedScore.toFixed(1)}%</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </>
-                            ) : (
-                                <p className="no-data">No se registran valoraciones de estrés en el ciclo actual.</p>
-                            )}
-                        </section>
-                    )}
+                                ) : (
+                                    <p className="no-data">No se registran valoraciones intralaborales en el ciclo actual.</p>
+                                )}
+                            </section>
+                        )}
 
-                    {/* ═══════════════ DOMAINS SUMMARY ═══════════════ */}
-                    {Object.keys(domainScores).length > 0 && (
-                        <section className="report-section">
-                            <h3>Resumen por Dominio</h3>
-                            <table className="results-table">
-                                <thead>
-                                    <tr>
-                                        <th>Dominio</th>
-                                        <th className="center">Puntaje Transformado</th>
-                                        <th className="center">Categoría de Riesgo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Object.values(domainScores).map((domain) => (
-                                        <tr key={domain.domainKey}>
-                                            <td style={{ fontWeight: 600 }}>{domain.domainName}</td>
-                                            <td className="center" style={{ fontWeight: 700 }}>{domain.transformedScore.toFixed(1)}%</td>
-                                            <td className="center">
-                                                <span className={`risk-badge ${getRiskClass(domain.riskCategory)}`}>
-                                                    {riskLabels[domain.riskCategory] || domain.riskCategory}
+                        {!isExtra && (
+                            <section className="report-section">
+                                <h3>{isIntra ? "4." : "5."} Factores Extralaborales</h3>
+                                {extralaboralResults ? (
+                                    <>
+                                        <div className={`total-result-card ${getRiskClass((extralaboralResults as any).overallRiskCategory)}`}>
+                                            <div>
+                                                <div className="total-result-label">Riesgo Extralaboral Total</div>
+                                                <div className="total-result-value">{riskLabels[(extralaboralResults as any).overallRiskCategory] || (extralaboralResults as any).overallRiskCategory}</div>
+                                            </div>
+                                            <div className="total-result-score">{((extralaboralResults as any).totalScores?.transformedScore || 0).toFixed(0)}</div>
+                                        </div>
+                                        <table className="results-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Dimensión</th>
+                                                    <th className="center">Nivel de riesgo</th>
+                                                    <th className="center">Puntaje</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {Object.values((extralaboralResults as any).dimensionScores).map((dim: any) => (
+                                                    <tr key={dim.dimensionKey}>
+                                                        <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
+                                                        <td className="center">
+                                                            <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
+                                                                {riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                            </span>
+                                                        </td>
+                                                        <td className="center">
+                                                            <div className="score-bar-wrap" style={{ justifyContent: "center" }}>
+                                                                <div className="score-bar-track">
+                                                                    <div className={`score-bar-fill ${getRiskClass(dim.riskCategory)}`} style={{ width: `${dim.transformedScore}%` }} />
+                                                                </div>
+                                                                <span className="score-value">{dim.transformedScore.toFixed(1)}%</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </>
+                                ) : (
+                                    <p className="no-data">No se registran valoraciones extralaborales en el ciclo actual.</p>
+                                )}
+                            </section>
+                        )}
+
+                        {!isStress && (
+                            <section className="report-section">
+                                <h3>{isIntra && isExtra ? "6." : (isIntra || isExtra ? "5." : "4.")} Evaluación del Estrés</h3>
+                                {stressResults ? (
+                                    <>
+                                        <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
+                                            <div>
+                                                <div className="total-result-label">Nivel de Síntomas de Estrés</div>
+                                                <div className="total-result-value">{stressRiskLabels[(stressResults as any).overallRiskCategory] || (stressResults as any).overallRiskCategory}</div>
+                                            </div>
+                                            <div className="total-result-score">{((stressResults as any).totalScores?.transformedScore || 0).toFixed(0)}</div>
+                                        </div>
+                                        <table className="results-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Categoría de síntomas</th>
+                                                    <th className="center">Nivel</th>
+                                                    <th className="center">Puntaje</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {Object.values((stressResults as any).dimensionScores).map((dim: any) => (
+                                                    <tr key={dim.dimensionKey}>
+                                                        <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
+                                                        <td className="center">
+                                                            <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
+                                                                {stressRiskLabels[dim.riskCategory] || dim.riskCategory}
+                                                            </span>
+                                                        </td>
+                                                        <td className="center">
+                                                            <div className="score-bar-wrap" style={{ justifyContent: "center" }}>
+                                                                <div className="score-bar-track">
+                                                                    <div className={`score-bar-fill ${getRiskClass(dim.riskCategory)}`} style={{ width: `${dim.transformedScore}%` }} />
+                                                                </div>
+                                                                <span className="score-value">{dim.transformedScore.toFixed(1)}%</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </>
+                                ) : (
+                                    <p className="no-data">No se registran valoraciones de estrés en el ciclo actual.</p>
+                                )}
+                            </section>
+                        )}
+
+                        {/* RESUMEN POR DOMINIO */}
+                        {Object.keys(domainScores).length > 0 && (
+                            <section className="report-section">
+                                <h3>Resumen por Dominio</h3>
+                                <table className="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Dominio</th>
+                                            <th className="center">Puntaje transformado</th>
+                                            <th className="center">Categoría de riesgo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.values(domainScores).map((domain) => (
+                                            <tr key={domain.domainKey}>
+                                                <td style={{ fontWeight: 600 }}>{domain.domainName}</td>
+                                                <td className="center">
+                                                    <div className="score-bar-wrap" style={{ justifyContent: "center" }}>
+                                                        <div className="score-bar-track">
+                                                            <div className={`score-bar-fill ${getRiskClass(domain.riskCategory)}`} style={{ width: `${domain.transformedScore}%` }} />
+                                                        </div>
+                                                        <span className="score-value">{domain.transformedScore.toFixed(1)}%</span>
+                                                    </div>
+                                                </td>
+                                                <td className="center">
+                                                    <span className={`risk-badge ${getRiskClass(domain.riskCategory)}`}>
+                                                        {riskLabels[domain.riskCategory] || domain.riskCategory}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        <tr style={{ borderTop: "2px solid #111827" }}>
+                                            <td style={{ fontWeight: 800, color: "#111827", paddingTop: "0.875rem" }}>TOTAL</td>
+                                            <td className="center" style={{ paddingTop: "0.875rem" }}>
+                                                <div className="score-bar-wrap" style={{ justifyContent: "center" }}>
+                                                    <div className="score-bar-track">
+                                                        <div className={`score-bar-fill ${getRiskClass(overallRisk)}`} style={{ width: `${totalScores.transformedScore}%` }} />
+                                                    </div>
+                                                    <span className="score-value" style={{ fontWeight: 800 }}>{totalScores.transformedScore.toFixed(1)}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="center" style={{ paddingTop: "0.875rem" }}>
+                                                <span className={`risk-badge ${getRiskClass(overallRisk)}`} style={{ fontWeight: 800 }}>
+                                                    {isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}
                                                 </span>
                                             </td>
                                         </tr>
-                                    ))}
-                                    {/* Total row */}
-                                    <tr className="total-row" style={{ background: "#f8fafc" }}>
-                                        <td style={{ fontWeight: 800, color: "#0f172a" }}>TOTAL</td>
-                                        <td className="center" style={{ fontWeight: 800, color: "#0f172a" }}>{totalScores.transformedScore.toFixed(1)}%</td>
-                                        <td className="center">
-                                            <span className={`risk-badge ${getRiskClass(overallRisk)}`} style={{ fontWeight: 800 }}>
-                                                {isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </section>
-                    )}
+                                    </tbody>
+                                </table>
+                            </section>
+                        )}
 
-                    {/* ═══════════════ CONCLUSIONS ═══════════════ */}
-                    <section className="report-section">
-                        <h3>6. Conclusiones</h3>
-                        <div style={{ fontSize: "0.8rem", lineHeight: 1.7, color: "#374151" }}>
-                            <p>
-                                Con base en los resultados obtenidos mediante la aplicación del cuestionario de
-                                {" "}{questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}, el/la
-                                trabajador/a <strong>{assessment.worker.fullName}</strong> presenta un nivel de
-                                riesgo general clasificado como <strong>{isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}</strong>.
-                            </p>
-                            {(overallRisk === "ALTO" || overallRisk === "MUY_ALTO") && (
-                                <p style={{ marginTop: "0.5rem", color: "#dc2626" }}>
-                                    <strong>De acuerdo con la Resolución 2764 de 2022, los niveles de riesgo Alto y Muy Alto
-                                    requieren intervención inmediata en el marco del Sistema de Vigilancia Epidemiológica
-                                    de Factores de Riesgo Psicosocial.</strong> Se recomienda remisión prioritaria al programa
-                                    de intervención y seguimiento.
+                        {/* CONCLUSIONES */}
+                        <section className="report-section">
+                            <h3>Conclusiones Clínicas</h3>
+                            <div style={{ fontSize: "0.86rem", lineHeight: 1.8, color: "#374151" }}>
+                                <p>
+                                    Con base en los resultados de la aplicación del cuestionario de{" "}
+                                    {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType},
+                                    el trabajador <strong>{assessment.worker.fullName}</strong> presenta un nivel de
+                                    riesgo general clasificado como{" "}
+                                    <strong style={{ color: overallRisk === "MUY_ALTO" || overallRisk === "ALTO" ? "#991B1B" : undefined }}>
+                                        {isStress ? stressRiskLabels[overallRisk] : riskLabels[overallRisk] || overallRisk}
+                                    </strong>.
                                 </p>
-                            )}
-                            {overallRisk === "MEDIO" && (
-                                <p style={{ marginTop: "0.5rem" }}>
-                                    Este nivel de riesgo amerita observación y acciones de intervención preventiva
-                                    orientadas a evitar la progresión hacia niveles superiores de riesgo.
-                                </p>
-                            )}
-                            {(overallRisk === "BAJO" || overallRisk === "SIN_RIESGO") && (
-                                <p style={{ marginTop: "0.5rem" }}>
-                                    Este resultado indica condiciones favorables. Se recomienda mantener las
-                                    acciones de promoción y prevención que contribuyen a preservar este nivel.
-                                </p>
-                            )}
-                            {Object.keys(domainScores).length > 0 && (() => {
-                                const criticalDomains = Object.values(domainScores)
-                                    .filter(d => d.riskCategory === "ALTO" || d.riskCategory === "MUY_ALTO");
-                                if (criticalDomains.length === 0) return null;
-                                return (
-                                    <p style={{ marginTop: "0.5rem" }}>
-                                        Se identifican como dominios prioritarios de intervención:{" "}
-                                        <strong>{criticalDomains.map(d => d.domainName).join(", ")}</strong>,
-                                        los cuales presentan niveles de riesgo que requieren atención.
+                                {(overallRisk === "ALTO" || overallRisk === "MUY_ALTO") && (
+                                    <p style={{ marginTop: "0.75rem", padding: "0.875rem 1rem", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "4px", color: "#991B1B" }}>
+                                        <strong>Acción requerida:</strong> De acuerdo con la Resolución 2764 de 2022, los niveles
+                                        de riesgo Alto y Muy Alto requieren intervención inmediata dentro del Sistema de Vigilancia
+                                        Epidemiológica de Factores de Riesgo Psicosocial. Se recomienda remisión prioritaria.
                                     </p>
-                                );
-                            })()}
-                        </div>
-                    </section>
-
-                    {/* ═══════════════ ANALYSIS & RECOMMENDATIONS ═══════════════ */}
-                    <section className="report-section">
-                        <h3>7. Análisis y Plan de Intervención Individual</h3>
-
-                        {/* Inline analysis editor — Client Component */}
-                        <AnalysisSignPanel
-                            assessmentId={assessmentId}
-                            isSigned={isSigned}
-                            initialAnalysis={savedAnalysis}
-                            savedRecommendations={savedRecommendations}
-                            hasSignature={!!assessment.psychologist?.signature}
-                        />
-
-                        {/* IA RECOMMENDATIONS — Client Component */}
-                        <AIRecommendationsSection
-                            assessmentId={assessmentId}
-                            initialRecommendations={savedRecommendations}
-                            isSigned={isSigned}
-                        />
-                    </section>
-
-                    {/* ═══════════════ RISK LEGEND ═══════════════ */}
-                    <section className="report-section">
-                        <div className="risk-legend">
-                            <span className="legend-item"><span className="legend-dot risk-none" style={{ background: "#22c55e" }} /> Sin Riesgo</span>
-                            <span className="legend-item"><span className="legend-dot risk-low" style={{ background: "#84cc16" }} /> Bajo</span>
-                            <span className="legend-item"><span className="legend-dot risk-medium" style={{ background: "#eab308" }} /> Medio</span>
-                            <span className="legend-item"><span className="legend-dot risk-high" style={{ background: "#f97316" }} /> Alto</span>
-                            <span className="legend-item"><span className="legend-dot risk-very-high" style={{ background: "#ef4444" }} /> Muy Alto</span>
-                        </div>
-                    </section>
-
-                    {/* ═══════════════ SIGNATURE ═══════════════ */}
-                    <section className="report-section signature-section">
-                        <div className="signature-box">
-                            <div className="signature-img-wrap">
-                                {isSigned && (report?.signatureImage || assessment.psychologist?.signature) && (
-                                    <img
-                                        src={(report?.signatureImage || assessment.psychologist?.signature) as string}
-                                        alt="Firma Digital"
-                                        style={{ maxHeight: "100px", maxWidth: "220px", filter: "contrast(1.2)" }}
-                                    />
                                 )}
+                                {overallRisk === "MEDIO" && (
+                                    <p style={{ marginTop: "0.75rem", padding: "0.875rem 1rem", background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "4px", color: "#92400E" }}>
+                                        <strong>Seguimiento recomendado:</strong> Este nivel de riesgo amerita observación sistemática
+                                        e intervención preventiva orientada a evitar la progresión hacia niveles superiores.
+                                    </p>
+                                )}
+                                {(overallRisk === "BAJO" || overallRisk === "SIN_RIESGO") && (
+                                    <p style={{ marginTop: "0.75rem", padding: "0.875rem 1rem", background: "#F0FFF9", border: "1px solid #A7F3D0", borderRadius: "4px", color: "#065F46" }}>
+                                        <strong>Condiciones favorables:</strong> Se recomienda mantener y fortalecer las acciones
+                                        de promoción y prevención que contribuyen a preservar este nivel.
+                                    </p>
+                                )}
+                                {Object.keys(domainScores).length > 0 && (() => {
+                                    const critical = Object.values(domainScores).filter(d => d.riskCategory === "ALTO" || d.riskCategory === "MUY_ALTO");
+                                    if (!critical.length) return null;
+                                    return (
+                                        <p style={{ marginTop: "0.75rem" }}>
+                                            Dominios prioritarios de intervención:{" "}
+                                            <strong>{critical.map(d => d.domainName).join(", ")}</strong>.
+                                        </p>
+                                    );
+                                })()}
                             </div>
-                            <div className="signature-line" />
-                            <p className="signature-name">{assessment.psychologist?.fullName}</p>
-                            <p className="signature-detail">Psicólogo(a) Especialista en SST</p>
-                            <p className="signature-detail">Licencia SST: {assessment.psychologist?.sstCredential || assessment.psychologist?.licenseNumber}</p>
-                            <p className="signature-detail">Tarjeta Profesional: {assessment.psychologist?.professionalCard || "–"}</p>
-                        </div>
-                    </section>
+                        </section>
 
-                    {/* ═══════════════ FOOTER ═══════════════ */}
+                        {/* ANÁLISIS Y RECOMENDACIONES */}
+                        <section className="report-section">
+                            <h3>Análisis Profesional y Plan de Intervención</h3>
+                            <AnalysisSignPanel
+                                assessmentId={assessmentId}
+                                isSigned={isSigned}
+                                initialAnalysis={savedAnalysis}
+                                savedRecommendations={savedRecommendations}
+                                hasSignature={!!assessment.psychologist?.signature}
+                            />
+                            <AIRecommendationsSection
+                                assessmentId={assessmentId}
+                                initialRecommendations={savedRecommendations}
+                                isSigned={isSigned}
+                            />
+                        </section>
+
+                        {/* LEYENDA */}
+                        <section className="report-section">
+                            <div className="risk-legend">
+                                <span className="legend-item"><span className="legend-dot" style={{ background: "#10B981" }} /> Sin Riesgo</span>
+                                <span className="legend-item"><span className="legend-dot" style={{ background: "#22C55E" }} /> Bajo</span>
+                                <span className="legend-item"><span className="legend-dot" style={{ background: "#F59E0B" }} /> Medio</span>
+                                <span className="legend-item"><span className="legend-dot" style={{ background: "#F97316" }} /> Alto</span>
+                                <span className="legend-item"><span className="legend-dot" style={{ background: "#EF4444" }} /> Muy Alto</span>
+                            </div>
+                        </section>
+
+                        {/* FIRMA */}
+                        <section className="signature-section">
+                            <div className="signature-box">
+                                <div className="signature-img-wrap">
+                                    {isSigned && (report?.signatureImage || assessment.psychologist?.signature) && (
+                                        <img
+                                            src={(report?.signatureImage || assessment.psychologist?.signature) as string}
+                                            alt="Firma Digital"
+                                            style={{ maxHeight: "90px", maxWidth: "200px", filter: "contrast(1.2)" }}
+                                        />
+                                    )}
+                                </div>
+                                <div className="signature-line" />
+                                <p className="signature-name">{assessment.psychologist?.fullName}</p>
+                                <p className="signature-detail">Psicólogo(a) Especialista en SST</p>
+                                <p className="signature-detail">Licencia SST: {assessment.psychologist?.sstCredential || assessment.psychologist?.licenseNumber}</p>
+                                <p className="signature-detail">Tarjeta Profesional: {assessment.psychologist?.professionalCard || "–"}</p>
+                            </div>
+                        </section>
+                    </div>
+
+                    {/* ══════════════ FOOTER ══════════════ */}
                     <footer className="report-footer">
-                        <p>
-                            Este reporte tiene validez únicamente con la firma electrónica del profesional responsable.
-                        </p>
-                        <p>
-                            Informe generado por PsicoSST el {generationDate}. Confidencial.
-                        </p>
-                        <p style={{ fontSize: "0.65rem", marginTop: "0.5rem", opacity: 0.6 }}>
-                            Cumple con Resolución 2764 de 2022 — Ministerio del Trabajo de Colombia
-                        </p>
+                        <div>
+                            <p>Generado por PsicoSST · {generationDate}</p>
+                            <p>Válido únicamente con firma del profesional responsable · {shortRef}</p>
+                        </div>
+                        <span className="footer-badge">Res. 2764/2022</span>
                     </footer>
                 </div>
             </div>
-
         </>
     );
 }
