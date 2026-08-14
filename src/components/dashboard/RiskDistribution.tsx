@@ -9,46 +9,68 @@ interface RiskDistributionProps {
   total: number;
 }
 
+const LEVELS = [
+  { key: "none",     label: "Sin riesgo", color: "#4E6478" },
+  { key: "low",      label: "Bajo",       color: "#22C55E" },
+  { key: "medium",   label: "Medio",      color: "#F59E0B" },
+  { key: "high",     label: "Alto",       color: "#F97316" },
+  { key: "veryHigh", label: "Muy alto",   color: "#EF4444" },
+] as const;
+
 export function RiskDistribution({ distribution, total }: RiskDistributionProps) {
-  
-  const getPercentage = (val: number) => total > 0 ? Math.round((val / total) * 100) : 0;
-  
-  const items = [
-    { label: 'Sin Riesgo', value: distribution.none, pct: getPercentage(distribution.none), colorClass: 'bg-risk-none-text' },
-    { label: 'Bajo', value: distribution.low, pct: getPercentage(distribution.low), colorClass: 'bg-risk-low-text' },
-    { label: 'Medio', value: distribution.medium, pct: getPercentage(distribution.medium), colorClass: 'bg-risk-medium-text' },
-    { label: 'Alto', value: distribution.high, pct: getPercentage(distribution.high), colorClass: 'bg-risk-high-text' },
-    { label: 'Muy Alto', value: distribution.veryHigh, pct: getPercentage(distribution.veryHigh), colorClass: 'bg-risk-veryhigh-text' },
-  ];
+  const pct = (val: number) =>
+    total > 0 ? Math.round((val / total) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-5 p-6 bg-surface border border-border rounded-[16px] shadow-sm">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[16px] font-semibold text-text">Distribución del Riesgo</h3>
-        <span className="text-[12px] font-medium text-text-secondary bg-surface-muted px-2 py-1 rounded-md">
-          {total} evaluados
+    <div
+      className="p-6 rounded-xl flex flex-col gap-5 h-full"
+      style={{ background: "#0F1C2A", border: "1px solid #1A2B3C" }}
+    >
+      <div className="flex items-baseline justify-between">
+        <p
+          className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+          style={{ color: "#293D50", fontFamily: "var(--font-barlow)" }}
+        >
+          Distribución del riesgo
+        </p>
+        <span
+          className="text-[12px]"
+          style={{ color: "#293D50", fontFamily: "var(--font-mono)" }}
+        >
+          {total}
         </span>
       </div>
-      
-      <div className="flex flex-col gap-4">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-4">
-            <div className="w-[80px] text-[13px] font-medium text-text-secondary">
-              {item.label}
+
+      <div className="space-y-3 flex-1">
+        {LEVELS.map(({ key, label, color }) => {
+          const val = distribution[key];
+          const p = pct(val);
+          return (
+            <div key={key} className="flex items-center gap-3">
+              <p
+                className="text-[12px] w-[72px] shrink-0"
+                style={{ color: "#3D5568", fontFamily: "var(--font-sans)" }}
+              >
+                {label}
+              </p>
+              <div
+                className="flex-1 h-[3px] rounded-full overflow-hidden"
+                style={{ background: "#1A2B3C" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.max(p, p > 0 ? 1 : 0)}%`, background: color }}
+                />
+              </div>
+              <p
+                className="text-[12px] w-8 text-right shrink-0"
+                style={{ color: p > 0 ? color : "#293D50", fontFamily: "var(--font-mono)" }}
+              >
+                {p}%
+              </p>
             </div>
-            
-            <div className="flex-1 flex items-center h-5">
-              <div 
-                className={`h-full rounded-sm transition-all duration-500 ${item.colorClass}`}
-                style={{ width: `${Math.max(item.pct, 2)}%` }} // Minimum 2% for visual presence if > 0
-              />
-            </div>
-            
-            <div className="w-[40px] text-right text-[13px] font-mono font-medium text-text">
-              {item.pct}%
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

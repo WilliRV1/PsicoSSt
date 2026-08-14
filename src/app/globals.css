@@ -4,211 +4,148 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: var(--font-source-sans), 'Source Sans 3', sans-serif;
-  --font-heading: var(--font-barlow), 'Barlow Semi Condensed', sans-serif;
-  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+  --font-sans:    var(--font-sans),    'IBM Plex Sans',         sans-serif;
+  --font-heading: var(--font-barlow),  'Barlow Semi Condensed', sans-serif;
+  --font-mono:    var(--font-mono),    'IBM Plex Mono',         monospace;
 
-  /* ── Light mode palette ─────────────────────────────────────── */
-  --color-background: #EBF2F9;
-  --color-foreground: #091522;
+  /* ── Light mode ────────────────────────────────────────────── */
+  --color-background:    #F2F0EC;
+  --color-foreground:    #0C1520;
 
-  --color-primary: #009A80;
+  --color-primary:       #009A80;
   --color-primary-foreground: #FFFFFF;
-  --color-primary-muted: #007A65;
 
-  --color-teal: #009A80;
-  --color-teal-light: #B8EFE6;
-  --color-teal-dark: #007A65;
+  --color-teal:          #009A80;
+  --color-teal-light:    #CCF0E8;
+  --color-teal-dark:     #007A65;
 
-  --color-blue: #1A5CDB;
-  --color-blue-light: #DBEAFE;
-  --color-blue-dark: #1348A8;
+  --color-surface:       #FFFFFF;
+  --color-surface-muted: #E8E5E0;
 
-  --color-success: #10B981;
-  --color-success-foreground: #FFFFFF;
+  --color-border:        #D4CFC8;
+  --color-border-muted:  #E2DED8;
+  --color-border-focus:  #009A80;
 
-  --color-warning: #F59E0B;
-  --color-warning-foreground: #FFFFFF;
+  --color-popover:           #FFFFFF;
+  --color-popover-foreground: #0C1520;
 
-  --color-danger: #EF4444;
-  --color-danger-foreground: #FFFFFF;
+  --color-text:           #0C1520;
+  --color-text-secondary: #4A5F70;
+  --color-text-muted:     #8A9FAE;
+  --color-text-inverse:   #FFFFFF;
 
-  --color-info: #1A5CDB;
-  --color-info-foreground: #FFFFFF;
+  --color-success:  #16A34A;
+  --color-warning:  #D97706;
+  --color-danger:   #DC2626;
+  --color-info:     #2563EB;
 
-  --color-surface: #FFFFFF;
-  --color-surface-foreground: #091522;
-  --color-surface-muted: #DDE8F4;
-
-  --color-border: #C2D4E5;
-  --color-border-muted: #D5E3F0;
-  --color-border-focus: #009A80;
-
-  --color-popover: #FFFFFF;
-  --color-popover-foreground: #091522;
-
-  --color-text: #091522;
-  --color-text-secondary: #3E5B74;
-  --color-text-muted: #6A8EA8;
-  --color-text-inverse: #FFFFFF;
-
-  /* ── Risk System ─────────────────────────────────────────────── */
-  --color-risk-none-bg: #EBF2F9;
-  --color-risk-none-text: #3E5B74;
-  --color-risk-none-border: #C2D4E5;
-
-  --color-risk-low-bg: #DCFCE7;
-  --color-risk-low-text: #15803D;
-  --color-risk-low-border: #BBF7D0;
-
-  --color-risk-medium-bg: #FEF3C7;
-  --color-risk-medium-text: #B45309;
+  /* Risk */
+  --color-risk-none-bg:       #F2F0EC;
+  --color-risk-none-text:     #4A5F70;
+  --color-risk-none-border:   #D4CFC8;
+  --color-risk-low-bg:        #DCFCE7;
+  --color-risk-low-text:      #15803D;
+  --color-risk-low-border:    #BBF7D0;
+  --color-risk-medium-bg:     #FEF3C7;
+  --color-risk-medium-text:   #B45309;
   --color-risk-medium-border: #FDE68A;
-
-  --color-risk-high-bg: #FFEDD5;
-  --color-risk-high-text: #C2410C;
-  --color-risk-high-border: #FED7AA;
-
-  --color-risk-veryhigh-bg: #FEE2E2;
+  --color-risk-high-bg:       #FFEDD5;
+  --color-risk-high-text:     #C2410C;
+  --color-risk-high-border:   #FED7AA;
+  --color-risk-veryhigh-bg:   #FEE2E2;
   --color-risk-veryhigh-text: #B91C1C;
   --color-risk-veryhigh-border: #FECACA;
 
-  /* ── Radii & Shadows ─────────────────────────────────────────── */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
   --radius-2xl: 24px;
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-DEFAULT: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.12), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+  --shadow-sm:       0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-DEFAULT:  0 1px 3px 0 rgb(0 0 0 / 0.08);
+  --shadow-md:       0 4px 12px 0 rgb(0 0 0 / 0.08);
+  --shadow-elevated: 0 8px 24px 0 rgb(0 0 0 / 0.10);
 }
 
-/* ── Dark mode overrides ───────────────────────────────────────────── */
+/* ── Dark mode ────────────────────────────────────────────────── */
 .dark {
-  --color-background: #07101C;
-  --color-foreground: #D4E5F2;
+  --color-background:    #0C1520;
+  --color-foreground:    #C8D5DE;
 
-  --color-primary: #00C9A7;
-  --color-primary-foreground: #07101C;
-  --color-primary-muted: #009A80;
+  --color-primary:       #00C9A7;
+  --color-primary-foreground: #0C1520;
 
-  --color-teal: #00C9A7;
-  --color-teal-light: #002E27;
-  --color-teal-dark: #009A80;
+  --color-teal:          #00C9A7;
+  --color-teal-light:    #002E27;
+  --color-teal-dark:     #009A80;
 
-  --color-blue: #2979FF;
-  --color-blue-light: #0A1F4E;
-  --color-blue-dark: #1A5CDB;
+  --color-surface:       #0F1C2A;
+  --color-surface-muted: #0A1420;
 
-  --color-surface: #0B1929;
-  --color-surface-foreground: #D4E5F2;
-  --color-surface-muted: #081320;
+  --color-border:        #1A2B3C;
+  --color-border-muted:  #142234;
+  --color-border-focus:  #00C9A7;
 
-  --color-border: #162638;
-  --color-border-muted: #0F1E2E;
-  --color-border-focus: #00C9A7;
+  --color-popover:           #0F1C2A;
+  --color-popover-foreground: #C8D5DE;
 
-  --color-popover: #0B1929;
-  --color-popover-foreground: #D4E5F2;
+  --color-text:           #C8D5DE;
+  --color-text-secondary: #4E6478;
+  --color-text-muted:     #293D50;
+  --color-text-inverse:   #0C1520;
 
-  --color-text: #D4E5F2;
-  --color-text-secondary: #5A80A0;
-  --color-text-muted: #2E4A62;
-  --color-text-inverse: #07101C;
+  --color-success:  #22C55E;
+  --color-warning:  #F59E0B;
+  --color-danger:   #EF4444;
+  --color-info:     #3B82F6;
 
-  /* Dark mode risk */
-  --color-risk-none-bg: #0B1929;
-  --color-risk-none-text: #5A80A0;
-  --color-risk-none-border: #162638;
-
-  --color-risk-low-bg: #052E1C;
-  --color-risk-low-text: #4ADE80;
-  --color-risk-low-border: #064E30;
-
-  --color-risk-medium-bg: #431A04;
-  --color-risk-medium-text: #FBBF24;
+  /* Risk dark */
+  --color-risk-none-bg:       #0F1C2A;
+  --color-risk-none-text:     #4E6478;
+  --color-risk-none-border:   #1A2B3C;
+  --color-risk-low-bg:        #052E1C;
+  --color-risk-low-text:      #4ADE80;
+  --color-risk-low-border:    #064E30;
+  --color-risk-medium-bg:     #431A04;
+  --color-risk-medium-text:   #FBBF24;
   --color-risk-medium-border: #78350F;
-
-  --color-risk-high-bg: #431004;
-  --color-risk-high-text: #FB923C;
-  --color-risk-high-border: #7C2D12;
-
-  --color-risk-veryhigh-bg: #430A0A;
+  --color-risk-high-bg:       #431004;
+  --color-risk-high-text:     #FB923C;
+  --color-risk-high-border:   #7C2D12;
+  --color-risk-veryhigh-bg:   #430A0A;
   --color-risk-veryhigh-text: #F87171;
   --color-risk-veryhigh-border: #7F1D1D;
 }
 
-/* ── Base styles ───────────────────────────────────────────────────── */
+/* ── Base ──────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border;
-    outline-color: rgb(from var(--color-primary) r g b / 0.5);
-  }
+  * { @apply border-border; }
+
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    background-color: rgba(0, 201, 167, 0.25);
-    color: inherit;
+    background-color: rgba(0, 201, 167, 0.2);
   }
 
-  ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(22, 38, 56, 0.9);
-    border-radius: 99px;
-  }
-  .dark ::-webkit-scrollbar-thumb {
-    background: rgba(22, 38, 56, 0.9);
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 201, 167, 0.35);
-  }
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(26, 43, 60, 1); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 201, 167, 0.3); }
 }
 
-/* ── Brand utilities ───────────────────────────────────────────────── */
-.text-gradient {
-  background: linear-gradient(135deg, #00C9A7 0%, #2979FF 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.bg-gradient-brand {
-  background: linear-gradient(135deg, #00C9A7 0%, #2979FF 100%);
-}
-
-.border-gradient-brand::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, #00C9A7, #2979FF);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Sidebar hide scrollbar */
+/* ── Utilities ─────────────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ==========================================================================
-   PRINT (unchanged — legal requirement)
-   ========================================================================== */
+.font-heading { font-family: var(--font-barlow); }
+
+/* ── Print (legal, unchanged) ──────────────────────────────────── */
 @media print {
   html, body {
     background-color: white !important;
@@ -216,63 +153,24 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
-
-  @page {
-    margin: 20mm;
-    size: A4 portrait;
-  }
-
-  header,
-  aside,
-  button,
-  .no-print,
-  .sidebar,
-  .tooltip,
-  .hover-states,
-  nav,
-  input[type="submit"] {
-    display: none !important;
-  }
-
-  .pdf-logo {
-    width: 160px !important;
-    height: auto !important;
-  }
-
-  .pdf-signature {
-    width: 180px !important;
-    height: auto !important;
-  }
-
-  .pdf-qr {
-    width: 120px !important;
-    height: 120px !important;
-  }
-
+  @page { margin: 20mm; size: A4 portrait; }
+  header, aside, button, .no-print, .sidebar,
+  .tooltip, .hover-states, nav, input[type="submit"] { display: none !important; }
+  .pdf-logo     { width: 160px !important; height: auto !important; }
+  .pdf-signature{ width: 180px !important; height: auto !important; }
+  .pdf-qr       { width: 120px !important; height: 120px !important; }
   .pdf-hash {
-    font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace !important;
+    font-family: var(--font-mono), monospace !important;
     font-size: 10px !important;
     color: #64748B !important;
     word-break: break-all;
   }
-
   main, .container, .app-shell, body > div {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    box-shadow: none !important;
-    border: none !important;
+    margin: 0 !important; padding: 0 !important;
+    width: 100% !important; max-width: none !important;
+    box-shadow: none !important; border: none !important;
     overflow: visible !important;
   }
-
-  table, figure, img, .avoid-page-break {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  h2, h3, h4 {
-    page-break-after: avoid;
-    break-after: avoid;
-  }
+  table, figure, img, .avoid-page-break { page-break-inside: avoid; break-inside: avoid; }
+  h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
 }

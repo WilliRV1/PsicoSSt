@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
-import { Barlow_Semi_Condensed, Source_Sans_3, JetBrains_Mono } from "next/font/google";
+import { Barlow_Semi_Condensed, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const barlowSemiCondensed = Barlow_Semi_Condensed({
+const barlow = Barlow_Semi_Condensed({
   variable: "--font-barlow",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  style: ["normal"],
 });
 
-const sourceSans3 = Source_Sans_3({
-  variable: "--font-source-sans",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -29,14 +29,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body
-        className={`${barlowSemiCondensed.variable} ${sourceSans3.variable} ${jetbrainsMono.variable} antialiased`}
-      >
+      <body className={`${barlow.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
