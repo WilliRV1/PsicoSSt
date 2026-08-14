@@ -14,18 +14,8 @@ const NAV = [
     items: [
       { label: "Centro de Control", href: "/dashboard" },
       { label: "Empresas",          href: "/dashboard/organizations" },
-      { label: "Trabajadores",      href: "/dashboard/workers" },
       { label: "Evaluaciones",      href: "/dashboard/assessments" },
-      { label: "Intervenciones",    href: "/dashboard/interventions" },
-    ],
-  },
-  {
-    section: "Inteligencia",
-    items: [
-      { label: "Analítica",      href: "/dashboard/analytics" },
-      { label: "Decisiones IA",  href: "/dashboard/ai" },
-      { label: "Reportes",       href: "/dashboard/reports" },
-      { label: "Tendencias",     href: "/dashboard/trends" },
+      { label: "Reportes",          href: "/dashboard/reports" },
     ],
   },
   {

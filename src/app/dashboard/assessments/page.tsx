@@ -2,45 +2,110 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock, Edit } from "lucide-react";
+import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
 import DeleteAssessmentButton from "./delete-assessment-button";
 
-const PAGE_SIZE = 50;
-
-const riskColors: Record<string, string> = {
-    SIN_RIESGO: "bg-green-100 text-green-700",
-    BAJO: "bg-lime-100 text-lime-700",
-    MEDIO: "bg-yellow-100 text-yellow-700",
-    ALTO: "bg-orange-100 text-orange-700",
-    MUY_ALTO: "bg-red-100 text-red-700"
+const riskCfg: Record<string, { label: string; cls: string }> = {
+    SIN_RIESGO: { label: "Sin Riesgo", cls: "bg-green-100 text-green-700 border-green-200" },
+    BAJO:       { label: "Bajo",       cls: "bg-lime-100 text-lime-700 border-lime-200" },
+    MEDIO:      { label: "Medio",      cls: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+    ALTO:       { label: "Alto",       cls: "bg-orange-100 text-orange-700 border-orange-200" },
+    MUY_ALTO:   { label: "Muy Alto",   cls: "bg-red-100 text-red-700 border-red-200" },
 };
 
-const riskLabels: Record<string, string> = {
-    SIN_RIESGO: "Sin Riesgo",
-    BAJO: "Bajo",
-    MEDIO: "Medio",
-    ALTO: "Alto",
-    MUY_ALTO: "Muy Alto"
-};
-
-const questionnaireLabels: Record<string, string> = {
-    INTRALABORAL: "Intralaboral",
-    EXTRALABORAL: "Extralaboral",
-    STRESS: "Estres"
-};
-
-const statusConfig: Record<string, { label: string; icon: "check" | "clock"; class: string }> = {
-    SCORED:    { label: "Calificado", icon: "clock",  class: "bg-yellow-100 text-yellow-700" },
-    REVIEWED:  { label: "Revisado",   icon: "clock",  class: "bg-blue-100 text-blue-700" },
-    SIGNED:    { label: "Firmado",    icon: "check",  class: "bg-green-100 text-green-700" },
-    COMPLETED: { label: "Completado", icon: "clock",  class: "bg-gray-100 text-gray-700" },
+const statusCfg: Record<string, { label: string; cls: string }> = {
+    SCORED:    { label: "Calificado", cls: "bg-yellow-100 text-yellow-700" },
+    REVIEWED:  { label: "Revisado",   cls: "bg-blue-100 text-blue-700" },
+    SIGNED:    { label: "Firmado",    cls: "bg-green-100 text-green-700" },
+    COMPLETED: { label: "Completado", cls: "bg-slate-100 text-slate-600" },
 };
 
 interface PageProps {
-    searchParams: Promise<{ q?: string; org?: string; risk?: string; status?: string; type?: string; page?: string }>;
+    searchParams: Promise<{ q?: string; org?: string }>;
+}
+
+interface SlotAssessment {
+    id: string;
+    questionnaireType: string;
+    formType: string;
+    assessmentDate: Date;
+    status: string;
+    overallRiskCategory: string | null;
+}
+
+function AssessmentSlot({
+    type,
+    label,
+    assessment,
+    workerId,
+    orgId,
+}: {
+    type: string;
+    label: string;
+    assessment: SlotAssessment | null;
+    workerId: string;
+    orgId: string;
+}) {
+    if (!assessment) {
+        return (
+            <td className="px-3 py-4 align-middle">
+                <div className="flex flex-col items-start gap-1.5">
+                    <span className="text-[11px] text-text-muted font-medium uppercase tracking-wider">{label}</span>
+                    <Link
+                        href={`/dashboard/assessments/new/manual?workerId=${workerId}&orgId=${orgId}&type=${type}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-dashed border-border text-[12px] text-text-muted hover:border-primary hover:text-primary transition-colors"
+                    >
+                        <Plus className="w-3 h-3" />
+                        Pendiente
+                    </Link>
+                </div>
+            </td>
+        );
+    }
+
+    const risk = assessment.overallRiskCategory;
+    const rc = risk ? riskCfg[risk] : null;
+    const sc = statusCfg[assessment.status] || statusCfg.SCORED;
+    const isSigned = assessment.status === "SIGNED";
+
+    return (
+        <td className="px-3 py-4 align-middle">
+            <div className="flex flex-col items-start gap-1.5">
+                <span className="text-[11px] text-text-muted font-medium uppercase tracking-wider">{label}</span>
+                {rc && (
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${rc.cls}`}>
+                        {rc.label}
+                    </span>
+                )}
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${sc.cls}`}>
+                    {isSigned ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                    {sc.label}
+                </span>
+                <span className="text-[11px] text-text-muted">
+                    {new Date(assessment.assessmentDate).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                    <Link
+                        href={`/dashboard/reports/${assessment.id}`}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium border border-border bg-surface hover:bg-surface-muted transition-colors text-foreground"
+                    >
+                        {isSigned ? <Eye className="w-3 h-3" /> : <PenLine className="w-3 h-3" />}
+                        {isSigned ? "Ver" : "Revisar"}
+                    </Link>
+                    <a
+                        href={`/api/assessments/${assessment.id}/report/pdf`}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium border border-border bg-surface hover:bg-surface-muted transition-colors text-foreground"
+                        title="Descargar PDF"
+                    >
+                        <FileDown className="w-3 h-3" />
+                    </a>
+                </div>
+            </div>
+        </td>
+    );
 }
 
 export default async function AssessmentsPage({ searchParams }: PageProps) {
@@ -50,92 +115,106 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
     const params = await searchParams;
     const q = params.q?.trim() || "";
     const orgFilter = params.org || "";
-    const riskFilter = params.risk || "";
-    const statusFilter = params.status || "";
-    const typeFilter = params.type || "";
-    const page = Math.max(1, parseInt(params.page || "1"));
 
-    const whereClause: any = {
-        psychologistId: session.user.id,
-        status: statusFilter
-            ? { equals: statusFilter }
-            : { in: ["COMPLETED", "SCORED", "REVIEWED", "SIGNED"] },
-        ...(orgFilter && { organizationId: orgFilter }),
-        ...(typeFilter && { questionnaireType: typeFilter }),
-        ...(riskFilter && { scoredResult: { overallRiskCategory: riskFilter } }),
-        ...(q && {
-            worker: {
-                OR: [
-                    { fullName: { contains: q, mode: "insensitive" } },
-                    { documentId: { contains: q, mode: "insensitive" } },
-                ],
+    const psychId = session.user.id;
+
+    const [workers, organizations] = await Promise.all([
+        prisma.worker.findMany({
+            where: {
+                organization: { createdByPsychologist: psychId },
+                ...(orgFilter && { organizationId: orgFilter }),
+                ...(q && {
+                    OR: [
+                        { fullName: { contains: q, mode: "insensitive" } },
+                        { documentId: { contains: q, mode: "insensitive" } },
+                    ],
+                }),
             },
-        }),
-    };
-
-    const [assessments, totalCount, organizations] = await Promise.all([
-        prisma.assessment.findMany({
-            where: whereClause,
-            include: {
-                worker: { select: { fullName: true, documentId: true, jobTitle: true } },
+            select: {
+                id: true,
+                fullName: true,
+                documentId: true,
+                jobTitle: true,
                 organization: { select: { id: true, name: true } },
-                scoredResult: { select: { overallRiskCategory: true, totalScores: true } },
+                assessments: {
+                    where: {
+                        psychologistId: psychId,
+                        status: { in: ["COMPLETED", "SCORED", "REVIEWED", "SIGNED"] },
+                    },
+                    select: {
+                        id: true,
+                        questionnaireType: true,
+                        formType: true,
+                        assessmentDate: true,
+                        status: true,
+                        scoredResult: { select: { overallRiskCategory: true } },
+                    },
+                    orderBy: { assessmentDate: "desc" },
+                },
             },
-            orderBy: { assessmentDate: "desc" },
-            skip: (page - 1) * PAGE_SIZE,
-            take: PAGE_SIZE,
+            orderBy: [{ organization: { name: "asc" } }, { fullName: "asc" }],
+            take: 200,
         }),
-        prisma.assessment.count({ where: whereClause }),
         prisma.organization.findMany({
-            where: { createdByPsychologist: session.user.id },
+            where: { createdByPsychologist: psychId },
             select: { id: true, name: true },
             orderBy: { name: "asc" },
         }),
     ]);
 
-    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-    const hasFilters = !!(q || orgFilter || riskFilter || statusFilter || typeFilter);
+    // Per worker, get most recent assessment per type
+    const workerRows = workers.map(w => {
+        const byType = (type: string): SlotAssessment | null => {
+            const found = w.assessments.find(a => a.questionnaireType === type);
+            if (!found) return null;
+            return {
+                id: found.id,
+                questionnaireType: found.questionnaireType,
+                formType: found.formType,
+                assessmentDate: found.assessmentDate,
+                status: found.status,
+                overallRiskCategory: found.scoredResult?.overallRiskCategory ?? null,
+            };
+        };
+        const complete = ["INTRALABORAL", "EXTRALABORAL", "STRESS"].every(t =>
+            w.assessments.some(a => a.questionnaireType === t && ["SCORED", "REVIEWED", "SIGNED"].includes(a.status))
+        );
+        return {
+            ...w,
+            intra: byType("INTRALABORAL"),
+            extra: byType("EXTRALABORAL"),
+            stress: byType("STRESS"),
+            complete,
+        };
+    });
 
-    const buildPageUrl = (p: number) => {
-        const sp = new URLSearchParams();
-        if (q) sp.set("q", q);
-        if (orgFilter) sp.set("org", orgFilter);
-        if (riskFilter) sp.set("risk", riskFilter);
-        if (statusFilter) sp.set("status", statusFilter);
-        if (typeFilter) sp.set("type", typeFilter);
-        sp.set("page", String(p));
-        return `/dashboard/assessments?${sp.toString()}`;
-    };
+    const hasFilters = !!(q || orgFilter);
+    const completeCount = workerRows.filter(w => w.complete).length;
+    const pendingCount  = workerRows.filter(w => !w.complete).length;
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border pb-4">
                 <div>
-                    <h2 className="text-xl font-semibold text-foreground">Evaluaciones Completadas</h2>
-                    <p className="text-sm text-muted-foreground">
-                        {totalCount} resultado{totalCount !== 1 ? "s" : ""}
-                        {hasFilters ? " (filtrado)" : " en total"}
-                    </p>
+                    <h1 className="text-[24px] font-bold text-foreground font-heading tracking-tight">Evaluaciones</h1>
+                    <div className="flex items-center gap-3 mt-1.5 text-[13px] font-medium text-text-secondary">
+                        <span><strong className="text-foreground">{workers.length}</strong> trabajadores</span>
+                        <span className="w-1 h-1 rounded-full bg-border" />
+                        <span><strong className="text-teal-700">{completeCount}</strong> batería completa</span>
+                        <span className="w-1 h-1 rounded-full bg-border" />
+                        <span><strong className="text-amber-600">{pendingCount}</strong> incompletos</span>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <a
-                        href="/api/assessments/export"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                        title="Exportar a CSV"
-                    >
-                        <FileDown className="h-4 w-4" />
-                        Exportar CSV
-                    </a>
-                    <Button asChild className="gap-2">
-                        <Link href="/dashboard/assessments/new/manual">
-                            <Plus className="h-4 w-4" />
-                            Digitalizar Papel
-                        </Link>
-                    </Button>
-                </div>
+                <Button asChild size="sm">
+                    <Link href="/dashboard/assessments/new/manual">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Digitalizar evaluación
+                    </Link>
+                </Button>
             </div>
 
-            {/* Filter bar */}
+            {/* Filters */}
             <Suspense>
                 <FilterBar
                     searchPlaceholder="Buscar por trabajador o documento..."
@@ -145,181 +224,91 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                             placeholder: "Todas las empresas",
                             options: organizations.map(o => ({ value: o.id, label: o.name })),
                         },
-                        {
-                            key: "status",
-                            placeholder: "Todos los estados",
-                            options: [
-                                { value: "SCORED",   label: "Calificado" },
-                                { value: "REVIEWED", label: "Revisado" },
-                                { value: "SIGNED",   label: "Firmado" },
-                            ],
-                        },
-                        {
-                            key: "risk",
-                            placeholder: "Todos los riesgos",
-                            options: [
-                                { value: "SIN_RIESGO", label: "Sin Riesgo" },
-                                { value: "BAJO",       label: "Bajo" },
-                                { value: "MEDIO",      label: "Medio" },
-                                { value: "ALTO",       label: "Alto" },
-                                { value: "MUY_ALTO",   label: "Muy Alto" },
-                            ],
-                        },
-                        {
-                            key: "type",
-                            placeholder: "Todos los cuestionarios",
-                            options: [
-                                { value: "INTRALABORAL",  label: "Intralaboral" },
-                                { value: "EXTRALABORAL",  label: "Extralaboral" },
-                                { value: "STRESS",        label: "Estrés" },
-                            ],
-                        },
                     ]}
                 />
             </Suspense>
 
-            {assessments.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-border bg-muted/30 p-16 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-card border border-border shadow-sm">
-                        <ClipboardList className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                        {hasFilters ? "Sin resultados" : "No hay evaluaciones"}
+            {/* Table */}
+            {workerRows.length === 0 ? (
+                <div className="rounded-xl border-2 border-dashed border-border bg-surface-muted py-20 text-center flex flex-col items-center">
+                    <ClipboardList className="w-10 h-10 text-text-muted mb-3" />
+                    <h3 className="text-[16px] font-semibold text-foreground mb-1">
+                        {hasFilters ? "Sin resultados" : "No hay trabajadores"}
                     </h3>
-                    <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-                        {hasFilters
-                            ? "Intenta con otros filtros de búsqueda."
-                            : "Comienza digitalizando los cuestionarios físicos de los trabajadores."
-                        }
+                    <p className="text-[13px] text-text-secondary max-w-sm">
+                        {hasFilters ? "Prueba otros filtros." : "Agrega trabajadores a una empresa para comenzar."}
                     </p>
-                    {!hasFilters && (
-                        <Button asChild>
-                            <Link href="/dashboard/assessments/new/manual">Digitalizar Primera Evaluacion</Link>
-                        </Button>
-                    )}
                 </div>
             ) : (
-                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-muted/50 border-b border-border">
-                                <tr>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trabajador</th>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Organizacion</th>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cuestionario</th>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fecha</th>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Riesgo</th>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estado</th>
-                                    <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">Acciones</th>
+                <div className="rounded-xl border border-border bg-card overflow-x-auto">
+                    <table className="w-full text-[13px] text-left border-collapse">
+                        <thead className="bg-surface-muted border-b border-border">
+                            <tr>
+                                <th className="px-4 py-3 font-semibold text-text-muted text-[11px] uppercase tracking-wider w-[220px]">Trabajador</th>
+                                <th className="px-3 py-3 font-semibold text-text-muted text-[11px] uppercase tracking-wider">Intralaboral</th>
+                                <th className="px-3 py-3 font-semibold text-text-muted text-[11px] uppercase tracking-wider">Extralaboral</th>
+                                <th className="px-3 py-3 font-semibold text-text-muted text-[11px] uppercase tracking-wider">Estrés</th>
+                                <th className="px-3 py-3 font-semibold text-text-muted text-[11px] uppercase tracking-wider text-right">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {workerRows.map(worker => (
+                                <tr key={worker.id} className="hover:bg-surface-muted/50 transition-colors">
+                                    {/* Worker */}
+                                    <td className="px-4 py-4 align-middle">
+                                        <div className="flex flex-col">
+                                            <Link
+                                                href={`/dashboard/workers/${worker.id}`}
+                                                className="font-semibold text-foreground hover:text-primary transition-colors"
+                                            >
+                                                {worker.fullName}
+                                            </Link>
+                                            <span className="text-[11px] text-text-muted font-mono mt-0.5">{worker.documentId}</span>
+                                            <span className="text-[11px] text-text-muted mt-0.5">{worker.organization.name}</span>
+                                        </div>
+                                    </td>
+
+                                    {/* 3 regulatory slots */}
+                                    <AssessmentSlot
+                                        type="INTRALABORAL"
+                                        label="Intra"
+                                        assessment={worker.intra}
+                                        workerId={worker.id}
+                                        orgId={worker.organization.id}
+                                    />
+                                    <AssessmentSlot
+                                        type="EXTRALABORAL"
+                                        label="Extra"
+                                        assessment={worker.extra}
+                                        workerId={worker.id}
+                                        orgId={worker.organization.id}
+                                    />
+                                    <AssessmentSlot
+                                        type="STRESS"
+                                        label="Estrés"
+                                        assessment={worker.stress}
+                                        workerId={worker.id}
+                                        orgId={worker.organization.id}
+                                    />
+
+                                    {/* Completion status */}
+                                    <td className="px-3 py-4 align-middle text-right">
+                                        {worker.complete ? (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                                                <CheckCircle2 className="w-3 h-3" />
+                                                Completa
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <AlertCircle className="w-3 h-3" />
+                                                Incompleta
+                                            </span>
+                                        )}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {assessments.map((assessment) => {
-                                    const risk = assessment.scoredResult?.overallRiskCategory || "SIN_RIESGO";
-                                    const totalScores = assessment.scoredResult?.totalScores as any;
-                                    const transformedScore = totalScores?.transformedScore;
-                                    const status = statusConfig[assessment.status] || statusConfig.SCORED;
-
-                                    return (
-                                        <tr key={assessment.id} className="hover:bg-muted/30 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="font-medium text-foreground">{assessment.worker.fullName}</div>
-                                                <div className="text-xs text-muted-foreground mt-0.5">{assessment.worker.documentId}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                                                {assessment.organization.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/10">
-                                                    {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}
-                                                    {" "}Forma {assessment.formType}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                                                {new Date(assessment.assessmentDate).toLocaleDateString("es-CO", {
-                                                    year: "numeric", month: "short", day: "numeric"
-                                                })}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${riskColors[risk]}`}>
-                                                    {riskLabels[risk]}
-                                                    {transformedScore !== undefined && (
-                                                        <span className="opacity-70">({transformedScore.toFixed(1)})</span>
-                                                    )}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.class}`}>
-                                                    {status.icon === "check"
-                                                        ? <CheckCircle2 className="h-3 w-3" />
-                                                        : <Clock className="h-3 w-3" />
-                                                    }
-                                                    {status.label}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Link
-                                                        href={`/dashboard/reports/${assessment.id}`}
-                                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
-                                                    >
-                                                        {assessment.status === "SIGNED"
-                                                            ? <><Eye className="h-3.5 w-3.5" /> Ver</>
-                                                            : <><PenLine className="h-3.5 w-3.5" /> Revisar</>
-                                                        }
-                                                    </Link>
-                                                    <a
-                                                        href={`/api/assessments/${assessment.id}/report/pdf`}
-                                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
-                                                        title="Descargar PDF"
-                                                    >
-                                                        <FileDown className="h-3.5 w-3.5" />
-                                                        PDF
-                                                    </a>
-                                                    <Link
-                                                        href={`/dashboard/assessments/${assessment.id}/edit`}
-                                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 shadow-sm hover:bg-amber-100 transition-colors"
-                                                        title="Editar Respuestas"
-                                                    >
-                                                        <Edit className="h-3.5 w-3.5" />
-                                                        Editar
-                                                    </Link>
-                                                    <DeleteAssessmentButton id={assessment.id} />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between border-t border-border px-6 py-3">
-                            <p className="text-xs text-muted-foreground">
-                                Página {page} de {totalPages} ({totalCount} evaluaciones)
-                            </p>
-                            <div className="flex gap-2">
-                                {page > 1 && (
-                                    <Link
-                                        href={buildPageUrl(page - 1)}
-                                        className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
-                                    >
-                                        Anterior
-                                    </Link>
-                                )}
-                                {page < totalPages && (
-                                    <Link
-                                        href={buildPageUrl(page + 1)}
-                                        className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
-                                    >
-                                        Siguiente
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>
