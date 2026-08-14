@@ -50,7 +50,10 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside
       className="sidebar no-scrollbar w-[220px] h-screen flex-shrink-0 flex flex-col"
-      style={{ background: "#0C1520", borderRight: "1px solid #1A2B3C" }}
+      style={{
+        background: "var(--color-surface)",
+        borderRight: "1px solid var(--color-border)",
+      }}
     >
       {/* Logo */}
       <div className="px-6 pt-7 pb-6 shrink-0">
@@ -72,7 +75,7 @@ export function Sidebar({ user }: SidebarProps) {
           <div key={group.section}>
             <p
               className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
-              style={{ color: "#1E3245", fontFamily: "var(--font-barlow)" }}
+              style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-barlow)" }}
             >
               {group.section}
             </p>
@@ -91,19 +94,20 @@ export function Sidebar({ user }: SidebarProps) {
                       prefetch={false}
                       className="flex items-center h-8 px-3 text-[13px] transition-colors duration-100 outline-none rounded-md"
                       style={{
-                        color: isActive ? "#00C9A7" : "#3D5568",
+                        color: isActive ? "var(--color-primary)" : "var(--color-text-secondary)",
                         fontWeight: isActive ? 600 : 400,
                         borderLeft: isActive
-                          ? "2px solid #00C9A7"
+                          ? "2px solid var(--color-primary)"
                           : "2px solid transparent",
+                        background: isActive ? "var(--color-teal-light)" : "transparent",
                       }}
                       onMouseEnter={(e) => {
                         if (!isActive)
-                          (e.currentTarget as HTMLElement).style.color = "#7A9DB8";
+                          (e.currentTarget as HTMLElement).style.color = "var(--color-foreground)";
                       }}
                       onMouseLeave={(e) => {
                         if (!isActive)
-                          (e.currentTarget as HTMLElement).style.color = "#3D5568";
+                          (e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)";
                       }}
                     >
                       {item.label}
@@ -119,19 +123,22 @@ export function Sidebar({ user }: SidebarProps) {
       {/* User */}
       <div
         className="shrink-0 px-4 py-4"
-        style={{ borderTop: "1px solid #1A2B3C" }}
+        style={{ borderTop: "1px solid var(--color-border)" }}
       >
         <div className="flex items-center gap-2.5">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-            style={{ background: "#1A2B3C", color: "#00C9A7" }}
+            style={{
+              background: "var(--color-teal-light)",
+              color: "var(--color-primary)",
+            }}
           >
             {initials}
           </div>
           <div className="flex-1 min-w-0">
             <p
               className="text-[12.5px] font-semibold truncate"
-              style={{ color: "#7A9DB8" }}
+              style={{ color: "var(--color-text-secondary)" }}
             >
               {user?.fullName || "Usuario"}
             </p>
@@ -141,12 +148,12 @@ export function Sidebar({ user }: SidebarProps) {
               type="submit"
               title="Cerrar sesión"
               className="p-1 rounded transition-colors duration-100"
-              style={{ color: "#1E3245" }}
+              style={{ color: "var(--color-text-muted)" }}
               onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "#EF4444")
+                ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
               }
               onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "#1E3245")
+                ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
               }
             >
               <LogOut className="w-3.5 h-3.5" />

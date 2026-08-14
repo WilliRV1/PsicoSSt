@@ -10,11 +10,11 @@ interface RiskDistributionProps {
 }
 
 const LEVELS = [
-  { key: "none",     label: "Sin riesgo", color: "#4E6478" },
-  { key: "low",      label: "Bajo",       color: "#22C55E" },
-  { key: "medium",   label: "Medio",      color: "#F59E0B" },
-  { key: "high",     label: "Alto",       color: "#F97316" },
-  { key: "veryHigh", label: "Muy alto",   color: "#EF4444" },
+  { key: "none",     label: "Sin riesgo", color: "#4A5F70" },
+  { key: "low",      label: "Bajo",       color: "#16A34A" },
+  { key: "medium",   label: "Medio",      color: "#D97706" },
+  { key: "high",     label: "Alto",       color: "#EA580C" },
+  { key: "veryHigh", label: "Muy alto",   color: "#DC2626" },
 ] as const;
 
 export function RiskDistribution({ distribution, total }: RiskDistributionProps) {
@@ -24,18 +24,21 @@ export function RiskDistribution({ distribution, total }: RiskDistributionProps)
   return (
     <div
       className="p-6 rounded-xl flex flex-col gap-5 h-full"
-      style={{ background: "#0F1C2A", border: "1px solid #1A2B3C" }}
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+      }}
     >
       <div className="flex items-baseline justify-between">
         <p
           className="text-[11px] font-semibold uppercase tracking-[0.18em]"
-          style={{ color: "#293D50", fontFamily: "var(--font-barlow)" }}
+          style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-barlow)" }}
         >
           Distribución del riesgo
         </p>
         <span
           className="text-[12px]"
-          style={{ color: "#293D50", fontFamily: "var(--font-mono)" }}
+          style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-mono)" }}
         >
           {total}
         </span>
@@ -49,22 +52,25 @@ export function RiskDistribution({ distribution, total }: RiskDistributionProps)
             <div key={key} className="flex items-center gap-3">
               <p
                 className="text-[12px] w-[72px] shrink-0"
-                style={{ color: "#3D5568", fontFamily: "var(--font-sans)" }}
+                style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-sans)" }}
               >
                 {label}
               </p>
               <div
                 className="flex-1 h-[3px] rounded-full overflow-hidden"
-                style={{ background: "#1A2B3C" }}
+                style={{ background: "var(--color-border)" }}
               >
                 <div
                   className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.max(p, p > 0 ? 1 : 0)}%`, background: color }}
+                  style={{ width: `${p > 0 ? Math.max(p, 1) : 0}%`, background: color }}
                 />
               </div>
               <p
                 className="text-[12px] w-8 text-right shrink-0"
-                style={{ color: p > 0 ? color : "#293D50", fontFamily: "var(--font-mono)" }}
+                style={{
+                  color: p > 0 ? color : "var(--color-text-muted)",
+                  fontFamily: "var(--font-mono)",
+                }}
               >
                 {p}%
               </p>

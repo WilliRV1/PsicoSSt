@@ -16,26 +16,30 @@ export function Header({ user }: HeaderProps) {
   useEffect(() => setMounted(true), []);
 
   const creditColor =
-    credits <= 0 ? "#EF4444" : credits <= 5 ? "#F59E0B" : "#4E6478";
+    credits <= 0
+      ? "var(--color-danger)"
+      : credits <= 5
+      ? "var(--color-warning)"
+      : "var(--color-text-muted)";
 
   return (
     <header
       className="h-[52px] flex items-center justify-between px-6 shrink-0"
       style={{
-        background: "#0C1520",
-        borderBottom: "1px solid #1A2B3C",
+        background: "var(--color-surface)",
+        borderBottom: "1px solid var(--color-border)",
       }}
     >
       {/* Search */}
       <button
         onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
         className="flex items-center gap-2 text-[13px] transition-colors duration-100 outline-none"
-        style={{ color: "#293D50" }}
+        style={{ color: "var(--color-text-muted)" }}
         onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = "#4E6478")
+          ((e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)")
         }
         onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = "#293D50")
+          ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
         }
       >
         <Search className="w-3.5 h-3.5 shrink-0" />
@@ -43,8 +47,8 @@ export function Header({ user }: HeaderProps) {
         <span
           className="ml-1 text-[11px] px-1.5 py-0.5 rounded"
           style={{
-            background: "#1A2B3C",
-            color: "#293D50",
+            background: "var(--color-surface-muted)",
+            color: "var(--color-text-muted)",
             fontFamily: "var(--font-mono)",
           }}
         >
@@ -60,7 +64,7 @@ export function Header({ user }: HeaderProps) {
           className="flex items-center gap-1.5 text-[13px] transition-colors duration-100"
           style={{ color: creditColor }}
           onMouseEnter={(e) =>
-            ((e.currentTarget as HTMLElement).style.color = "#00C9A7")
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-primary)")
           }
           onMouseLeave={(e) =>
             ((e.currentTarget as HTMLElement).style.color = creditColor)
@@ -69,25 +73,25 @@ export function Header({ user }: HeaderProps) {
           <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>
             {credits}
           </span>
-          <span className="text-[12px]" style={{ color: "#293D50" }}>
+          <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
             créditos
           </span>
         </Link>
 
         {/* Divider */}
-        <div className="w-px h-4" style={{ background: "#1A2B3C" }} />
+        <div className="w-px h-4" style={{ background: "var(--color-border)" }} />
 
         {/* Theme */}
         {mounted && (
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="transition-colors duration-100 outline-none"
-            style={{ color: "#293D50" }}
+            style={{ color: "var(--color-text-muted)" }}
             onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "#4E6478")
+              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)")
             }
             onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "#293D50")
+              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
             }
           >
             {theme === "dark" ? (

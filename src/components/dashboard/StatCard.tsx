@@ -13,19 +13,21 @@ export function StatCard({
   trendLabel = "vs. mes anterior",
 }: StatCardProps) {
   const isPositive = trend >= 0;
-  const isAlert = String(title).toLowerCase().includes("alert") || String(title).toLowerCase().includes("críti");
+  const isAlert =
+    String(title).toLowerCase().includes("alert") ||
+    String(title).toLowerCase().includes("críti");
 
   return (
     <div
       className="p-6 rounded-xl flex flex-col gap-4"
       style={{
-        background: "#0F1C2A",
-        border: `1px solid ${isAlert && Number(value) > 0 ? "rgba(239,68,68,0.2)" : "#1A2B3C"}`,
+        background: "var(--color-surface)",
+        border: `1px solid ${isAlert && Number(value) > 0 ? "rgba(220,38,38,0.25)" : "var(--color-border)"}`,
       }}
     >
       <p
         className="text-[11px] font-semibold uppercase tracking-[0.18em]"
-        style={{ color: "#293D50", fontFamily: "var(--font-barlow)" }}
+        style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-barlow)" }}
       >
         {title}
       </p>
@@ -33,7 +35,10 @@ export function StatCard({
       <p
         className="text-[40px] leading-none font-semibold"
         style={{
-          color: isAlert && Number(value) > 0 ? "#EF4444" : "#C8D5DE",
+          color:
+            isAlert && Number(value) > 0
+              ? "var(--color-danger)"
+              : "var(--color-foreground)",
           fontFamily: "var(--font-mono)",
         }}
       >
@@ -43,12 +48,12 @@ export function StatCard({
       <p
         className="text-[12px]"
         style={{
-          color: isPositive ? "#00C9A7" : "#EF4444",
+          color: isPositive ? "var(--color-success)" : "var(--color-danger)",
           fontFamily: "var(--font-mono)",
         }}
       >
         {isPositive ? "↑" : "↓"} {Math.abs(trend)}%{" "}
-        <span style={{ color: "#293D50", fontFamily: "var(--font-sans)" }}>
+        <span style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
           {trendLabel}
         </span>
       </p>

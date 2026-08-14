@@ -12,19 +12,19 @@ interface HealthScoreProps {
 }
 
 function label(v: number) {
-  if (v >= 85) return { text: "Excelente", color: "#00C9A7" };
-  if (v >= 70) return { text: "Saludable", color: "#22C55E" };
-  if (v >= 50) return { text: "Regular",   color: "#F59E0B" };
-  return            { text: "Crítico",    color: "#EF4444" };
+  if (v >= 85) return { text: "Excelente", color: "#009A80" };
+  if (v >= 70) return { text: "Saludable",  color: "#16A34A" };
+  if (v >= 50) return { text: "Regular",    color: "#D97706" };
+  return           { text: "Crítico",     color: "#DC2626" };
 }
 
 const FACTORS: { key: keyof HealthScoreProps["factors"]; name: string }[] = [
-  { key: "evaluations",  name: "Evaluaciones" },
-  { key: "compliance",   name: "Cumplimiento" },
-  { key: "interventions",name: "Intervenciones" },
-  { key: "tracking",     name: "Seguimiento" },
-  { key: "plans",        name: "Planes" },
-  { key: "evidence",     name: "Evidencias" },
+  { key: "evaluations",   name: "Evaluaciones" },
+  { key: "compliance",    name: "Cumplimiento" },
+  { key: "interventions", name: "Intervenciones" },
+  { key: "tracking",      name: "Seguimiento" },
+  { key: "plans",         name: "Planes" },
+  { key: "evidence",      name: "Evidencias" },
 ];
 
 export function HealthScore({ score, trend, factors }: HealthScoreProps) {
@@ -34,12 +34,15 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
   return (
     <div
       className="p-6 rounded-xl flex flex-col gap-5 h-full"
-      style={{ background: "#0F1C2A", border: "1px solid #1A2B3C" }}
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+      }}
     >
       {/* Header */}
       <p
         className="text-[11px] font-semibold uppercase tracking-[0.18em]"
-        style={{ color: "#293D50", fontFamily: "var(--font-barlow)" }}
+        style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-barlow)" }}
       >
         Índice de salud
       </p>
@@ -56,7 +59,7 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
           <p className="text-[14px] font-semibold" style={{ color, fontFamily: "var(--font-barlow)" }}>
             {text}
           </p>
-          <p className="text-[11px] mt-0.5" style={{ color: "#293D50" }}>
+          <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>
             {trendUp ? "↑" : "↓"} {Math.abs(trend)} este mes
           </p>
         </div>
@@ -66,12 +69,12 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
       <div className="flex gap-0.5 h-1.5">
         {Array.from({ length: 10 }).map((_, i) => {
           const filled = score > i * 10;
-          const segColor = i < 4 ? "#00C9A7" : i < 7 ? "#F59E0B" : "#EF4444";
+          const segColor = i < 4 ? "#009A80" : i < 7 ? "#D97706" : "#DC2626";
           return (
             <div
               key={i}
               className="flex-1 rounded-full"
-              style={{ background: filled ? segColor : "#1A2B3C" }}
+              style={{ background: filled ? segColor : "var(--color-border)" }}
             />
           );
         })}
@@ -80,22 +83,22 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
       {/* Factors */}
       <div
         className="pt-4 space-y-3"
-        style={{ borderTop: "1px solid #1A2B3C" }}
+        style={{ borderTop: "1px solid var(--color-border)" }}
       >
         <p
           className="text-[10px] font-semibold uppercase tracking-[0.18em]"
-          style={{ color: "#1E3245", fontFamily: "var(--font-barlow)" }}
+          style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-barlow)" }}
         >
           Factores
         </p>
         <div className="grid grid-cols-2 gap-x-5 gap-y-3">
           {FACTORS.map(({ key, name }) => {
             const v = factors[key];
-            const fc = v >= 70 ? "#00C9A7" : v >= 40 ? "#F59E0B" : "#EF4444";
+            const fc = v >= 70 ? "#009A80" : v >= 40 ? "#D97706" : "#DC2626";
             return (
               <div key={key} className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px]" style={{ color: "#3D5568" }}>
+                  <span className="text-[11px]" style={{ color: "var(--color-text-secondary)" }}>
                     {name}
                   </span>
                   <span
@@ -107,7 +110,7 @@ export function HealthScore({ score, trend, factors }: HealthScoreProps) {
                 </div>
                 <div
                   className="h-[2px] rounded-full overflow-hidden"
-                  style={{ background: "#1A2B3C" }}
+                  style={{ background: "var(--color-border)" }}
                 >
                   <div
                     className="h-full rounded-full"
