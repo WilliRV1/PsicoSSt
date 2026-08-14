@@ -185,12 +185,13 @@ export class AssessmentService {
             }
         }
 
-        // 1. Fetch existing assessment to get metadata
+        // 1. Fetch existing assessment to get metadata (including previous scores for audit diff)
         const existing = await prisma.assessment.findUnique({
             where: { id: assessmentId },
             include: {
                 worker: true,
-                responseSet: true
+                responseSet: true,
+                scoredResult: { select: { overallRiskCategory: true } },
             }
         });
 
@@ -247,15 +248,19 @@ export class AssessmentService {
                     }
                 });
 
-                // Log the edit
+                // Log the edit with before/after diff for traceability
                 await tx.auditLog.create({
                     data: {
                         userId: psychologistId,
                         action: "UPDATE",
-                        resourceType: "ASSESSMENT",
+                        resourceType: "assessment",
                         resourceId: assessmentId,
                         metadata: {
-                            note: "Evaluación editada manualmente"
+                            note: "Evaluación editada manualmente",
+                            previousRiskCategory: existing.scoredResult?.overallRiskCategory ?? null,
+                            newRiskCategory: scoredResult.total.riskCategory,
+                            previousResponses: existing.responseSet?.responses ?? null,
+                            newResponses,
                         }
                     }
                 });

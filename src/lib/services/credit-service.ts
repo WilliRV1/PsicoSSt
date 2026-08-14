@@ -80,6 +80,65 @@ export class CreditService {
     }
 
     /**
+     * Atomically checks whether a worker has had an assessment in the last
+     * 3 months and, if not, consumes 1 credit in the same DB transaction.
+     * Returns { consumed: true } when a credit was deducted, or
+     * { consumed: false } when it was not the first assessment in the cycle
+     * (no credit needed). Throws "INSUFFICIENT_CREDITS" if balance is zero.
+     *
+     * Wrapping both operations in one transaction prevents the race condition
+     * where two concurrent requests for the same worker both see count=0 and
+     * both consume a credit.
+     */
+    static async consumeCreditForAssessment(
+        psychologistId: string,
+        workerId: string
+    ): Promise<{ consumed: boolean }> {
+        return await prisma.$transaction(async (tx) => {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+            const recentCount = await tx.assessment.count({
+                where: {
+                    workerId,
+                    createdAt: { gte: threeMonthsAgo },
+                },
+            });
+
+            if (recentCount > 0) {
+                return { consumed: false };
+            }
+
+            const psych = await tx.psychologist.findUnique({
+                where: { id: psychologistId },
+                select: { creditBalance: true },
+            });
+
+            if (!psych || psych.creditBalance < 1) {
+                throw new Error("INSUFFICIENT_CREDITS");
+            }
+
+            const updated = await tx.psychologist.update({
+                where: { id: psychologistId },
+                data: { creditBalance: { decrement: 1 } },
+                select: { creditBalance: true },
+            });
+
+            await tx.creditTransaction.create({
+                data: {
+                    psychologistId,
+                    type: "CONSUMPTION",
+                    amount: -1,
+                    balanceAfter: updated.creditBalance,
+                    description: "Evaluación de batería completa",
+                },
+            });
+
+            return { consumed: true };
+        });
+    }
+
+    /**
      * Consume 1 credit for an assessment. Throws if insufficient balance.
      * assessmentId is optional so it can be called before the assessment is created.
      */

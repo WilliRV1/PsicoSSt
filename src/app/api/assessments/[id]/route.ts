@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
 
 export async function DELETE(
   req: NextRequest,
@@ -16,6 +17,14 @@ export async function DELETE(
 
     const assessment = await prisma.assessment.findUnique({
       where: { id },
+      select: {
+        id: true,
+        psychologistId: true,
+        workerId: true,
+        organizationId: true,
+        questionnaireType: true,
+        formType: true,
+      },
     });
 
     if (!assessment) {
@@ -26,8 +35,22 @@ export async function DELETE(
       return NextResponse.json({ error: "Prohibido: Solo puedes borrar tus propias evaluaciones" }, { status: 403 });
     }
 
-    await prisma.assessment.delete({
-      where: { id },
+    await prisma.assessment.delete({ where: { id } });
+
+    const { ipAddress, userAgent } = extractRequestMeta(req);
+    await logAudit({
+      userId: session.user.id,
+      action: "DELETE",
+      resourceType: "assessment",
+      resourceId: id,
+      metadata: {
+        workerId: assessment.workerId,
+        organizationId: assessment.organizationId,
+        questionnaireType: assessment.questionnaireType,
+        formType: assessment.formType,
+      },
+      ipAddress,
+      userAgent,
     });
 
     return NextResponse.json({ success: true, message: "Evaluación eliminada correctamente" });
