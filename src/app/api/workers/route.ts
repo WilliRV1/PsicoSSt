@@ -31,37 +31,68 @@ export async function GET(request: NextRequest) {
                     select: { id: true, name: true, nit: true }
                 },
                 assessments: {
+                    where: { status: { in: ["COMPLETED", "SCORED", "REVIEWED", "SIGNED"] } },
                     select: {
+                        id: true,
+                        questionnaireType: true,
                         assessmentDate: true,
+                        status: true,
                         scoredResult: { select: { overallRiskCategory: true } }
                     },
                     orderBy: { assessmentDate: "desc" },
-                    take: 1
                 }
             },
             orderBy: { createdAt: "desc" },
-            take: 100
+            take: 200
         });
 
         const enrichedWorkers = workers.map(worker => {
-            const lastAssessment = worker.assessments[0];
-            const lastRisk = lastAssessment?.scoredResult?.overallRiskCategory || null;
-            const lastDate = lastAssessment?.assessmentDate || null;
-            
-            // Check if expired (simulating 1 year expiration)
-            const isExpired = lastDate ? (new Date().getTime() - new Date(lastDate).getTime()) > 31536000000 : false;
+            // Most recent per type
+            const byType = (type: string) => worker.assessments.find(a => a.questionnaireType === type) ?? null;
+            const intra  = byType("INTRALABORAL");
+            const extra  = byType("EXTRALABORAL");
+            const stress = byType("STRESS");
+
+            // Last signed assessment (for expiry calculation)
+            const lastSigned = worker.assessments.find(a => a.status === "SIGNED");
+            const lastRisk   = lastSigned?.scoredResult?.overallRiskCategory ?? null;
+            const lastDate   = lastSigned?.assessmentDate ?? null;
+            const isExpired  = lastDate
+                ? (Date.now() - new Date(lastDate).getTime()) > 365.25 * 24 * 60 * 60 * 1000
+                : false;
+            const isExpiring = lastDate
+                ? (Date.now() - new Date(lastDate).getTime()) > 1.5 * 365.25 * 24 * 60 * 60 * 1000
+                : false;
 
             return {
                 id: worker.id,
                 fullName: worker.fullName,
                 documentId: worker.documentId,
+                documentType: (worker as any).documentType,
                 jobTitle: worker.jobTitle,
                 jobLevel: worker.jobLevel,
+                educationLevel: (worker as any).educationLevel,
+                departmentArea: (worker as any).departmentArea,
+                gender: (worker as any).gender,
+                birthDate: (worker as any).birthDate,
+                maritalStatus: (worker as any).maritalStatus,
+                yearsInCompany: (worker as any).yearsInCompany,
+                yearsInPosition: (worker as any).yearsInPosition,
+                contractType: (worker as any).contractType,
+                workSchedule: (worker as any).workSchedule,
+                hoursPerWeek: (worker as any).hoursPerWeek,
+                residenceCity: (worker as any).residenceCity,
+                createdAt: worker.createdAt,
                 organization: worker.organization,
                 lastRisk,
                 lastDate,
                 isExpired,
-                isExpiring: false // Simulated
+                isExpiring,
+                battery: {
+                    intra:  intra  ? { id: intra.id,  status: intra.status,  risk: intra.scoredResult?.overallRiskCategory ?? null }  : null,
+                    extra:  extra  ? { id: extra.id,  status: extra.status,  risk: extra.scoredResult?.overallRiskCategory ?? null }  : null,
+                    stress: stress ? { id: stress.id, status: stress.status, risk: stress.scoredResult?.overallRiskCategory ?? null } : null,
+                },
             };
         });
 

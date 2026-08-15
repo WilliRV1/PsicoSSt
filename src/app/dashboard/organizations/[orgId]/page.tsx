@@ -13,6 +13,12 @@ import CollectiveReportButton from "@/components/organizations/collective-report
 import { ComplianceStatusPanel } from "@/components/organizations/compliance-status-panel";
 import { ExpiringWorkersPanel } from "@/components/organizations/expiring-workers-panel";
 
+interface BatterySlot {
+    id: string;
+    status: string;
+    risk: string | null;
+}
+
 interface Worker {
     id: string;
     fullName: string;
@@ -32,6 +38,11 @@ interface Worker {
     workSchedule: string | null;
     hoursPerWeek: number | null;
     createdAt: string;
+    battery?: {
+        intra:  BatterySlot | null;
+        extra:  BatterySlot | null;
+        stress: BatterySlot | null;
+    };
 }
 
 interface Organization {
@@ -44,6 +55,53 @@ interface Organization {
     employeeCount: number | null;
     contactName: string | null;
     contactEmail: string | null;
+}
+
+const RISK_DOT: Record<string, string> = {
+    SIN_RIESGO: "bg-green-500",
+    BAJO:       "bg-lime-500",
+    MEDIO:      "bg-yellow-400",
+    ALTO:       "bg-orange-500",
+    MUY_ALTO:   "bg-red-600",
+};
+
+const STATUS_RING: Record<string, string> = {
+    SIGNED:   "ring-green-400 bg-green-50 text-green-700",
+    REVIEWED: "ring-blue-400 bg-blue-50 text-blue-700",
+    SCORED:   "ring-yellow-400 bg-yellow-50 text-yellow-700",
+    COMPLETED:"ring-slate-300 bg-slate-50 text-slate-600",
+};
+
+function BatteryBadge({ label, slot, workerId, orgId, type }: {
+    label: string;
+    slot: BatterySlot | null;
+    workerId: string;
+    orgId: string;
+    type: string;
+}) {
+    if (!slot) {
+        return (
+            <a
+                href={`/dashboard/assessments/new/manual?workerId=${workerId}&orgId=${orgId}&type=${type}`}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-dashed border-border text-text-muted hover:border-primary hover:text-primary transition-colors"
+                title={`Aplicar ${label}`}
+            >
+                <Plus className="w-2.5 h-2.5" />{label}
+            </a>
+        );
+    }
+    const ringCls = STATUS_RING[slot.status] ?? STATUS_RING.COMPLETED;
+    const dotCls  = slot.risk ? RISK_DOT[slot.risk] : "bg-slate-400";
+    return (
+        <Link
+            href={`/dashboard/reports/${slot.id}`}
+            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ring-1 ${ringCls} transition-opacity hover:opacity-80`}
+            title={`${label}: ${slot.status}`}
+        >
+            <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} />
+            {label}
+        </Link>
+    );
 }
 
 const JOB_LEVEL_LABELS: Record<string, string> = {
@@ -419,40 +477,34 @@ export default function OrganizationDetailPage() {
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-muted border-b border-border text-muted-foreground uppercase font-bold tracking-wider text-[11px]">
                                     <tr>
-                                        <th className="px-6 py-4">Nombre</th>
-                                        <th className="px-6 py-4">Documento</th>
-                                        <th className="px-6 py-4">Cargo</th>
-                                        <th className="px-6 py-4">Nivel / Educaci&oacute;n</th>
-                                        <th className="px-6 py-4 text-center">Acciones</th>
+                                        <th className="px-4 py-3">Nombre</th>
+                                        <th className="px-4 py-3">Cargo / Nivel</th>
+                                        <th className="px-4 py-3">Batería Reglamentaria</th>
+                                        <th className="px-4 py-3 text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {workers.map(w => (
-                                        <tr key={w.id} className="hover:bg-muted/50 transition-colors group">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <Link href={`/dashboard/workers/${w.id}`} className="font-bold text-foreground hover:text-primary transition-colors hover:underline">
+                                        <tr key={w.id} className="hover:bg-muted/50 transition-colors">
+                                            <td className="px-4 py-3">
+                                                <Link href={`/dashboard/workers/${w.id}`} className="font-semibold text-foreground hover:text-primary transition-colors">
                                                     {w.fullName}
                                                 </Link>
+                                                <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{w.documentType} {w.documentId}</p>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-muted-foreground font-medium">
-                                                {w.documentType} {w.documentId}
+                                            <td className="px-4 py-3">
+                                                <span className="text-[12px] text-foreground">{w.jobTitle || <span className="text-muted-foreground italic">Sin cargo</span>}</span>
+                                                <p className="text-[11px] text-primary font-semibold mt-0.5">{JOB_LEVEL_LABELS[w.jobLevel] || w.jobLevel}</p>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-foreground/80">
-                                                {w.jobTitle || <span className="text-muted-foreground/50 italic">No asignado</span>}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-primary font-bold text-[10px] uppercase tracking-tighter">{JOB_LEVEL_LABELS[w.jobLevel] || w.jobLevel}</span>
-                                                    <span className="text-muted-foreground text-[11px] font-medium">{EDUCATION_LABELS[w.educationLevel] || w.educationLevel}</span>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <BatteryBadge label="Intra" slot={w.battery?.intra ?? null} workerId={w.id} orgId={orgId} type="INTRALABORAL" />
+                                                    <BatteryBadge label="Extra" slot={w.battery?.extra ?? null} workerId={w.id} orgId={orgId} type="EXTRALABORAL" />
+                                                    <BatteryBadge label="Estrés" slot={w.battery?.stress ?? null} workerId={w.id} orgId={orgId} type="STRESS" />
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Button variant="outline" size="sm" asChild>
-                                                        <Link href={`/dashboard/assessments/new/manual?workerId=${w.id}`}>
-                                                            Evaluar
-                                                        </Link>
-                                                    </Button>
+                                            <td className="px-4 py-3 text-right">
+                                                <div className="flex items-center justify-end gap-1.5">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
