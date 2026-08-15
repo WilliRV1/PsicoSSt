@@ -11,15 +11,16 @@ interface ManualFormProps {
     organizationId: string;
     workerName: string;
     organizationName: string;
+    initialType?: QuestionnaireType;
     onReset: () => void;
 }
 
 type Mode = "SETUP" | "QUESTIONNAIRE" | "CONTROL_CLIENTS" | "CONTROL_BOSS" | "SUCCESS";
 
-export default function ManualForm({ workerId, organizationId, workerName, organizationName, onReset }: ManualFormProps) {
+export default function ManualForm({ workerId, organizationId, workerName, organizationName, initialType, onReset }: ManualFormProps) {
     // 1. Setup State
     const [mode, setMode] = useState<Mode>("SETUP");
-    const [qType, setQType] = useState<QuestionnaireType>("INTRALABORAL");
+    const [qType, setQType] = useState<QuestionnaireType>(initialType ?? "INTRALABORAL");
     const [formType, setFormType] = useState<FormType>("A");
     const [assessmentDate, setAssessmentDate] = useState<string>(new Date().toISOString().substring(0, 10));
     

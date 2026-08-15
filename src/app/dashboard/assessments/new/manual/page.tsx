@@ -20,6 +20,7 @@ export default function ManualEntryPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const workerIdFromUrl = searchParams.get("workerId");
+    const typeFromUrl = searchParams.get("type") as "INTRALABORAL" | "EXTRALABORAL" | "STRESS" | null;
 
     const [searchTerm, setSearchTerm] = useState("");
     const [workers, setWorkers] = useState<Worker[]>([]);
@@ -172,6 +173,7 @@ export default function ManualEntryPage() {
                         organizationId={selectedWorker.organizationId}
                         workerName={selectedWorker.fullName}
                         organizationName={selectedWorker.organization.name}
+                        initialType={typeFromUrl ?? undefined}
                         onReset={() => {
                             setSelectedWorker(null);
                             setSearchTerm("");
