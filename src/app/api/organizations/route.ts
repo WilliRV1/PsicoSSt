@@ -19,6 +19,8 @@ export async function GET() {
                 _count: { select: { workers: true, assessments: true, interventionPlans: true } },
                 assessments: {
                     select: {
+                        workerId: true,
+                        status: true,
                         assessmentDate: true,
                         scoredResult: { select: { overallRiskCategory: true } }
                     },
@@ -28,23 +30,42 @@ export async function GET() {
             orderBy: { createdAt: "desc" }
         });
 
-        const enrichedOrgs = organizations.map(org => {
-            const totalAssessments = org.assessments.length;
-            const highRiskCount = org.assessments.filter(a => 
-                a.scoredResult?.overallRiskCategory === "ALTO" || 
-                a.scoredResult?.overallRiskCategory === "MUY_ALTO"
-            ).length;
+        const ONE_YEAR_MS  = 365.25 * 24 * 60 * 60 * 1000;
+        const TWO_YEARS_MS = 2 * ONE_YEAR_MS;
+        const now = Date.now();
 
-            // Health Score calculation (simplified for demo: 100% minus the percentage of high risk)
-            const healthScore = totalAssessments === 0 ? 100 : Math.max(0, Math.round(100 - (highRiskCount / totalAssessments) * 100));
-            
-            // Simulated trend (could be calculated comparing with previous month)
-            const trendValue = healthScore > 80 ? 5 : (healthScore > 50 ? -2 : -10);
-            const trendLabel = trendValue > 0 ? `+${trendValue}` : `${trendValue}`;
-            const trendDirection = trendValue > 0 ? "up" : (trendValue < 0 ? "down" : "flat");
-            let healthLabel = "Excelente";
-            if (healthScore <= 80 && healthScore > 50) healthLabel = "Atención";
-            if (healthScore <= 50) healthLabel = "Crítico";
+        const enrichedOrgs = organizations.map(org => {
+            const signed  = org.assessments.filter(a => a.status === "SIGNED");
+            const pending = org.assessments.filter(a => a.status === "SCORED" || a.status === "REVIEWED");
+
+            const evaluatedWorkerIds = new Set(signed.map(a => a.workerId));
+            const criticalWorkerIds  = new Set(
+                signed
+                    .filter(a => ["ALTO", "MUY_ALTO"].includes(a.scoredResult?.overallRiskCategory ?? ""))
+                    .map(a => a.workerId)
+            );
+
+            const evaluatedCount = evaluatedWorkerIds.size;
+            const criticalCount  = criticalWorkerIds.size;
+            const criticalPct    = evaluatedCount > 0 ? (criticalCount / evaluatedCount) * 100 : 0;
+
+            const lastSigned = signed[0]?.assessmentDate ?? null;
+
+            let complianceStatus: "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
+            let expiryDate: Date | null = null;
+            let daysLeft: number | null = null;
+
+            if (!lastSigned) {
+                complianceStatus = "sin_evaluar";
+            } else {
+                const validityMs = criticalPct > 20 ? ONE_YEAR_MS : TWO_YEARS_MS;
+                expiryDate = new Date(new Date(lastSigned).getTime() + validityMs);
+                daysLeft = Math.floor((expiryDate.getTime() - now) / (1000 * 60 * 60 * 24));
+
+                if (daysLeft < 0) complianceStatus = "vencida";
+                else if (daysLeft <= 90) complianceStatus = "por_vencer";
+                else complianceStatus = "vigente";
+            }
 
             const lastActivity = org.assessments.length > 0 ? org.assessments[0].assessmentDate : org.createdAt;
 
@@ -56,13 +77,14 @@ export async function GET() {
                 department: org.department,
                 workersCount: org._count.workers,
                 evaluationsCount: org._count.assessments,
-                healthScore,
-                healthLabel,
-                trend: trendLabel,
-                trendDirection,
+                evaluatedWorkers: evaluatedCount,
+                criticalWorkers: criticalCount,
+                pendingSignatures: pending.length,
+                complianceStatus,
+                expiryDate,
+                daysLeft,
                 lastActivity,
                 pendingInterventions: org._count.interventionPlans,
-                highRiskCount
             };
         });
 
