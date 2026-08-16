@@ -12,6 +12,7 @@ import InterventionPlanPanel from "@/components/organizations/intervention-plan-
 import CollectiveReportButton from "@/components/organizations/collective-report-button";
 import { ComplianceStatusPanel } from "@/components/organizations/compliance-status-panel";
 import { ExpiringWorkersPanel } from "@/components/organizations/expiring-workers-panel";
+import AIDiagnosticPanel from "@/components/organizations/ai-diagnostic-panel";
 
 interface BatterySlot {
     id: string;
@@ -417,6 +418,12 @@ export default function OrganizationDetailPage() {
 
             {/* Expiring evaluations */}
             <ExpiringWorkersPanel orgId={orgId} />
+
+            {/* AI Organizational Diagnostic */}
+            <div className="space-y-2">
+                <h2 className="text-base font-semibold text-foreground">Diagnóstico IA</h2>
+                <AIDiagnosticPanel orgId={orgId} orgName={org.name} />
+            </div>
 
             {/* Metrics Dashboard */}
             <div className="space-y-2">
