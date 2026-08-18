@@ -94,7 +94,7 @@ export async function POST(
         for (const [key, items] of Object.entries(groups)) {
             if (items.length >= 5) {
                 const d = emptyDist();
-                items.forEach(a => { const c = a.scoredResult?.overallRiskCategory; if (c && c in d) d[c]++; });
+                items.forEach(a => { const c = a.scoredResult?.overallRiskCategory as keyof typeof d | undefined; if (c && c in d) d[c]++; });
                 result[key] = { count: items.length, riskDistribution: toPercent(d, items.length) };
             } else {
                 others.push(...items);
@@ -102,7 +102,7 @@ export async function POST(
         }
         if (others.length >= 5) {
             const d = emptyDist();
-            others.forEach(a => { const c = a.scoredResult?.overallRiskCategory; if (c && c in d) d[c]++; });
+            others.forEach(a => { const c = a.scoredResult?.overallRiskCategory as keyof typeof d | undefined; if (c && c in d) d[c]++; });
             result["Otros grupos"] = { count: others.length, riskDistribution: toPercent(d, others.length) };
         }
         return result;
