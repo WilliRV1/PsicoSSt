@@ -341,6 +341,7 @@ export async function buildSVEData(
         org: {
             name: org.name,
             nit: org.nit,
+            city: org.city,
             psychologistName: org.psychologist.fullName,
             psychologistLicense: org.psychologist.licenseNumber,
             tradeName: settings?.tradeName?.trim() || settings?.consultingRoomName?.trim() || null,

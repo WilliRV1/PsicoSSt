@@ -53,7 +53,7 @@
     column-gutter: 8mm,
     ..(
       ("Empresa", D.org.name),
-      ("NIT", D.org.nit),
+      ("NIT / Ubicación", D.org.nit + if D.org.city != none { " · " + D.org.city } else { "" }),
       ("Trabajadores evaluados", str(D.summary.uniqueWorkers)),
       ("Período de evaluación", D.org.dateStart + " — " + D.org.dateEnd),
       ("Responsable técnico", D.org.psychologistName),

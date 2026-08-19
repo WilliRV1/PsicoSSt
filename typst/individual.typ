@@ -111,7 +111,7 @@
       v(2pt)
       text(font: serif, size: 13pt, weight: 600, fill: ink, D.org.name)
       v(1pt)
-      text(font: sans, size: 8pt, fill: ink2, "NIT " + D.org.nit)
+      text(font: sans, size: 8pt, fill: ink2, "NIT " + D.org.nit + if D.org.city != none { " · " + D.org.city } else { "" })
     },
   )
 
@@ -360,6 +360,7 @@ según los niveles de riesgo definidos en la Resolución 2764 de 2022.
   [*Alcance.* Los resultados corresponden a la percepción del trabajador en el
    momento de la aplicación y deben interpretarse junto con las demás fuentes de
    información del sistema de vigilancia epidemiológica.],
+  [*Reevaluación.* La empresa debe realizar el seguimiento o reevaluación en un plazo máximo de dos años, o anualmente si existe riesgo alto o muy alto, conforme a la Resolución 2764 de 2022.],
 ))
 
 #v(20pt)
