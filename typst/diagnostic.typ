@@ -125,6 +125,7 @@
       ("Fecha del informe", D.org.today),
       ("Evaluaciones en riesgo crítico", str(D.coverage.criticalPercent) + "%"),
       ("Sector económico", if D.org.economicSector != none { D.org.economicSector } else { "No registrado" }),
+      ("Ciudad", if D.org.city != none { D.org.city } else { "No registrada" }),
     ).map(((lbl, val)) => {
       label-text(lbl)
       v(2pt)
@@ -176,6 +177,15 @@ El diagnóstico es el insumo del que se derivan el programa de vigilancia
 epidemiológica y el plan de intervención de la organización. Sus resultados son
 estrictamente estadísticos: describen condiciones de grupos de trabajadores, no
 situaciones individuales.
+
+= Metodología
+
+#bullets((
+  [*Instrumento utilizado:* Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial, desarrollada por la Pontificia Universidad Javeriana y el Ministerio de la Protección Social (2010), y adoptada mediante la Resolución 2764 de 2022 del Ministerio del Trabajo de Colombia.],
+  [*Cuestionarios aplicados:* Cuestionario de Factores de Riesgo Psicosocial Intralaboral (Formas A y B), Extralaboral, y para la Evaluación del Estrés.],
+  [*Baremos poblacionales:* Tablas de clasificación nacionales establecidas y actualizadas en la Resolución 2764 de 2022.],
+  [*Profesional responsable:* #D.professional.name, con licencia en Seguridad y Salud en el Trabajo #D.professional.license.],
+))
 
 == Cobertura de la evaluación
 
@@ -270,12 +280,13 @@ subgrupo aunque el promedio lo diluya.
 #v(5pt)
 
 #etable(
-  columns: (2.2fr, auto, auto, auto, auto),
-  align-spec: (left, left, center, center, center),
-  header: ("Dimensión", "Instrumento", "Promedio", "% crítico", "Prioridad"),
+  columns: (2.2fr, auto, auto, auto, auto, auto),
+  align-spec: (left, left, center, center, center, center),
+  header: ("Dimensión", "Instrumento", "N", "Promedio", "% crítico", "Prioridad"),
   rows: D.dimensions.map(d => (
     text(fill: ink, weight: 500, d.name),
     d.questionnaire,
+    str(d.count),
     num(str(d.avg)),
     text(fill: if d.criticalPercent >= 40 { rc("MUY_ALTO") }
                else if d.criticalPercent >= 20 { rc("ALTO") }
@@ -389,12 +400,11 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   ..(if D.coverage.criticalPercent >= 20 {
       ([Al superar el umbral del 20% de resultados en riesgo alto o muy alto, la
         organización debe implementar un sistema de vigilancia epidemiológica de
-        factores de riesgo psicosocial, conforme a la Resolución 2764 de 2022.],)
+        factores de riesgo psicosocial, con intervención inmediata y seguimiento anual, conforme a la Resolución 2764 de 2022.],)
     } else {
       ([La proporción de resultados críticos se mantiene por debajo del umbral
         del 20%, de modo que las acciones se orientan a la prevención y al
-        control de las condiciones ya identificadas, sin que se configure la
-        obligación de un sistema de vigilancia epidemiológica por este criterio.],)
+        control de las condiciones ya identificadas. La reevaluación de los factores de riesgo psicosocial debe realizarse en un plazo máximo de dos años, conforme a la Resolución 2764 de 2022.],)
     }),
   ..(if criticas.len() > 0 {
       ([Concentran la prioridad #criticas.len() dimensiones con al menos un 20%
@@ -444,6 +454,18 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
     )),
   )
 ]
+
+#v(14pt)
+
+#block(width: 100%, inset: (x: 12pt, y: 11pt), fill: rgb("eff6ff"), stroke: 0.35pt + rgb("bfdbfe"), {
+  text(font: sans, size: 7.5pt, fill: rgb("1e40af"), [
+    *Nota legal:* Este informe diagnóstico organizacional es un documento técnico que forma parte
+    del Sistema de Gestión de Seguridad y Salud en el Trabajo (SG-SST) de la organización,
+    según lo dispuesto en la Resolución 2764 de 2022 y la Resolución 2646 de 2008. Los datos
+    presentados son exclusivamente estadísticos y no permiten la identificación individual de
+    trabajadores, en estricto cumplimiento de la Ley 1090 de 2006 sobre confidencialidad.
+  ])
+})
 
 #v(18pt)
 
