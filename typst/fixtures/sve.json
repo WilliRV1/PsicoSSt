@@ -1,0 +1,474 @@
+{
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "psychologistName": "William Reyes Valencia",
+    "psychologistLicense": "Lic. SST 12345 de 2019",
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali, Valle del Cauca",
+    "dateStart": "12 de marzo de 2026",
+    "dateEnd": "28 de julio de 2026",
+    "today": "19 de agosto de 2026",
+    "logoPath": null,
+    "signaturePath": null
+  },
+  "summary": {
+    "uniqueWorkers": 184,
+    "totalAssessments": 412,
+    "intraA": 96,
+    "intraB": 88,
+    "extra": 114,
+    "stress": 114,
+    "criticalPercent": 31,
+    "needsSVE": true
+  },
+  "demographics": {
+    "gender": [
+      {
+        "label": "Femenino",
+        "count": 101,
+        "pct": 54.9
+      },
+      {
+        "label": "Masculino",
+        "count": 83,
+        "pct": 45.1
+      }
+    ],
+    "ageRanges": [
+      {
+        "label": "18 a 27 años",
+        "count": 34,
+        "pct": 18.5
+      },
+      {
+        "label": "28 a 37 años",
+        "count": 67,
+        "pct": 36.4
+      },
+      {
+        "label": "38 a 47 años",
+        "count": 52,
+        "pct": 28.3
+      },
+      {
+        "label": "48 a 57 años",
+        "count": 24,
+        "pct": 13
+      },
+      {
+        "label": "58 años o más",
+        "count": 7,
+        "pct": 3.8
+      }
+    ],
+    "education": [
+      {
+        "label": "Bachillerato completo",
+        "count": 58,
+        "pct": 31.5
+      },
+      {
+        "label": "Técnico / tecnológico",
+        "count": 71,
+        "pct": 38.6
+      },
+      {
+        "label": "Profesional",
+        "count": 44,
+        "pct": 23.9
+      },
+      {
+        "label": "Posgrado",
+        "count": 11,
+        "pct": 6
+      }
+    ],
+    "maritalStatus": [
+      {
+        "label": "Soltero(a)",
+        "count": 62,
+        "pct": 33.7
+      },
+      {
+        "label": "Casado(a)",
+        "count": 49,
+        "pct": 26.6
+      },
+      {
+        "label": "Unión libre",
+        "count": 58,
+        "pct": 31.5
+      },
+      {
+        "label": "Separado(a)",
+        "count": 12,
+        "pct": 6.5
+      },
+      {
+        "label": "Viudo(a)",
+        "count": 3,
+        "pct": 1.6
+      }
+    ],
+    "contractType": [
+      {
+        "label": "Término indefinido",
+        "count": 97,
+        "pct": 52.7
+      },
+      {
+        "label": "Término fijo",
+        "count": 61,
+        "pct": 33.2
+      },
+      {
+        "label": "Obra o labor",
+        "count": 19,
+        "pct": 10.3
+      },
+      {
+        "label": "Prestación de servicios",
+        "count": 7,
+        "pct": 3.8
+      }
+    ],
+    "workSchedule": [
+      {
+        "label": "Diurno",
+        "count": 118,
+        "pct": 64.1
+      },
+      {
+        "label": "Rotativo",
+        "count": 49,
+        "pct": 26.6
+      },
+      {
+        "label": "Nocturno",
+        "count": 17,
+        "pct": 9.2
+      }
+    ],
+    "seniority": [
+      {
+        "label": "Menos de 1 año",
+        "count": 41,
+        "pct": 22.3
+      },
+      {
+        "label": "1 a 3 años",
+        "count": 63,
+        "pct": 34.2
+      },
+      {
+        "label": "4 a 7 años",
+        "count": 48,
+        "pct": 26.1
+      },
+      {
+        "label": "Más de 7 años",
+        "count": 32,
+        "pct": 17.4
+      }
+    ]
+  },
+  "distributions": {
+    "intra": {
+      "SIN_RIESGO": 11,
+      "BAJO": 17,
+      "MEDIO": 22,
+      "ALTO": 29,
+      "MUY_ALTO": 21
+    },
+    "extra": {
+      "SIN_RIESGO": 19,
+      "BAJO": 24,
+      "MEDIO": 26,
+      "ALTO": 19,
+      "MUY_ALTO": 12
+    },
+    "stress": {
+      "SIN_RIESGO": 14,
+      "BAJO": 21,
+      "MEDIO": 23,
+      "ALTO": 27,
+      "MUY_ALTO": 15
+    }
+  },
+  "counts": {
+    "intra": {
+      "SIN_RIESGO": 20,
+      "BAJO": 31,
+      "MEDIO": 40,
+      "ALTO": 53,
+      "MUY_ALTO": 40
+    },
+    "extra": {
+      "SIN_RIESGO": 22,
+      "BAJO": 27,
+      "MEDIO": 30,
+      "ALTO": 22,
+      "MUY_ALTO": 13
+    },
+    "stress": {
+      "SIN_RIESGO": 16,
+      "BAJO": 24,
+      "MEDIO": 26,
+      "ALTO": 31,
+      "MUY_ALTO": 17
+    }
+  },
+  "groups": {
+    "a": 38,
+    "b": 52,
+    "c": 41,
+    "d": 53
+  },
+  "correlation": [
+    [
+      6,
+      4,
+      3,
+      1,
+      0
+    ],
+    [
+      4,
+      9,
+      7,
+      4,
+      2
+    ],
+    [
+      3,
+      6,
+      12,
+      9,
+      5
+    ],
+    [
+      2,
+      5,
+      9,
+      15,
+      11
+    ],
+    [
+      1,
+      3,
+      6,
+      12,
+      14
+    ]
+  ],
+  "domains": {
+    "formA": [
+      {
+        "name": "Liderazgo y relaciones sociales en el trabajo",
+        "avg": 24.3,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      },
+      {
+        "name": "Control sobre el trabajo",
+        "avg": 31.8,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      },
+      {
+        "name": "Demandas del trabajo",
+        "avg": 38.2,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      },
+      {
+        "name": "Recompensas",
+        "avg": 27.5,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      }
+    ],
+    "formB": [
+      {
+        "name": "Liderazgo y relaciones sociales en el trabajo",
+        "avg": 26.1,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      },
+      {
+        "name": "Control sobre el trabajo",
+        "avg": 29.4,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      },
+      {
+        "name": "Demandas del trabajo",
+        "avg": 35.7,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      },
+      {
+        "name": "Recompensas",
+        "avg": 30.2,
+        "bounds": [
+          9.1,
+          19.7,
+          29.5,
+          40.6,
+          100
+        ]
+      }
+    ]
+  },
+  "criticalDimensions": [
+    {
+      "name": "Demandas de carga mental",
+      "questionnaire": "Intralaboral A",
+      "avgScore": 42.8,
+      "criticalPercent": 58,
+      "count": 96
+    },
+    {
+      "name": "Influencia del trabajo sobre el entorno extralaboral",
+      "questionnaire": "Intralaboral A",
+      "avgScore": 39.1,
+      "criticalPercent": 47,
+      "count": 96
+    },
+    {
+      "name": "Demandas emocionales",
+      "questionnaire": "Intralaboral B",
+      "avgScore": 37.4,
+      "criticalPercent": 44,
+      "count": 88
+    },
+    {
+      "name": "Claridad de rol",
+      "questionnaire": "Intralaboral A",
+      "avgScore": 35.2,
+      "criticalPercent": 39,
+      "count": 96
+    },
+    {
+      "name": "Recompensas derivadas de la pertenencia a la organización",
+      "questionnaire": "Intralaboral B",
+      "avgScore": 33.8,
+      "criticalPercent": 36,
+      "count": 88
+    },
+    {
+      "name": "Características del liderazgo",
+      "questionnaire": "Intralaboral A",
+      "avgScore": 31.5,
+      "criticalPercent": 33,
+      "count": 96
+    },
+    {
+      "name": "Comunicación y relaciones interpersonales",
+      "questionnaire": "Extralaboral",
+      "avgScore": 29.7,
+      "criticalPercent": 28,
+      "count": 114
+    },
+    {
+      "name": "Situación económica del grupo familiar",
+      "questionnaire": "Extralaboral",
+      "avgScore": 27.4,
+      "criticalPercent": 24,
+      "count": 114
+    }
+  ],
+  "areas": [
+    {
+      "name": "Producción",
+      "count": 78,
+      "dist": {
+        "SIN_RIESGO": 10,
+        "BAJO": 18,
+        "MEDIO": 24,
+        "ALTO": 28,
+        "MUY_ALTO": 20
+      }
+    },
+    {
+      "name": "Logística y almacén",
+      "count": 41,
+      "dist": {
+        "SIN_RIESGO": 10,
+        "BAJO": 18,
+        "MEDIO": 24,
+        "ALTO": 28,
+        "MUY_ALTO": 20
+      }
+    },
+    {
+      "name": "Administración",
+      "count": 29,
+      "dist": {
+        "SIN_RIESGO": 10,
+        "BAJO": 18,
+        "MEDIO": 24,
+        "ALTO": 28,
+        "MUY_ALTO": 20
+      }
+    },
+    {
+      "name": "Comercial",
+      "count": 22,
+      "dist": {
+        "SIN_RIESGO": 10,
+        "BAJO": 18,
+        "MEDIO": 24,
+        "ALTO": 28,
+        "MUY_ALTO": 20
+      }
+    },
+    {
+      "name": "Mantenimiento",
+      "count": 14,
+      "dist": {
+        "SIN_RIESGO": 10,
+        "BAJO": 18,
+        "MEDIO": 24,
+        "ALTO": 28,
+        "MUY_ALTO": 20
+      }
+    }
+  ]
+}

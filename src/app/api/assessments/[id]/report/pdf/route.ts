@@ -1,155 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
-import { renderToStream } from '@react-pdf/renderer';
-import React from 'react';
-import IndividualReportPDF from '@/components/reports/IndividualReportPDF';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { buildIndividualData } from "@/lib/reports/individual-data";
+import { compileTypstPdf } from "@/lib/reports/typst";
 
-interface DimensionScore {
-  dimensionName?: string;
-  transformedScore: number;
-  riskCategory: string;
-}
+// El compilador de Typst es un addon nativo y lee las plantillas y las fuentes
+// del disco, así que esta ruta tiene que correr en Node, no en el edge.
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
-interface ReportData {
-  analysis?: string;
-  recommendations?: string;
-}
-
-interface TotalScores {
-  transformedScore?: number;
-}
-
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id: assessmentId } = await params;
-    const isAnonymous = req.nextUrl.searchParams.get('anon') === 'true';
+    const { id } = await params;
+    const isAnonymous = req.nextUrl.searchParams.get("anon") === "true";
 
-    // Admins can access any assessment; regular psychologists only their own.
-    const assessment = await prisma.assessment.findFirst({
-      where: {
-        id: assessmentId,
-        ...(session.user.isAdmin ? {} : { psychologistId: session.user.id }),
-      },
-      include: {
-        worker: true,
-        organization: true,
-        psychologist: {
-          include: {
-            signatures: {
-              orderBy: { uploadedAt: 'desc' },
+    const built = await buildIndividualData(id, session.user.id, !!session.user.isAdmin, isAnonymous);
+    if (!built) {
+        return NextResponse.json(
+            { error: "Evaluación no encontrada, no calificada, o sin acceso" },
+            { status: 404 }
+        );
+    }
+
+    try {
+        const pdf = await compileTypstPdf("individual.typ", built.data, built.assets);
+
+        // En modo anónimo el nombre del archivo no puede identificar al
+        // trabajador: es justamente lo que el modo intenta evitar.
+        const filename = isAnonymous
+            ? `Informe_anonimo_${id.slice(0, 8)}.pdf`
+            : `Informe_individual_${built.data.worker.document.replace(/\W+/g, "_")}.pdf`;
+
+        return new NextResponse(new Uint8Array(pdf), {
+            status: 200,
+            headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="${filename}"`,
+                "Cache-Control": "private, no-store",
             },
-            settings: true,
-          },
-        },
-        scoredResult: true,
-        generatedReports: {
-          take: 1,
-          orderBy: { generatedAt: 'desc' }
-        }
-      }
-    });
-
-    if (!assessment || !assessment.scoredResult) {
-      return NextResponse.json({ error: 'Evaluación no encontrada o no calificada' }, { status: 404 });
+        });
+    } catch (error) {
+        console.error("Error al generar el informe individual:", error);
+        return NextResponse.json({ error: "Error interno al generar el PDF" }, { status: 500 });
     }
-
-    const { worker, organization, psychologist, scoredResult, generatedReports } = assessment;
-    const report = generatedReports[0];
-
-    // Prepare dimension data for the PDF
-    const dimensionScoresRaw = scoredResult.dimensionScores as unknown as Record<string, DimensionScore>;
-    const dimensionScores = Object.entries(dimensionScoresRaw).map(([key, data]) => ({
-      name: data.dimensionName || key,
-      score: data.transformedScore,
-      level: data.riskCategory
-    }));
-
-    // Get signature image: from signed report first, then from psychologist signatures, then legacy field
-    let signatureImage: string | undefined;
-    if (psychologist.sstLicenseDate) {
-      if (report?.status === 'SIGNED' && report.signatureImage) {
-        signatureImage = report.signatureImage;
-      } else {
-        const drawnSig = psychologist.signatures.find((sig) => sig.signatureType === 'drawn');
-        const uploadedSig = psychologist.signatures.find((sig) => sig.signatureType === 'uploaded');
-        const bestSig = drawnSig || uploadedSig;
-        signatureImage = bestSig?.dataUrl || bestSig?.imageUrl || psychologist.signature || undefined;
-      }
-    }
-
-    const assessmentDate = new Date(assessment.assessmentDate).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    const submittedTime = new Date(assessment.createdAt).toLocaleTimeString('es-CO', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    const reportData = report?.reportData as ReportData | null;
-
-    const pdfElement = React.createElement(IndividualReportPDF, {
-      workerName: worker.fullName,
-      workerId: `${worker.documentType} ${worker.documentId}`,
-      age: worker.birthYear ? `${new Date().getFullYear() - worker.birthYear} años` : undefined,
-      gender: worker.gender || undefined,
-      jobTitle: worker.jobTitle || undefined,
-      department: worker.departmentArea || undefined,
-      tenure: worker.yearsInCompany !== null && worker.yearsInCompany !== undefined ? `${worker.yearsInCompany} años` : undefined,
-      educationLevel: worker.educationLevel || undefined,
-      primaryColor: psychologist.settings?.primaryColor || undefined,
-      consultingRoomName: psychologist.settings?.consultingRoomName || undefined,
-      logoUrl: psychologist.settings?.logoUrl || undefined,
-      orgName: organization.name,
-      psychologistName: psychologist.fullName,
-      licenseNumber: psychologist.licenseNumber,
-      professionalCard: psychologist.professionalCard,
-      sstCredential: psychologist.sstCredential,
-      sstLicenseDate: psychologist.sstLicenseDate ? new Date(psychologist.sstLicenseDate).toISOString() : undefined,
-      overallRisk: scoredResult.overallRiskCategory as any,
-      dimensionScores: dimensionScores,
-      analysis: reportData?.analysis,
-      recommendations: reportData?.recommendations,
-      signatureImage: signatureImage,
-      assessmentDate: assessmentDate,
-      reportDate: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
-      submittedTime: submittedTime,
-      isAnonymous: isAnonymous,
-      questionnaireType: assessment.questionnaireType,
-    });
-
-    // @ts-expect-error react-pdf renderToStream typing mismatch with React 19
-    const stream = await renderToStream(pdfElement);
-
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream as AsyncIterable<Buffer>) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
-
-    const filename = isAnonymous ? `Informe_Anonimo_${worker.documentId.slice(-4)}.pdf` : `Informe_${worker.documentId}.pdf`;
-
-    return new NextResponse(buffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-      },
-    });
-
-  } catch (error: unknown) {
-    console.error('Error generating PDF:', error);
-    return NextResponse.json({ error: 'Error interno al generar el PDF' }, { status: 500 });
-  }
 }

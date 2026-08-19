@@ -1,0 +1,191 @@
+{
+  "meta": {
+    "questionnaireLabel": "Cuestionario de evaluación del estrés",
+    "formLabel": null,
+    "isStress": true,
+    "isAnonymous": false,
+    "licenseMissing": false
+  },
+  "brand": {
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
+    "logoPath": null
+  },
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "city": "Cali",
+    "economicSector": "Industria manufacturera"
+  },
+  "worker": {
+    "name": "María Fernanda Quintero Ospina",
+    "document": "CC 1.144.201.887",
+    "ficha": [
+      {
+        "label": "Documento",
+        "value": "CC 1.144.201.887"
+      },
+      {
+        "label": "Sexo",
+        "value": "Femenino"
+      },
+      {
+        "label": "Edad",
+        "value": "34 años"
+      },
+      {
+        "label": "Estado civil",
+        "value": "Unión libre"
+      },
+      {
+        "label": "Nivel educativo",
+        "value": "Profesional"
+      },
+      {
+        "label": "Profesión u oficio",
+        "value": "Ingeniera industrial"
+      },
+      {
+        "label": "Cargo",
+        "value": "Coordinadora de planta"
+      },
+      {
+        "label": "Área o dependencia",
+        "value": "Producción"
+      },
+      {
+        "label": "Antigüedad en la empresa",
+        "value": "6 años"
+      },
+      {
+        "label": "Antigüedad en el cargo",
+        "value": "2 años"
+      },
+      {
+        "label": "Tipo de contrato",
+        "value": "Término indefinido"
+      },
+      {
+        "label": "Tipo de jornada",
+        "value": "Rotativo"
+      },
+      {
+        "label": "Horas diarias",
+        "value": "8 a 10"
+      },
+      {
+        "label": "Ciudad de residencia",
+        "value": "Cali"
+      },
+      {
+        "label": "Estrato socioeconómico",
+        "value": "3"
+      },
+      {
+        "label": "Personas a cargo",
+        "value": "2"
+      },
+      {
+        "label": "Medio de transporte",
+        "value": "Transporte público"
+      },
+      {
+        "label": "Tiempo de desplazamiento",
+        "value": "55 minutos"
+      }
+    ]
+  },
+  "assessment": {
+    "date": "14 de mayo de 2026",
+    "reportDate": "19 de agosto de 2026",
+    "submittedTime": "09:42"
+  },
+  "overall": {
+    "score": 14.2,
+    "level": "MEDIO",
+    "levelLabel": "Medio",
+    "bounds": [
+      7.8,
+      12.6,
+      17.7,
+      25,
+      100
+    ],
+    "meaning": "Nivel de riesgo en el que se esperaría una respuesta de estrés moderada. Aunque no exige intervención inmediata, es un nivel que puede escalar si no se vigila.",
+    "action": "Observación sistemática y acciones de intervención preventiva, para evitar que la condición progrese a niveles superiores."
+  },
+  "domains": [],
+  "dimensions": [
+    {
+      "key": "sintomas_intelectuales",
+      "name": "Síntomas intelectuales y laborales",
+      "definition": "Alteraciones del rendimiento cognitivo y laboral: dificultades de concentración y memoria, desmotivación y aumento de la accidentalidad.",
+      "score": 78.7,
+      "level": "SIN_RIESGO",
+      "levelLabel": "Muy bajo",
+      "bounds": [],
+      "action": null
+    },
+    {
+      "key": "sintomas_sociales",
+      "name": "Síntomas de comportamiento social",
+      "definition": "Cambios en la conducta de relación: aislamiento, dificultades en el trato con otros y aumento del consumo de sustancias.",
+      "score": 61.4,
+      "level": "SIN_RIESGO",
+      "levelLabel": "Muy bajo",
+      "bounds": [],
+      "action": null
+    },
+    {
+      "key": "sintomas_fisiologicos",
+      "name": "Síntomas fisiológicos",
+      "definition": "Manifestaciones corporales asociadas a la respuesta de estrés: alteraciones cardiovasculares y gastrointestinales, dolores de cabeza y trastornos del sueño.",
+      "score": 58.3,
+      "level": "SIN_RIESGO",
+      "levelLabel": "Muy bajo",
+      "bounds": [],
+      "action": null
+    },
+    {
+      "key": "sintomas_psicoemocionales",
+      "name": "Síntomas psicoemocionales",
+      "definition": "Manifestaciones afectivas de la respuesta de estrés: ansiedad, irritabilidad, tristeza y sensación de sobrecarga.",
+      "score": 14.2,
+      "level": "SIN_RIESGO",
+      "levelLabel": "Muy bajo",
+      "bounds": [],
+      "action": null
+    }
+  ],
+  "critical": [],
+  "narrative": {
+    "analysis": "La trabajadora presenta una configuración de riesgo concentrada en el dominio de demandas del trabajo, coherente con el esquema de turnos rotativos de la planta y con la ampliación de funciones ocurrida tras la reestructuración del área de producción. Las condiciones de liderazgo y de relaciones sociales actúan como factor protector y explican que el puntaje global no alcance un nivel superior. Se observa además una influencia apreciable del trabajo sobre el entorno extralaboral, asociada al tiempo de desplazamiento y a la carga de cuidado en el hogar.",
+    "recommendations": "Se recomienda priorizar la revisión de la carga de trabajo del cargo antes de cualquier otra acción, dado que es la condición con mayor puntaje y la que sostiene el resto del perfil. La intervención sobre las demandas de la jornada debe coordinarse con el área de producción para no trasladar la carga a otros puestos del mismo turno."
+  },
+  "professional": {
+    "name": "William Reyes Valencia",
+    "license": "12345 de 2019",
+    "professionalCard": "PS-98765",
+    "sstCredential": "Especialista en Seguridad y Salud en el Trabajo",
+    "sstLicenseDate": "3 de febrero de 2019",
+    "signaturePath": null
+  },
+  "glossary": [
+    {
+      "name": "Síntomas intelectuales y laborales",
+      "definition": "Alteraciones del rendimiento cognitivo y laboral: dificultades de concentración y memoria, desmotivación y aumento de la accidentalidad."
+    },
+    {
+      "name": "Síntomas de comportamiento social",
+      "definition": "Cambios en la conducta de relación: aislamiento, dificultades en el trato con otros y aumento del consumo de sustancias."
+    },
+    {
+      "name": "Síntomas fisiológicos",
+      "definition": "Manifestaciones corporales asociadas a la respuesta de estrés: alteraciones cardiovasculares y gastrointestinales, dolores de cabeza y trastornos del sueño."
+    },
+    {
+      "name": "Síntomas psicoemocionales",
+      "definition": "Manifestaciones afectivas de la respuesta de estrés: ansiedad, irritabilidad, tristeza y sensación de sobrecarga."
+    }
+  ]
+}

@@ -1,0 +1,618 @@
+{
+  "meta": {
+    "questionnaireLabel": "Cuestionario de factores de riesgo psicosocial intralaboral",
+    "formLabel": "Forma A",
+    "isStress": false,
+    "isAnonymous": false,
+    "licenseMissing": false
+  },
+  "brand": {
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
+    "logoPath": null
+  },
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "city": "Cali",
+    "economicSector": "Industria manufacturera"
+  },
+  "worker": {
+    "name": "María Fernanda Quintero Ospina",
+    "document": "CC 1.144.201.887",
+    "ficha": [
+      {
+        "label": "Documento",
+        "value": "CC 1.144.201.887"
+      },
+      {
+        "label": "Sexo",
+        "value": "Femenino"
+      },
+      {
+        "label": "Edad",
+        "value": "34 años"
+      },
+      {
+        "label": "Estado civil",
+        "value": "Unión libre"
+      },
+      {
+        "label": "Nivel educativo",
+        "value": "Profesional"
+      },
+      {
+        "label": "Profesión u oficio",
+        "value": "Ingeniera industrial"
+      },
+      {
+        "label": "Cargo",
+        "value": "Coordinadora de planta"
+      },
+      {
+        "label": "Área o dependencia",
+        "value": "Producción"
+      },
+      {
+        "label": "Antigüedad en la empresa",
+        "value": "6 años"
+      },
+      {
+        "label": "Antigüedad en el cargo",
+        "value": "2 años"
+      },
+      {
+        "label": "Tipo de contrato",
+        "value": "Término indefinido"
+      },
+      {
+        "label": "Tipo de jornada",
+        "value": "Rotativo"
+      },
+      {
+        "label": "Horas diarias",
+        "value": "8 a 10"
+      },
+      {
+        "label": "Ciudad de residencia",
+        "value": "Cali"
+      },
+      {
+        "label": "Estrato socioeconómico",
+        "value": "3"
+      },
+      {
+        "label": "Personas a cargo",
+        "value": "2"
+      },
+      {
+        "label": "Medio de transporte",
+        "value": "Transporte público"
+      },
+      {
+        "label": "Tiempo de desplazamiento",
+        "value": "55 minutos"
+      }
+    ]
+  },
+  "assessment": {
+    "date": "14 de mayo de 2026",
+    "reportDate": "19 de agosto de 2026",
+    "submittedTime": "09:42"
+  },
+  "overall": {
+    "score": 73.3,
+    "level": "MUY_ALTO",
+    "levelLabel": "Muy alto",
+    "bounds": [
+      19.7,
+      25.8,
+      31.5,
+      38,
+      100
+    ],
+    "meaning": "Nivel de riesgo con amplia posibilidad de asociarse a respuestas muy altas de estrés y, por tanto, a afectación de la salud del trabajador.",
+    "action": "Intervención inmediata en el marco de un sistema de vigilancia epidemiológica. Requiere seguimiento individual documentado."
+  },
+  "domains": [
+    {
+      "key": "liderazgo_relaciones",
+      "name": "Liderazgo y Relaciones Sociales en el Trabajo",
+      "definition": "Agrupa las condiciones relativas a la gestión de los jefes inmediatos, la calidad de las interacciones con compañeros y colaboradores, y la información que el trabajador recibe sobre su propio desempeño.",
+      "score": 71.7,
+      "level": "MUY_ALTO",
+      "levelLabel": "Muy alto",
+      "bounds": [
+        8.3,
+        17.5,
+        26.7,
+        38.3,
+        100
+      ],
+      "action": "Programa de desarrollo de líderes y de convivencia laboral, con énfasis en habilidades de dirección y resolución de conflictos.",
+      "dimensions": [
+        {
+          "key": "liderazgo_caracteristicas",
+          "name": "Características del liderazgo",
+          "definition": "Atributos de la gestión de los jefes inmediatos en la planificación y asignación del trabajo, la consecución de resultados, la resolución de conflictos, la motivación, el apoyo y la comunicación con sus colaboradores.",
+          "score": 54.5,
+          "level": "MUY_ALTO",
+          "levelLabel": "Muy alto",
+          "bounds": [
+            3.8,
+            15.4,
+            30.8,
+            46.2,
+            100
+          ],
+          "action": "Fortalecer las habilidades de dirección del jefe inmediato, con énfasis en comunicación asertiva y retroalimentación constructiva."
+        },
+        {
+          "key": "relaciones_sociales",
+          "name": "Relaciones sociales en el trabajo",
+          "definition": "Cantidad y calidad de las interacciones que se establecen con otras personas en el trabajo, el trabajo en equipo y la cohesión del grupo.",
+          "score": 12.7,
+          "level": "BAJO",
+          "levelLabel": "Bajo",
+          "bounds": [
+            5.4,
+            16.1,
+            25,
+            37.5,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "retroalimentacion_desempeno",
+          "name": "Retroalimentación del desempeño",
+          "definition": "Información que el trabajador recibe sobre la forma como realiza su trabajo, y que le permite identificar sus fortalezas y los aspectos que debe mejorar.",
+          "score": 32.9,
+          "level": "MEDIO",
+          "levelLabel": "Medio",
+          "bounds": [
+            10,
+            25,
+            40,
+            55,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "relacion_colaboradores",
+          "name": "Relación con los colaboradores",
+          "definition": "Atributos de la gestión de los subordinados en la ejecución del trabajo, la consecución de resultados, la resolución de conflictos y la participación. Sólo se evalúa en trabajadores con personal a cargo.",
+          "score": 28.6,
+          "level": "MEDIO",
+          "levelLabel": "Medio",
+          "bounds": [
+            13.9,
+            25,
+            33.3,
+            47.2,
+            100
+          ],
+          "action": null
+        }
+      ]
+    },
+    {
+      "key": "control_trabajo",
+      "name": "Control sobre el Trabajo",
+      "definition": "Agrupa el margen de decisión del trabajador sobre su tarea, la claridad con que se le ha comunicado su rol, y las oportunidades de formación, participación y desarrollo que la organización le ofrece.",
+      "score": 33.3,
+      "level": "ALTO",
+      "levelLabel": "Alto",
+      "bounds": [
+        10.7,
+        19,
+        29.8,
+        40.5,
+        100
+      ],
+      "action": "Rediseño participativo del puesto: ampliar el margen de decisión, precisar el rol y ampliar la oferta de formación.",
+      "dimensions": [
+        {
+          "key": "claridad_rol",
+          "name": "Claridad de rol",
+          "definition": "Definición y comunicación del papel que se espera que el trabajador desempeñe: objetivos, funciones, resultados esperados, margen de autonomía e impacto del cargo en la organización.",
+          "score": 3.8,
+          "level": "BAJO",
+          "levelLabel": "Bajo",
+          "bounds": [
+            0.9,
+            10.7,
+            21.4,
+            39.3,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "capacitacion",
+          "name": "Capacitación",
+          "definition": "Actividades de inducción, entrenamiento y formación que la organización brinda para desarrollar y fortalecer los conocimientos y habilidades del trabajador.",
+          "score": 20.7,
+          "level": "MEDIO",
+          "levelLabel": "Medio",
+          "bounds": [
+            0.9,
+            16.7,
+            33.3,
+            50,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "participacion_cambio",
+          "name": "Participación y manejo del cambio",
+          "definition": "Mecanismos organizacionales orientados a incrementar la capacidad de adaptarse a los cambios en el trabajo, incluida la información previa y la posibilidad de opinar sobre ellos.",
+          "score": 16.6,
+          "level": "BAJO",
+          "levelLabel": "Bajo",
+          "bounds": [
+            6.3,
+            18.8,
+            31.3,
+            50,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "oportunidades_desarrollo",
+          "name": "Oportunidades de desarrollo y uso de habilidades",
+          "definition": "Posibilidad que el trabajo le ofrece al trabajador de aplicar, aprender y desarrollar sus habilidades y conocimientos.",
+          "score": 31.3,
+          "level": "ALTO",
+          "levelLabel": "Alto",
+          "bounds": [
+            0,
+            6.3,
+            18.8,
+            31.3,
+            100
+          ],
+          "action": "Asignar tareas que reten sus capacidades y considerar rotación de puestos para enriquecer la experiencia."
+        },
+        {
+          "key": "control_autonomia",
+          "name": "Control y autonomía sobre el trabajo",
+          "definition": "Margen de decisión del trabajador sobre el orden de sus actividades, la cantidad, el ritmo, la forma de trabajar y las pausas durante la jornada.",
+          "score": 2.7,
+          "level": "SIN_RIESGO",
+          "levelLabel": "Sin riesgo",
+          "bounds": [
+            8.3,
+            25,
+            41.7,
+            58.3,
+            100
+          ],
+          "action": null
+        }
+      ]
+    },
+    {
+      "key": "demandas_trabajo",
+      "name": "Demandas del Trabajo",
+      "definition": "Agrupa las exigencias que el trabajo impone al trabajador: cuantitativas, cognitivas, emocionales, ambientales, de responsabilidad, de jornada y de invasión del tiempo extralaboral.",
+      "score": 49.3,
+      "level": "MUY_ALTO",
+      "levelLabel": "Muy alto",
+      "bounds": [
+        28.5,
+        35,
+        41.5,
+        47.5,
+        100
+      ],
+      "action": "Revisión de la carga de trabajo del área: distribución de tareas, suficiencia de personal y ajuste de la jornada.",
+      "dimensions": [
+        {
+          "key": "demandas_ambientales",
+          "name": "Demandas ambientales y de esfuerzo físico",
+          "definition": "Condiciones del lugar de trabajo y carga física que exigen del trabajador un esfuerzo de adaptación: ruido, iluminación, temperatura, higiene, orden, ventilación, vibración y esfuerzo físico.",
+          "score": 19.1,
+          "level": "BAJO",
+          "levelLabel": "Bajo",
+          "bounds": [
+            14.6,
+            22.9,
+            31.3,
+            39.6,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "demandas_emocionales",
+          "name": "Demandas emocionales",
+          "definition": "Situaciones afectivas propias del contenido de la tarea con potencial de interferir con los sentimientos del trabajador, incluidas la exposición al sufrimiento de terceros y la obligación de ocultar las emociones propias.",
+          "score": 21.1,
+          "level": "BAJO",
+          "levelLabel": "Bajo",
+          "bounds": [
+            16.7,
+            25,
+            33.3,
+            47.2,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "demandas_cuantitativas",
+          "name": "Demandas cuantitativas",
+          "definition": "Exigencias relativas a la cantidad de trabajo que debe ejecutarse en relación con el tiempo disponible para hacerlo.",
+          "score": 67.2,
+          "level": "MUY_ALTO",
+          "levelLabel": "Muy alto",
+          "bounds": [
+            25,
+            33.3,
+            45.8,
+            54.2,
+            100
+          ],
+          "action": "Analizar la carga de trabajo del puesto y redistribuir funciones o reforzar el equipo en los picos operativos."
+        },
+        {
+          "key": "influencia_trabajo_extralaboral",
+          "name": "Influencia del trabajo sobre el entorno extralaboral",
+          "definition": "Exigencias de tiempo y esfuerzo que el trabajo impone y que terminan afectando la vida personal y familiar del trabajador.",
+          "score": 27.4,
+          "level": "BAJO",
+          "levelLabel": "Bajo",
+          "bounds": [
+            18.8,
+            31.3,
+            43.8,
+            56.3,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "exigencias_responsabilidad",
+          "name": "Exigencias de responsabilidad del cargo",
+          "definition": "Obligaciones implícitas en el cargo cuyos resultados no pueden ser transferidos a otra persona: manejo de bienes, información confidencial, o la salud y seguridad de otros.",
+          "score": 20.9,
+          "level": "SIN_RIESGO",
+          "levelLabel": "Sin riesgo",
+          "bounds": [
+            37.5,
+            54.2,
+            66.7,
+            79.2,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "demandas_carga_mental",
+          "name": "Demandas de carga mental",
+          "definition": "Demandas de procesamiento cognitivo que impone la tarea: atención sostenida, memoria y análisis de información para generar una respuesta.",
+          "score": 74,
+          "level": "MEDIO",
+          "levelLabel": "Medio",
+          "bounds": [
+            60,
+            70,
+            80,
+            90,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "consistencia_rol",
+          "name": "Consistencia del rol",
+          "definition": "Compatibilidad entre las distintas exigencias del cargo y los principios de eficiencia, calidad técnica y ética propios del servicio o producto.",
+          "score": 32.1,
+          "level": "MEDIO",
+          "levelLabel": "Medio",
+          "bounds": [
+            15,
+            25,
+            35,
+            45,
+            100
+          ],
+          "action": null
+        },
+        {
+          "key": "demandas_jornada",
+          "name": "Demandas de la jornada de trabajo",
+          "definition": "Exigencias del tiempo laboral en cuanto a duración, horario, turnos y periodos destinados a pausas y descansos.",
+          "score": 37.9,
+          "level": "ALTO",
+          "levelLabel": "Alto",
+          "bounds": [
+            8.3,
+            25,
+            33.3,
+            50,
+            100
+          ],
+          "action": "Revisar el esquema de turnos, limitar estrictamente las horas extra y garantizar los descansos compensatorios."
+        }
+      ]
+    },
+    {
+      "key": "recompensa",
+      "name": "Recompensa",
+      "definition": "Agrupa el conjunto de retribuciones que el trabajador recibe a cambio de su esfuerzo, tanto económicas y de reconocimiento como simbólicas —orgullo de pertenencia y estabilidad percibida—.",
+      "score": 68.9,
+      "level": "MUY_ALTO",
+      "levelLabel": "Muy alto",
+      "bounds": [
+        2.3,
+        9.1,
+        20.5,
+        36.4,
+        100
+      ],
+      "action": "Revisión del esquema de compensación y reconocimiento, y refuerzo de los programas de bienestar y desarrollo de carrera.",
+      "dimensions": [
+        {
+          "key": "reconocimiento_compensacion",
+          "name": "Reconocimiento y compensación",
+          "definition": "Conjunto de retribuciones que la organización otorga al trabajador en contraprestación al esfuerzo realizado: retribución económica, valoración y reconocimiento del trabajo.",
+          "score": 71.6,
+          "level": "MUY_ALTO",
+          "levelLabel": "Muy alto",
+          "bounds": [
+            4.2,
+            16.7,
+            25,
+            37.5,
+            100
+          ],
+          "action": "Revisar la equidad de la compensación del cargo y establecer mecanismos de reconocimiento del logro."
+        },
+        {
+          "key": "recompensas_pertenencia",
+          "name": "Recompensas de la pertenencia a la organización",
+          "definition": "Sentimiento de orgullo y percepción de estabilidad laboral, así como la percepción del trabajo como elemento que dignifica a quien lo realiza.",
+          "score": 80.5,
+          "level": "MUY_ALTO",
+          "levelLabel": "Muy alto",
+          "bounds": [
+            0.9,
+            5,
+            10,
+            20,
+            100
+          ],
+          "action": "Reforzar los planes de bienestar y el sentido de propósito y pertenencia del trabajador."
+        }
+      ]
+    }
+  ],
+  "dimensions": [],
+  "critical": [
+    {
+      "name": "Recompensas de la pertenencia a la organización",
+      "levelLabel": "Muy alto",
+      "action": "Reforzar los planes de bienestar y el sentido de propósito y pertenencia del trabajador."
+    },
+    {
+      "name": "Reconocimiento y compensación",
+      "levelLabel": "Muy alto",
+      "action": "Revisar la equidad de la compensación del cargo y establecer mecanismos de reconocimiento del logro."
+    },
+    {
+      "name": "Demandas cuantitativas",
+      "levelLabel": "Muy alto",
+      "action": "Analizar la carga de trabajo del puesto y redistribuir funciones o reforzar el equipo en los picos operativos."
+    },
+    {
+      "name": "Características del liderazgo",
+      "levelLabel": "Muy alto",
+      "action": "Fortalecer las habilidades de dirección del jefe inmediato, con énfasis en comunicación asertiva y retroalimentación constructiva."
+    },
+    {
+      "name": "Demandas de la jornada de trabajo",
+      "levelLabel": "Alto",
+      "action": "Revisar el esquema de turnos, limitar estrictamente las horas extra y garantizar los descansos compensatorios."
+    },
+    {
+      "name": "Oportunidades de desarrollo y uso de habilidades",
+      "levelLabel": "Alto",
+      "action": "Asignar tareas que reten sus capacidades y considerar rotación de puestos para enriquecer la experiencia."
+    }
+  ],
+  "narrative": {
+    "analysis": "La trabajadora presenta una configuración de riesgo concentrada en el dominio de demandas del trabajo, coherente con el esquema de turnos rotativos de la planta y con la ampliación de funciones ocurrida tras la reestructuración del área de producción. Las condiciones de liderazgo y de relaciones sociales actúan como factor protector y explican que el puntaje global no alcance un nivel superior. Se observa además una influencia apreciable del trabajo sobre el entorno extralaboral, asociada al tiempo de desplazamiento y a la carga de cuidado en el hogar.",
+    "recommendations": "Se recomienda priorizar la revisión de la carga de trabajo del cargo antes de cualquier otra acción, dado que es la condición con mayor puntaje y la que sostiene el resto del perfil. La intervención sobre las demandas de la jornada debe coordinarse con el área de producción para no trasladar la carga a otros puestos del mismo turno."
+  },
+  "professional": {
+    "name": "William Reyes Valencia",
+    "license": "12345 de 2019",
+    "professionalCard": "PS-98765",
+    "sstCredential": "Especialista en Seguridad y Salud en el Trabajo",
+    "sstLicenseDate": "3 de febrero de 2019",
+    "signaturePath": null
+  },
+  "glossary": [
+    {
+      "name": "Características del liderazgo",
+      "definition": "Atributos de la gestión de los jefes inmediatos en la planificación y asignación del trabajo, la consecución de resultados, la resolución de conflictos, la motivación, el apoyo y la comunicación con sus colaboradores."
+    },
+    {
+      "name": "Relaciones sociales en el trabajo",
+      "definition": "Cantidad y calidad de las interacciones que se establecen con otras personas en el trabajo, el trabajo en equipo y la cohesión del grupo."
+    },
+    {
+      "name": "Retroalimentación del desempeño",
+      "definition": "Información que el trabajador recibe sobre la forma como realiza su trabajo, y que le permite identificar sus fortalezas y los aspectos que debe mejorar."
+    },
+    {
+      "name": "Relación con los colaboradores",
+      "definition": "Atributos de la gestión de los subordinados en la ejecución del trabajo, la consecución de resultados, la resolución de conflictos y la participación. Sólo se evalúa en trabajadores con personal a cargo."
+    },
+    {
+      "name": "Claridad de rol",
+      "definition": "Definición y comunicación del papel que se espera que el trabajador desempeñe: objetivos, funciones, resultados esperados, margen de autonomía e impacto del cargo en la organización."
+    },
+    {
+      "name": "Capacitación",
+      "definition": "Actividades de inducción, entrenamiento y formación que la organización brinda para desarrollar y fortalecer los conocimientos y habilidades del trabajador."
+    },
+    {
+      "name": "Participación y manejo del cambio",
+      "definition": "Mecanismos organizacionales orientados a incrementar la capacidad de adaptarse a los cambios en el trabajo, incluida la información previa y la posibilidad de opinar sobre ellos."
+    },
+    {
+      "name": "Oportunidades de desarrollo y uso de habilidades",
+      "definition": "Posibilidad que el trabajo le ofrece al trabajador de aplicar, aprender y desarrollar sus habilidades y conocimientos."
+    },
+    {
+      "name": "Control y autonomía sobre el trabajo",
+      "definition": "Margen de decisión del trabajador sobre el orden de sus actividades, la cantidad, el ritmo, la forma de trabajar y las pausas durante la jornada."
+    },
+    {
+      "name": "Demandas ambientales y de esfuerzo físico",
+      "definition": "Condiciones del lugar de trabajo y carga física que exigen del trabajador un esfuerzo de adaptación: ruido, iluminación, temperatura, higiene, orden, ventilación, vibración y esfuerzo físico."
+    },
+    {
+      "name": "Demandas emocionales",
+      "definition": "Situaciones afectivas propias del contenido de la tarea con potencial de interferir con los sentimientos del trabajador, incluidas la exposición al sufrimiento de terceros y la obligación de ocultar las emociones propias."
+    },
+    {
+      "name": "Demandas cuantitativas",
+      "definition": "Exigencias relativas a la cantidad de trabajo que debe ejecutarse en relación con el tiempo disponible para hacerlo."
+    },
+    {
+      "name": "Influencia del trabajo sobre el entorno extralaboral",
+      "definition": "Exigencias de tiempo y esfuerzo que el trabajo impone y que terminan afectando la vida personal y familiar del trabajador."
+    },
+    {
+      "name": "Exigencias de responsabilidad del cargo",
+      "definition": "Obligaciones implícitas en el cargo cuyos resultados no pueden ser transferidos a otra persona: manejo de bienes, información confidencial, o la salud y seguridad de otros."
+    },
+    {
+      "name": "Demandas de carga mental",
+      "definition": "Demandas de procesamiento cognitivo que impone la tarea: atención sostenida, memoria y análisis de información para generar una respuesta."
+    },
+    {
+      "name": "Consistencia del rol",
+      "definition": "Compatibilidad entre las distintas exigencias del cargo y los principios de eficiencia, calidad técnica y ética propios del servicio o producto."
+    },
+    {
+      "name": "Demandas de la jornada de trabajo",
+      "definition": "Exigencias del tiempo laboral en cuanto a duración, horario, turnos y periodos destinados a pausas y descansos."
+    },
+    {
+      "name": "Reconocimiento y compensación",
+      "definition": "Conjunto de retribuciones que la organización otorga al trabajador en contraprestación al esfuerzo realizado: retribución económica, valoración y reconocimiento del trabajo."
+    },
+    {
+      "name": "Recompensas de la pertenencia a la organización",
+      "definition": "Sentimiento de orgullo y percepción de estabilidad laboral, así como la percepción del trabajo como elemento que dignifica a quien lo realiza."
+    }
+  ]
+}

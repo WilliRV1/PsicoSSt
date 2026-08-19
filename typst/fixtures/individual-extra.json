@@ -1,0 +1,286 @@
+{
+  "meta": {
+    "questionnaireLabel": "Cuestionario de factores de riesgo psicosocial extralaboral",
+    "formLabel": null,
+    "isStress": false,
+    "isAnonymous": false,
+    "licenseMissing": false
+  },
+  "brand": {
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
+    "logoPath": null
+  },
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "city": "Cali",
+    "economicSector": "Industria manufacturera"
+  },
+  "worker": {
+    "name": "María Fernanda Quintero Ospina",
+    "document": "CC 1.144.201.887",
+    "ficha": [
+      {
+        "label": "Documento",
+        "value": "CC 1.144.201.887"
+      },
+      {
+        "label": "Sexo",
+        "value": "Femenino"
+      },
+      {
+        "label": "Edad",
+        "value": "34 años"
+      },
+      {
+        "label": "Estado civil",
+        "value": "Unión libre"
+      },
+      {
+        "label": "Nivel educativo",
+        "value": "Profesional"
+      },
+      {
+        "label": "Profesión u oficio",
+        "value": "Ingeniera industrial"
+      },
+      {
+        "label": "Cargo",
+        "value": "Coordinadora de planta"
+      },
+      {
+        "label": "Área o dependencia",
+        "value": "Producción"
+      },
+      {
+        "label": "Antigüedad en la empresa",
+        "value": "6 años"
+      },
+      {
+        "label": "Antigüedad en el cargo",
+        "value": "2 años"
+      },
+      {
+        "label": "Tipo de contrato",
+        "value": "Término indefinido"
+      },
+      {
+        "label": "Tipo de jornada",
+        "value": "Rotativo"
+      },
+      {
+        "label": "Horas diarias",
+        "value": "8 a 10"
+      },
+      {
+        "label": "Ciudad de residencia",
+        "value": "Cali"
+      },
+      {
+        "label": "Estrato socioeconómico",
+        "value": "3"
+      },
+      {
+        "label": "Personas a cargo",
+        "value": "2"
+      },
+      {
+        "label": "Medio de transporte",
+        "value": "Transporte público"
+      },
+      {
+        "label": "Tiempo de desplazamiento",
+        "value": "55 minutos"
+      }
+    ]
+  },
+  "assessment": {
+    "date": "14 de mayo de 2026",
+    "reportDate": "19 de agosto de 2026",
+    "submittedTime": "09:42"
+  },
+  "overall": {
+    "score": 6.6,
+    "level": "SIN_RIESGO",
+    "levelLabel": "Sin riesgo",
+    "bounds": [
+      11.3,
+      16.9,
+      22.6,
+      29,
+      100
+    ],
+    "meaning": "Ausencia de riesgo, o riesgo tan bajo que no amerita el desarrollo de actividades de intervención. La condición evaluada opera como factor protector para el trabajador.",
+    "action": "Mantener y reforzar la condición. No requiere intervención."
+  },
+  "domains": [],
+  "dimensions": [
+    {
+      "key": "desplazamiento_vivienda",
+      "name": "Desplazamiento vivienda–trabajo–vivienda",
+      "definition": "Condiciones en que se realiza el traslado entre la vivienda y el lugar de trabajo: comodidad, duración y medio de transporte utilizado.",
+      "score": 55.3,
+      "level": "MEDIO",
+      "levelLabel": "Medio",
+      "bounds": [
+        18.8,
+        37.5,
+        56.3,
+        75,
+        100
+      ],
+      "action": null
+    },
+    {
+      "key": "comunicacion_relaciones",
+      "name": "Comunicación y relaciones interpersonales",
+      "definition": "Cualidades que caracterizan la comunicación e interacción del trabajador con sus allegados y amigos fuera del ámbito laboral.",
+      "score": 52.8,
+      "level": "MUY_ALTO",
+      "levelLabel": "Muy alto",
+      "bounds": [
+        10,
+        20,
+        35,
+        50,
+        100
+      ],
+      "action": "Ofrecer formación en comunicación asertiva y resolución de conflictos aplicable a su entorno personal."
+    },
+    {
+      "key": "relaciones_familiares",
+      "name": "Relaciones familiares",
+      "definition": "Propiedades que caracterizan las interacciones del trabajador con su núcleo familiar, incluidos el apoyo percibido y la calidad del vínculo.",
+      "score": 47.9,
+      "level": "ALTO",
+      "levelLabel": "Alto",
+      "bounds": [
+        8.3,
+        16.7,
+        33.3,
+        50,
+        100
+      ],
+      "action": "Vincular al trabajador y su familia a las actividades de bienestar, y ofrecer orientación familiar si la acepta."
+    },
+    {
+      "key": "influencia_entorno_extralaboral",
+      "name": "Influencia del entorno extralaboral sobre el trabajo",
+      "definition": "Influjo de las exigencias de los roles familiares y personales sobre el bienestar y la actividad laboral del trabajador.",
+      "score": 25.8,
+      "level": "MEDIO",
+      "levelLabel": "Medio",
+      "bounds": [
+        8.3,
+        25,
+        41.7,
+        58.3,
+        100
+      ],
+      "action": null
+    },
+    {
+      "key": "caracteristicas_vivienda",
+      "name": "Características de la vivienda y de su entorno",
+      "definition": "Condiciones de infraestructura, ubicación, servicios y entorno de la vivienda donde habita el trabajador.",
+      "score": 11.8,
+      "level": "BAJO",
+      "levelLabel": "Bajo",
+      "bounds": [
+        5.6,
+        13.9,
+        25,
+        38.9,
+        100
+      ],
+      "action": null
+    },
+    {
+      "key": "tiempo_fuera_trabajo",
+      "name": "Tiempo fuera del trabajo",
+      "definition": "Cantidad y calidad del tiempo del que dispone el trabajador para el descanso, la recreación y la atención de sus asuntos personales.",
+      "score": 11.4,
+      "level": "BAJO",
+      "levelLabel": "Bajo",
+      "bounds": [
+        6.3,
+        18.8,
+        31.3,
+        50,
+        100
+      ],
+      "action": null
+    },
+    {
+      "key": "situacion_economica",
+      "name": "Situación económica del grupo familiar",
+      "definition": "Disponibilidad de medios económicos del grupo familiar para atender los gastos básicos y hacer frente a imprevistos.",
+      "score": 8.2,
+      "level": "SIN_RIESGO",
+      "levelLabel": "Sin riesgo",
+      "bounds": [
+        8.3,
+        25,
+        41.7,
+        58.3,
+        100
+      ],
+      "action": null
+    }
+  ],
+  "critical": [
+    {
+      "name": "Comunicación y relaciones interpersonales",
+      "levelLabel": "Muy alto",
+      "action": "Ofrecer formación en comunicación asertiva y resolución de conflictos aplicable a su entorno personal."
+    },
+    {
+      "name": "Relaciones familiares",
+      "levelLabel": "Alto",
+      "action": "Vincular al trabajador y su familia a las actividades de bienestar, y ofrecer orientación familiar si la acepta."
+    }
+  ],
+  "narrative": {
+    "analysis": "La trabajadora presenta una configuración de riesgo concentrada en el dominio de demandas del trabajo, coherente con el esquema de turnos rotativos de la planta y con la ampliación de funciones ocurrida tras la reestructuración del área de producción. Las condiciones de liderazgo y de relaciones sociales actúan como factor protector y explican que el puntaje global no alcance un nivel superior. Se observa además una influencia apreciable del trabajo sobre el entorno extralaboral, asociada al tiempo de desplazamiento y a la carga de cuidado en el hogar.",
+    "recommendations": "Se recomienda priorizar la revisión de la carga de trabajo del cargo antes de cualquier otra acción, dado que es la condición con mayor puntaje y la que sostiene el resto del perfil. La intervención sobre las demandas de la jornada debe coordinarse con el área de producción para no trasladar la carga a otros puestos del mismo turno."
+  },
+  "professional": {
+    "name": "William Reyes Valencia",
+    "license": "12345 de 2019",
+    "professionalCard": "PS-98765",
+    "sstCredential": "Especialista en Seguridad y Salud en el Trabajo",
+    "sstLicenseDate": "3 de febrero de 2019",
+    "signaturePath": null
+  },
+  "glossary": [
+    {
+      "name": "Desplazamiento vivienda–trabajo–vivienda",
+      "definition": "Condiciones en que se realiza el traslado entre la vivienda y el lugar de trabajo: comodidad, duración y medio de transporte utilizado."
+    },
+    {
+      "name": "Comunicación y relaciones interpersonales",
+      "definition": "Cualidades que caracterizan la comunicación e interacción del trabajador con sus allegados y amigos fuera del ámbito laboral."
+    },
+    {
+      "name": "Relaciones familiares",
+      "definition": "Propiedades que caracterizan las interacciones del trabajador con su núcleo familiar, incluidos el apoyo percibido y la calidad del vínculo."
+    },
+    {
+      "name": "Influencia del entorno extralaboral sobre el trabajo",
+      "definition": "Influjo de las exigencias de los roles familiares y personales sobre el bienestar y la actividad laboral del trabajador."
+    },
+    {
+      "name": "Características de la vivienda y de su entorno",
+      "definition": "Condiciones de infraestructura, ubicación, servicios y entorno de la vivienda donde habita el trabajador."
+    },
+    {
+      "name": "Tiempo fuera del trabajo",
+      "definition": "Cantidad y calidad del tiempo del que dispone el trabajador para el descanso, la recreación y la atención de sus asuntos personales."
+    },
+    {
+      "name": "Situación económica del grupo familiar",
+      "definition": "Disponibilidad de medios económicos del grupo familiar para atender los gastos básicos y hacer frente a imprevistos."
+    }
+  ]
+}
