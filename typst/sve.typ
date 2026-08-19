@@ -105,6 +105,9 @@
 // Tabla editorial: sin verticales, sólo filetes horizontales.
 #let etable(columns: (), header: (), rows: (), align-spec: none) = {
   set text(font: sans, size: 8pt, fill: ink2)
+  // Bandera, no justificado: las columnas son estrechas y justificar abre
+  // huecos enormes entre palabras y parte todo con guiones.
+  set par(justify: false, leading: 0.62em)
   let al = if align-spec == none { columns.map(_ => left) } else { align-spec }
   table(
     columns: columns,
