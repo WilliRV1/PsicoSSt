@@ -166,7 +166,7 @@ export default async function SVEReportPage({ params }: PageProps) {
                     <div className="flex flex-wrap gap-2">
                         {areas.map(a => (
                             <span key={a.name} className="px-3 py-1.5 bg-muted rounded-lg text-xs text-foreground">
-                                {a.name} <span className="text-muted-foreground">· {a.count}</span>
+                                {a.name} <span className="text-muted-foreground">· {a.workers} trab.</span>
                             </span>
                         ))}
                     </div>

@@ -36,7 +36,7 @@
       columns: (1fr, auto),
       align: (left + horizon, right + horizon),
       text(font: serif, size: 10.5pt, weight: 600, fill: ink, title),
-      text(font: sans, size: 7pt, fill: ink3, "n = " + num(str(n))),
+      text(font: sans, size: 7pt, fill: ink3, num(str(n)) + " evaluaciones"),
     )
     v(7pt)
     stacked-bar(dist, height: 9pt)
@@ -123,7 +123,7 @@
       ("Trabajadores evaluados", str(D.coverage.uniqueWorkers)),
       ("Evaluaciones aplicadas", str(D.coverage.totalAssessments)),
       ("Fecha del informe", D.org.today),
-      ("Evaluaciones en riesgo crítico", str(D.coverage.criticalPercent) + "%"),
+      ("Trabajadores en riesgo crítico", str(D.coverage.criticalWorkerPercent) + "%"),
       ("Sector económico", if D.org.economicSector != none { D.org.economicSector } else { "No registrado" }),
       ("Ciudad", if D.org.city != none { D.org.city } else { "No registrada" }),
     ).map(((lbl, val)) => {
@@ -194,12 +194,23 @@ situaciones individuales.
   column-gutter: 8pt,
   stat(str(D.coverage.uniqueWorkers), "Trabajadores evaluados"),
   stat(str(D.coverage.totalAssessments), "Evaluaciones aplicadas"),
-  stat(str(D.coverage.criticalPercent) + "%", "En riesgo alto o muy alto"),
+  stat(str(D.coverage.criticalWorkerPercent) + "%", "Trabajadores en riesgo alto o muy alto"),
   stat(str(D.coverage.intra) + "/" + str(D.coverage.extra) + "/" + str(D.coverage.stress),
-    "Intra / Extra / Estrés"),
+    "Evaluaciones intra / extra / estrés"),
 )
 
-#v(9pt)
+#v(7pt)
+
+#micro[
+  A cada trabajador se le aplican hasta tres cuestionarios —intralaboral,
+  extralaboral y de estrés—, de modo que el número de evaluaciones es mayor que
+  el de personas. A lo largo del informe se indica en cada caso cuál de las dos
+  bases se está usando: los porcentajes por instrumento y por área se calculan
+  sobre evaluaciones, mientras que el umbral del 20% de la Resolución 2764 de
+  2022 se contrasta contra el número de trabajadores.
+]
+
+#v(8pt)
 
 #if D.coverage.predominant != none [
   El nivel de riesgo más frecuente entre las evaluaciones aplicadas es
@@ -227,8 +238,8 @@ situaciones individuales.
 #note-block[
   Los resultados de este informe son agregados y no permiten identificar a
   ningún trabajador. Ningún grupo se reporta por separado con menos de
-  #D.minGroupSize evaluaciones; los grupos que no alcanzan ese umbral se suman en una
-  sola fila. La información está sujeta a reserva profesional conforme a la Ley
+  #D.minGroupSize trabajadores; los grupos que no alcanzan ese umbral se suman
+  en una sola fila. La información está sujeta a reserva profesional conforme a la Ley
   1090 de 2006 y debe conservarse por veinte años según la Resolución 2346 de
   2007.
 ]
@@ -282,7 +293,7 @@ subgrupo aunque el promedio lo diluya.
 #etable(
   columns: (2.2fr, auto, auto, auto, auto, auto),
   align-spec: (left, left, center, center, center, center),
-  header: ("Dimensión", "Instrumento", "N", "Promedio", "% crítico", "Prioridad"),
+  header: ("Dimensión", "Instrumento", "Evaluados", "Promedio", "% crítico", "Prioridad"),
   rows: D.dimensions.map(d => (
     text(fill: ink, weight: 500, d.name),
     d.questionnaire,
@@ -313,7 +324,10 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
     exposición.
   ]
 ] else [
-  #grid(
+  // No partible: las celdas tienen altura fija, y al cortarse entre páginas la
+  // mitad superior —el rótulo del grupo y su nombre— desaparece y quedan cifras
+  // sueltas sin decir de qué grupo son.
+  #block(breakable: false, grid(
     columns: (1fr, 1fr),
     column-gutter: 8pt,
     row-gutter: 8pt,
@@ -329,7 +343,7 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
     quad-cell("Grupo D", "Prioridad de intervención", D.groups.prioritarios,
       "Exposición crítica y sintomatología simultáneas. Atención inmediata e individual.",
       rc("MUY_ALTO")),
-  )
+  ))
 
   #v(10pt)
 
@@ -350,10 +364,11 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
 
 #if D.areas.reported.len() == 0 [
   #note-block[
-    Ninguna área de la organización alcanza las #D.minGroupSize evaluaciones que se
-    exigen para reportarla por separado sin comprometer el anonimato de sus
-    integrantes. Los #D.areas.withheld.assessments resultados se encuentran
-    incluidos en las cifras generales de este informe.
+    Ninguna área de la organización alcanza los #D.minGroupSize trabajadores que
+    se exigen para reportarla por separado sin comprometer el anonimato de sus
+    integrantes. Sus #D.areas.withheld.workers trabajadores y
+    #D.areas.withheld.assessments evaluaciones se encuentran incluidos en las
+    cifras generales de este informe.
   ]
 ] else [
   Áreas ordenadas por la proporción de evaluaciones en riesgo alto o muy alto.
@@ -363,12 +378,13 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   #v(5pt)
 
   #etable(
-    columns: (2fr, auto, auto, 2.4fr),
-    align-spec: (left, center, center, left),
-    header: ("Área", "N", "% crítico", "Distribución"),
+    columns: (2fr, auto, auto, auto, 2fr),
+    align-spec: (left, center, center, center, left),
+    header: ("Área", "Trabajadores", "Evaluaciones", "% crítico", "Distribución"),
     rows: D.areas.reported.map(a => (
       text(fill: ink, weight: 500, a.name),
-      num(str(a.count)),
+      num(str(a.workers)),
+      num(str(a.assessments)),
       text(fill: if a.criticalPercent >= 40 { rc("MUY_ALTO") }
                  else if a.criticalPercent >= 20 { rc("ALTO") }
                  else { ink2 },
@@ -380,10 +396,11 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   #if D.areas.withheld.areas > 0 [
     #v(5pt)
     #micro[
-      Se omitieron #D.areas.withheld.areas áreas que no alcanzan las
-      #D.minGroupSize evaluaciones necesarias para reportarlas sin comprometer el
-      anonimato de sus integrantes. Sus #D.areas.withheld.assessments
-      resultados sí están incluidos en las cifras generales del informe.
+      Se omitieron #D.areas.withheld.areas áreas que no alcanzan los
+      #D.minGroupSize trabajadores necesarios para reportarlas sin comprometer el
+      anonimato de sus integrantes. Sus #D.areas.withheld.workers trabajadores y
+      #D.areas.withheld.assessments evaluaciones sí están incluidos en las cifras
+      generales del informe.
     ]
   ]
 ]
@@ -395,15 +412,18 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
 #bullets((
   [La organización aplicó #D.coverage.totalAssessments evaluaciones a
    #D.coverage.uniqueWorkers trabajadores entre #D.org.dateStart y
-   #D.org.dateEnd. El #D.coverage.criticalPercent% de los resultados se
-   clasificó en riesgo alto o muy alto.],
-  ..(if D.coverage.criticalPercent >= 20 {
-      ([Al superar el umbral del 20% de resultados en riesgo alto o muy alto, la
+   #D.org.dateEnd. #D.coverage.criticalWorkers trabajadores —el
+   #D.coverage.criticalWorkerPercent% de los evaluados— presentaron al menos un
+   instrumento en riesgo alto o muy alto. Sobre el total de evaluaciones, y no
+   sobre personas, la proporción crítica es del #D.coverage.criticalPercent%.],
+  ..(if D.coverage.criticalWorkerPercent >= 20 {
+      ([Al alcanzar o superar el umbral del 20% de la población evaluada en
+        riesgo alto o muy alto, la
         organización debe implementar un sistema de vigilancia epidemiológica de
         factores de riesgo psicosocial, con intervención inmediata y seguimiento anual, conforme a la Resolución 2764 de 2022.],)
     } else {
-      ([La proporción de resultados críticos se mantiene por debajo del umbral
-        del 20%, de modo que las acciones se orientan a la prevención y al
+      ([La proporción de trabajadores en riesgo crítico se mantiene por debajo
+        del umbral del 20%, de modo que las acciones se orientan a la prevención y al
         control de las condiciones ya identificadas. La reevaluación de los factores de riesgo psicosocial debe realizarse en un plazo máximo de dos años, conforme a la Resolución 2764 de 2022.],)
     }),
   ..(if criticas.len() > 0 {

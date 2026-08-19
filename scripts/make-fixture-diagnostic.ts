@@ -47,7 +47,7 @@ const pctFor = (k: string) => hash(k + "p") % 62;
 const dist = (a: number[]) =>
     Object.fromEntries(RISK_ORDER.map((k, i) => [k, a[i]])) as Record<RiskLevel, number>;
 
-const buildDomains = (form: "A" | "B") => {
+const buildDomains = (form: "A" | "B", n: number) => {
     const cfg = form === "A" ? formA : formB;
     const table = (baremos as any)[form === "A" ? "intralaboral_a" : "intralaboral_b"];
     return (cfg.domains as any[]).map(dc => {
@@ -61,50 +61,46 @@ const buildDomains = (form: "A" | "B") => {
             avg,
             level,
             bounds,
-            count: form === "A" ? 96 : 88,
+            count: n,
             action: level === "ALTO" || level === "MUY_ALTO" ? (DOMAIN_ACTION[dc.key] ?? null) : null,
         };
     });
 };
 
+// Población y cobertura primero: cada dimensión debe llevar el N de su propio
+// instrumento, no un número fijo. Con un N único para las tres pruebas, un
+// error de denominador en el informe real pasaría inadvertido en la revisión.
 const allDimensions = [
     ...(formA.dimensions as any[]).map(d => ({ ...d, q: "Intralaboral", top: 100 })),
     ...(extraCfg.dimensions as any[]).map(d => ({ ...d, q: "Extralaboral", top: 100 })),
     ...(stressCfg.dimensions as any[]).map(d => ({ ...d, q: "Estrés", top: 100 })),
 ];
 
-const dimensions = allDimensions
-    .map(d => {
-        const avg = scoreFor(d.key + d.q, d.top);
-        const criticalPercent = pctFor(d.key + d.q);
-        return {
-            key: d.key,
-            name: d.name,
-            questionnaire: d.q,
-            avg,
-            criticalPercent,
-            count: 96,
-            priority: Math.round(avg * 0.6 + criticalPercent * 0.4),
-            action: criticalPercent > 0 ? (DIMENSION_ACTION[d.key] ?? null) : null,
-        };
-    })
-    .sort((a, b) => b.priority - a.priority || b.avg - a.avg);
 
+
+// Áreas por número de TRABAJADORES. Las evaluaciones se derivan de ahí: a cada
+// persona se le aplican hasta tres cuestionarios, así que un área de 30 personas
+// produce del orden de 80 evaluaciones. Mantener esa proporción en el fixture es
+// lo que permite ver si el informe confunde las dos bases.
 const areasRaw: [string, number][] = small
     ? [["Producción", 7], ["Administración", 4], ["Comercial", 3]]
     : [
-          ["Producción", 78],
-          ["Logística y almacén", 41],
-          ["Administración", 29],
-          ["Comercial", 22],
-          ["Mantenimiento", 14],
+          ["Producción", 62],
+          ["Logística y almacén", 34],
+          ["Administración", 25],
+          ["Comercial", 18],
+          ["Mantenimiento", 11],
           ["Dirección general", 6],
           ["Calidad", 4],
       ];
 
+/** Evaluaciones de un área: cerca de tres por trabajador, sin ser exacto. */
+const assessmentsFor = (workers: number, seed: string) =>
+    workers * 2 + Math.round((workers * (60 + (hash(seed) % 40))) / 100);
+
 const reported = areasRaw
     .filter(([, n]) => n >= MIN_GROUP_SIZE)
-    .map(([name, count]) => {
+    .map(([name, workers]) => {
         const h = hash(name);
         const d = dist([
             h % 15,
@@ -113,21 +109,18 @@ const reported = areasRaw
             18 + (h % 16),
             8 + (h % 13),
         ]);
-        return { name, count, dist: d, criticalPercent: d.ALTO + d.MUY_ALTO };
+        return {
+            name,
+            workers,
+            assessments: assessmentsFor(workers, name),
+            dist: d,
+            criticalPercent: d.ALTO + d.MUY_ALTO,
+        };
     })
     .sort((a, b) => b.criticalPercent - a.criticalPercent);
 
 const withheldList = areasRaw.filter(([, n]) => n < MIN_GROUP_SIZE);
-
-const seen = new Set<string>();
-const glossary: { name: string; definition: string }[] = [];
-for (const d of dimensions) {
-    const def = DIMENSION_DEFINITION[d.key];
-    if (def && !seen.has(d.key)) {
-        seen.add(d.key);
-        glossary.push({ name: d.name, definition: def });
-    }
-}
+const withheldWorkers = withheldList.reduce((s, [, n]) => s + n, 0);
 
 const correlation = small
     ? RISK_ORDER.map(() => RISK_ORDER.map(() => 0))
@@ -151,11 +144,65 @@ correlation.forEach((row, i) =>
     })
 );
 
-const counts = { SIN_RIESGO: 44, BAJO: 68, MEDIO: 92, ALTO: 120, MUY_ALTO: 88 };
+// Una sola fuente de verdad para la población: la suma de las áreas. Si las
+// cifras de cobertura se escriben aparte, el informe puede quedar diciendo que
+// se evaluaron más trabajadores de los que suman sus propias áreas.
+const totalWorkers = small ? 14 : areasRaw.reduce((s, [, n]) => s + n, 0);
+// No todo el mundo responde los tres cuestionarios: el intralaboral se aplica a
+// toda la población y los otros dos a una parte.
+const intraCount = totalWorkers;
+const extraCount = Math.round(totalWorkers * 0.8);
+const stressCount = Math.round(totalWorkers * 0.78);
+const totalAssessments = intraCount + extraCount + stressCount;
+
+const counts = { SIN_RIESGO: 74, BAJO: 91, MEDIO: 103, ALTO: 87, MUY_ALTO: 58 };
+const rawTotal = Object.values(counts).reduce((s, v) => s + v, 0);
+// Se reescala la distribución al total real de evaluaciones.
+for (const k of RISK_ORDER) counts[k] = Math.round((counts[k] / rawTotal) * totalAssessments);
 const total = Object.values(counts).reduce((s, v) => s + v, 0);
+
+// Un trabajador cuenta como crítico si cualquiera de sus instrumentos lo es, de
+// modo que el porcentaje por persona es siempre mayor que el de evaluaciones.
+const criticalAssessments = counts.ALTO + counts.MUY_ALTO;
+const criticalWorkers = Math.min(totalWorkers, Math.round(criticalAssessments * 0.62));
+
+// Reparto de la población intralaboral entre las dos formas del cuestionario.
+const formACount = Math.round(intraCount * 0.45);
+const formBCount = intraCount - formACount;
+
+/** Trabajadores evaluados con cada instrumento. */
+const nFor = (q: string) =>
+    q === "Intralaboral" ? intraCount : q === "Extralaboral" ? extraCount : stressCount;
+
+const dimensions = allDimensions
+    .map(d => {
+        const avg = scoreFor(d.key + d.q, d.top);
+        const criticalPercent = pctFor(d.key + d.q);
+        return {
+            key: d.key,
+            name: d.name,
+            questionnaire: d.q,
+            avg,
+            criticalPercent,
+            count: nFor(d.q),
+            priority: Math.round(avg * 0.6 + criticalPercent * 0.4),
+            action: criticalPercent > 0 ? (DIMENSION_ACTION[d.key] ?? null) : null,
+        };
+    })
+    .sort((a, b) => b.priority - a.priority || b.avg - a.avg);
 let predLevel: RiskLevel = "SIN_RIESGO";
 for (const k of RISK_ORDER) if (counts[k] > counts[predLevel]) predLevel = k;
 const highestLevel = [...RISK_ORDER].reverse().find(k => counts[k] > 0)!;
+
+const seen = new Set<string>();
+const glossary: { name: string; definition: string }[] = [];
+for (const d of dimensions) {
+    const def = DIMENSION_DEFINITION[d.key];
+    if (def && !seen.has(d.key)) {
+        seen.add(d.key);
+        glossary.push({ name: d.name, definition: def });
+    }
+}
 
 const data = {
     minGroupSize: MIN_GROUP_SIZE,
@@ -180,13 +227,15 @@ const data = {
         signaturePath: null,
     },
     coverage: {
-        uniqueWorkers: small ? 14 : 184,
-        totalAssessments: small ? 14 : total,
-        intra: small ? 8 : 184,
-        extra: small ? 3 : 114,
-        stress: small ? 3 : 114,
+        uniqueWorkers: totalWorkers,
+        totalAssessments,
+        intra: intraCount,
+        extra: extraCount,
+        stress: stressCount,
         unsigned: small ? 0 : 23,
-        criticalPercent: Math.round(((counts.ALTO + counts.MUY_ALTO) / total) * 100),
+        criticalPercent: Math.round((criticalAssessments / total) * 100),
+        criticalWorkerPercent: Math.round((criticalWorkers / totalWorkers) * 100),
+        criticalWorkers,
         predominant: {
             level: predLevel,
             label: RISK_LABEL[predLevel],
@@ -202,13 +251,14 @@ const data = {
     correlation,
     correlationBase,
     groups,
-    domains: { formA: buildDomains("A"), formB: buildDomains("B") },
+    domains: { formA: buildDomains("A", formACount), formB: buildDomains("B", formBCount) },
     dimensions,
     areas: {
         reported,
         withheld: {
             areas: withheldList.length,
-            assessments: withheldList.reduce((s, [, n]) => s + n, 0),
+            workers: withheldWorkers,
+            assessments: withheldList.reduce((s, [, n]) => s + assessmentsFor(n, "w"), 0),
         },
     },
 };

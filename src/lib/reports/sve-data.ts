@@ -24,6 +24,7 @@ export interface SVEData {
     org: {
         name: string;
         nit: string;
+        city: string | null;
         psychologistName: string;
         psychologistLicense: string;
         tradeName: string | null;
@@ -43,7 +44,11 @@ export interface SVEData {
         intraB: number;
         extra: number;
         stress: number;
+        /** Porcentaje de EVALUACIONES en riesgo alto o muy alto. */
         criticalPercent: number;
+        /** Porcentaje de TRABAJADORES con algún instrumento en riesgo alto o muy alto. */
+        criticalWorkerPercent: number;
+        criticalWorkers: number;
         needsSVE: boolean;
     };
     demographics: {
@@ -77,7 +82,14 @@ export interface SVEData {
         criticalPercent: number;
         count: number;
     }[];
-    areas: { name: string; count: number; dist: Record<string, number> }[];
+    areas: {
+        name: string;
+        /** Trabajadores distintos del área. */
+        workers: number;
+        /** Evaluaciones aplicadas en el área. */
+        assessments: number;
+        dist: Record<string, number>;
+    }[];
 }
 
 /** Internal: images are returned separately so the JSON payload stays small. */
@@ -315,13 +327,33 @@ export async function buildSVEData(
         (areaGroups[area] ??= []).push(a);
     });
     const areas = Object.entries(areaGroups)
-        .map(([name, list]) => ({ name, count: list.length, dist: toPct(countBy(list), list.length) }))
-        .sort((a, b) => b.count - a.count);
+        .map(([name, list]) => ({
+            name,
+            // Trabajadores y evaluaciones son cifras distintas: a cada persona
+            // se le aplican hasta tres cuestionarios, así que contar filas
+            // triplicaría el tamaño aparente del área.
+            workers: new Set(list.map(a => a.workerId)).size,
+            assessments: list.length,
+            dist: toPct(countBy(list), list.length),
+        }))
+        .sort((a, b) => b.workers - a.workers);
 
     // ── summary ───────────────────────────────────────────
     const allRisks = assessments.map(a => a.scoredResult?.overallRiskCategory).filter(Boolean) as string[];
     const criticalPercent = allRisks.length
         ? Math.round((allRisks.filter(r => HIGH_RISK.has(r)).length / allRisks.length) * 100)
+        : 0;
+
+    // El umbral del 20% de la Resolución 2764 se refiere a trabajadores
+    // expuestos, no a evaluaciones: contar evaluaciones hace que quien tiene los
+    // tres cuestionarios aplicados pese el triple que quien sólo tiene uno.
+    const criticalWorkerIds = new Set(
+        assessments
+            .filter(a => HIGH_RISK.has(a.scoredResult?.overallRiskCategory as string))
+            .map(a => a.workerId)
+    );
+    const criticalWorkerPercent = uniqueWorkers.length
+        ? Math.round((criticalWorkerIds.size / uniqueWorkers.length) * 100)
         : 0;
 
     const dates = assessments.map(a => new Date(a.assessmentDate).getTime());
@@ -360,7 +392,11 @@ export async function buildSVEData(
             extra: extra.length,
             stress: stress.length,
             criticalPercent,
-            needsSVE: criticalPercent > 20,
+            criticalWorkerPercent,
+            criticalWorkers: criticalWorkerIds.size,
+            // Sobre trabajadores, no sobre evaluaciones, y con >= porque el
+            // umbral de la norma es "20% o más", no "más del 20%".
+            needsSVE: criticalWorkerPercent >= 20,
         },
         demographics,
         distributions: {

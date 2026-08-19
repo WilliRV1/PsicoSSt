@@ -20,14 +20,17 @@ import {
  */
 
 /**
- * Número mínimo de evaluaciones para reportar un grupo por separado.
+ * Número mínimo de TRABAJADORES para reportar un grupo por separado.
  *
  * El informe siempre declaró que garantizaba el anonimato en grupos menores a
  * diez personas, pero el cálculo incluía toda área con al menos una evaluación:
  * un área de un solo trabajador aparecía con su nombre y su distribución de
- * riesgo, que es exactamente el resultado individual de esa persona. Los grupos
- * por debajo del umbral se agregan en una fila única para no perder la
- * información sin exponer a nadie.
+ * riesgo, que es exactamente el resultado individual de esa persona.
+ *
+ * El umbral se cuenta sobre trabajadores distintos, no sobre evaluaciones. A
+ * cada persona se le aplican hasta tres cuestionarios, de modo que contar
+ * evaluaciones dejaría pasar un área de cuatro personas —doce evaluaciones— y
+ * el piso quedaría desfasado por un factor de tres.
  */
 export const MIN_GROUP_SIZE = 10;
 
@@ -35,7 +38,10 @@ export type Distribution = Record<RiskLevel, number>;
 
 export interface AreaRow {
     name: string;
-    count: number;
+    /** Trabajadores distintos del área. Es la cifra que rige el anonimato. */
+    workers: number;
+    /** Evaluaciones aplicadas en el área, sobre las que se calcula la distribución. */
+    assessments: number;
     dist: Distribution;
     criticalPercent: number;
 }
@@ -86,7 +92,14 @@ export interface DiagnosticData {
         stress: number;
         /** Evaluaciones incluidas que aún no están firmadas. */
         unsigned: number;
+        /** Porcentaje de EVALUACIONES en riesgo alto o muy alto. */
         criticalPercent: number;
+        /**
+         * Porcentaje de TRABAJADORES con al menos un instrumento en riesgo alto
+         * o muy alto. Es la cifra que se contrasta contra el umbral del 20%.
+         */
+        criticalWorkerPercent: number;
+        criticalWorkers: number;
         /** Nivel más frecuente. */
         predominant: { level: RiskLevel; label: string; percent: number } | null;
         /** Nivel más severo con al menos un caso. */
@@ -103,7 +116,7 @@ export interface DiagnosticData {
     areas: {
         reported: AreaRow[];
         /** Áreas agregadas por quedar bajo el umbral de anonimato. */
-        withheld: { areas: number; assessments: number };
+        withheld: { areas: number; workers: number; assessments: number };
     };
 }
 
@@ -218,6 +231,20 @@ export async function buildDiagnosticData(
     const allRisks = risksOf(assessments).filter(Boolean) as string[];
     const criticalPercent = allRisks.length
         ? Math.round((allRisks.filter(isCritical).length / allRisks.length) * 100)
+        : 0;
+
+    // El porcentaje sobre evaluaciones no sirve para decidir la obligación de
+    // montar un sistema de vigilancia: a cada trabajador se le aplican hasta
+    // tres cuestionarios, así que quien tiene los tres pesa el triple que quien
+    // sólo tiene el intralaboral, y el umbral del 20% de la Resolución 2764 se
+    // refiere a personas expuestas. Un trabajador cuenta como crítico si
+    // cualquiera de sus instrumentos quedó en riesgo alto o muy alto.
+    const workerIds = new Set(assessments.map(a => a.workerId));
+    const criticalWorkerIds = new Set(
+        assessments.filter(a => isCritical(a.scoredResult?.overallRiskCategory)).map(a => a.workerId)
+    );
+    const criticalWorkerPercent = workerIds.size
+        ? Math.round((criticalWorkerIds.size / workerIds.size) * 100)
         : 0;
 
     const counts = emptyDist();
@@ -377,21 +404,26 @@ export async function buildDiagnosticData(
     let withheldAreas = 0;
     let withheldAssessments = 0;
 
+    let withheldWorkers = 0;
+
     for (const [name, list] of Object.entries(areaGroups)) {
-        if (list.length < MIN_GROUP_SIZE) {
+        const workers = new Set(list.map(a => a.workerId)).size;
+        if (workers < MIN_GROUP_SIZE) {
             withheldAreas++;
+            withheldWorkers += workers;
             withheldAssessments += list.length;
             continue;
         }
         const dist = distributionOf(risksOf(list));
         reported.push({
             name,
-            count: list.length,
+            workers,
+            assessments: list.length,
             dist,
             criticalPercent: dist.ALTO + dist.MUY_ALTO,
         });
     }
-    reported.sort((a, b) => b.criticalPercent - a.criticalPercent || b.count - a.count);
+    reported.sort((a, b) => b.criticalPercent - a.criticalPercent || b.workers - a.workers);
 
     // ── marca y firma ─────────────────────────────────────
     const settings = org.psychologist.settings;
@@ -433,13 +465,15 @@ export async function buildDiagnosticData(
                 signaturePath: signature ? `/assets/signature.${signature.ext}` : null,
             },
             coverage: {
-                uniqueWorkers: new Set(assessments.map(a => a.workerId)).size,
+                uniqueWorkers: workerIds.size,
                 totalAssessments: assessments.length,
                 intra: intra.length,
                 extra: extra.length,
                 stress: stress.length,
                 unsigned: assessments.filter(a => a.status !== "SIGNED").length,
                 criticalPercent,
+                criticalWorkerPercent,
+                criticalWorkers: criticalWorkerIds.size,
                 predominant,
                 highest,
             },
@@ -455,7 +489,11 @@ export async function buildDiagnosticData(
             dimensions,
             areas: {
                 reported,
-                withheld: { areas: withheldAreas, assessments: withheldAssessments },
+                withheld: {
+                    areas: withheldAreas,
+                    workers: withheldWorkers,
+                    assessments: withheldAssessments,
+                },
             },
         },
         assets: { logo, signature },

@@ -142,22 +142,24 @@
     "signaturePath": null
   },
   "coverage": {
-    "uniqueWorkers": 184,
-    "totalAssessments": 412,
-    "intra": 184,
-    "extra": 114,
-    "stress": 114,
+    "uniqueWorkers": 160,
+    "totalAssessments": 413,
+    "intra": 160,
+    "extra": 128,
+    "stress": 125,
     "unsigned": 23,
-    "criticalPercent": 50,
+    "criticalPercent": 35,
+    "criticalWorkerPercent": 56,
+    "criticalWorkers": 90,
     "predominant": {
-      "level": "ALTO",
-      "label": "Alto",
-      "percent": 29
+      "level": "MEDIO",
+      "label": "Medio",
+      "percent": 25
     },
     "highest": {
       "level": "MUY_ALTO",
       "label": "Muy alto",
-      "count": 88
+      "count": 58
     }
   },
   "distributions": {
@@ -242,7 +244,7 @@
           38.3,
           100
         ],
-        "count": 96,
+        "count": 72,
         "action": "Programa de desarrollo de líderes y de convivencia laboral, con énfasis en habilidades de dirección y resolución de conflictos."
       },
       {
@@ -258,7 +260,7 @@
           40.5,
           100
         ],
-        "count": 96,
+        "count": 72,
         "action": "Rediseño participativo del puesto: ampliar el margen de decisión, precisar el rol y ampliar la oferta de formación."
       },
       {
@@ -274,7 +276,7 @@
           47.5,
           100
         ],
-        "count": 96,
+        "count": 72,
         "action": null
       },
       {
@@ -290,7 +292,7 @@
           36.4,
           100
         ],
-        "count": 96,
+        "count": 72,
         "action": "Revisión del esquema de compensación y reconocimiento, y refuerzo de los programas de bienestar y desarrollo de carrera."
       }
     ],
@@ -368,7 +370,7 @@
       "questionnaire": "Intralaboral",
       "avg": 72.4,
       "criticalPercent": 60,
-      "count": 96,
+      "count": 160,
       "priority": 67,
       "action": "Realizar mediciones de higiene industrial (ruido, iluminación, ergonomía) en el puesto e implementar pausas activas."
     },
@@ -378,7 +380,7 @@
       "questionnaire": "Intralaboral",
       "avg": 79.2,
       "criticalPercent": 44,
-      "count": 96,
+      "count": 160,
       "priority": 65,
       "action": "Revisar el esquema de turnos, limitar estrictamente las horas extra y garantizar los descansos compensatorios."
     },
@@ -388,7 +390,7 @@
       "questionnaire": "Intralaboral",
       "avg": 74.2,
       "criticalPercent": 52,
-      "count": 96,
+      "count": 160,
       "priority": 65,
       "action": "Institucionalizar evaluaciones de desempeño periódicas orientadas al desarrollo y no únicamente a la crítica."
     },
@@ -398,7 +400,7 @@
       "questionnaire": "Intralaboral",
       "avg": 69.9,
       "criticalPercent": 37,
-      "count": 96,
+      "count": 160,
       "priority": 57,
       "action": "Involucrar al trabajador en las decisiones que afectan su trabajo y comunicar los cambios organizacionales con antelación."
     },
@@ -408,7 +410,7 @@
       "questionnaire": "Intralaboral",
       "avg": 76.5,
       "criticalPercent": 21,
-      "count": 96,
+      "count": 160,
       "priority": 54,
       "action": "Analizar la carga de trabajo del puesto y redistribuir funciones o reforzar el equipo en los picos operativos."
     },
@@ -418,7 +420,7 @@
       "questionnaire": "Extralaboral",
       "avg": 70.7,
       "criticalPercent": 29,
-      "count": 96,
+      "count": 128,
       "priority": 54,
       "action": "Informar sobre subsidios de vivienda y programas de mejoramiento de la caja de compensación familiar."
     },
@@ -428,7 +430,7 @@
       "questionnaire": "Extralaboral",
       "avg": 81.3,
       "criticalPercent": 5,
-      "count": 96,
+      "count": 128,
       "priority": 51,
       "action": "Orientar sobre el uso del tiempo libre y facilitar el acceso a convenios recreativos o deportivos de la caja de compensación."
     },
@@ -438,7 +440,7 @@
       "questionnaire": "Intralaboral",
       "avg": 56.6,
       "criticalPercent": 38,
-      "count": 96,
+      "count": 160,
       "priority": 49,
       "action": "Asignar tareas que reten sus capacidades y considerar rotación de puestos para enriquecer la experiencia."
     },
@@ -448,7 +450,7 @@
       "questionnaire": "Extralaboral",
       "avg": 57.8,
       "criticalPercent": 30,
-      "count": 96,
+      "count": 128,
       "priority": 47,
       "action": "Vincular al trabajador y su familia a las actividades de bienestar, y ofrecer orientación familiar si la acepta."
     },
@@ -458,7 +460,7 @@
       "questionnaire": "Intralaboral",
       "avg": 65.4,
       "criticalPercent": 14,
-      "count": 96,
+      "count": 160,
       "priority": 45,
       "action": "Estandarizar los procesos del cargo y verificar que las instrucciones recibidas no sean contradictorias entre sí."
     },
@@ -468,7 +470,7 @@
       "questionnaire": "Estrés",
       "avg": 68.4,
       "criticalPercent": 6,
-      "count": 96,
+      "count": 125,
       "priority": 43,
       "action": "Activar la ruta de atención en salud mental y remitir a la EPS para valoración por psicología o psiquiatría."
     },
@@ -478,7 +480,7 @@
       "questionnaire": "Extralaboral",
       "avg": 39.7,
       "criticalPercent": 47,
-      "count": 96,
+      "count": 128,
       "priority": 43,
       "action": "Hacer seguimiento del caso y considerar flexibilidad temporal mientras persista la situación extralaboral."
     },
@@ -488,7 +490,7 @@
       "questionnaire": "Intralaboral",
       "avg": 51.3,
       "criticalPercent": 15,
-      "count": 96,
+      "count": 160,
       "priority": 37,
       "action": "Establecer pausas cognitivas regulares y optimizar las herramientas de trabajo para reducir la fricción operativa."
     },
@@ -498,7 +500,7 @@
       "questionnaire": "Intralaboral",
       "avg": 12.8,
       "criticalPercent": 58,
-      "count": 96,
+      "count": 160,
       "priority": 31,
       "action": "Reforzar los planes de bienestar y el sentido de propósito y pertenencia del trabajador."
     },
@@ -508,7 +510,7 @@
       "questionnaire": "Intralaboral",
       "avg": 42.2,
       "criticalPercent": 8,
-      "count": 96,
+      "count": 160,
       "priority": 29,
       "action": "Dotar al trabajador de los recursos —tiempo, presupuesto, equipo— que corresponden a la responsabilidad delegada."
     },
@@ -518,7 +520,7 @@
       "questionnaire": "Intralaboral",
       "avg": 14.1,
       "criticalPercent": 49,
-      "count": 96,
+      "count": 160,
       "priority": 28,
       "action": "Actualizar el perfil del cargo, comunicar expectativas concretas y eliminar las instrucciones contradictorias."
     },
@@ -528,7 +530,7 @@
       "questionnaire": "Intralaboral",
       "avg": 24.9,
       "criticalPercent": 25,
-      "count": 96,
+      "count": 160,
       "priority": 25,
       "action": "Revisar la equidad de la compensación del cargo y establecer mecanismos de reconocimiento del logro."
     },
@@ -538,7 +540,7 @@
       "questionnaire": "Extralaboral",
       "avg": 1.7,
       "criticalPercent": 59,
-      "count": 96,
+      "count": 128,
       "priority": 25,
       "action": "Ofrecer formación en comunicación asertiva y resolución de conflictos aplicable a su entorno personal."
     },
@@ -548,7 +550,7 @@
       "questionnaire": "Intralaboral",
       "avg": 3.7,
       "criticalPercent": 51,
-      "count": 96,
+      "count": 160,
       "priority": 23,
       "action": "Aplicar de forma efectiva la política de desconexión laboral y respetar los horarios de descanso."
     },
@@ -558,7 +560,7 @@
       "questionnaire": "Extralaboral",
       "avg": 31.1,
       "criticalPercent": 9,
-      "count": 96,
+      "count": 128,
       "priority": 22,
       "action": "Brindar educación financiera y facilitar el acceso a fondo de empleados o convenios de libranza."
     },
@@ -568,7 +570,7 @@
       "questionnaire": "Estrés",
       "avg": 7.9,
       "criticalPercent": 43,
-      "count": 96,
+      "count": 125,
       "priority": 22,
       "action": "Revisar la carga cognitiva del puesto y vigilar los indicadores de accidentalidad y de rendimiento del trabajador."
     },
@@ -578,7 +580,7 @@
       "questionnaire": "Intralaboral",
       "avg": 2,
       "criticalPercent": 50,
-      "count": 96,
+      "count": 160,
       "priority": 21,
       "action": "Crear espacios formales e informales de integración y activar los protocolos del Comité de Convivencia Laboral."
     },
@@ -588,7 +590,7 @@
       "questionnaire": "Intralaboral",
       "avg": 11.8,
       "criticalPercent": 26,
-      "count": 96,
+      "count": 160,
       "priority": 17,
       "action": "Fortalecer las habilidades de dirección del jefe inmediato, con énfasis en comunicación asertiva y retroalimentación constructiva."
     },
@@ -598,7 +600,7 @@
       "questionnaire": "Estrés",
       "avg": 11.6,
       "criticalPercent": 26,
-      "count": 96,
+      "count": 125,
       "priority": 17,
       "action": "Ofrecer primeros auxilios psicológicos y remitir a la EPS cuando el cuadro lo amerite."
     },
@@ -608,7 +610,7 @@
       "questionnaire": "Extralaboral",
       "avg": 4.2,
       "criticalPercent": 20,
-      "count": 96,
+      "count": 128,
       "priority": 11,
       "action": "Evaluar trabajo híbrido, horarios escalonados o acceso a rutas de transporte para reducir el tiempo de traslado."
     },
@@ -618,7 +620,7 @@
       "questionnaire": "Intralaboral",
       "avg": 7,
       "criticalPercent": 12,
-      "count": 96,
+      "count": 160,
       "priority": 9,
       "action": "Reducir la supervisión excesiva, permitiendo que el trabajador defina el ritmo y el orden de sus tareas dentro de límites acordados."
     },
@@ -628,7 +630,7 @@
       "questionnaire": "Intralaboral",
       "avg": 1.9,
       "criticalPercent": 19,
-      "count": 96,
+      "count": 160,
       "priority": 9,
       "action": "Capacitar al trabajador en liderazgo participativo y gestión de equipos, dado que tiene personal a cargo."
     },
@@ -638,7 +640,7 @@
       "questionnaire": "Intralaboral",
       "avg": 5,
       "criticalPercent": 12,
-      "count": 96,
+      "count": 160,
       "priority": 8,
       "action": "Incluir al trabajador en el plan anual de capacitación, a partir de las necesidades reales de su rol."
     },
@@ -648,7 +650,7 @@
       "questionnaire": "Estrés",
       "avg": 0.5,
       "criticalPercent": 19,
-      "count": 96,
+      "count": 125,
       "priority": 8,
       "action": "Remitir a valoración médica ocupacional y vincular a los programas de salud preventiva de la organización."
     },
@@ -658,7 +660,7 @@
       "questionnaire": "Intralaboral",
       "avg": 9.4,
       "criticalPercent": 4,
-      "count": 96,
+      "count": 160,
       "priority": 7,
       "action": "Proveer apoyo psicológico y entrenamiento en regulación emocional, y rotar las tareas de mayor desgaste emocional."
     }
@@ -667,7 +669,8 @@
     "reported": [
       {
         "name": "Producción",
-        "count": 78,
+        "workers": 62,
+        "assessments": 185,
         "dist": {
           "SIN_RIESGO": 13,
           "BAJO": 20,
@@ -679,7 +682,8 @@
       },
       {
         "name": "Mantenimiento",
-        "count": 14,
+        "workers": 11,
+        "assessments": 33,
         "dist": {
           "SIN_RIESGO": 8,
           "BAJO": 12,
@@ -691,7 +695,8 @@
       },
       {
         "name": "Logística y almacén",
-        "count": 41,
+        "workers": 34,
+        "assessments": 91,
         "dist": {
           "SIN_RIESGO": 12,
           "BAJO": 13,
@@ -703,7 +708,8 @@
       },
       {
         "name": "Administración",
-        "count": 29,
+        "workers": 25,
+        "assessments": 66,
         "dist": {
           "SIN_RIESGO": 8,
           "BAJO": 21,
@@ -715,7 +721,8 @@
       },
       {
         "name": "Comercial",
-        "count": 22,
+        "workers": 18,
+        "assessments": 52,
         "dist": {
           "SIN_RIESGO": 11,
           "BAJO": 21,
@@ -728,7 +735,8 @@
     ],
     "withheld": {
       "areas": 2,
-      "assessments": 10
+      "workers": 10,
+      "assessments": 30
     }
   }
 }

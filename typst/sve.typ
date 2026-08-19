@@ -138,7 +138,7 @@ como en las personas.
   v(4pt)
   note-block(accent: rc("MUY_ALTO"))[
     *Obligatoriedad.* Los resultados del diagnóstico muestran que el
-    #num(str(D.summary.criticalPercent) + "%") de las evaluaciones se ubica en nivel de riesgo
+    #num(str(D.summary.criticalWorkerPercent) + "%") de los trabajadores se ubica en nivel de riesgo
     Alto o Muy Alto. Conforme a la Resolución 2764 de 2022, al superarse el umbral del 20% de la
     población evaluada, la organización tiene la obligación de implementar y mantener activo el
     presente Programa de Vigilancia Epidemiológica.
@@ -400,10 +400,10 @@ estrés como enfermedad laboral, o cuando se requiera un proceso de reubicación
     columns: (1fr, 1fr, 1fr, 1fr),
     column-gutter: 6pt,
     ..(
-      (str(D.summary.uniqueWorkers), "Evaluados"),
-      (str(D.summary.totalAssessments), "Evaluaciones"),
-      (str(D.groups.d), "Grupo D"),
-      (str(D.summary.criticalPercent) + "%", "Zona crítica"),
+      (str(D.summary.uniqueWorkers), "Trabajadores"),
+      (str(D.summary.totalAssessments), "Evaluaciones aplicadas"),
+      (str(D.groups.d), "Grupo D · trabajadores"),
+      (str(D.summary.criticalWorkerPercent) + "%", "Trabajadores en zona crítica"),
     ).map(((val, lbl)) => block(
       width: 100%, inset: (x: 9pt, y: 10pt), fill: panel, stroke: (top: 1.6pt + ink, rest: none),
       {
@@ -558,7 +558,10 @@ proporcional a la concentración de casos.
       block(width: 100%, breakable: false, inset: (bottom: 8pt), {
         grid(columns: (1fr, auto), align: (left + bottom, right + bottom),
           text(font: serif, size: 9.5pt, weight: 600, fill: ink, a.name),
-          text(font: sans, size: 7pt, fill: ink3, num("N = " + str(a.count))))
+          // Dos cifras distintas: personas del área y cuestionarios aplicados
+          // en ella. La barra se calcula sobre las evaluaciones.
+          text(font: sans, size: 7pt, fill: ink3,
+            num(str(a.workers)) + " trabajadores · " + num(str(a.assessments)) + " evaluaciones"))
         v(3pt)
         stacked-bar(a.dist, height: 8pt)
       })
@@ -772,7 +775,7 @@ factores de riesgo psicosocial, incluyendo los elementos descritos en el present
 #bullets((
   [Se evaluaron *#num(str(D.summary.uniqueWorkers)) trabajadores* de la empresa *#D.org.name* mediante la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial, completando *#num(str(D.summary.totalAssessments)) evaluaciones* entre los cuestionarios intralaboral, extralaboral y de estrés, durante el período comprendido entre el #D.org.dateStart y el #D.org.dateEnd.],
 
-  [El *#num(str(D.summary.criticalPercent) + "%")* de las evaluaciones aplicadas arrojó un nivel de riesgo Alto o Muy Alto, lo que #if D.summary.criticalPercent > 30 [constituye una proporción significativamente elevada que exige intervención prioritaria e inmediata.] else if D.summary.criticalPercent > 15 [representa una proporción moderada que amerita implementar acciones de intervención y seguimiento sistemático.] else [refleja un perfil de riesgo favorable, en el cual corresponde mantener y fortalecer las acciones de promoción y prevención.]],
+  [El *#num(str(D.summary.criticalWorkerPercent) + "%")* de los trabajadores evaluados —#num(str(D.summary.criticalWorkers)) de #num(str(D.summary.uniqueWorkers))— presentó al menos un instrumento en nivel de riesgo Alto o Muy Alto, lo que #if D.summary.criticalWorkerPercent > 30 [constituye una proporción significativamente elevada que exige intervención prioritaria e inmediata.] else if D.summary.criticalWorkerPercent > 15 [representa una proporción moderada que amerita implementar acciones de intervención y seguimiento sistemático.] else [refleja un perfil de riesgo favorable, en el cual corresponde mantener y fortalecer las acciones de promoción y prevención.] Medido sobre el total de evaluaciones aplicadas, y no sobre personas, la proporción en riesgo crítico es del #num(str(D.summary.criticalPercent) + "%").],
 
   [La correlación entre condiciones de trabajo y condiciones de salud permitió clasificar la población en cuatro grupos: Grupo A, sanos, con #num(str(D.groups.a)); Grupo B, vulnerables, con #num(str(D.groups.b)); Grupo C, adaptados, con #num(str(D.groups.c)); y Grupo D, prioridad de intervención, con #num(str(D.groups.d)) trabajadores.],
 ))

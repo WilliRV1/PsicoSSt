@@ -2,7 +2,7 @@
   "org": {
     "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
     "nit": "901.234.567-8",
-    "city": "Cali, Valle del Cauca",
+    "city": "Cali",
     "psychologistName": "William Reyes Valencia",
     "psychologistLicense": "Lic. SST 12345 de 2019",
     "tradeName": "PsicoSST Consultoría",
@@ -14,14 +14,16 @@
     "signaturePath": null
   },
   "summary": {
-    "uniqueWorkers": 184,
-    "totalAssessments": 412,
-    "intraA": 96,
-    "intraB": 88,
-    "extra": 114,
-    "stress": 114,
-    "criticalPercent": 31,
-    "needsSVE": true
+    "uniqueWorkers": 150,
+    "totalAssessments": 387,
+    "intraA": 83,
+    "intraB": 67,
+    "extra": 120,
+    "stress": 117,
+    "criticalPercent": 35,
+    "needsSVE": true,
+    "criticalWorkers": 84,
+    "criticalWorkerPercent": 56
   },
   "demographics": {
     "gender": [
@@ -418,7 +420,8 @@
   "areas": [
     {
       "name": "Producción",
-      "count": 78,
+      "workers": 62,
+      "assessments": 161,
       "dist": {
         "SIN_RIESGO": 10,
         "BAJO": 18,
@@ -429,7 +432,8 @@
     },
     {
       "name": "Logística y almacén",
-      "count": 41,
+      "workers": 34,
+      "assessments": 88,
       "dist": {
         "SIN_RIESGO": 10,
         "BAJO": 18,
@@ -440,7 +444,8 @@
     },
     {
       "name": "Administración",
-      "count": 29,
+      "workers": 25,
+      "assessments": 65,
       "dist": {
         "SIN_RIESGO": 10,
         "BAJO": 18,
@@ -451,7 +456,8 @@
     },
     {
       "name": "Comercial",
-      "count": 22,
+      "workers": 18,
+      "assessments": 47,
       "dist": {
         "SIN_RIESGO": 10,
         "BAJO": 18,
@@ -462,7 +468,8 @@
     },
     {
       "name": "Mantenimiento",
-      "count": 14,
+      "workers": 11,
+      "assessments": 29,
       "dist": {
         "SIN_RIESGO": 10,
         "BAJO": 18,
