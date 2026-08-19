@@ -98,43 +98,6 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
         executiveSummary, domainsFormaA, domainsFormaB, recommendations 
     } = processStats(assessments);
 
-    // Build the full PDF data object once, reused by both PrintButtons
-    const pdfData = {
-        orgInfo: {
-            organizationName: org.name,
-            organizationNit: org.nit,
-            reportDate: new Date().toLocaleDateString('es-CO'),
-            psychologistName: org.psychologist.fullName,
-            psychologistLicense: org.psychologist.licenseNumber,
-            psychologistLicenseDate: null as string | null,
-        },
-        executiveSummary: {
-            totalWorkers: executiveSummary.uniqueWorkers,
-            totalAssessments: executiveSummary.totalAssessments,
-            intraCount: executiveSummary.intraCount,
-            extraCount: executiveSummary.extraCount,
-            stressCount: executiveSummary.stressCount,
-            criticalPercent: executiveSummary.criticalPercent,
-            predominantRisk: executiveSummary.predominantRisk,
-            priorityMatrix: {
-                group1D: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'ALTO' || k === 'MUY_ALTO' ? stressCorrelation[k]['ALTO'] + stressCorrelation[k]['MUY_ALTO'] : 0), 0),
-                vulnerables: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['ALTO'] + stressCorrelation[k]['MUY_ALTO'] : 0), 0),
-                adaptados: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'ALTO' || k === 'MUY_ALTO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
-                sanos: Object.keys(stressCorrelation).reduce((sum, k) => sum + (k === 'SIN_RIESGO' || k === 'BAJO' || k === 'MEDIO' ? stressCorrelation[k]['SIN_RIESGO'] + stressCorrelation[k]['BAJO'] + stressCorrelation[k]['MEDIO'] : 0), 0),
-            }
-        },
-        stats,
-        domainsFormaA: domainsFormaA.map((d: any) => ({ ...d, key: d.key || d.name })),
-        domainsFormaB: domainsFormaB.map((d: any) => ({ ...d, key: d.key || d.name })),
-        dimensionAnalysis,
-        segmentedData,
-        recommendations,
-        areaPyramid: Object.entries(segmentedData.byArea).map(([area, data]: [string, any]) => ({
-            area,
-            totalEvaluated: data.count,
-            criticalPercent: Math.round(((data.riskDistribution?.ALTO || 0) + (data.riskDistribution?.MUY_ALTO || 0)))
-        })).sort((a, b) => b.criticalPercent - a.criticalPercent),
-    };
 
     // Date range of assessments
     const dates = assessments.map(a => new Date(a.assessmentDate).getTime());
@@ -164,7 +127,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 </header>
 
                 <div className="flex justify-end mb-6 -mt-16">
-                    <PrintButton data={pdfData} />
+                    <PrintButton orgId={orgId} />
                 </div>
 
                 <div className="anonymity-notice">
@@ -587,7 +550,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     <a href={`/dashboard/organizations/${orgId}`} className="px-6 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-all">
                         ← Volver
                     </a>
-                    <PrintButton data={pdfData} />
+                    <PrintButton orgId={orgId} />
                 </footer>
             </div>
         </div>

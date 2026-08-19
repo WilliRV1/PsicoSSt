@@ -485,35 +485,11 @@ conductas a seguir descritas en el capítulo de niveles de intervención.
 Número de trabajadores según el cruce exacto de ambos instrumentos. La intensidad del sombreado es
 proporcional a la concentración de casos.
 
-#block(breakable: false, {
-  let flat = D.correlation.flatten()
-  let peak = if flat.len() > 0 { calc.max(..flat) } else { 0 }
-  set text(font: sans, size: 7.5pt)
-  table(
-    columns: (auto,) + (1fr,) * 5,
-    align: center + horizon,
-    inset: (x: 5pt, y: 7pt),
-    stroke: 0.35pt + rule,
-    table.header(
-      table.cell(fill: paper)[],
-      ..risk-keys.map(k => table.cell(fill: paper,
-        label-text(risk-labels.at(k), size: 5.6pt, tracking: 0.05em)))
-    ),
-    ..D.correlation.enumerate().map(((i, row)) => (
-      table.cell(align: right, fill: paper,
-        label-text(risk-labels.at(risk-keys.at(i)), size: 5.6pt, tracking: 0.05em)),
-      ..row.map(v => table.cell(
-        fill: if v == 0 or peak == 0 { paper } else { ink.lighten(100% - (18% + 62% * v / peak)) },
-        text(fill: if peak > 0 and v / peak > 0.55 { paper } else { ink },
-          weight: 600, num(if v == 0 { "·" } else { str(v) }))
-      ))
-    )).flatten()
-  )
-  v(3pt)
-  grid(columns: (1fr, 1fr), align: (left, right),
-    label-text("Filas: riesgo intralaboral", size: 5.8pt),
-    label-text("Columnas: sintomatología de estrés", size: 5.8pt))
-})
+#heat-matrix(
+  D.correlation,
+  row-label: "Filas: riesgo intralaboral",
+  col-label: "Columnas: sintomatología de estrés",
+)
 
 #if D.domains.formA.len() > 0 or D.domains.formB.len() > 0 [
   == Resultado por dominios

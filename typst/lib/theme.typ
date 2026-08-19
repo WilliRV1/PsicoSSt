@@ -172,6 +172,41 @@
   text(font: sans, size: size, fill: fill, hyphenate: false, body)
 }
 
+// Mapa de calor 5x5 del cruce entre dos instrumentos. La intensidad se
+// normaliza contra el pico de la matriz, no contra un máximo fijo: con un
+// máximo fijo una organización pequeña saldría toda del mismo tono pálido.
+#let heat-matrix(matrix, row-label: "", col-label: "") = block(breakable: false, {
+  let flat = matrix.flatten()
+  let peak = if flat.len() > 0 { calc.max(..flat) } else { 0 }
+  set text(font: sans, size: 7.5pt)
+  table(
+    columns: (auto,) + (1fr,) * 5,
+    align: center + horizon,
+    inset: (x: 5pt, y: 7pt),
+    stroke: 0.35pt + rule,
+    table.header(
+      table.cell(fill: paper)[],
+      ..risk-keys.map(k => table.cell(fill: paper,
+        label-text(risk-labels.at(k), size: 5.6pt, tracking: 0.05em)))
+    ),
+    ..matrix.enumerate().map(((i, row)) => (
+      table.cell(align: right, fill: paper,
+        label-text(risk-labels.at(risk-keys.at(i)), size: 5.6pt, tracking: 0.05em)),
+      ..row.map(v => table.cell(
+        fill: if v == 0 or peak == 0 { paper } else { ink.lighten(100% - (18% + 62% * v / peak)) },
+        text(fill: if peak > 0 and v / peak > 0.55 { paper } else { ink },
+          weight: 600, num(if v == 0 { "·" } else { str(v) }))
+      ))
+    )).flatten()
+  )
+  if row-label != "" or col-label != "" {
+    v(3pt)
+    grid(columns: (1fr, 1fr), align: (left, right),
+      label-text(row-label, size: 5.8pt),
+      label-text(col-label, size: 5.8pt))
+  }
+})
+
 #let bullets(items) = for it in items [
   #grid(columns: (11pt, 1fr), gutter: 0pt,
     text(fill: ink3, "—"),
