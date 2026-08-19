@@ -72,7 +72,7 @@ export default async function SVEReportPage({ params }: PageProps) {
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                         Incluye perfil demográfico, resultados por dominio y dimensión, matriz de grupos y plan de intervención.
-                        {org.hasLogo ? " Con logo." : ""}{org.hasSignature ? " Con firma." : ""}
+                        {org.logoPath ? " Con logo." : ""}{org.signaturePath ? " Con firma." : ""}
                     </p>
                 </div>
                 <SVEPrintButton orgId={orgId} />

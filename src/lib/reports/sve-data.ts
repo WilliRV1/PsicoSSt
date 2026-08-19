@@ -30,8 +30,10 @@ export interface SVEData {
         dateStart: string;
         dateEnd: string;
         today: string;
-        hasLogo: boolean;
-        hasSignature: boolean;
+        /** Workspace path of the logo asset, or null when there is none. */
+        logoPath: string | null;
+        /** Workspace path of the signature asset, or null when there is none. */
+        signaturePath: string | null;
     };
     summary: {
         uniqueWorkers: number;
@@ -79,8 +81,8 @@ export interface SVEData {
 
 /** Internal: images are returned separately so the JSON payload stays small. */
 export interface SVEAssets {
-    logo: Buffer | null;
-    signature: Buffer | null;
+    logo: ReportImage | null;
+    signature: ReportImage | null;
 }
 
 // ─── helpers ──────────────────────────────────────────────
@@ -121,22 +123,87 @@ function seniorityBucket(lessThanOneYear: boolean | null, years: number | null):
 const fmtDate = (t: number) =>
     new Date(t).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
 
-/** Fetches an image reference (data URI or http URL) into a Buffer, or null on any failure. */
-async function loadImage(ref: string | null | undefined): Promise<Buffer | null> {
+const MAX_IMAGE_BYTES = 3_000_000;
+
+/**
+ * Accepted image types, mapped to the file extension the asset is exposed under.
+ * Typst picks the decoder from the extension, not from the bytes, so a JPEG
+ * written as "logo.png" fails the whole render — the extension has to match.
+ */
+const IMAGE_MIME_EXT: Record<string, string> = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/gif": "gif",
+    "image/webp": "webp",
+};
+
+/**
+ * Remote hosts this server may fetch report imagery from.
+ *
+ * Empty by default, and that is deliberate. `logoUrl` is a free-text field the
+ * psychologist edits in the branding form and it is stored unvalidated, so
+ * fetching it server-side lets any registered user aim this server at internal
+ * addresses. That is a server-side request forgery: the caller learns whether
+ * the target responded (the PDF either embeds the bytes, or the render fails)
+ * and so gets a reachability oracle for the private network. Everywhere else in
+ * the app these URLs are handed to react-pdf's <Image src>, which resolves them
+ * in the browser, so the server has no standing need to reach arbitrary hosts.
+ *
+ * Set REPORT_IMAGE_ALLOWED_HOSTS (comma-separated hostnames) only for hosts you
+ * control, such as your own blob CDN.
+ */
+const ALLOWED_IMAGE_HOSTS = new Set(
+    (process.env.REPORT_IMAGE_ALLOWED_HOSTS ?? "")
+        .split(",")
+        .map(h => h.trim().toLowerCase())
+        .filter(Boolean)
+);
+
+/** An image accepted for embedding, with the extension Typst must see. */
+export interface ReportImage {
+    data: Buffer;
+    ext: string;
+}
+
+function checkedImage(buf: Buffer, mime: string): ReportImage | null {
+    const ext = IMAGE_MIME_EXT[mime.trim().toLowerCase()];
+    if (!ext) return null;
+    if (buf.byteLength === 0 || buf.byteLength > MAX_IMAGE_BYTES) return null;
+    return { data: buf, ext };
+}
+
+/**
+ * Resolves an image reference, or null if it is missing, malformed, oversized,
+ * not an accepted image type, or points somewhere we refuse to fetch from.
+ * Never throws: report generation must not fail over branding imagery.
+ */
+async function loadImage(ref: string | null | undefined): Promise<ReportImage | null> {
     if (!ref) return null;
+
     try {
         if (ref.startsWith("data:")) {
-            const b64 = ref.slice(ref.indexOf(",") + 1);
-            return Buffer.from(b64, "base64");
+            const match = /^data:([^;,]+)(;[^,]*)?,([\s\S]*)$/.exec(ref);
+            if (!match) return null;
+            const [, mime, , payload] = match;
+            return checkedImage(Buffer.from(payload, "base64"), mime);
         }
-        if (ref.startsWith("http://") || ref.startsWith("https://")) {
-            const res = await fetch(ref, { signal: AbortSignal.timeout(5000) });
-            if (!res.ok) return null;
-            const buf = Buffer.from(await res.arrayBuffer());
-            // Guard against absurd payloads slipping into the PDF.
-            return buf.byteLength > 5_000_000 ? null : buf;
-        }
-        return null;
+
+        // Anything that is not a data URI must clear the host allowlist.
+        const url = new URL(ref);
+        if (url.protocol !== "https:") return null;
+        if (!ALLOWED_IMAGE_HOSTS.has(url.hostname.toLowerCase())) return null;
+
+        // redirect:"error" stops an allowlisted host from bouncing us onto an
+        // internal address.
+        const res = await fetch(url, {
+            redirect: "error",
+            signal: AbortSignal.timeout(5000),
+        });
+        if (!res.ok) return null;
+
+        const mime = (res.headers.get("content-type") ?? "").split(";")[0];
+        return checkedImage(Buffer.from(await res.arrayBuffer()), mime);
     } catch {
         return null;
     }
@@ -346,9 +413,11 @@ export async function buildSVEData(
         .map(v => v?.trim())
         .filter(Boolean);
 
+    // Signatures are usually stored inline as a data URI; imageUrl is the
+    // fallback for uploaded files. Matches how the other report routes read it.
     const [logo, signatureImg] = await Promise.all([
         loadImage(settings?.logoUrl),
-        loadImage(signature?.imageUrl),
+        loadImage(signature?.dataUrl ?? signature?.imageUrl),
     ]);
 
     const data: SVEData = {
@@ -362,8 +431,8 @@ export async function buildSVEData(
             dateStart: fmtDate(Math.min(...dates)),
             dateEnd: fmtDate(Math.max(...dates)),
             today: fmtDate(Date.now()),
-            hasLogo: !!logo,
-            hasSignature: !!signatureImg,
+            logoPath: logo ? `/assets/logo.${logo.ext}` : null,
+            signaturePath: signatureImg ? `/assets/signature.${signatureImg.ext}` : null,
         },
         summary: {
             uniqueWorkers: uniqueWorkers.length,

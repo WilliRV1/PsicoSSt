@@ -223,8 +223,8 @@
 // ════════════════════════════════════════════════════════════
 #page(header: none, footer: none, margin: (top: 30mm, bottom: 24mm, left: 24mm, right: 24mm), {
 
-  if D.org.hasLogo {
-    block(image("/assets/logo.png", height: 16mm))
+  if D.org.logoPath != none {
+    block(image(D.org.logoPath, height: 16mm))
     v(14mm)
   } else {
     v(4mm)
@@ -1070,8 +1070,8 @@ factores de riesgo psicosocial, incluyendo los elementos descritos en el present
 #set par(justify: false, hanging-indent: 0pt, leading: 0.6em)
 #align(center, block(width: 78mm, {
   set text(hyphenate: false)
-  if D.org.hasSignature {
-    block(height: 18mm, align(center + bottom, image("/assets/signature.png", height: 16mm)))
+  if D.org.signaturePath != none {
+    block(height: 18mm, align(center + bottom, image(D.org.signaturePath, height: 16mm)))
   } else {
     v(18mm)
   }

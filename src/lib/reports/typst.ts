@@ -40,11 +40,21 @@ function serialize<T>(fn: () => Promise<T>): Promise<T> {
     return run;
 }
 
+/**
+ * An image to expose to the template. Typst selects its decoder from the file
+ * extension rather than the bytes, so `ext` must match the actual format or the
+ * render fails; the template receives the resulting path in its data payload.
+ */
+export interface TypstImage {
+    data: Buffer;
+    ext: string;
+}
+
 export interface TypstAssets {
-    /** Rendered at `/assets/logo.png` inside the template. */
-    logo?: Buffer | null;
-    /** Rendered at `/assets/signature.png` inside the template. */
-    signature?: Buffer | null;
+    /** Exposed at `/assets/logo.<ext>`. */
+    logo?: TypstImage | null;
+    /** Exposed at `/assets/signature.<ext>`. */
+    signature?: TypstImage | null;
 }
 
 export class TypstCompileError extends Error {
@@ -73,8 +83,12 @@ export function compileTypstPdf(
         const c = getCompiler();
         c.resetShadow();
 
-        if (assets.logo) c.mapShadow(path.join(ASSET_DIR, "logo.png"), assets.logo);
-        if (assets.signature) c.mapShadow(path.join(ASSET_DIR, "signature.png"), assets.signature);
+        if (assets.logo) {
+            c.mapShadow(path.join(ASSET_DIR, `logo.${assets.logo.ext}`), assets.logo.data);
+        }
+        if (assets.signature) {
+            c.mapShadow(path.join(ASSET_DIR, `signature.${assets.signature.ext}`), assets.signature.data);
+        }
 
         const args = {
             mainFilePath: path.join(TYPST_ROOT, template),
