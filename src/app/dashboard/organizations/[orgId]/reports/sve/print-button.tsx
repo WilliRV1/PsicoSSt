@@ -2,33 +2,39 @@
 
 import { useState } from "react";
 import { Loader2, Download } from "lucide-react";
-import { pdf } from "@react-pdf/renderer";
-import SVEReportPDF, { SVEReportData } from "@/components/reports/SVEReportPDF";
 import { toast } from "sonner";
 
-export function SVEPrintButton({ data }: { data: SVEReportData }) {
+export function SVEPrintButton({ orgId }: { orgId: string }) {
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const generatePDF = async () => {
+    const download = async () => {
         setIsGenerating(true);
         try {
-            const asPdf = pdf();
-            asPdf.updateContainer(<SVEReportPDF data={data} />);
-            const blob = await asPdf.toBlob();
+            const res = await fetch(`/api/organizations/${orgId}/sve/pdf`);
+
+            if (!res.ok) {
+                const body = await res.json().catch(() => null);
+                throw new Error(body?.error ?? `Error ${res.status}`);
+            }
+
+            const blob = await res.blob();
+            const disposition = res.headers.get("Content-Disposition") ?? "";
+            const match = disposition.match(/filename="([^"]+)"/);
+            const filename = match?.[1] ?? "Programa_SVE.pdf";
 
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `Programa_SVE_Riesgo_Psicosocial_${data.org.nit}.pdf`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            toast.success("Programa SVE generado exitosamente");
+            toast.success("Programa SVE generado");
         } catch (error) {
             console.error("Error generating SVE PDF:", error);
-            toast.error("Hubo un error al generar el PDF. Intente nuevamente.");
+            toast.error(error instanceof Error ? error.message : "No se pudo generar el documento.");
         } finally {
             setIsGenerating(false);
         }
@@ -36,7 +42,7 @@ export function SVEPrintButton({ data }: { data: SVEReportData }) {
 
     return (
         <button
-            onClick={generatePDF}
+            onClick={download}
             disabled={isGenerating}
             className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
