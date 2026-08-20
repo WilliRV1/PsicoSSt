@@ -1,25 +1,42 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { SVEPrintButton } from "./print-button";
-import { buildSVEData, RISK_ORDER } from "@/lib/reports/sve-data";
+import { buildSVEData } from "@/lib/reports/sve-data";
+import { DownloadReportButton } from "@/components/reports/download-report-button";
+import {
+    BandScale,
+    ETable,
+    Label,
+    Micro,
+    NoteBlock,
+    PAPER,
+    Paper,
+    QuadCell,
+    RISK_KEYS,
+    RISK_LABEL,
+    RiskLegend,
+    SectionTitle,
+    StackedBar,
+    StatCard,
+    SubTitle,
+    numStyle,
+    rc,
+} from "@/components/reports/paper";
 
 interface PageProps {
     params: Promise<{ orgId: string }>;
 }
 
-const RISK_LABELS: Record<string, string> = {
-    SIN_RIESGO: "Sin riesgo", BAJO: "Bajo", MEDIO: "Medio", ALTO: "Alto", MUY_ALTO: "Muy alto",
-};
+const serif = "var(--font-report-serif), Georgia, serif";
 
-const RISK_BAR: Record<string, string> = {
-    SIN_RIESGO: "bg-emerald-600",
-    BAJO: "bg-lime-600",
-    MEDIO: "bg-amber-500",
-    ALTO: "bg-orange-600",
-    MUY_ALTO: "bg-red-700",
-};
-
+/**
+ * Vista previa del Programa de Vigilancia Epidemiológica.
+ *
+ * El documento completo son veinticinco páginas, en buena parte contenido
+ * normativo fijo. Aquí se muestran las secciones que dependen de los datos de la
+ * organización, con el mismo diseño del PDF, y el resto se consulta al
+ * descargarlo.
+ */
 export default async function SVEReportPage({ params }: PageProps) {
     const { orgId } = await params;
     const session = await auth();
@@ -30,11 +47,17 @@ export default async function SVEReportPage({ params }: PageProps) {
     if (!built) {
         return (
             <div className="max-w-2xl mx-auto text-center py-24">
-                <h1 className="text-2xl font-bold text-foreground mb-2">Programa SVE — Riesgo Psicosocial</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                    Programa de Vigilancia Epidemiológica
+                </h1>
                 <p className="text-muted-foreground">
-                    No hay evaluaciones completadas para generar el SVE, o no tienes acceso a esta organización.
+                    No hay evaluaciones completadas para generar el SVE, o no tienes acceso a esta
+                    organización.
                 </p>
-                <Link href={`/dashboard/organizations/${orgId}`} className="inline-block mt-8 text-blue-600 font-semibold hover:underline">
+                <Link
+                    href={`/dashboard/organizations/${orgId}`}
+                    className="inline-block mt-8 text-blue-600 font-semibold hover:underline"
+                >
                     ← Volver a la organización
                 </Link>
             </div>
@@ -42,139 +65,325 @@ export default async function SVEReportPage({ params }: PageProps) {
     }
 
     const { data } = built;
-    const { org, summary, groups, distributions, criticalDimensions, areas } = data;
+    const { org, summary, groups, distributions, criticalDimensions, areas, domains } = data;
+    const href = `/api/organizations/${orgId}/sve/pdf`;
 
-    const groupCards = [
-        { label: "Grupo A", name: "Sanos", n: groups.a, cls: "border-emerald-300 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-900 dark:text-emerald-300" },
-        { label: "Grupo B", name: "Vulnerables", n: groups.b, cls: "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:border-amber-900 dark:text-amber-300" },
-        { label: "Grupo C", name: "Adaptados", n: groups.c, cls: "border-orange-300 bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:border-orange-900 dark:text-orange-300" },
-        { label: "Grupo D", name: "Prioridad de intervención", n: groups.d, cls: "border-red-300 bg-red-50 text-red-800 dark:bg-red-950/40 dark:border-red-900 dark:text-red-300" },
+    const instruments = [
+        { title: "Intralaboral", n: summary.intraA + summary.intraB, dist: distributions.intra },
+        { title: "Extralaboral", n: summary.extra, dist: distributions.extra },
+        { title: "Estrés", n: summary.stress, dist: distributions.stress },
     ];
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-16">
-            <div>
-                <Link href={`/dashboard/organizations/${orgId}`} className="text-sm text-muted-foreground hover:text-foreground hover:underline">
-                    ← Volver a la organización
-                </Link>
-                <h1 className="text-2xl font-bold text-foreground mt-3">Programa de Vigilancia Epidemiológica</h1>
-                <p className="text-muted-foreground">
-                    {org.name} · NIT {org.nit} · Resolución 2764 de 2022
-                </p>
-            </div>
-
-            <div className="p-6 bg-card border border-border rounded-2xl flex items-center justify-between gap-6 flex-wrap">
+        <div className="max-w-4xl mx-auto pb-20">
+            <div className="flex items-end justify-between gap-6 flex-wrap mb-6">
                 <div>
-                    <h2 className="font-bold text-foreground">Documento listo para generar</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        16 capítulos · {summary.uniqueWorkers} trabajadores · {summary.totalAssessments} evaluaciones ·
-                        período {org.dateStart} — {org.dateEnd}.
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        Incluye perfil demográfico, resultados por dominio y dimensión, matriz de grupos y plan de intervención.
-                        {org.logoPath ? " Con logo." : ""}{org.signaturePath ? " Con firma." : ""}
+                    <Link
+                        href={`/dashboard/organizations/${orgId}`}
+                        className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                        ← Volver a la organización
+                    </Link>
+                    <h1 className="text-2xl font-bold text-foreground mt-3">
+                        Programa de Vigilancia Epidemiológica
+                    </h1>
+                    <p className="text-muted-foreground text-sm">
+                        Vista previa del documento · {org.name}
                     </p>
                 </div>
-                <SVEPrintButton orgId={orgId} />
+                <DownloadReportButton href={href} fallbackName="Programa_SVE.pdf" />
             </div>
 
-            {summary.needsSVE && (
-                <div className="p-4 bg-red-50 border-l-4 border-red-600 rounded-r-lg text-red-900 dark:bg-red-950/40 dark:text-red-200">
-                    <p className="text-sm">
-                        <strong>SVE obligatorio:</strong> el {summary.criticalPercent}% de las evaluaciones está en riesgo
-                        Alto o Muy Alto, superando el umbral del 20% de la Resolución 2764 de 2022.
-                    </p>
-                </div>
-            )}
+            <Paper>
+                <Label>Programa de vigilancia epidemiológica · Resolución 2764 de 2022</Label>
+                <h2
+                    style={{
+                        fontFamily: serif,
+                        fontSize: 38,
+                        fontWeight: 600,
+                        lineHeight: 1.12,
+                        margin: "18px 0 8px",
+                    }}
+                >
+                    Factores de riesgo psicosocial
+                </h2>
+                <p style={{ color: PAPER.ink2, fontSize: 16, margin: 0 }}>
+                    Programa de vigilancia epidemiológica de la organización
+                </p>
 
-            <section className="space-y-3">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Grupos de intervención</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {groupCards.map(g => (
-                        <div key={g.label} className={`p-4 rounded-xl border ${g.cls}`}>
-                            <p className="text-[10px] font-black uppercase tracking-widest">{g.label}</p>
-                            <p className="text-sm font-bold text-foreground">{g.name}</p>
-                            <p className="text-3xl font-black mt-1">{g.n}</p>
+                <div style={{ height: 1.6, background: PAPER.ink, margin: "28px 0 22px" }} />
+
+                <Label>Empresa</Label>
+                <div style={{ fontFamily: serif, fontSize: 22, fontWeight: 600, marginTop: 5 }}>
+                    {org.name}
+                </div>
+                <Micro style={{ marginTop: 3 }}>
+                    NIT {org.nit}
+                    {org.city ? ` · ${org.city}` : ""}
+                </Micro>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5 mt-8">
+                    {[
+                        ["Periodo evaluado", `${org.dateStart} — ${org.dateEnd}`],
+                        ["Fecha del informe", org.today],
+                        ["Profesional responsable", org.psychologistName],
+                    ].map(([lbl, val]) => (
+                        <div key={lbl}>
+                            <Label style={{ fontSize: 9 }}>{lbl}</Label>
+                            <div style={{ fontSize: 13, fontWeight: 500, marginTop: 3 }}>{val}</div>
                         </div>
                     ))}
                 </div>
-            </section>
 
-            <section className="space-y-3">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Perfil general de riesgo</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                        { title: "Intralaboral", dist: distributions.intra, n: summary.intraA + summary.intraB },
-                        { title: "Extralaboral", dist: distributions.extra, n: summary.extra },
-                        { title: "Estrés", dist: distributions.stress, n: summary.stress },
-                    ].map(({ title, dist, n }) => (
-                        <div key={title} className="p-4 bg-card border border-border rounded-xl">
-                            <p className="text-xs font-bold text-foreground mb-3">
-                                {title} <span className="text-muted-foreground font-normal">N={n}</span>
-                            </p>
-                            {RISK_ORDER.map(k => (
-                                <div key={k} className="mb-2">
-                                    <div className="flex justify-between text-[11px] text-muted-foreground mb-0.5">
-                                        <span>{RISK_LABELS[k]}</span>
-                                        <span className="font-mono">{dist[k]}%</span>
+                <SectionTitle n={1}>Población y cobertura</SectionTitle>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <StatCard value={summary.uniqueWorkers} label="Trabajadores" />
+                    <StatCard value={summary.totalAssessments} label="Evaluaciones aplicadas" />
+                    <StatCard
+                        value={groups.d}
+                        label="Grupo D · trabajadores"
+                        accent={groups.d > 0 ? rc("MUY_ALTO") : PAPER.ink}
+                    />
+                    <StatCard
+                        value={`${summary.criticalWorkerPercent}%`}
+                        label="Trabajadores en zona crítica"
+                        accent={summary.needsSVE ? rc("ALTO") : PAPER.ink}
+                    />
+                </div>
+
+                <Micro style={{ marginTop: 14 }}>
+                    A cada trabajador se le aplican hasta tres cuestionarios, de modo que el número
+                    de evaluaciones es mayor que el de personas. El umbral del 20% de la Resolución
+                    2764 se contrasta contra el número de trabajadores.
+                </Micro>
+
+                {summary.needsSVE && (
+                    <div style={{ marginTop: 16 }}>
+                        <NoteBlock accent={rc("MUY_ALTO")}>
+                            <strong>Obligatoriedad.</strong> El {summary.criticalWorkerPercent}% de
+                            los trabajadores —{summary.criticalWorkers} de {summary.uniqueWorkers}—
+                            se ubica en nivel de riesgo Alto o Muy Alto. Al superarse el umbral del
+                            20% de la población evaluada, la organización tiene la obligación de
+                            implementar y mantener activo este Programa de Vigilancia
+                            Epidemiológica.
+                        </NoteBlock>
+                    </div>
+                )}
+
+                <SectionTitle n={2}>Perfil general de riesgo</SectionTitle>
+                <div className="space-y-3">
+                    {instruments.map(({ title, n, dist }) => (
+                        <div
+                            key={title}
+                            style={{
+                                background: PAPER.panel,
+                                border: `1px solid ${PAPER.rule}`,
+                                padding: 16,
+                            }}
+                        >
+                            <div className="flex items-baseline justify-between gap-4">
+                                <span style={{ fontFamily: serif, fontSize: 16, fontWeight: 600 }}>
+                                    {title}
+                                </span>
+                                <Micro size={11} color={PAPER.ink3}>
+                                    {n} evaluaciones
+                                </Micro>
+                            </div>
+                            <div style={{ marginTop: 10 }}>
+                                <StackedBar dist={dist} height={11} />
+                            </div>
+                            <div className="grid grid-cols-5 mt-2.5">
+                                {RISK_KEYS.map(k => (
+                                    <div key={k} style={{ textAlign: "center" }}>
+                                        <div
+                                            style={{
+                                                ...numStyle,
+                                                fontSize: 14,
+                                                fontWeight: 600,
+                                                color: rc(k),
+                                            }}
+                                        >
+                                            {dist[k]}%
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontFamily: "var(--font-report-sans), sans-serif",
+                                                fontSize: 9,
+                                                color: PAPER.ink3,
+                                            }}
+                                        >
+                                            {RISK_LABEL[k]}
+                                        </div>
                                     </div>
-                                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                        <div className={`h-full rounded-full ${RISK_BAR[k]}`} style={{ width: `${dist[k]}%` }} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div style={{ marginTop: 14 }}>
+                    <RiskLegend />
+                </div>
+
+                <SectionTitle n={3}>Grupos de intervención</SectionTitle>
+                <p style={{ marginTop: 0 }}>
+                    El cruce entre condiciones de trabajo y condiciones de salud separa a la
+                    población en cuatro grupos, cada uno con una respuesta distinta.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <QuadCell
+                        tag="Grupo A"
+                        name="Sanos"
+                        n={groups.a}
+                        desc="Sin riesgo crítico y sin sintomatología. Mantener las condiciones actuales."
+                        accent={rc("SIN_RIESGO")}
+                    />
+                    <QuadCell
+                        tag="Grupo B"
+                        name="Vulnerables"
+                        n={groups.b}
+                        desc="Sintomatología alta sin exposición crítica. Revisar factores extralaborales e individuales."
+                        accent={rc("MEDIO")}
+                    />
+                    <QuadCell
+                        tag="Grupo C"
+                        name="Adaptados"
+                        n={groups.c}
+                        desc="Exposición crítica sin sintomatología. Intervenir antes de que aparezca el daño."
+                        accent={rc("ALTO")}
+                    />
+                    <QuadCell
+                        tag="Grupo D"
+                        name="Prioridad de intervención"
+                        n={groups.d}
+                        desc="Riesgo y sintomatología simultáneos. Atención inmediata e individual."
+                        accent={rc("MUY_ALTO")}
+                    />
+                </div>
+
+                {(domains.formA.length > 0 || domains.formB.length > 0) && (
+                    <>
+                        <SectionTitle n={4}>Resultado por dominios</SectionTitle>
+                        {[
+                            { label: "Forma A", items: domains.formA },
+                            { label: "Forma B", items: domains.formB },
+                        ]
+                            .filter(g => g.items.length > 0)
+                            .map(g => (
+                                <div key={g.label}>
+                                    <SubTitle>{g.label}</SubTitle>
+                                    <div className="space-y-6">
+                                        {g.items.map(dom => (
+                                            <div key={dom.name}>
+                                                <div className="flex items-end justify-between gap-4">
+                                                    <span
+                                                        style={{
+                                                            fontFamily: serif,
+                                                            fontSize: 15,
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        {dom.name}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            ...numStyle,
+                                                            fontSize: 14,
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        {dom.avg}
+                                                    </span>
+                                                </div>
+                                                <div style={{ marginTop: 8 }}>
+                                                    <BandScale bounds={dom.bounds} value={dom.avg} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                    </>
+                )}
+
+                {criticalDimensions.length > 0 && (
+                    <>
+                        <SectionTitle n={5}>Dimensiones en riesgo crítico</SectionTitle>
+                        <ETable
+                            headers={["Dimensión", "Cuestionario", "Evaluados", "% crítico"]}
+                            align={["left", "left", "center", "center"]}
+                            rows={criticalDimensions.slice(0, 12).map(x => [
+                                <span key="n" style={{ color: PAPER.ink, fontWeight: 500 }}>
+                                    {x.name}
+                                </span>,
+                                x.questionnaire,
+                                <span key="c" style={numStyle}>
+                                    {x.count}
+                                </span>,
+                                <span
+                                    key="p"
+                                    style={{
+                                        ...numStyle,
+                                        fontWeight: 600,
+                                        color:
+                                            x.criticalPercent >= 40
+                                                ? rc("MUY_ALTO")
+                                                : x.criticalPercent >= 20
+                                                  ? rc("ALTO")
+                                                  : PAPER.ink2,
+                                    }}
+                                >
+                                    {x.criticalPercent}%
+                                </span>,
+                            ])}
+                        />
+                    </>
+                )}
+
+                {areas.length > 0 && (
+                    <>
+                        <SectionTitle n={6}>Análisis por áreas de trabajo</SectionTitle>
+                        <div className="space-y-5">
+                            {areas.map(a => (
+                                <div key={a.name}>
+                                    <div className="flex items-end justify-between gap-4">
+                                        <span
+                                            style={{
+                                                fontFamily: serif,
+                                                fontSize: 15,
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            {a.name}
+                                        </span>
+                                        <Micro size={11} color={PAPER.ink3}>
+                                            {a.workers} trabajadores · {a.assessments} evaluaciones
+                                        </Micro>
+                                    </div>
+                                    <div style={{ marginTop: 7 }}>
+                                        <StackedBar dist={a.dist} height={9} />
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ))}
+                        <div style={{ marginTop: 14 }}>
+                            <RiskLegend />
+                        </div>
+                    </>
+                )}
+
+                <div style={{ marginTop: 40 }}>
+                    <NoteBlock>
+                        Esta vista previa muestra las secciones que dependen de los datos de la
+                        organización. El documento completo incluye además el marco normativo, los
+                        objetivos y el alcance del programa, la metodología de vigilancia, las
+                        conductas a seguir por grupo, el análisis psicosocial del puesto de trabajo,
+                        el plan de intervención y el control documental.
+                    </NoteBlock>
                 </div>
-            </section>
+            </Paper>
 
-            {criticalDimensions.length > 0 && (
-                <section className="space-y-3">
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Dimensiones en riesgo crítico</h2>
-                    <div className="border border-border rounded-xl overflow-hidden">
-                        <table className="w-full text-sm">
-                            <thead className="bg-muted/50 text-[10px] uppercase tracking-wider text-muted-foreground">
-                                <tr>
-                                    <th className="text-left px-4 py-2.5 font-bold">Dimensión</th>
-                                    <th className="text-left px-4 py-2.5 font-bold">Cuestionario</th>
-                                    <th className="text-center px-4 py-2.5 font-bold">% Crítico</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {criticalDimensions.slice(0, 8).map(d => (
-                                    <tr key={`${d.name}-${d.questionnaire}`}>
-                                        <td className="px-4 py-2.5 font-medium text-foreground">{d.name}</td>
-                                        <td className="px-4 py-2.5 text-muted-foreground">{d.questionnaire}</td>
-                                        <td className={`px-4 py-2.5 text-center font-bold ${
-                                            d.criticalPercent >= 40 ? "text-red-700"
-                                            : d.criticalPercent >= 20 ? "text-orange-600"
-                                            : "text-muted-foreground"
-                                        }`}>
-                                            {d.criticalPercent}%
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            )}
-
-            {areas.length > 0 && (
-                <section className="space-y-3">
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Áreas evaluadas</h2>
-                    <div className="flex flex-wrap gap-2">
-                        {areas.map(a => (
-                            <span key={a.name} className="px-3 py-1.5 bg-muted rounded-lg text-xs text-foreground">
-                                {a.name} <span className="text-muted-foreground">· {a.workers} trab.</span>
-                            </span>
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            <div className="flex justify-end pt-4 border-t border-border">
-                <SVEPrintButton orgId={orgId} />
+            <div className="flex justify-end mt-6">
+                <DownloadReportButton href={href} fallbackName="Programa_SVE.pdf" />
             </div>
         </div>
     );
