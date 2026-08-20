@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "@/lib/ai/models";
 
 export async function POST(
     req: NextRequest,
@@ -42,7 +43,7 @@ ${JSON.stringify(riskSummary)}
 
 Redacta en un tono profesional, objetivo y en primera persona, las conclusiones generales y un plan de acción sugerido (a corto, mediano y largo plazo) enfocado en las dimensiones que salieron en Riesgo Alto o Muy Alto.`;
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const response = await fetch(OPENROUTER_URL, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
@@ -51,7 +52,7 @@ Redacta en un tono profesional, objetivo y en primera persona, las conclusiones 
                 "X-Title": "PsicoSST",
             },
             body: JSON.stringify({
-                model: "anthropic/claude-3.5-haiku",
+                model: MODEL_DRAFTING,
                 messages: [{ role: "user", content: prompt }],
             })
         });

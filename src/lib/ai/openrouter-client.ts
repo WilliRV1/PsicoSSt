@@ -2,6 +2,7 @@
  * OpenRouter AI Client for PsicoSST
  * Provides methods to generate psychosocial recommendations and interpretations
  */
+import { MODEL_ANALYSIS, MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "./models";
 
 interface OpenRouterMessage {
   role: 'user' | 'assistant';
@@ -30,7 +31,7 @@ interface OpenRouterResponse {
 }
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OPENROUTER_API_URL = OPENROUTER_URL;
 
 /**
  * Call OpenRouter API
@@ -47,8 +48,7 @@ async function callOpenRouter(request: OpenRouterRequest): Promise<string> {
     headers: {
       Authorization: `Bearer ${OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://psicosst.app',
-      'X-Title': 'PsicoSST',
+      ...OPENROUTER_HEADERS,
     },
     body: JSON.stringify({
       ...request,
@@ -58,9 +58,17 @@ async function callOpenRouter(request: OpenRouterRequest): Promise<string> {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    // El cuerpo de error no siempre es JSON: un 502 del borde llega como HTML y
+    // `response.json()` lanzaría, sustituyendo el fallo real por uno de parseo.
+    const body = await response.text();
+    let detail = response.statusText;
+    try {
+      detail = JSON.parse(body)?.error?.message ?? detail;
+    } catch {
+      detail = body.slice(0, 200) || detail;
+    }
     throw new Error(
-      `OpenRouter API error: ${error.error?.message || response.statusText}`
+      `OpenRouter respondió ${response.status} para el modelo ${request.model}: ${detail}`
     );
   }
 
@@ -140,7 +148,7 @@ Cuándo y cómo reevaluar. Señales de alerta a monitorear. Criterio de derivaci
 Responde ÚNICAMENTE con el contenido de las secciones, sin introducción ni texto previo.`;
 
   return callOpenRouter({
-    model: 'anthropic/claude-3-5-sonnet',
+    model: MODEL_ANALYSIS,
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 1800,
     temperature: 0.55,
@@ -192,7 +200,7 @@ Redacta entre 250 y 350 palabras en prosa profesional continua (sin viñetas, si
 Escribe como el psicólogo que tú eres — con criterio clínico, con datos, sin frases vacías. Responde ÚNICAMENTE con el texto de la interpretación.`;
 
   return callOpenRouter({
-    model: 'anthropic/claude-3-5-sonnet',
+    model: MODEL_ANALYSIS,
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 900,
     temperature: 0.6,
@@ -212,7 +220,7 @@ Nivel de riesgo global: ${scoreData.overallRiskCategory}
 Explica qué significa este nivel de riesgo para el trabajador y la organización, y proporciona contexto sobre las áreas prioritarias de intervención.`;
 
   const response = await callOpenRouter({
-    model: 'anthropic/claude-3-5-haiku',
+    model: MODEL_DRAFTING,
     messages: [
       {
         role: 'user',
@@ -280,7 +288,7 @@ export interface OrgDiagnosticInput {
 
 /**
  * Generate a comprehensive organizational psychosocial risk diagnostic report.
- * Uses claude-3.5-sonnet for higher-quality, decision-oriented output.
+ * Usa el modelo de análisis (ver lib/ai/models.ts), no el de redacción.
  */
 export async function generateOrganizationalDiagnosis(
   data: OrgDiagnosticInput
@@ -413,7 +421,7 @@ Tabla con 5-6 KPIs específicos y medibles:
 *Diagnóstico generado con base en la Batería de Riesgo Psicosocial — Resolución 2764 de 2022*`;
 
   return callOpenRouter({
-    model: 'anthropic/claude-3-5-sonnet',
+    model: MODEL_ANALYSIS,
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 4000,
     temperature: 0.5,
@@ -523,7 +531,7 @@ Antigüedad en la empresa: ${fmt(data.sociodemographic.tenureDistribution) || "S
 Genera ÚNICAMENTE el prompt final optimizado para copiar y pegar en ${data.platform === "gamma" ? "Gamma AI" : "Canva AI"}. No incluyas ningún texto introductorio, explicación, ni comentario tuyo. El output debe comenzar directamente con el prompt.`;
 
   return callOpenRouter({
-    model: "anthropic/claude-3-5-haiku",
+    model: MODEL_DRAFTING,
     messages: [{ role: "user", content: metaPrompt }],
     max_tokens: 3000,
     temperature: 0.6,
@@ -549,7 +557,7 @@ Redacta de 3 a 5 recomendaciones organizacionales específicas basadas en los re
 El texto generado irá directo al reporte, así que usa un tono profesional de consultor experto y abstente de frases introductorias (ej. "Aquí están las recomendaciones").`;
 
   const response = await callOpenRouter({
-    model: 'anthropic/claude-3-5-haiku',
+    model: MODEL_DRAFTING,
     messages: [
       {
         role: 'user',

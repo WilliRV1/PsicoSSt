@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildDiagnosticData, type DiagnosticData, type DiagnosticAssets } from "./diagnostic-data";
 import { RISK_ORDER, type RiskLevel } from "./battery-content";
+import { MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "@/lib/ai/models";
 
 /**
  * Datos del informe colectivo, en sus dos variantes.
@@ -234,7 +235,10 @@ async function generateNarrative(
     alerts: EpidemiologicalAlert[]
 ): Promise<AiResult> {
     const key = process.env.OPENROUTER_API_KEY;
-    if (!key) return { narrative: null, actionPlan: [] };
+    if (!key) {
+        console.warn("[IA] OPENROUTER_API_KEY no está configurada; se omite la lectura consultiva.");
+        return { narrative: null, actionPlan: [] };
+    }
 
     const topDimensions = d.dimensions
         .filter(x => x.criticalPercent >= 20)
@@ -262,21 +266,29 @@ Responde únicamente con un objeto JSON:
 Incluye entre 3 y 5 acciones, derivadas de los hallazgos anteriores.`;
 
     try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        const res = await fetch(OPENROUTER_URL, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${key}`,
                 "Content-Type": "application/json",
-                "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-                "X-Title": "PsicoSST",
+                ...OPENROUTER_HEADERS,
             },
             body: JSON.stringify({
-                model: "anthropic/claude-3.5-haiku",
+                model: MODEL_DRAFTING,
                 messages: [{ role: "user", content: prompt }],
             }),
             signal: AbortSignal.timeout(25_000),
         });
-        if (!res.ok) return { narrative: null, actionPlan: [] };
+        if (!res.ok) {
+            // Sin este registro el informe salía sin la sección y sin decir por
+            // qué, de modo que una clave revocada o un modelo retirado eran
+            // indistinguibles de "la IA está desactivada".
+            console.error(
+                `[IA] OpenRouter respondió ${res.status} para el modelo ${MODEL_DRAFTING}:`,
+                (await res.text()).slice(0, 300)
+            );
+            return { narrative: null, actionPlan: [] };
+        }
 
         const body = await res.json();
         const content: string = body?.choices?.[0]?.message?.content ?? "";
@@ -304,7 +316,8 @@ Incluye entre 3 y 5 acciones, derivadas de los hallazgos anteriores.`;
             : [];
 
         return { narrative: narrative || null, actionPlan };
-    } catch {
+    } catch (error) {
+        console.error("[IA] Falló la lectura consultiva:", error);
         return { narrative: null, actionPlan: [] };
     }
 }
