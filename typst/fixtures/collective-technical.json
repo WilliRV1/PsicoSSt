@@ -1,0 +1,814 @@
+{
+  "minGroupSize": 10,
+  "glossary": [
+    {
+      "name": "Demandas ambientales y de esfuerzo físico",
+      "definition": "Condiciones del lugar de trabajo y carga física que exigen del trabajador un esfuerzo de adaptación: ruido, iluminación, temperatura, higiene, orden, ventilación, vibración y esfuerzo físico."
+    },
+    {
+      "name": "Demandas de la jornada de trabajo",
+      "definition": "Exigencias del tiempo laboral en cuanto a duración, horario, turnos y periodos destinados a pausas y descansos."
+    },
+    {
+      "name": "Retroalimentación del desempeño",
+      "definition": "Información que el trabajador recibe sobre la forma como realiza su trabajo, y que le permite identificar sus fortalezas y los aspectos que debe mejorar."
+    },
+    {
+      "name": "Participación y manejo del cambio",
+      "definition": "Mecanismos organizacionales orientados a incrementar la capacidad de adaptarse a los cambios en el trabajo, incluida la información previa y la posibilidad de opinar sobre ellos."
+    },
+    {
+      "name": "Demandas cuantitativas",
+      "definition": "Exigencias relativas a la cantidad de trabajo que debe ejecutarse en relación con el tiempo disponible para hacerlo."
+    },
+    {
+      "name": "Características de la vivienda y de su entorno",
+      "definition": "Condiciones de infraestructura, ubicación, servicios y entorno de la vivienda donde habita el trabajador."
+    },
+    {
+      "name": "Tiempo fuera del trabajo",
+      "definition": "Cantidad y calidad del tiempo del que dispone el trabajador para el descanso, la recreación y la atención de sus asuntos personales."
+    },
+    {
+      "name": "Oportunidades de desarrollo y uso de habilidades",
+      "definition": "Posibilidad que el trabajo le ofrece al trabajador de aplicar, aprender y desarrollar sus habilidades y conocimientos."
+    },
+    {
+      "name": "Relaciones familiares",
+      "definition": "Propiedades que caracterizan las interacciones del trabajador con su núcleo familiar, incluidos el apoyo percibido y la calidad del vínculo."
+    },
+    {
+      "name": "Consistencia del rol",
+      "definition": "Compatibilidad entre las distintas exigencias del cargo y los principios de eficiencia, calidad técnica y ética propios del servicio o producto."
+    },
+    {
+      "name": "Síntomas psicoemocionales",
+      "definition": "Manifestaciones afectivas de la respuesta de estrés: ansiedad, irritabilidad, tristeza y sensación de sobrecarga."
+    },
+    {
+      "name": "Influencia del entorno extralaboral sobre el trabajo",
+      "definition": "Influjo de las exigencias de los roles familiares y personales sobre el bienestar y la actividad laboral del trabajador."
+    },
+    {
+      "name": "Demandas de carga mental",
+      "definition": "Demandas de procesamiento cognitivo que impone la tarea: atención sostenida, memoria y análisis de información para generar una respuesta."
+    },
+    {
+      "name": "Recompensas de la pertenencia a la organización",
+      "definition": "Sentimiento de orgullo y percepción de estabilidad laboral, así como la percepción del trabajo como elemento que dignifica a quien lo realiza."
+    },
+    {
+      "name": "Exigencias de responsabilidad del cargo",
+      "definition": "Obligaciones implícitas en el cargo cuyos resultados no pueden ser transferidos a otra persona: manejo de bienes, información confidencial, o la salud y seguridad de otros."
+    },
+    {
+      "name": "Claridad de rol",
+      "definition": "Definición y comunicación del papel que se espera que el trabajador desempeñe: objetivos, funciones, resultados esperados, margen de autonomía e impacto del cargo en la organización."
+    },
+    {
+      "name": "Reconocimiento y compensación",
+      "definition": "Conjunto de retribuciones que la organización otorga al trabajador en contraprestación al esfuerzo realizado: retribución económica, valoración y reconocimiento del trabajo."
+    },
+    {
+      "name": "Comunicación y relaciones interpersonales",
+      "definition": "Cualidades que caracterizan la comunicación e interacción del trabajador con sus allegados y amigos fuera del ámbito laboral."
+    },
+    {
+      "name": "Influencia del trabajo sobre el entorno extralaboral",
+      "definition": "Exigencias de tiempo y esfuerzo que el trabajo impone y que terminan afectando la vida personal y familiar del trabajador."
+    },
+    {
+      "name": "Situación económica del grupo familiar",
+      "definition": "Disponibilidad de medios económicos del grupo familiar para atender los gastos básicos y hacer frente a imprevistos."
+    },
+    {
+      "name": "Síntomas intelectuales y laborales",
+      "definition": "Alteraciones del rendimiento cognitivo y laboral: dificultades de concentración y memoria, desmotivación y aumento de la accidentalidad."
+    },
+    {
+      "name": "Relaciones sociales en el trabajo",
+      "definition": "Cantidad y calidad de las interacciones que se establecen con otras personas en el trabajo, el trabajo en equipo y la cohesión del grupo."
+    },
+    {
+      "name": "Características del liderazgo",
+      "definition": "Atributos de la gestión de los jefes inmediatos en la planificación y asignación del trabajo, la consecución de resultados, la resolución de conflictos, la motivación, el apoyo y la comunicación con sus colaboradores."
+    },
+    {
+      "name": "Síntomas de comportamiento social",
+      "definition": "Cambios en la conducta de relación: aislamiento, dificultades en el trato con otros y aumento del consumo de sustancias."
+    },
+    {
+      "name": "Desplazamiento vivienda–trabajo–vivienda",
+      "definition": "Condiciones en que se realiza el traslado entre la vivienda y el lugar de trabajo: comodidad, duración y medio de transporte utilizado."
+    },
+    {
+      "name": "Control y autonomía sobre el trabajo",
+      "definition": "Margen de decisión del trabajador sobre el orden de sus actividades, la cantidad, el ritmo, la forma de trabajar y las pausas durante la jornada."
+    },
+    {
+      "name": "Relación con los colaboradores",
+      "definition": "Atributos de la gestión de los subordinados en la ejecución del trabajo, la consecución de resultados, la resolución de conflictos y la participación. Sólo se evalúa en trabajadores con personal a cargo."
+    },
+    {
+      "name": "Capacitación",
+      "definition": "Actividades de inducción, entrenamiento y formación que la organización brinda para desarrollar y fortalecer los conocimientos y habilidades del trabajador."
+    },
+    {
+      "name": "Síntomas fisiológicos",
+      "definition": "Manifestaciones corporales asociadas a la respuesta de estrés: alteraciones cardiovasculares y gastrointestinales, dolores de cabeza y trastornos del sueño."
+    },
+    {
+      "name": "Demandas emocionales",
+      "definition": "Situaciones afectivas propias del contenido de la tarea con potencial de interferir con los sentimientos del trabajador, incluidas la exposición al sufrimiento de terceros y la obligación de ocultar las emociones propias."
+    }
+  ],
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "city": "Cali",
+    "economicSector": "Industria manufacturera",
+    "dateStart": "12 de marzo de 2026",
+    "dateEnd": "28 de julio de 2026",
+    "today": "19 de agosto de 2026"
+  },
+  "brand": {
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
+    "logoPath": null
+  },
+  "professional": {
+    "name": "William Reyes Valencia",
+    "license": "12345 de 2019",
+    "signaturePath": null
+  },
+  "coverage": {
+    "uniqueWorkers": 160,
+    "totalAssessments": 413,
+    "intra": 160,
+    "extra": 128,
+    "stress": 125,
+    "unsigned": 23,
+    "criticalPercent": 35,
+    "criticalWorkerPercent": 56,
+    "criticalWorkers": 90,
+    "predominant": {
+      "level": "MEDIO",
+      "label": "Medio",
+      "percent": 25
+    },
+    "highest": {
+      "level": "MUY_ALTO",
+      "label": "Muy alto",
+      "count": 58
+    }
+  },
+  "distributions": {
+    "intra": {
+      "SIN_RIESGO": 11,
+      "BAJO": 17,
+      "MEDIO": 22,
+      "ALTO": 29,
+      "MUY_ALTO": 21
+    },
+    "extra": {
+      "SIN_RIESGO": 19,
+      "BAJO": 24,
+      "MEDIO": 26,
+      "ALTO": 19,
+      "MUY_ALTO": 12
+    },
+    "stress": {
+      "SIN_RIESGO": 14,
+      "BAJO": 21,
+      "MEDIO": 23,
+      "ALTO": 27,
+      "MUY_ALTO": 15
+    }
+  },
+  "correlation": [
+    [
+      6,
+      4,
+      3,
+      1,
+      0
+    ],
+    [
+      4,
+      9,
+      7,
+      4,
+      2
+    ],
+    [
+      3,
+      6,
+      12,
+      9,
+      5
+    ],
+    [
+      2,
+      5,
+      9,
+      15,
+      11
+    ],
+    [
+      1,
+      3,
+      6,
+      12,
+      14
+    ]
+  ],
+  "correlationBase": 153,
+  "groups": {
+    "sanos": 54,
+    "vulnerables": 21,
+    "adaptados": 26,
+    "prioritarios": 52
+  },
+  "domains": {
+    "formA": [
+      {
+        "key": "liderazgo_relaciones",
+        "name": "Liderazgo y Relaciones Sociales en el Trabajo",
+        "definition": "Agrupa las condiciones relativas a la gestión de los jefes inmediatos, la calidad de las interacciones con compañeros y colaboradores, y la información que el trabajador recibe sobre su propio desempeño.",
+        "avg": 29.2,
+        "level": "ALTO",
+        "bounds": [
+          8.3,
+          17.5,
+          26.7,
+          38.3,
+          100
+        ],
+        "count": 72,
+        "action": "Programa de desarrollo de líderes y de convivencia laboral, con énfasis en habilidades de dirección y resolución de conflictos."
+      },
+      {
+        "key": "control_trabajo",
+        "name": "Control sobre el Trabajo",
+        "definition": "Agrupa el margen de decisión del trabajador sobre su tarea, la claridad con que se le ha comunicado su rol, y las oportunidades de formación, participación y desarrollo que la organización le ofrece.",
+        "avg": 38.8,
+        "level": "ALTO",
+        "bounds": [
+          10.7,
+          19,
+          29.8,
+          40.5,
+          100
+        ],
+        "count": 72,
+        "action": "Rediseño participativo del puesto: ampliar el margen de decisión, precisar el rol y ampliar la oferta de formación."
+      },
+      {
+        "key": "demandas_trabajo",
+        "name": "Demandas del Trabajo",
+        "definition": "Agrupa las exigencias que el trabajo impone al trabajador: cuantitativas, cognitivas, emocionales, ambientales, de responsabilidad, de jornada y de invasión del tiempo extralaboral.",
+        "avg": 34.8,
+        "level": "BAJO",
+        "bounds": [
+          28.5,
+          35,
+          41.5,
+          47.5,
+          100
+        ],
+        "count": 72,
+        "action": null
+      },
+      {
+        "key": "recompensa",
+        "name": "Recompensa",
+        "definition": "Agrupa el conjunto de retribuciones que el trabajador recibe a cambio de su esfuerzo, tanto económicas y de reconocimiento como simbólicas —orgullo de pertenencia y estabilidad percibida—.",
+        "avg": 42.4,
+        "level": "MUY_ALTO",
+        "bounds": [
+          2.3,
+          9.1,
+          20.5,
+          36.4,
+          100
+        ],
+        "count": 72,
+        "action": "Revisión del esquema de compensación y reconocimiento, y refuerzo de los programas de bienestar y desarrollo de carrera."
+      }
+    ],
+    "formB": [
+      {
+        "key": "liderazgo_relaciones",
+        "name": "Liderazgo y Relaciones Sociales en el Trabajo",
+        "definition": "Agrupa las condiciones relativas a la gestión de los jefes inmediatos, la calidad de las interacciones con compañeros y colaboradores, y la información que el trabajador recibe sobre su propio desempeño.",
+        "avg": 29.3,
+        "level": "ALTO",
+        "bounds": [
+          9.1,
+          17.7,
+          25.6,
+          34.8,
+          100
+        ],
+        "count": 88,
+        "action": "Programa de desarrollo de líderes y de convivencia laboral, con énfasis en habilidades de dirección y resolución de conflictos."
+      },
+      {
+        "key": "control_trabajo",
+        "name": "Control sobre el Trabajo",
+        "definition": "Agrupa el margen de decisión del trabajador sobre su tarea, la claridad con que se le ha comunicado su rol, y las oportunidades de formación, participación y desarrollo que la organización le ofrece.",
+        "avg": 38.9,
+        "level": "ALTO",
+        "bounds": [
+          19.4,
+          26.4,
+          34.7,
+          43.1,
+          100
+        ],
+        "count": 88,
+        "action": "Rediseño participativo del puesto: ampliar el margen de decisión, precisar el rol y ampliar la oferta de formación."
+      },
+      {
+        "key": "demandas_trabajo",
+        "name": "Demandas del Trabajo",
+        "definition": "Agrupa las exigencias que el trabajo impone al trabajador: cuantitativas, cognitivas, emocionales, ambientales, de responsabilidad, de jornada y de invasión del tiempo extralaboral.",
+        "avg": 34.9,
+        "level": "MEDIO",
+        "bounds": [
+          26.9,
+          33.3,
+          37.8,
+          44.2,
+          100
+        ],
+        "count": 88,
+        "action": null
+      },
+      {
+        "key": "recompensa",
+        "name": "Recompensa",
+        "definition": "Agrupa el conjunto de retribuciones que el trabajador recibe a cambio de su esfuerzo, tanto económicas y de reconocimiento como simbólicas —orgullo de pertenencia y estabilidad percibida—.",
+        "avg": 42.5,
+        "level": "MUY_ALTO",
+        "bounds": [
+          2.3,
+          9.1,
+          20.5,
+          34.1,
+          100
+        ],
+        "count": 88,
+        "action": "Revisión del esquema de compensación y reconocimiento, y refuerzo de los programas de bienestar y desarrollo de carrera."
+      }
+    ]
+  },
+  "dimensions": [
+    {
+      "key": "demandas_ambientales",
+      "name": "Demandas ambientales y de esfuerzo físico",
+      "questionnaire": "Intralaboral",
+      "avg": 72.4,
+      "criticalPercent": 60,
+      "count": 160,
+      "priority": 67,
+      "action": "Realizar mediciones de higiene industrial (ruido, iluminación, ergonomía) en el puesto e implementar pausas activas."
+    },
+    {
+      "key": "demandas_jornada",
+      "name": "Demandas de la jornada de trabajo",
+      "questionnaire": "Intralaboral",
+      "avg": 79.2,
+      "criticalPercent": 44,
+      "count": 160,
+      "priority": 65,
+      "action": "Revisar el esquema de turnos, limitar estrictamente las horas extra y garantizar los descansos compensatorios."
+    },
+    {
+      "key": "retroalimentacion_desempeno",
+      "name": "Retroalimentación del desempeño",
+      "questionnaire": "Intralaboral",
+      "avg": 74.2,
+      "criticalPercent": 52,
+      "count": 160,
+      "priority": 65,
+      "action": "Institucionalizar evaluaciones de desempeño periódicas orientadas al desarrollo y no únicamente a la crítica."
+    },
+    {
+      "key": "participacion_cambio",
+      "name": "Participación y manejo del cambio",
+      "questionnaire": "Intralaboral",
+      "avg": 69.9,
+      "criticalPercent": 37,
+      "count": 160,
+      "priority": 57,
+      "action": "Involucrar al trabajador en las decisiones que afectan su trabajo y comunicar los cambios organizacionales con antelación."
+    },
+    {
+      "key": "demandas_cuantitativas",
+      "name": "Demandas cuantitativas",
+      "questionnaire": "Intralaboral",
+      "avg": 76.5,
+      "criticalPercent": 21,
+      "count": 160,
+      "priority": 54,
+      "action": "Analizar la carga de trabajo del puesto y redistribuir funciones o reforzar el equipo en los picos operativos."
+    },
+    {
+      "key": "caracteristicas_vivienda",
+      "name": "Características de la vivienda y de su entorno",
+      "questionnaire": "Extralaboral",
+      "avg": 70.7,
+      "criticalPercent": 29,
+      "count": 128,
+      "priority": 54,
+      "action": "Informar sobre subsidios de vivienda y programas de mejoramiento de la caja de compensación familiar."
+    },
+    {
+      "key": "tiempo_fuera_trabajo",
+      "name": "Tiempo fuera del trabajo",
+      "questionnaire": "Extralaboral",
+      "avg": 81.3,
+      "criticalPercent": 5,
+      "count": 128,
+      "priority": 51,
+      "action": "Orientar sobre el uso del tiempo libre y facilitar el acceso a convenios recreativos o deportivos de la caja de compensación."
+    },
+    {
+      "key": "oportunidades_desarrollo",
+      "name": "Oportunidades de desarrollo y uso de habilidades",
+      "questionnaire": "Intralaboral",
+      "avg": 56.6,
+      "criticalPercent": 38,
+      "count": 160,
+      "priority": 49,
+      "action": "Asignar tareas que reten sus capacidades y considerar rotación de puestos para enriquecer la experiencia."
+    },
+    {
+      "key": "relaciones_familiares",
+      "name": "Relaciones familiares",
+      "questionnaire": "Extralaboral",
+      "avg": 57.8,
+      "criticalPercent": 30,
+      "count": 128,
+      "priority": 47,
+      "action": "Vincular al trabajador y su familia a las actividades de bienestar, y ofrecer orientación familiar si la acepta."
+    },
+    {
+      "key": "consistencia_rol",
+      "name": "Consistencia del rol",
+      "questionnaire": "Intralaboral",
+      "avg": 65.4,
+      "criticalPercent": 14,
+      "count": 160,
+      "priority": 45,
+      "action": "Estandarizar los procesos del cargo y verificar que las instrucciones recibidas no sean contradictorias entre sí."
+    },
+    {
+      "key": "sintomas_psicoemocionales",
+      "name": "Síntomas psicoemocionales",
+      "questionnaire": "Estrés",
+      "avg": 68.4,
+      "criticalPercent": 6,
+      "count": 125,
+      "priority": 43,
+      "action": "Activar la ruta de atención en salud mental y remitir a la EPS para valoración por psicología o psiquiatría."
+    },
+    {
+      "key": "influencia_entorno_extralaboral",
+      "name": "Influencia del entorno extralaboral sobre el trabajo",
+      "questionnaire": "Extralaboral",
+      "avg": 39.7,
+      "criticalPercent": 47,
+      "count": 128,
+      "priority": 43,
+      "action": "Hacer seguimiento del caso y considerar flexibilidad temporal mientras persista la situación extralaboral."
+    },
+    {
+      "key": "demandas_carga_mental",
+      "name": "Demandas de carga mental",
+      "questionnaire": "Intralaboral",
+      "avg": 51.3,
+      "criticalPercent": 15,
+      "count": 160,
+      "priority": 37,
+      "action": "Establecer pausas cognitivas regulares y optimizar las herramientas de trabajo para reducir la fricción operativa."
+    },
+    {
+      "key": "recompensas_pertenencia",
+      "name": "Recompensas de la pertenencia a la organización",
+      "questionnaire": "Intralaboral",
+      "avg": 12.8,
+      "criticalPercent": 58,
+      "count": 160,
+      "priority": 31,
+      "action": "Reforzar los planes de bienestar y el sentido de propósito y pertenencia del trabajador."
+    },
+    {
+      "key": "exigencias_responsabilidad",
+      "name": "Exigencias de responsabilidad del cargo",
+      "questionnaire": "Intralaboral",
+      "avg": 42.2,
+      "criticalPercent": 8,
+      "count": 160,
+      "priority": 29,
+      "action": "Dotar al trabajador de los recursos —tiempo, presupuesto, equipo— que corresponden a la responsabilidad delegada."
+    },
+    {
+      "key": "claridad_rol",
+      "name": "Claridad de rol",
+      "questionnaire": "Intralaboral",
+      "avg": 14.1,
+      "criticalPercent": 49,
+      "count": 160,
+      "priority": 28,
+      "action": "Actualizar el perfil del cargo, comunicar expectativas concretas y eliminar las instrucciones contradictorias."
+    },
+    {
+      "key": "reconocimiento_compensacion",
+      "name": "Reconocimiento y compensación",
+      "questionnaire": "Intralaboral",
+      "avg": 24.9,
+      "criticalPercent": 25,
+      "count": 160,
+      "priority": 25,
+      "action": "Revisar la equidad de la compensación del cargo y establecer mecanismos de reconocimiento del logro."
+    },
+    {
+      "key": "comunicacion_relaciones",
+      "name": "Comunicación y relaciones interpersonales",
+      "questionnaire": "Extralaboral",
+      "avg": 1.7,
+      "criticalPercent": 59,
+      "count": 128,
+      "priority": 25,
+      "action": "Ofrecer formación en comunicación asertiva y resolución de conflictos aplicable a su entorno personal."
+    },
+    {
+      "key": "influencia_trabajo_extralaboral",
+      "name": "Influencia del trabajo sobre el entorno extralaboral",
+      "questionnaire": "Intralaboral",
+      "avg": 3.7,
+      "criticalPercent": 51,
+      "count": 160,
+      "priority": 23,
+      "action": "Aplicar de forma efectiva la política de desconexión laboral y respetar los horarios de descanso."
+    },
+    {
+      "key": "situacion_economica",
+      "name": "Situación económica del grupo familiar",
+      "questionnaire": "Extralaboral",
+      "avg": 31.1,
+      "criticalPercent": 9,
+      "count": 128,
+      "priority": 22,
+      "action": "Brindar educación financiera y facilitar el acceso a fondo de empleados o convenios de libranza."
+    },
+    {
+      "key": "sintomas_intelectuales",
+      "name": "Síntomas intelectuales y laborales",
+      "questionnaire": "Estrés",
+      "avg": 7.9,
+      "criticalPercent": 43,
+      "count": 125,
+      "priority": 22,
+      "action": "Revisar la carga cognitiva del puesto y vigilar los indicadores de accidentalidad y de rendimiento del trabajador."
+    },
+    {
+      "key": "relaciones_sociales",
+      "name": "Relaciones sociales en el trabajo",
+      "questionnaire": "Intralaboral",
+      "avg": 2,
+      "criticalPercent": 50,
+      "count": 160,
+      "priority": 21,
+      "action": "Crear espacios formales e informales de integración y activar los protocolos del Comité de Convivencia Laboral."
+    },
+    {
+      "key": "liderazgo_caracteristicas",
+      "name": "Características del liderazgo",
+      "questionnaire": "Intralaboral",
+      "avg": 11.8,
+      "criticalPercent": 26,
+      "count": 160,
+      "priority": 17,
+      "action": "Fortalecer las habilidades de dirección del jefe inmediato, con énfasis en comunicación asertiva y retroalimentación constructiva."
+    },
+    {
+      "key": "sintomas_sociales",
+      "name": "Síntomas de comportamiento social",
+      "questionnaire": "Estrés",
+      "avg": 11.6,
+      "criticalPercent": 26,
+      "count": 125,
+      "priority": 17,
+      "action": "Ofrecer primeros auxilios psicológicos y remitir a la EPS cuando el cuadro lo amerite."
+    },
+    {
+      "key": "desplazamiento_vivienda",
+      "name": "Desplazamiento vivienda–trabajo–vivienda",
+      "questionnaire": "Extralaboral",
+      "avg": 4.2,
+      "criticalPercent": 20,
+      "count": 128,
+      "priority": 11,
+      "action": "Evaluar trabajo híbrido, horarios escalonados o acceso a rutas de transporte para reducir el tiempo de traslado."
+    },
+    {
+      "key": "control_autonomia",
+      "name": "Control y autonomía sobre el trabajo",
+      "questionnaire": "Intralaboral",
+      "avg": 7,
+      "criticalPercent": 12,
+      "count": 160,
+      "priority": 9,
+      "action": "Reducir la supervisión excesiva, permitiendo que el trabajador defina el ritmo y el orden de sus tareas dentro de límites acordados."
+    },
+    {
+      "key": "relacion_colaboradores",
+      "name": "Relación con los colaboradores",
+      "questionnaire": "Intralaboral",
+      "avg": 1.9,
+      "criticalPercent": 19,
+      "count": 160,
+      "priority": 9,
+      "action": "Capacitar al trabajador en liderazgo participativo y gestión de equipos, dado que tiene personal a cargo."
+    },
+    {
+      "key": "capacitacion",
+      "name": "Capacitación",
+      "questionnaire": "Intralaboral",
+      "avg": 5,
+      "criticalPercent": 12,
+      "count": 160,
+      "priority": 8,
+      "action": "Incluir al trabajador en el plan anual de capacitación, a partir de las necesidades reales de su rol."
+    },
+    {
+      "key": "sintomas_fisiologicos",
+      "name": "Síntomas fisiológicos",
+      "questionnaire": "Estrés",
+      "avg": 0.5,
+      "criticalPercent": 19,
+      "count": 125,
+      "priority": 8,
+      "action": "Remitir a valoración médica ocupacional y vincular a los programas de salud preventiva de la organización."
+    },
+    {
+      "key": "demandas_emocionales",
+      "name": "Demandas emocionales",
+      "questionnaire": "Intralaboral",
+      "avg": 9.4,
+      "criticalPercent": 4,
+      "count": 160,
+      "priority": 7,
+      "action": "Proveer apoyo psicológico y entrenamiento en regulación emocional, y rotar las tareas de mayor desgaste emocional."
+    }
+  ],
+  "areas": {
+    "reported": [
+      {
+        "name": "Producción",
+        "workers": 62,
+        "assessments": 185,
+        "dist": {
+          "SIN_RIESGO": 13,
+          "BAJO": 20,
+          "MEDIO": 17,
+          "ALTO": 32,
+          "MUY_ALTO": 18
+        },
+        "criticalPercent": 50
+      },
+      {
+        "name": "Mantenimiento",
+        "workers": 11,
+        "assessments": 33,
+        "dist": {
+          "SIN_RIESGO": 8,
+          "BAJO": 12,
+          "MEDIO": 25,
+          "ALTO": 32,
+          "MUY_ALTO": 15
+        },
+        "criticalPercent": 47
+      },
+      {
+        "name": "Logística y almacén",
+        "workers": 34,
+        "assessments": 91,
+        "dist": {
+          "SIN_RIESGO": 12,
+          "BAJO": 13,
+          "MEDIO": 28,
+          "ALTO": 33,
+          "MUY_ALTO": 13
+        },
+        "criticalPercent": 46
+      },
+      {
+        "name": "Administración",
+        "workers": 25,
+        "assessments": 66,
+        "dist": {
+          "SIN_RIESGO": 8,
+          "BAJO": 21,
+          "MEDIO": 26,
+          "ALTO": 29,
+          "MUY_ALTO": 15
+        },
+        "criticalPercent": 44
+      },
+      {
+        "name": "Comercial",
+        "workers": 18,
+        "assessments": 52,
+        "dist": {
+          "SIN_RIESGO": 11,
+          "BAJO": 21,
+          "MEDIO": 16,
+          "ALTO": 25,
+          "MUY_ALTO": 14
+        },
+        "criticalPercent": 39
+      }
+    ],
+    "withheld": {
+      "areas": 2,
+      "workers": 10,
+      "assessments": 30
+    }
+  },
+  "variant": "technical",
+  "variantLabel": "Informe técnico",
+  "healthScore": 44,
+  "alerts": [
+    {
+      "variable": "Nivel del cargo",
+      "group": "Operativo",
+      "workers": 71,
+      "riskPercent": 78,
+      "difference": 22
+    },
+    {
+      "variable": "Edad",
+      "group": "Menores de 30 años",
+      "workers": 38,
+      "riskPercent": 74,
+      "difference": 18
+    },
+    {
+      "variable": "Sexo",
+      "group": "Femenino",
+      "workers": 86,
+      "riskPercent": 72,
+      "difference": 16
+    }
+  ],
+  "alertsWithheld": 2,
+  "validity": {
+    "years": 1,
+    "expiresOn": "19 de agosto de 2027",
+    "reasons": [
+      "el 56% de los trabajadores presenta riesgo alto o muy alto"
+    ]
+  },
+  "narrative": "La organización opera con un índice de salud psicosocial de 44 sobre 100, sostenido principalmente por la carga de trabajo del área de producción y por la ausencia de mecanismos formales de retroalimentación del desempeño. La concentración del riesgo en el personal operativo y en los menores de treinta años sugiere que la exposición se distribuye por condiciones del puesto y no por características individuales, lo que hace que la intervención sobre el diseño del trabajo tenga mayor rendimiento esperado que cualquier programa dirigido a la persona. Los cincuenta y dos trabajadores del grupo de prioridad requieren atención individual paralela, sin esperar a que maduren las medidas estructurales.",
+  "actionPlan": [
+    {
+      "priority": "Alta",
+      "action": "Rediseñar el esquema de turnos del área de producción y limitar las horas extra",
+      "responsible": "Producción y Talento Humano",
+      "time": "60 días",
+      "impact": "Alto"
+    },
+    {
+      "priority": "Alta",
+      "action": "Activar la ruta de atención individual para los 52 trabajadores del grupo de prioridad",
+      "responsible": "SST",
+      "time": "30 días",
+      "impact": "Alto"
+    },
+    {
+      "priority": "Media",
+      "action": "Implantar evaluaciones de desempeño semestrales orientadas al desarrollo",
+      "responsible": "Talento Humano",
+      "time": "120 días",
+      "impact": "Medio"
+    },
+    {
+      "priority": "Media",
+      "action": "Formar a los líderes de planta en comunicación asertiva y manejo de equipos",
+      "responsible": "Talento Humano",
+      "time": "90 días",
+      "impact": "Medio"
+    },
+    {
+      "priority": "Baja",
+      "action": "Revisar el esquema de reconocimiento y compensación del personal operativo",
+      "responsible": "Compensación",
+      "time": "180 días",
+      "impact": "Medio"
+    }
+  ]
+}

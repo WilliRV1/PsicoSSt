@@ -1,0 +1,465 @@
+{
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "city": "Cali",
+    "economicSector": "Industria manufacturera",
+    "dateStart": "12 de marzo de 2026",
+    "dateEnd": "28 de julio de 2026",
+    "today": "19 de agosto de 2026"
+  },
+  "brand": {
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
+    "logoPath": null
+  },
+  "professional": {
+    "name": "William Reyes Valencia",
+    "license": "12345 de 2019",
+    "signaturePath": null
+  },
+  "coverage": {
+    "evaluated": 160,
+    "registered": 187,
+    "assessments": 413
+  },
+  "personal": [
+    {
+      "title": "Sexo",
+      "note": null,
+      "rows": [
+        {
+          "label": "Femenino",
+          "count": 88,
+          "pct": 55
+        },
+        {
+          "label": "Masculino",
+          "count": 72,
+          "pct": 45
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Rango de edad",
+      "note": null,
+      "rows": [
+        {
+          "label": "Menos de 25 años",
+          "count": 19,
+          "pct": 11.9
+        },
+        {
+          "label": "De 25 a 34 años",
+          "count": 54,
+          "pct": 33.8
+        },
+        {
+          "label": "De 35 a 44 años",
+          "count": 48,
+          "pct": 30
+        },
+        {
+          "label": "De 45 a 54 años",
+          "count": 28,
+          "pct": 17.5
+        },
+        {
+          "label": "55 años o más",
+          "count": 11,
+          "pct": 6.9
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Estado civil",
+      "note": null,
+      "rows": [
+        {
+          "label": "Unión libre",
+          "count": 52,
+          "pct": 32.5
+        },
+        {
+          "label": "Soltero(a)",
+          "count": 48,
+          "pct": 30
+        },
+        {
+          "label": "Casado(a)",
+          "count": 44,
+          "pct": 27.5
+        },
+        {
+          "label": "Separado(a)",
+          "count": 13,
+          "pct": 8.1
+        },
+        {
+          "label": "Viudo(a)",
+          "count": 3,
+          "pct": 1.9
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Nivel educativo",
+      "note": null,
+      "rows": [
+        {
+          "label": "Técnico / tecnológico",
+          "count": 61,
+          "pct": 38.1
+        },
+        {
+          "label": "Bachillerato completo",
+          "count": 49,
+          "pct": 30.6
+        },
+        {
+          "label": "Profesional",
+          "count": 39,
+          "pct": 24.4
+        },
+        {
+          "label": "Posgrado",
+          "count": 11,
+          "pct": 6.9
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Personas a cargo",
+      "note": null,
+      "rows": [
+        {
+          "label": "Ninguna",
+          "count": 37,
+          "pct": 23.1
+        },
+        {
+          "label": "1 persona",
+          "count": 44,
+          "pct": 27.5
+        },
+        {
+          "label": "2 personas",
+          "count": 48,
+          "pct": 30
+        },
+        {
+          "label": "3 personas",
+          "count": 22,
+          "pct": 13.8
+        },
+        {
+          "label": "4 o más personas",
+          "count": 9,
+          "pct": 5.6
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Estrato socioeconómico",
+      "note": null,
+      "rows": [
+        {
+          "label": "1",
+          "count": 12,
+          "pct": 7.5
+        },
+        {
+          "label": "2",
+          "count": 46,
+          "pct": 28.8
+        },
+        {
+          "label": "3",
+          "count": 68,
+          "pct": 42.5
+        },
+        {
+          "label": "4",
+          "count": 24,
+          "pct": 15
+        },
+        {
+          "label": "5",
+          "count": 10,
+          "pct": 6.3
+        }
+      ],
+      "missing": 14
+    },
+    {
+      "title": "Tipo de vivienda",
+      "note": null,
+      "rows": [
+        {
+          "label": "Propia",
+          "count": 61,
+          "pct": 38.1
+        },
+        {
+          "label": "Arrendada",
+          "count": 82,
+          "pct": 51.3
+        },
+        {
+          "label": "Familiar",
+          "count": 17,
+          "pct": 10.6
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Tiempo de desplazamiento",
+      "note": "Trayecto habitual entre la vivienda y el lugar de trabajo, en un sentido.",
+      "rows": [
+        {
+          "label": "Hasta 30 minutos",
+          "count": 44,
+          "pct": 27.5
+        },
+        {
+          "label": "De 31 a 60 minutos",
+          "count": 67,
+          "pct": 41.9
+        },
+        {
+          "label": "De 61 a 90 minutos",
+          "count": 35,
+          "pct": 21.9
+        },
+        {
+          "label": "Más de 90 minutos",
+          "count": 14,
+          "pct": 8.8
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Medio de transporte",
+      "note": null,
+      "rows": [
+        {
+          "label": "Transporte público",
+          "count": 94,
+          "pct": 58.8
+        },
+        {
+          "label": "Vehículo particular",
+          "count": 31,
+          "pct": 19.4
+        },
+        {
+          "label": "Motocicleta",
+          "count": 24,
+          "pct": 15
+        },
+        {
+          "label": "A pie o bicicleta",
+          "count": 11,
+          "pct": 6.9
+        }
+      ],
+      "missing": 0
+    }
+  ],
+  "occupational": [
+    {
+      "title": "Nivel del cargo",
+      "note": "Determina la forma del cuestionario intralaboral: forma A para jefaturas, profesionales y técnicos; forma B para auxiliares y operarios.",
+      "rows": [
+        {
+          "label": "Jefatura",
+          "count": 14,
+          "pct": 8.8
+        },
+        {
+          "label": "Profesional",
+          "count": 32,
+          "pct": 20
+        },
+        {
+          "label": "Técnico",
+          "count": 26,
+          "pct": 16.3
+        },
+        {
+          "label": "Auxiliar",
+          "count": 31,
+          "pct": 19.4
+        },
+        {
+          "label": "Operativo",
+          "count": 57,
+          "pct": 35.6
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Área o dependencia",
+      "note": null,
+      "rows": [
+        {
+          "label": "Producción",
+          "count": 62,
+          "pct": 38.8
+        },
+        {
+          "label": "Logística y almacén",
+          "count": 34,
+          "pct": 21.3
+        },
+        {
+          "label": "Administración",
+          "count": 25,
+          "pct": 15.6
+        },
+        {
+          "label": "Comercial",
+          "count": 18,
+          "pct": 11.3
+        },
+        {
+          "label": "Mantenimiento",
+          "count": 11,
+          "pct": 6.9
+        },
+        {
+          "label": "Dirección general",
+          "count": 6,
+          "pct": 3.8
+        },
+        {
+          "label": "Calidad",
+          "count": 4,
+          "pct": 2.5
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Tipo de contrato",
+      "note": null,
+      "rows": [
+        {
+          "label": "Término indefinido",
+          "count": 84,
+          "pct": 52.5
+        },
+        {
+          "label": "Término fijo",
+          "count": 53,
+          "pct": 33.1
+        },
+        {
+          "label": "Obra o labor",
+          "count": 17,
+          "pct": 10.6
+        },
+        {
+          "label": "Prestación de servicios",
+          "count": 6,
+          "pct": 3.8
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Tipo de jornada",
+      "note": null,
+      "rows": [
+        {
+          "label": "Diurno",
+          "count": 102,
+          "pct": 63.8
+        },
+        {
+          "label": "Rotativo",
+          "count": 43,
+          "pct": 26.9
+        },
+        {
+          "label": "Nocturno",
+          "count": 15,
+          "pct": 9.4
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Antigüedad en la empresa",
+      "note": null,
+      "rows": [
+        {
+          "label": "Menos de 1 año",
+          "count": 36,
+          "pct": 22.5
+        },
+        {
+          "label": "De 1 a 3 años",
+          "count": 55,
+          "pct": 34.4
+        },
+        {
+          "label": "De 4 a 7 años",
+          "count": 42,
+          "pct": 26.3
+        },
+        {
+          "label": "De 8 a 15 años",
+          "count": 21,
+          "pct": 13.1
+        },
+        {
+          "label": "Más de 15 años",
+          "count": 6,
+          "pct": 3.8
+        }
+      ],
+      "missing": 0
+    },
+    {
+      "title": "Antigüedad en el cargo actual",
+      "note": null,
+      "rows": [
+        {
+          "label": "Menos de 1 año",
+          "count": 51,
+          "pct": 31.9
+        },
+        {
+          "label": "De 1 a 3 años",
+          "count": 62,
+          "pct": 38.8
+        },
+        {
+          "label": "De 4 a 7 años",
+          "count": 31,
+          "pct": 19.4
+        },
+        {
+          "label": "De 8 a 15 años",
+          "count": 13,
+          "pct": 8.1
+        },
+        {
+          "label": "Más de 15 años",
+          "count": 3,
+          "pct": 1.9
+        }
+      ],
+      "missing": 0
+    }
+  ]
+}

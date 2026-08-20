@@ -1,0 +1,213 @@
+{
+  "org": {
+    "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
+    "nit": "901.234.567-8",
+    "city": "Cali",
+    "today": "19 de agosto de 2026"
+  },
+  "brand": {
+    "tradeName": "PsicoSST Consultoría",
+    "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
+    "logoPath": null
+  },
+  "professional": {
+    "name": "William Reyes Valencia",
+    "license": "12345 de 2019",
+    "signaturePath": null
+  },
+  "plan": {
+    "title": "Plan de intervención de factores de riesgo psicosocial 2026",
+    "period": "Enero – diciembre de 2026",
+    "status": "Activo",
+    "createdAt": "4 de febrero de 2026"
+  },
+  "summary": {
+    "total": 9,
+    "byStatus": [
+      {
+        "status": "PENDING",
+        "label": "Pendiente",
+        "count": 4
+      },
+      {
+        "status": "IN_PROGRESS",
+        "label": "En ejecución",
+        "count": 2
+      },
+      {
+        "status": "DONE",
+        "label": "Cumplida",
+        "count": 2
+      },
+      {
+        "status": "CANCELLED",
+        "label": "Cancelada",
+        "count": 1
+      }
+    ],
+    "completionPercent": 25,
+    "overdue": 3,
+    "unscheduled": 1
+  },
+  "groups": [
+    {
+      "key": "MUY_ALTO",
+      "label": "Riesgo muy alto",
+      "actions": [
+        {
+          "measure": "Rediseñar el esquema de turnos rotativos del área de producción, limitando las horas extra a las estrictamente necesarias y garantizando los descansos compensatorios.",
+          "responsible": "Jefatura de Producción",
+          "dueDate": "12 de junio de 2026",
+          "overdueDays": 68,
+          "status": "IN_PROGRESS",
+          "statusLabel": "En ejecución",
+          "riskCategory": "MUY_ALTO",
+          "riskLabel": "Muy alto",
+          "area": "Producción",
+          "notes": "Se avanzó en el levantamiento de la carga por puesto. Falta la validación con el comité paritario."
+        },
+        {
+          "measure": "Activar la ruta de atención individual para los trabajadores clasificados en el grupo de prioridad de intervención, con seguimiento documentado cada dos meses.",
+          "responsible": "Seguridad y Salud en el Trabajo",
+          "dueDate": "30 de mayo de 2026",
+          "overdueDays": 81,
+          "status": "PENDING",
+          "statusLabel": "Pendiente",
+          "riskCategory": "MUY_ALTO",
+          "riskLabel": "Muy alto",
+          "area": "Toda la organización",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "key": "ALTO",
+      "label": "Riesgo alto",
+      "actions": [
+        {
+          "measure": "Implementar pausas cognitivas regulares en los puestos con mayor carga mental y ajustar las herramientas de trabajo para reducir la fricción operativa.",
+          "responsible": "Jefatura de Producción",
+          "dueDate": "15 de septiembre de 2026",
+          "overdueDays": 0,
+          "status": "IN_PROGRESS",
+          "statusLabel": "En ejecución",
+          "riskCategory": "ALTO",
+          "riskLabel": "Alto",
+          "area": "Producción",
+          "notes": null
+        },
+        {
+          "measure": "Institucionalizar evaluaciones de desempeño semestrales orientadas al desarrollo, con retroalimentación documentada al trabajador.",
+          "responsible": "Talento Humano",
+          "dueDate": "30 de noviembre de 2026",
+          "overdueDays": 0,
+          "status": "PENDING",
+          "statusLabel": "Pendiente",
+          "riskCategory": "ALTO",
+          "riskLabel": "Alto",
+          "area": null,
+          "notes": null
+        },
+        {
+          "measure": "Formar a los líderes de planta en comunicación asertiva, retroalimentación constructiva y resolución de conflictos.",
+          "responsible": "Talento Humano",
+          "dueDate": "28 de febrero de 2026",
+          "overdueDays": 0,
+          "status": "DONE",
+          "statusLabel": "Cumplida",
+          "riskCategory": "ALTO",
+          "riskLabel": "Alto",
+          "area": "Producción",
+          "notes": "Se capacitaron 14 líderes. Evidencia en el registro de asistencia del PIC 2026."
+        },
+        {
+          "measure": "Aplicar de forma efectiva la política de desconexión laboral y respetar los horarios de descanso del personal administrativo.",
+          "responsible": "Dirección Administrativa",
+          "dueDate": "31 de julio de 2026",
+          "overdueDays": 19,
+          "status": "PENDING",
+          "statusLabel": "Pendiente",
+          "riskCategory": "ALTO",
+          "riskLabel": "Alto",
+          "area": "Administración",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "key": "MEDIO",
+      "label": "Riesgo medio",
+      "actions": [
+        {
+          "measure": "Actualizar los perfiles de cargo del área de logística y comunicar las expectativas concretas de cada puesto.",
+          "responsible": "Talento Humano",
+          "dueDate": "20 de abril de 2026",
+          "overdueDays": 0,
+          "status": "DONE",
+          "statusLabel": "Cumplida",
+          "riskCategory": "MEDIO",
+          "riskLabel": "Medio",
+          "area": "Logística y almacén",
+          "notes": null
+        },
+        {
+          "measure": "Realizar mediciones de higiene industrial de ruido e iluminación en la nave de producción.",
+          "responsible": "Seguridad y Salud en el Trabajo",
+          "dueDate": null,
+          "overdueDays": 0,
+          "status": "PENDING",
+          "statusLabel": "Pendiente",
+          "riskCategory": "MEDIO",
+          "riskLabel": "Medio",
+          "area": "Producción",
+          "notes": "Pendiente de contratar el laboratorio acreditado."
+        }
+      ]
+    },
+    {
+      "key": "SIN_CLASIFICAR",
+      "label": "Sin nivel de riesgo asociado",
+      "actions": [
+        {
+          "measure": "Vincular a las familias de los trabajadores a las actividades de bienestar de la caja de compensación.",
+          "responsible": "Bienestar",
+          "dueDate": "30 de octubre de 2026",
+          "overdueDays": 0,
+          "status": "CANCELLED",
+          "statusLabel": "Cancelada",
+          "riskCategory": null,
+          "riskLabel": null,
+          "area": null,
+          "notes": "Se suspende por reasignación del presupuesto de bienestar de 2026."
+        }
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "name": "Producción",
+      "total": 4,
+      "done": 1
+    },
+    {
+      "name": "Toda la organización",
+      "total": 1,
+      "done": 0
+    },
+    {
+      "name": "Sin área asignada",
+      "total": 1,
+      "done": 0
+    },
+    {
+      "name": "Logística y almacén",
+      "total": 1,
+      "done": 1
+    },
+    {
+      "name": "Administración",
+      "total": 1,
+      "done": 0
+    }
+  ]
+}
