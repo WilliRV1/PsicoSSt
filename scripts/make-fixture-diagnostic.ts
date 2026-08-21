@@ -204,8 +204,31 @@ for (const d of dimensions) {
     }
 }
 
+// Nivel de riesgo de la empresa según el artículo 3: promedio del bruto total
+// por forma, transformado y comparado con la Tabla 33.
+const companyByForm = [
+    { form: "A" as const, workers: formACount, rawAverage: 168.4, factor: 492 },
+    { form: "B" as const, workers: formBCount, rawAverage: 121.7, factor: 388 },
+].map(f => {
+    const transformed = Math.round((f.rawAverage / f.factor) * 1000) / 10;
+    const bounds = toBounds((baremos as any)[f.form === "A" ? "intralaboral_a" : "intralaboral_b"].total);
+    const level = levelFor(transformed, bounds);
+    return {
+        form: f.form,
+        workers: f.workers,
+        rawAverage: f.rawAverage,
+        transformed,
+        level,
+        levelLabel: RISK_LABEL[level],
+    };
+});
+
 const data = {
     minGroupSize: MIN_GROUP_SIZE,
+    companyRisk: {
+        byForm: companyByForm,
+        annualRequired: companyByForm.some(f => f.level === "ALTO" || f.level === "MUY_ALTO"),
+    },
     glossary,
     org: {
         name: "MANUFACTURAS DEL PACÍFICO S.A.S.",

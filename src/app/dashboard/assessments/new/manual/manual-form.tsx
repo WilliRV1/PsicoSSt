@@ -176,10 +176,16 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
         setIsSubmitting(true);
         try {
             // 1. Calculate Score locally (optimistic)
+            // El nivel del cargo del trabajador es el que está registrado en su
+            // ficha; aquí sólo viajan las dos respuestas de control del
+            // cuestionario. Antes se falsificaba el jobLevel para transmitir
+            // "soy jefe", lo que además desviaba la selección de baremos.
             const score = scoreQuestionnaire(responses, formType, qType, {
                 hasCustomerInteraction: hasCustomerInteraction ?? false,
-                jobLevel: isBoss ? "JEFATURA" : "PROFESIONAL"
-            } as any);
+                hasPeopleInCharge: isBoss ?? undefined,
+                occupationalGroup:
+                    formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
+            });
 
             // 2. Send to backend
             const payload = {
@@ -190,6 +196,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 assessmentDate,
                 responses,
                 hasCustomerInteraction: hasCustomerInteraction ?? false,
+                hasPeopleInCharge: isBoss ?? undefined,
                 occupationalGroup: formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
                 inputMethod: "MANUAL",
                 informedConsent: {

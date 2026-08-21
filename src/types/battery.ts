@@ -1,7 +1,14 @@
 // Type definitions for battery-specific scoring structures
 
 /** Risk categories per Colombian battery manual */
+/**
+ * Nivel de riesgo. `INVALIDO` no es un nivel: marca un resultado que no puede
+ * calcularse porque faltan ítems. El manual prohíbe calcular el puntaje en ese
+ * caso, y devolver "SIN_RIESGO" haría que un cuestionario incompleto se leyera
+ * como un trabajador sano y engordara ese grupo en los informes.
+ */
 export type RiskCategory =
+    | "INVALIDO"
     | "SIN_RIESGO"
     | "BAJO"
     | "MEDIO"

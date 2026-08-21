@@ -1,5 +1,26 @@
 {
   "minGroupSize": 10,
+  "companyRisk": {
+    "byForm": [
+      {
+        "form": "A",
+        "workers": 72,
+        "rawAverage": 168.4,
+        "transformed": 34.2,
+        "level": "ALTO",
+        "levelLabel": "Alto"
+      },
+      {
+        "form": "B",
+        "workers": 88,
+        "rawAverage": 121.7,
+        "transformed": 31.4,
+        "level": "ALTO",
+        "levelLabel": "Alto"
+      }
+    ],
+    "annualRequired": true
+  },
   "glossary": [
     {
       "name": "Demandas ambientales y de esfuerzo físico",
@@ -26,7 +47,7 @@
       "definition": "Condiciones de infraestructura, ubicación, servicios y entorno de la vivienda donde habita el trabajador."
     },
     {
-      "name": "Tiempo fuera del trabajo",
+      "name": "Balance entre la vida laboral y familiar",
       "definition": "Cantidad y calidad del tiempo del que dispone el trabajador para el descanso, la recreación y la atención de sus asuntos personales."
     },
     {
@@ -238,10 +259,10 @@
         "avg": 29.2,
         "level": "ALTO",
         "bounds": [
-          8.3,
-          17.5,
-          26.7,
-          38.3,
+          9.1,
+          17.7,
+          25.6,
+          34.8,
           100
         ],
         "count": 72,
@@ -304,10 +325,10 @@
         "avg": 29.3,
         "level": "ALTO",
         "bounds": [
-          9.1,
-          17.7,
-          25.6,
-          34.8,
+          8.3,
+          17.5,
+          26.7,
+          38.3,
           100
         ],
         "count": 88,
@@ -352,10 +373,10 @@
         "avg": 42.5,
         "level": "MUY_ALTO",
         "bounds": [
-          2.3,
-          9.1,
-          20.5,
-          34.1,
+          2.5,
+          10,
+          17.5,
+          27.5,
           100
         ],
         "count": 88,
@@ -426,7 +447,7 @@
     },
     {
       "key": "tiempo_fuera_trabajo",
-      "name": "Tiempo fuera del trabajo",
+      "name": "Balance entre la vida laboral y familiar",
       "questionnaire": "Extralaboral",
       "avg": 81.3,
       "criticalPercent": 5,

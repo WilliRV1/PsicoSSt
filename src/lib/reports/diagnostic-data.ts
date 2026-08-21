@@ -69,6 +69,26 @@ export interface DimensionRow {
     action: string | null;
 }
 
+/**
+ * Nivel de riesgo psicosocial intralaboral de la empresa, por forma.
+ *
+ * Es el cálculo que exige el parágrafo del artículo 3 de la Resolución 2764 de
+ * 2022: promediar el puntaje BRUTO total de los trabajadores, transformar ese
+ * promedio y buscarlo en los baremos, por separado para la forma A y la forma
+ * B. De él depende la periodicidad de la evaluación —anual si alguna de las dos
+ * da alto o muy alto, bienal en los demás casos—, y no de ninguna proporción de
+ * trabajadores en riesgo.
+ */
+export interface CompanyRiskLevel {
+    form: "A" | "B";
+    workers: number;
+    /** Promedio del puntaje bruto total. */
+    rawAverage: number;
+    transformed: number;
+    level: RiskLevel;
+    levelLabel: string;
+}
+
 export interface DiagnosticData {
     /** Umbral de anonimato, para que el documento cite el mismo número que aplica. */
     minGroupSize: number;
@@ -92,6 +112,8 @@ export interface DiagnosticData {
         stress: number;
         /** Evaluaciones incluidas que aún no están firmadas. */
         unsigned: number;
+        /** Evaluaciones sin el mínimo de ítems: no tienen nivel de riesgo. */
+        invalid: number;
         /** Porcentaje de EVALUACIONES en riesgo alto o muy alto. */
         criticalPercent: number;
         /**
@@ -110,6 +132,12 @@ export interface DiagnosticData {
     correlation: number[][];
     /** Trabajadores con intralaboral y estrés calificados, base de la matriz. */
     correlationBase: number;
+    /** Artículo 3 de la Resolución 2764: nivel de riesgo de la empresa. */
+    companyRisk: {
+        byForm: CompanyRiskLevel[];
+        /** La evaluación es anual si alguna forma da alto o muy alto. */
+        annualRequired: boolean;
+    };
     groups: { sanos: number; vulnerables: number; adaptados: number; prioritarios: number };
     domains: { formA: DomainRow[]; formB: DomainRow[] };
     dimensions: DimensionRow[];
@@ -228,7 +256,15 @@ export async function buildDiagnosticData(
         list.map(a => a.scoredResult?.overallRiskCategory as string | undefined);
 
     // ── cobertura ─────────────────────────────────────────
-    const allRisks = risksOf(assessments).filter(Boolean) as string[];
+    // Las evaluaciones inválidas no tienen nivel de riesgo, así que quedan
+    // fuera del numerador y del denominador de todo porcentaje. Se cuentan
+    // aparte para que el informe pueda declararlas.
+    const invalidCount = assessments.filter(
+        a => a.scoredResult?.overallRiskCategory === "INVALIDO"
+    ).length;
+    const allRisks = (risksOf(assessments).filter(Boolean) as string[]).filter(
+        r => r !== "INVALIDO"
+    );
     const criticalPercent = allRisks.length
         ? Math.round((allRisks.filter(isCritical).length / allRisks.length) * 100)
         : 0;
@@ -243,8 +279,15 @@ export async function buildDiagnosticData(
     const criticalWorkerIds = new Set(
         assessments.filter(a => isCritical(a.scoredResult?.overallRiskCategory)).map(a => a.workerId)
     );
-    const criticalWorkerPercent = workerIds.size
-        ? Math.round((criticalWorkerIds.size / workerIds.size) * 100)
+    // Trabajadores con al menos un resultado válido: son la base contra la que
+    // tiene sentido medir la proporción en riesgo.
+    const scoredWorkerIds = new Set(
+        assessments
+            .filter(a => asLevel(a.scoredResult?.overallRiskCategory) !== null)
+            .map(a => a.workerId)
+    );
+    const criticalWorkerPercent = scoredWorkerIds.size
+        ? Math.round((criticalWorkerIds.size / scoredWorkerIds.size) * 100)
         : 0;
 
     const counts = emptyDist();
@@ -298,6 +341,35 @@ export async function buildDiagnosticData(
         else if (!hiIntra && hiStress) groups.vulnerables++;
         else if (hiIntra && !hiStress) groups.adaptados++;
         else groups.sanos++;
+    }
+
+    // ── nivel de riesgo de la empresa (Res. 2764, art. 3) ──
+    const companyByForm: CompanyRiskLevel[] = [];
+    for (const form of ["A", "B"] as const) {
+        const propias = intra.filter(a => a.formType === form);
+        // Sólo cuentan los cuestionarios que sí pudieron calificarse.
+        const brutos = propias
+            .filter(a => asLevel(a.scoredResult?.overallRiskCategory) !== null)
+            .map(a => (a.scoredResult?.totalScores as { rawScore?: number } | null)?.rawScore ?? 0);
+        if (brutos.length === 0) continue;
+
+        const rawAverage = brutos.reduce((x, y) => x + y, 0) / brutos.length;
+        const factor = form === "A" ? 492 : 388;
+        const transformed = Math.round((rawAverage / factor) * 100 * 10) / 10;
+        const bounds = toBounds(
+            (getBaremos() as unknown as Record<string, { total?: Record<string, number[]> }>)[
+                form === "A" ? "intralaboral_a" : "intralaboral_b"
+            ]?.total
+        );
+        const level = levelFor(transformed, bounds);
+        companyByForm.push({
+            form,
+            workers: brutos.length,
+            rawAverage: Math.round(rawAverage * 10) / 10,
+            transformed,
+            level,
+            levelLabel: RISK_LABEL[level],
+        });
     }
 
     // ── dominios ──────────────────────────────────────────
@@ -471,6 +543,7 @@ export async function buildDiagnosticData(
                 extra: extra.length,
                 stress: stress.length,
                 unsigned: assessments.filter(a => a.status !== "SIGNED").length,
+                invalid: invalidCount,
                 criticalPercent,
                 criticalWorkerPercent,
                 criticalWorkers: criticalWorkerIds.size,
@@ -484,6 +557,10 @@ export async function buildDiagnosticData(
             },
             correlation,
             correlationBase,
+            companyRisk: {
+                byForm: companyByForm,
+                annualRequired: companyByForm.some(f => isCritical(f.level)),
+            },
             groups,
             domains: { formA: buildDomains("A"), formB: buildDomains("B") },
             dimensions,

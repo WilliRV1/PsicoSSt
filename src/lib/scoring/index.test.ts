@@ -80,19 +80,19 @@ describe('B. Filtros Condicionales (Saltos Lógicos)', () => {
     });
 
     it('Personal a Cargo = NO (Forma A) -> Relación con Colaboradores = 0.0', () => {
+        // Los ítems de esta dimensión son el 115 al 123 (M2, Tabla 23), y quien
+        // decide si aplica es la respuesta del trabajador a "soy jefe de otras
+        // personas", no su nivel del cargo.
         const responses: Record<string, number> = {};
-        for (let i = 97; i <= 105; i++) responses[String(i)] = 4; // Llenamos relación con colaboradores
-        
-        const result = scoreQuestionnaire(responses, 'A', 'INTRALABORAL', { hasPersonnelManagement: false });
-        const colaboradores = result.dimensions['relacion_colaboradores'];
-        
-        expect(colaboradores.rawScore).toBe(0);
-        expect(colaboradores.transformedScore).toBe(0);
-        expect(colaboradores.isValid).toBe(true);
-    });
-});
+        for (let i = 115; i <= 123; i++) responses[String(i)] = 4;
 
-describe('C. Baremación Diferencial (Lookup)', () => {
+        const result = scoreQuestionnaire(responses, 'A', 'INTRALABORAL', { hasPeopleInCharge: false });
+
+        expect(result.dimensions['relacion_colaboradores'].rawScore).toBe(0);
+        expect(result.dimensions['relacion_colaboradores'].transformedScore).toBe(0);
+        expect(result.dimensions['relacion_colaboradores'].isFiltered).toBe(true);
+    });
+
     it('Extralaboral: Jefatura=Riesgo Alto, Operario=Riesgo Medio con mismo puntaje', () => {
         const responses: Record<string, number> = {};
         // Para que de Alto en Jefe y Medio en Operario, el valor debe ser ~23.4
@@ -125,78 +125,35 @@ describe('C. Baremación Diferencial (Lookup)', () => {
         expect(resultOperario.total.riskLevel).toBe(3); // 3 = MEDIO
     });
 
-    it('Estrés: Profesionales=Nivel Bajo, Auxiliares=Nivel Medio con mismo puntaje', () => {
-        const responses2: Record<string, number> = {};
-        // To get Raw = 7.33 (Transformed = 12.0)
-        // Note: New logic applies weights 0->9, 1->6, 2->3, 3->0
-        // We need sum = 7.3333
-        // If we answer 3 for everything -> 0 points.
-        for(let i=1; i<=31; i++) responses2[String(i)] = 3; 
-        
-        // We need 7.3333 points. Let's make sum = 7.3333.
-        // E.g., Item 1 = 2 (3 pts), Item 2 = 2 (3 pts), Item 3 = 2 (3 pts, we need 1.3333 more).
-        // Since weights are integers, getting exactly 7.3333 is impossible without fractions.
-        // Actually, earlier test assumed simple sums. 
-        // With new mapValue, if we want exactly 7.3333, we can't because all outputs are integers. 
-        // 7.3333 / 61.16 * 100 = 11.99. 
-        // Let's find a valid integer sum. 
-        // sum = 7 -> transformed = 11.4 
-        responses2["1"] = 1; // 6 pts
-        responses2["2"] = 3; // 0 pts
-        // We need 1 more point. But available values are 0,3,6,9. We can't get exactly 7 points.
-        // Let's use sum = 9 -> transformed = 9 / 61.16 * 100 = 14.71 -> 14.7
-        responses2["1"] = 0; // 9 pts
-        // Jefes baremo: Bajo is 7.9 to 12.6. Medio is 12.7 to 17.7.
-        // Auxiliares baremo: Medio is 11.9 to 15.2. 
-        // If we want Jefatura=Bajo, Operario=Medio, we need between 11.9 and 12.6.
-        // Let's use sum = 8 -> 8 is impossible. sum = 6 -> 9.8%. 
-        // If we set one item to '1' (6 pts) -> 9.8%. Jefes (9.8 is Bajo), Auxiliares (9.8 is Bajo).
-        // If we set one item to '0' (9 pts) -> 14.7%. Jefes (14.7 is Medio), Auxiliares (14.7 is Medio).
-        // Wait, 7.8 - 12.6 for Jefes (BAJO). 11.9 - 15.2 for Auxiliares (MEDIO).
-        // If we can get a score of 12.0 ... 12.0 * 61.16 / 100 = 7.339 points. 
-        // Since we can only get multiples of 3, the possible scores are:
-        // 0 -> 0%
-        // 3 -> 4.9%
-        // 6 -> 9.8% (Bajo / Bajo)
-        // 9 -> 14.7% (Medio / Medio)
-        // 12 -> 19.6% (Alto / Alto)
-        // We cannot get 12% anymore due to the new weighting (0,3,6,9).
-        // Let's just test the general mapping and total:
-        for(let i=1; i<=31; i++) responses2[String(i)] = 3; // 0
-        responses2["1"] = 2; // 3 pts
-        responses2["2"] = 2; // 3 pts
-        responses2["3"] = 2; // 3 pts
-        responses2["4"] = 2; // 3 pts 
-        // Total Raw = 12
-        // Transformed = (12 / 61.16) * 100 = 19.62 -> 19.6
-        // Jefes (19.6) -> ALTO (17.8 - 25.0)
-        // Auxiliares (19.6) -> ALTO (15.3 - 22.7)
-        
-        const resultPro = scoreQuestionnaire(responses2, 'A', 'STRESS', { jobLevel: 'PROFESIONAL' });
-        expect(resultPro.total.transformedScore).toBe(19.6);
-        expect(resultPro.total.riskLevel).toBe(4); // 4 = ALTO
-        
-        const resultAux = scoreQuestionnaire(responses2, 'A', 'STRESS', { jobLevel: 'AUXILIAR' });
-        expect(resultAux.total.transformedScore).toBe(19.6);
-        expect(resultAux.total.riskLevel).toBe(4); // 4 = ALTO
-    });
-});
-
-describe('D. Algoritmo Manual de Estrés', () => {
-    it('Suma ponderada exacta: Todos "A veces" (3)', () => {
+    it('Estrés: un mismo puntaje cae en niveles distintos según el nivel ocupacional', () => {
+        // M4, Tabla 6: para jefes/profesionales/técnicos el nivel medio llega
+        // hasta 17,7; para auxiliares y operarios el alto empieza en 17,1.
         const responses: Record<string, number> = {};
-        // "A veces" in UI is mapped to val = 2, which gives 3 points.
-        // Wait, 3 in original test meant 3 from UI. 
-        // 3 from UI now maps to 0 pts. 
-        // Let's test val = 2 ("Casi Siempre" ? Or whatever val=2 is, we mapped val=2 to 3 pts)
-        // If val = 2 -> 3 pts each. 31 items * 3 pts = 93 total raw score.
-        for (let i = 1; i <= 31; i++) responses[String(i)] = 2;
-        
-        const result = scoreQuestionnaire(responses, 'A', 'STRESS', { jobLevel: 'AUXILIAR' });
-        
-        expect(result.total.rawScore).toBe(93);
-        // Transformed = (93 / 61.16) * 100 = 152.05 -> 152.1
-        // Note: the original test expected 30, since it didn't use the mapping.
-        expect(result.total.transformedScore).toBe(152.1);
+        for (let i = 1; i <= 31; i++) responses[String(i)] = 3; // "Nunca" = 0 puntos
+        responses['1'] = 0;  // grupo de peso 9 → promedio(1,8) = 9/8, x4 = 4,5
+        responses['9'] = 1;  // grupo de peso 9, "casi siempre" = 6 → 6/4, x3 = 4,5
+        responses['13'] = 0; // grupo de peso 9 → 9/10, x2 = 1,8
+
+        const jefe = scoreQuestionnaire(responses, 'A', 'STRESS', { jobLevel: 'PROFESIONAL' });
+        const auxiliar = scoreQuestionnaire(responses, 'A', 'STRESS', { jobLevel: 'OPERATIVO' });
+
+        expect(jefe.total.transformedScore).toBe(17.7);
+        expect(jefe.total.riskCategory).toBe('MEDIO');
+        expect(auxiliar.total.riskCategory).toBe('ALTO');
     });
+
+    it('Suma ponderada exacta: todos los ítems en "A veces"', () => {
+        // "A veces" se guarda como 2. Según la Tabla 4 vale 3, 2 o 1 punto
+        // según el grupo del ítem, de modo que los cuatro promedios ponderados
+        // dan 8,5 + 6 + 4 + 1,89 = 20,4.
+        const responses: Record<string, number> = {};
+        for (let i = 1; i <= 31; i++) responses[String(i)] = 2;
+
+        const result = scoreQuestionnaire(responses, 'A', 'STRESS', { jobLevel: 'AUXILIAR' });
+
+        expect(result.total.rawScore).toBe(20.4);
+        expect(result.total.transformedScore).toBe(33.3);
+        expect(result.total.riskCategory).toBe('MUY_ALTO');
+    });
+
 });

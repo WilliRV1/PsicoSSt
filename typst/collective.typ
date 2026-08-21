@@ -458,15 +458,14 @@
   ..(if D.coverage.criticalWorkerPercent >= 20 {
       ([#D.coverage.criticalWorkers trabajadores —el
         #D.coverage.criticalWorkerPercent%— presentan al menos un instrumento en
-        riesgo alto o muy alto. Al alcanzar el umbral del 20% de la población
-        evaluada, la organización debe implementar un sistema de vigilancia
-        epidemiológica de factores de riesgo psicosocial conforme a la
-        Resolución 2764 de 2022.],)
+        riesgo alto o muy alto. Habiéndose identificado factores intralaborales
+        de alto riesgo, la Resolución 2764 de 2022 exige intervención inmediata
+        en la fuente, enmarcada en un sistema de vigilancia epidemiológica, y
+        evaluación anual.],)
     } else {
       ([#D.coverage.criticalWorkers trabajadores —el
         #D.coverage.criticalWorkerPercent%— presentan al menos un instrumento en
-        riesgo alto o muy alto, por debajo del umbral del 20% que obliga a
-        implementar un sistema de vigilancia epidemiológica.],)
+        riesgo alto o muy alto.],)
     }),
   ..(if D.groups.prioritarios > 0 {
       ([#D.groups.prioritarios trabajadores concentran exposición crítica y

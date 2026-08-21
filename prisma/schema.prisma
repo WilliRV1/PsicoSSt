@@ -146,6 +146,10 @@ model Worker {
   transportMeans         String?           @map("transport_means")
   displacementTime       Int?              @map("displacement_time")
   hasCustomerInteraction Boolean           @default(true) @map("has_customer_interaction")
+  /// Respuesta a "soy jefe de otras personas en mi trabajo", la pregunta de
+  /// control que antecede a los ítems 115-123 de la forma A. Nula mientras no
+  /// se haya aplicado un cuestionario que la formule.
+  hasPeopleInCharge      Boolean?          @map("has_people_in_charge")
   departmentArea         String?           @map("department_area")
   lessThanOneYearInCompany Boolean?        @map("less_than_one_year_in_company")
   yearsInCompany         Int?              @map("years_in_company")
@@ -418,6 +422,7 @@ enum AssessmentStatus {
 
 /// Risk category per Colombian battery manual
 enum RiskCategory {
+  INVALIDO
   SIN_RIESGO
   BAJO
   MEDIO

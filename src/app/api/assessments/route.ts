@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
                 responses: data.responses,
                 occupationalGroup: data.occupationalGroup,
                 hasCustomerInteraction: data.hasCustomerInteraction,
+                hasPeopleInCharge: data.hasPeopleInCharge,
                 informedConsent: data.informedConsent,
             });
         } catch (assessmentError) {

@@ -63,7 +63,9 @@ export async function POST(
 
     assessments.forEach(a => {
         const cat = a.scoredResult?.overallRiskCategory;
-        if (!cat) return;
+        // Una evaluación sin el mínimo de ítems no tiene nivel de riesgo, así
+        // que no puede sumar a ninguna banda de la distribución.
+        if (!cat || cat === "INVALIDO") return;
         if (a.questionnaireType === "INTRALABORAL" && cat in intra) intra[cat]++;
         if (a.questionnaireType === "EXTRALABORAL" && cat in extra) extra[cat]++;
         if (a.questionnaireType === "STRESS" && cat in stress) stress[cat]++;

@@ -139,9 +139,9 @@ como en las personas.
   note-block(accent: rc("MUY_ALTO"))[
     *Obligatoriedad.* Los resultados del diagnóstico muestran que el
     #num(str(D.summary.criticalWorkerPercent) + "%") de los trabajadores se ubica en nivel de riesgo
-    Alto o Muy Alto. Conforme a la Resolución 2764 de 2022, al superarse el umbral del 20% de la
-    población evaluada, la organización tiene la obligación de implementar y mantener activo el
-    presente Programa de Vigilancia Epidemiológica.
+    Alto o Muy Alto. La Resolución 2764 de 2022 exige que las condiciones evaluadas como de alto
+    riesgo se intervengan de forma inmediata en la fuente y se enmarquen en un sistema de
+    vigilancia epidemiológica, que es el objeto del presente programa.
   ]
   v(4pt)
 }
@@ -806,7 +806,7 @@ factores de riesgo psicosocial, incluyendo los elementos descritos en el present
 
 #if D.summary.needsSVE [
   #bullets((
-    [Dado que la proporción de trabajadores en riesgo crítico supera el umbral del 20% establecido normativamente, la organización tiene la obligación legal de implementar y mantener activo el presente Programa de Vigilancia Epidemiológica, con seguimiento documentado de las intervenciones y medición anual de los indicadores definidos.],
+    [Habiéndose identificado factores psicosociales intralaborales evaluados como de alto riesgo, la Resolución 2764 de 2022 obliga a intervenirlos de forma inmediata en la fuente y a enmarcar esa intervención en un sistema de vigilancia epidemiológica, con seguimiento documentado y medición anual de los indicadores definidos en el presente programa.],
   ))
 ]
 

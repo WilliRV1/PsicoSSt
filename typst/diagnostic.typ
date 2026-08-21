@@ -206,8 +206,10 @@ situaciones individuales.
   extralaboral y de estrés—, de modo que el número de evaluaciones es mayor que
   el de personas. A lo largo del informe se indica en cada caso cuál de las dos
   bases se está usando: los porcentajes por instrumento y por área se calculan
-  sobre evaluaciones, mientras que el umbral del 20% de la Resolución 2764 de
-  2022 se contrasta contra el número de trabajadores.
+  sobre evaluaciones, mientras que las cifras de personas se cuentan sobre
+  trabajadores. El nivel de riesgo de la empresa, del que depende la
+  periodicidad de la evaluación, se calcula aparte según el artículo 3 de la
+  Resolución 2764 de 2022.
 ]
 
 #v(8pt)
@@ -405,6 +407,44 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   ]
 ]
 
+= Nivel de riesgo de la empresa
+
+El parágrafo del artículo 3 de la Resolución 2764 de 2022 fija cómo se
+determina el nivel de riesgo psicosocial intralaboral de una empresa: se
+promedia el puntaje bruto total de los trabajadores, se transforma ese promedio
+y se compara con los baremos, por separado para cada forma del cuestionario.
+De este resultado —y no de la proporción de trabajadores en riesgo— depende que
+la evaluación deba repetirse cada año o cada dos.
+
+#v(5pt)
+
+#if D.companyRisk.byForm.len() == 0 [
+  #note-block[
+    No hay cuestionarios intralaborales calificados, de modo que este nivel no
+    puede establecerse.
+  ]
+] else [
+  #etable(
+    columns: (auto, auto, auto, auto, 1fr),
+    align-spec: (left, center, center, center, left),
+    header: ("Forma", "Trabajadores", "Bruto promedio", "Transformado", "Nivel de riesgo"),
+    rows: D.companyRisk.byForm.map(f => (
+      text(fill: ink, weight: 500, "Forma " + f.form),
+      num(str(f.workers)),
+      num(str(f.rawAverage)),
+      num(str(f.transformed)),
+      text(weight: 600, fill: rc(f.level), upper(f.levelLabel)),
+    )),
+  )
+
+  #v(6pt)
+  #micro[
+    Forma A: cargos de nivel técnico, profesional y directivo. Forma B: cargos
+    de nivel auxiliar y operativo. Se excluyen los cuestionarios que no
+    alcanzaron el mínimo de ítems respondidos.
+  ]
+]
+
 = Conclusiones
 
 #let criticas = D.dimensions.filter(d => d.criticalPercent >= 20)
@@ -416,15 +456,19 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
    #D.coverage.criticalWorkerPercent% de los evaluados— presentaron al menos un
    instrumento en riesgo alto o muy alto. Sobre el total de evaluaciones, y no
    sobre personas, la proporción crítica es del #D.coverage.criticalPercent%.],
-  ..(if D.coverage.criticalWorkerPercent >= 20 {
-      ([Al alcanzar o superar el umbral del 20% de la población evaluada en
-        riesgo alto o muy alto, la
-        organización debe implementar un sistema de vigilancia epidemiológica de
-        factores de riesgo psicosocial, con intervención inmediata y seguimiento anual, conforme a la Resolución 2764 de 2022.],)
+  ..(if D.companyRisk.annualRequired {
+      ([El nivel de riesgo psicosocial intralaboral de la empresa resulta alto o
+        muy alto en #D.companyRisk.byForm.filter(f => f.level == "ALTO" or f.level == "MUY_ALTO").map(f => "la forma " + f.form).join(" y "). Conforme al
+        artículo 3 de la Resolución 2764 de 2022, la evaluación debe repetirse
+        de forma *anual*, enmarcada en un sistema de vigilancia epidemiológica,
+        y las condiciones identificadas requieren intervención inmediata en la
+        fuente mediante controles administrativos, controles operacionales y
+        cambios organizacionales.],)
     } else {
-      ([La proporción de trabajadores en riesgo crítico se mantiene por debajo
-        del umbral del 20%, de modo que las acciones se orientan a la prevención y al
-        control de las condiciones ya identificadas. La reevaluación de los factores de riesgo psicosocial debe realizarse en un plazo máximo de dos años, conforme a la Resolución 2764 de 2022.],)
+      ([El nivel de riesgo psicosocial intralaboral de la empresa se ubica en
+        medio o bajo en las formas evaluadas. Conforme al artículo 3 de la
+        Resolución 2764 de 2022, la evaluación se repite *cada dos años* y
+        requiere intervención tanto en la fuente como en el trabajador.],)
     }),
   ..(if criticas.len() > 0 {
       ([Concentran la prioridad #criticas.len() dimensiones con al menos un 20%

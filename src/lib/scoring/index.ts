@@ -92,6 +92,8 @@ export function lookupRiskCategory(
 
 export function getRiskLevel(category: RiskCategory): number {
     const levels: Record<RiskCategory, number> = {
+        // Cero queda reservado para lo que no es un nivel de riesgo.
+        "INVALIDO": 0,
         "SIN_RIESGO": 1,
         "BAJO": 2,
         "MEDIO": 3,
@@ -147,8 +149,8 @@ export function calculateDimensionScore(
         maxPossible: transformationFactor,
         transformedScore: isValid ? roundedTransformed : 0,
         transformationFactor,
-        riskCategory: isValid ? riskCategory : "SIN_RIESGO",
-        riskLevel: isValid ? getRiskLevel(riskCategory) : 1,
+        riskCategory: isValid ? riskCategory : "INVALIDO",
+        riskLevel: isValid ? getRiskLevel(riskCategory) : 0,
         itemCount,
         invertedItems: config.invertedItems,
         isValid
@@ -187,10 +189,53 @@ export function calculateDomainScore(
         rawScore: allValid ? round1(rawScore) : 0,
         maxPossible: transformationFactor, // Repurposed for API compatibility
         transformedScore: allValid ? roundedTransformed : 0,
-        riskCategory: allValid ? riskCategory : "SIN_RIESGO",
-        riskLevel: allValid ? getRiskLevel(riskCategory) : 1,
+        riskCategory: allValid ? riskCategory : "INVALIDO",
+        riskLevel: allValid ? getRiskLevel(riskCategory) : 0,
         dimensions: domainConfig.dimensionKeys
     };
+}
+
+/**
+ * Grupo de baremos que corresponde al trabajador.
+ *
+ * "Jefes, profesionales y técnicos" frente a "auxiliares y operarios", que es
+ * la misma partición que separa las formas A y B del cuestionario intralaboral.
+ */
+function occupationalGroup(metadata?: { jobLevel?: string; occupationalGroup?: string }): string {
+    if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERATIVO") {
+        return "auxiliares_operativos";
+    }
+    if (metadata?.occupationalGroup === "auxiliares_operativos") {
+        return "auxiliares_operativos";
+    }
+    return "jefes_profesionales_tecnicos";
+}
+
+/** Los 31 ítems del cuestionario de estrés, tercera versión. */
+const STRESS_ITEMS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+/**
+ * Valor de un ítem del cuestionario de estrés.
+ *
+ * La Tabla 4 del manual reparte los 31 ítems en tres grupos con pesos
+ * distintos, según la gravedad del síntoma que describen: los del primer grupo
+ * valen el triple que los del tercero. Aplicar un peso único a todos —como se
+ * hacía— reduce el puntaje máximo posible de 100 a 49,1, con lo que ningún
+ * trabajador puede clasificar en nivel alto por más síntomas que reporte.
+ *
+ * `stored` es lo que guarda la interfaz: 0=Siempre, 1=Casi siempre, 2=A veces,
+ * 3=Nunca.
+ */
+const STRESS_WEIGHTS: Record<number, [number, number, number, number]> = {};
+for (const i of [1, 2, 3, 9, 13, 14, 15, 23, 24]) STRESS_WEIGHTS[i] = [9, 6, 3, 0];
+for (const i of [4, 5, 6, 10, 11, 16, 17, 18, 19, 25, 26, 27, 28]) STRESS_WEIGHTS[i] = [6, 4, 2, 0];
+for (const i of [7, 8, 12, 20, 21, 22, 29, 30, 31]) STRESS_WEIGHTS[i] = [3, 2, 1, 0];
+
+export function stressItemValue(item: number, stored: number | undefined | null): number {
+    if (stored === undefined || stored === null) return 0;
+    const escala = STRESS_WEIGHTS[item];
+    if (!escala) return 0;
+    return escala[stored] ?? 0;
 }
 
 export function scoreQuestionnaire(
@@ -202,7 +247,14 @@ export function scoreQuestionnaire(
         gender?: string,
         jobLevel?: string,
         hasCustomerInteraction?: boolean,
-        hasPersonnelManagement?: boolean
+        /**
+         * Respuesta del trabajador a "soy jefe de otras personas en mi trabajo",
+         * la pregunta de control que antecede a los ítems 115 a 123 de la forma
+         * A. Es el único criterio del manual: el nivel del cargo no lo
+         * determina, porque un técnico puede tener personal a cargo y un
+         * profesional puede no tenerlo.
+         */
+        hasPeopleInCharge?: boolean
     }
 ): ScoredResultData {
     let config: any;
@@ -221,15 +273,10 @@ export function scoreQuestionnaire(
 
     let baremoTable = (baremos as any)[baremoKey];
 
-    // Baremos diferenciales Extralaboral
+    // Los baremos de extralaboral y de estrés están estratificados por nivel
+    // ocupacional (M3 Tabla 17, M4 Tabla 5).
     if (questionnaireType === "EXTRALABORAL") {
-        let group = "jefes_profesionales_tecnicos";
-        if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERATIVO") {
-            group = "auxiliares_operativos";
-        } else if (metadata?.occupationalGroup === "auxiliares_operativos") {
-            group = "auxiliares_operativos";
-        }
-        baremoTable = baremoTable[group];
+        baremoTable = baremoTable[occupationalGroup(metadata)];
     }
 
     let processedResponses = { ...rawResponses };
@@ -245,14 +292,15 @@ export function scoreQuestionnaire(
     for (const dim of config.dimensions) {
         let isFiltered = false;
         if (questionnaireType === "INTRALABORAL") {
-            // "no jefe" -> relacion_colaboradores = 0.0
-            if (formType === "A" && dim.key === "relacion_colaboradores" && 
-                metadata?.jobLevel !== "JEFATURA" && metadata?.jobLevel !== "PROFESIONAL") {
-                // If it's explicitly marked as not having people in charge, but since we only have jobLevel, we assume JEFATURA/PROFESIONAL might have people.
-                // Or if we have a specific flag. We will use jobLevel for now as proxy if specific flag is missing.
-                isFiltered = true; 
+            // El manual (M2, Paso 2): quien responde que no es jefe de otras
+            // personas no debe responder los ítems 115 a 123, y la dimensión
+            // "relación con los colaboradores" obtiene puntaje bruto cero. El
+            // factor de transformación del dominio y del total NO cambia.
+            if (formType === "A" && dim.key === "relacion_colaboradores" &&
+                metadata?.hasPeopleInCharge === false) {
+                isFiltered = true;
             }
-            // "no atiende clientes" -> demandas_emocionales = 0.0
+            // Ídem para quien no brinda servicio a clientes o usuarios.
             if (dim.key === "demandas_emocionales" && metadata?.hasCustomerInteraction === false) {
                 isFiltered = true;
             }
@@ -315,70 +363,54 @@ export function scoreQuestionnaire(
             totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
         }
     } else if (questionnaireType === "STRESS") {
-        // Validación de 31 ítems sin faltantes
-        allDimensionsValid = Object.keys(rawResponses).length >= 31;
-        
+        // Todos los ítems deben estar respondidos: el manual no admite
+        // faltantes en este cuestionario.
+        allDimensionsValid = STRESS_ITEMS.every(
+            i => rawResponses[String(i)] !== undefined && rawResponses[String(i)] !== null
+        );
+
         if (allDimensionsValid) {
-            // UI saves: 0=Siempre, 1=Casi siempre, 2=A veces, 3=Nunca
-            // Manual points: Siempre=3, Casi siempre=2, A veces=1, Nunca=0
-            const mapValue = (val: number) => {
-                if (val === 0) return 3;
-                if (val === 1) return 2;
-                if (val === 2) return 1;
-                if (val === 3) return 0;
-                return 0; 
-            };
-
-            const getGroupSum = (start: number, end: number) => {
-                let sum = 0;
-                for (let i = start; i <= end; i++) {
-                    const val = rawResponses[String(i)];
-                    if (val !== undefined && val !== null) {
-                        sum += mapValue(val);
-                    }
+            const promedio = (desde: number, hasta: number) => {
+                let suma = 0;
+                let n = 0;
+                for (let i = desde; i <= hasta; i++) {
+                    suma += stressItemValue(i, rawResponses[String(i)]);
+                    n++;
                 }
-                return sum;
+                return n > 0 ? suma / n : 0;
             };
 
-            const avg1 = getGroupSum(1, 8) / 8;
-            const avg2 = getGroupSum(9, 12) / 4;
-            const avg3 = getGroupSum(13, 22) / 10;
-            const avg4 = getGroupSum(23, 31) / 9;
-            
-            totalRaw = (avg1 * 4) + (avg2 * 3) + (avg3 * 2) + (avg4 * 1);
+            // M4, Paso 2: promedios ponderados de los cuatro grupos de ítems.
+            totalRaw =
+                promedio(1, 8) * 4 +
+                promedio(9, 12) * 3 +
+                promedio(13, 22) * 2 +
+                promedio(23, 31);
+
             totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
         }
     }
 
-    let totalThresholds: BaremoThreshold;
-    if (questionnaireType === "STRESS") {
-        let group = "jefes_profesionales_tecnicos";
-        if (metadata?.jobLevel === "AUXILIAR" || metadata?.jobLevel === "OPERATIVO") {
-            group = "auxiliares_operativos";
-        } else if (metadata?.occupationalGroup === "auxiliares_operativos") {
-            group = "auxiliares_operativos";
-        }
-        
-        const gender = metadata?.gender === "M" ? "M" : "F";
-        totalThresholds = baremoTable[gender]?.[group];
-        if (!totalThresholds) {
-            totalThresholds = baremoTable["F"]["jefes_profesionales_tecnicos"];
-        }
-    } else {
-        totalThresholds = baremoTable.total;
-    }
+    // La Tabla 6 del manual del estrés distingue baremos por nivel ocupacional
+    // y por nada más. La tabla anterior los duplicaba por sexo con valores
+    // idénticos, lo que sugería una diferenciación que el instrumento no hace.
+    const totalThresholds: BaremoThreshold =
+        questionnaireType === "STRESS"
+            ? baremoTable[occupationalGroup(metadata)]
+            : baremoTable.total;
 
     const roundedTotalTransformed = round1(totalTransformed);
-    const totalCategory = (allDimensionsValid && totalThresholds) 
-        ? lookupRiskCategory(roundedTotalTransformed, totalThresholds) 
-        : "SIN_RIESGO" as RiskCategory;
+    const totalCategory: RiskCategory =
+        allDimensionsValid && totalThresholds
+            ? lookupRiskCategory(roundedTotalTransformed, totalThresholds)
+            : "INVALIDO";
 
     const total: TotalScore = {
         rawScore: allDimensionsValid ? round1(totalRaw) : 0,
         maxPossible: config.totalTransformationFactor,
         transformedScore: allDimensionsValid ? roundedTotalTransformed : 0,
-        riskCategory: allDimensionsValid ? totalCategory : "SIN_RIESGO",
-        riskLevel: allDimensionsValid ? getRiskLevel(totalCategory) : 1,
+        riskCategory: allDimensionsValid ? totalCategory : "INVALIDO",
+        riskLevel: allDimensionsValid ? getRiskLevel(totalCategory) : 0,
         isValid: allDimensionsValid
     };
 

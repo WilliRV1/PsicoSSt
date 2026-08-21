@@ -19,7 +19,10 @@
     "test:workers": "cypress run --spec 'cypress/e2e/workers.cy.js'",
     "test:assessments": "cypress run --spec 'cypress/e2e/assessments.cy.js'",
     "test:reports": "cypress run --spec 'cypress/e2e/report_signing.cy.js'",
-    "test:flow": "cypress run --spec 'cypress/e2e/full_flow.cy.js'"
+    "test:flow": "cypress run --spec 'cypress/e2e/full_flow.cy.js'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "rescore": "tsx scripts/rescore-assessments.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

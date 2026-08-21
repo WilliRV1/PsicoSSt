@@ -1,101 +1,100 @@
 {
-    "formType": "A",
-    "questionnaireType": "EXTRALABORAL",
-    "totalItems": 31,
-    "totalTransformationFactor": 124,
-    "dimensions": [
-        {
-            "key": "tiempo_fuera_trabajo",
-            "name": "Tiempo fuera del trabajo",
-            "items": [
-                1,
-                2,
-                3,
-                4
-            ],
-            "invertedItems": [
-                2,
-                3
-            ]
-        },
-        {
-            "key": "relaciones_familiares",
-            "name": "Relaciones familiares",
-            "items": [
-                5,
-                6,
-                7
-            ],
-            "invertedItems": [
-                6
-            ]
-        },
-        {
-            "key": "comunicacion_relaciones",
-            "name": "Comunicación y relaciones interpersonales",
-            "items": [
-                8,
-                9,
-                10,
-                11,
-                12
-            ],
-            "invertedItems": []
-        },
-        {
-            "key": "situacion_economica",
-            "name": "Situación económica del grupo familiar",
-            "items": [
-                13,
-                14,
-                15
-            ],
-            "invertedItems": []
-        },
-        {
-            "key": "caracteristicas_vivienda",
-            "name": "Características de la vivienda y de su entorno",
-            "items": [
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24
-            ],
-            "invertedItems": [
-                24
-            ]
-        },
-        {
-            "key": "influencia_entorno_extralaboral",
-            "name": "Influencia del entorno extralaboral sobre el trabajo",
-            "items": [
-                25,
-                26,
-                27
-            ],
-            "invertedItems": [
-                26
-            ]
-        },
-        {
-            "key": "desplazamiento_vivienda",
-            "name": "Desplazamiento vivienda–trabajo–vivienda",
-            "items": [
-                28,
-                29,
-                30,
-                31
-            ],
-            "invertedItems": [
-                28,
-                30,
-                31
-            ]
-        }
-    ]
+  "formType": "A",
+  "questionnaireType": "EXTRALABORAL",
+  "totalItems": 31,
+  "totalTransformationFactor": 124,
+  "dimensions": [
+    {
+      "key": "tiempo_fuera_trabajo",
+      "name": "Balance entre la vida laboral y familiar",
+      "items": [
+        14,
+        15,
+        16,
+        17
+      ],
+      "invertedItems": []
+    },
+    {
+      "key": "relaciones_familiares",
+      "name": "Relaciones familiares",
+      "items": [
+        22,
+        25,
+        27
+      ],
+      "invertedItems": []
+    },
+    {
+      "key": "comunicacion_relaciones",
+      "name": "Comunicación y relaciones interpersonales",
+      "items": [
+        18,
+        19,
+        20,
+        21,
+        23
+      ],
+      "invertedItems": []
+    },
+    {
+      "key": "situacion_economica",
+      "name": "Situación económica del grupo familiar",
+      "items": [
+        29,
+        30,
+        31
+      ],
+      "invertedItems": [
+        30,
+        31
+      ]
+    },
+    {
+      "key": "caracteristicas_vivienda",
+      "name": "Características de la vivienda y de su entorno",
+      "items": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "invertedItems": [
+        6
+      ]
+    },
+    {
+      "key": "influencia_entorno_extralaboral",
+      "name": "Influencia del entorno extralaboral sobre el trabajo",
+      "items": [
+        24,
+        26,
+        28
+      ],
+      "invertedItems": [
+        24,
+        26,
+        28
+      ]
+    },
+    {
+      "key": "desplazamiento_vivienda",
+      "name": "Desplazamiento vivienda–trabajo–vivienda",
+      "items": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "invertedItems": [
+        2,
+        3
+      ]
+    }
+  ]
 }

@@ -21,6 +21,8 @@ export class AssessmentService {
         responses: ItemResponses;
         occupationalGroup?: string;
         hasCustomerInteraction?: boolean;
+        /** Respuesta a "soy jefe de otras personas en mi trabajo" (forma A). */
+        hasPeopleInCharge?: boolean;
         inputMethod?: "MANUAL" | "BULK";
         informedConsent?: {
             consentGranted: boolean;
@@ -39,17 +41,28 @@ export class AssessmentService {
         const worker = await prisma.worker.findUnique({
             where: { id: data.workerId },
             select: {
+                id: true,
                 gender: true,
                 jobLevel: true,
-                hasCustomerInteraction: true
+                hasCustomerInteraction: true,
+                hasPeopleInCharge: true
             }
         });
 
         if (!worker) throw new Error("Trabajador no encontrado");
 
-        // Override worker profile if UI provided a different hasCustomerInteraction
+        // Las dos preguntas de control del cuestionario se guardan en el
+        // trabajador, porque de ellas depende que una dimensión aplique o no y
+        // hay que poder recalificar más adelante con el mismo criterio.
+        if (data.hasPeopleInCharge !== undefined && worker.hasPeopleInCharge !== data.hasPeopleInCharge) {
+            await prisma.worker.update({
+                where: { id: worker.id },
+                data: { hasPeopleInCharge: data.hasPeopleInCharge },
+            });
+            worker.hasPeopleInCharge = data.hasPeopleInCharge;
+        }
+
         if (data.hasCustomerInteraction !== undefined && (worker as any).hasCustomerInteraction !== data.hasCustomerInteraction) {
-            console.log("Updating worker hasCustomerInteraction to", data.hasCustomerInteraction);
             await prisma.worker.update({
                 where: { id: data.workerId },
                 data: { hasCustomerInteraction: data.hasCustomerInteraction }
@@ -67,7 +80,8 @@ export class AssessmentService {
                 occupationalGroup: data.occupationalGroup,
                 gender: (worker as any).gender || "F",
                 jobLevel: (worker as any).jobLevel,
-                hasCustomerInteraction: (worker as any).hasCustomerInteraction
+                hasCustomerInteraction: (worker as any).hasCustomerInteraction,
+                hasPeopleInCharge: worker.hasPeopleInCharge ?? undefined
             }
         );
 
@@ -211,7 +225,8 @@ export class AssessmentService {
                 occupationalGroup: existing.worker.jobLevel === "AUXILIAR" || existing.worker.jobLevel === "OPERATIVO" ? "auxiliares_operativos" : "jefes_profesionales_tecnicos",
                 gender: (existing.worker as any).gender || "F",
                 jobLevel: (existing.worker as any).jobLevel,
-                hasCustomerInteraction: (existing.worker as any).hasCustomerInteraction
+                hasCustomerInteraction: (existing.worker as any).hasCustomerInteraction,
+                hasPeopleInCharge: existing.worker.hasPeopleInCharge ?? undefined
             }
         );
 

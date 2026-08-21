@@ -190,8 +190,9 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 <Micro style={{ marginTop: 14 }}>
                     A cada trabajador se le aplican hasta tres cuestionarios, de modo que el número
                     de evaluaciones es mayor que el de personas. Los porcentajes por instrumento y
-                    por área se calculan sobre evaluaciones; el umbral del 20% de la Resolución 2764
-                    se contrasta contra el número de trabajadores.
+                    por área se calculan sobre evaluaciones. El nivel de riesgo de la empresa, del
+                    que depende la periodicidad de la evaluación, se determina aparte según el
+                    artículo 3 de la Resolución 2764 de 2022.
                 </Micro>
 
                 {coverage.predominant && (
@@ -510,14 +511,46 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     </>
                 )}
 
-                {/* ── 7. Conclusiones ── */}
-                <SectionTitle n={7}>Conclusiones</SectionTitle>
+                {/* ── 7. Nivel de riesgo de la empresa ── */}
+                <SectionTitle n={7}>Nivel de riesgo de la empresa</SectionTitle>
+                <p style={{ marginTop: 0 }}>
+                    El parágrafo del artículo 3 de la Resolución 2764 de 2022 fija cómo se determina
+                    el nivel de riesgo psicosocial intralaboral de una empresa: se promedia el
+                    puntaje bruto total de los trabajadores, se transforma ese promedio y se compara
+                    con los baremos, por separado para cada forma. De este resultado depende que la
+                    evaluación deba repetirse cada año o cada dos.
+                </p>
+                {d.companyRisk.byForm.length === 0 ? (
+                    <NoteBlock>
+                        No hay cuestionarios intralaborales calificados, de modo que este nivel no
+                        puede establecerse.
+                    </NoteBlock>
+                ) : (
+                    <ETable
+                        headers={["Forma", "Trabajadores", "Bruto promedio", "Transformado", "Nivel"]}
+                        align={["left", "center", "center", "center", "left"]}
+                        rows={d.companyRisk.byForm.map(f => [
+                            <span key="f" style={{ color: PAPER.ink, fontWeight: 500 }}>
+                                Forma {f.form}
+                            </span>,
+                            <span key="w" style={numStyle}>{f.workers}</span>,
+                            <span key="r" style={numStyle}>{f.rawAverage}</span>,
+                            <span key="t" style={numStyle}>{f.transformed}</span>,
+                            <span key="l" style={{ fontWeight: 600, color: rc(f.level) }}>
+                                {f.levelLabel.toUpperCase()}
+                            </span>,
+                        ])}
+                    />
+                )}
+
+                {/* ── 8. Conclusiones ── */}
+                <SectionTitle n={8}>Conclusiones</SectionTitle>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                     {[
                         `La organización aplicó ${coverage.totalAssessments} evaluaciones a ${coverage.uniqueWorkers} trabajadores entre ${d.org.dateStart} y ${d.org.dateEnd}. ${coverage.criticalWorkers} trabajadores —el ${coverage.criticalWorkerPercent}% de los evaluados— presentaron al menos un instrumento en riesgo alto o muy alto. Sobre el total de evaluaciones, la proporción crítica es del ${coverage.criticalPercent}%.`,
-                        coverage.criticalWorkerPercent >= 20
-                            ? "Al alcanzar o superar el umbral del 20% de la población evaluada en riesgo alto o muy alto, la organización debe implementar un sistema de vigilancia epidemiológica de factores de riesgo psicosocial, con intervención inmediata y seguimiento anual, conforme a la Resolución 2764 de 2022."
-                            : "La proporción de trabajadores en riesgo crítico se mantiene por debajo del umbral del 20%. La reevaluación debe realizarse en un plazo máximo de dos años, conforme a la Resolución 2764 de 2022.",
+                        d.companyRisk.annualRequired
+                            ? "El nivel de riesgo psicosocial intralaboral de la empresa resulta alto o muy alto. Conforme al artículo 3 de la Resolución 2764 de 2022, la evaluación debe repetirse de forma anual, enmarcada en un sistema de vigilancia epidemiológica, y las condiciones identificadas requieren intervención inmediata en la fuente."
+                            : "El nivel de riesgo psicosocial intralaboral de la empresa se ubica en medio o bajo. Conforme al artículo 3 de la Resolución 2764 de 2022, la evaluación se repite cada dos años y requiere intervención tanto en la fuente como en el trabajador.",
                         criticas.length > 0
                             ? `Concentran la prioridad ${criticas.length} dimensiones con al menos un 20% de trabajadores en riesgo crítico; encabeza la lista ${criticas[0].name}, con el ${criticas[0].criticalPercent}%.`
                             : null,
@@ -534,8 +567,8 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                         ))}
                 </ul>
 
-                {/* ── 8. Recomendaciones ── */}
-                <SectionTitle n={8}>Recomendaciones</SectionTitle>
+                {/* ── 9. Recomendaciones ── */}
+                <SectionTitle n={9}>Recomendaciones</SectionTitle>
                 {accionables.length === 0 ? (
                     <NoteBlock>
                         Ninguna dimensión alcanza el 20% de trabajadores en riesgo alto o muy alto,
