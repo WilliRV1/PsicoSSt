@@ -112,7 +112,8 @@
       100
     ],
     "meaning": "Ausencia de riesgo, o riesgo tan bajo que no amerita el desarrollo de actividades de intervención. La condición evaluada opera como factor protector para el trabajador.",
-    "action": "Mantener y reforzar la condición. No requiere intervención."
+    "action": "Mantener y reforzar la condición. No requiere intervención.",
+    "isValid": true
   },
   "domains": [],
   "dimensions": [

@@ -112,7 +112,8 @@
       100
     ],
     "meaning": "Nivel de riesgo en el que se esperaría una respuesta de estrés moderada. Aunque no exige intervención inmediata, es un nivel que puede escalar si no se vigila.",
-    "action": "Observación sistemática y acciones de intervención preventiva, para evitar que la condición progrese a niveles superiores."
+    "action": "Observación sistemática y acciones de intervención preventiva, para evitar que la condición progrese a niveles superiores.",
+    "isValid": true
   },
   "domains": [],
   "dimensions": [

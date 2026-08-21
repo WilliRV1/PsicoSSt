@@ -70,6 +70,8 @@ export interface IndividualData {
     worker: { name: string; document: string; ficha: FichaRow[] };
     assessment: { date: string; reportDate: string; submittedTime: string };
     overall: {
+        /** Falso cuando faltan ítems y el puntaje no puede calcularse. */
+        isValid: boolean;
         score: number;
         level: RiskLevel;
         levelLabel: string;
@@ -111,10 +113,17 @@ interface StoredScore {
     riskCategory?: string;
 }
 
-function asLevel(v: string | undefined): RiskLevel {
+/**
+ * Devuelve el nivel, o null si el resultado no es calculable.
+ *
+ * Antes caía a "SIN_RIESGO" ante cualquier valor desconocido, de modo que una
+ * evaluación a la que le faltan ítems se imprimía como un trabajador sin
+ * riesgo. Es justo lo que el manual prohíbe afirmar.
+ */
+function asLevel(v: string | undefined): RiskLevel | null {
     return (["SIN_RIESGO", "BAJO", "MEDIO", "ALTO", "MUY_ALTO"] as const).includes(v as RiskLevel)
         ? (v as RiskLevel)
-        : "SIN_RIESGO";
+        : null;
 }
 
 /**
@@ -298,16 +307,18 @@ export async function buildIndividualData(
     const buildDimension = (key: string): DimensionResult | null => {
         const s = dimStore[key];
         if (!s) return null;
-        const level = asLevel(s.riskCategory);
+        const nivel = asLevel(s.riskCategory);
+        const level: RiskLevel = nivel ?? "SIN_RIESGO";
+        const valida = nivel !== null;
         return {
             key,
             name: s.dimensionName ?? key,
             definition: DIMENSION_DEFINITION[key] ?? null,
             score: Number((s.transformedScore ?? 0).toFixed(1)),
             level,
-            levelLabel: levelLabel(level),
-            bounds: toBounds(table.dimensions[key]),
-            action: needsAction(level) ? DIMENSION_ACTION[key] ?? null : null,
+            levelLabel: valida ? levelLabel(level) : "No calculable",
+            bounds: valida ? toBounds(table.dimensions[key]) : [],
+            action: valida && needsAction(level) ? DIMENSION_ACTION[key] ?? null : null,
         };
     };
 
@@ -333,16 +344,17 @@ export async function buildIndividualData(
         if (dims.length === 0) continue;
 
         const s = domStore[dc.key];
-        const level = asLevel(s?.riskCategory);
+        const nivelDom = asLevel(s?.riskCategory);
+        const level: RiskLevel = nivelDom ?? "SIN_RIESGO";
         domains.push({
             key: dc.key,
             name: s?.domainName ?? dc.name,
             definition: DOMAIN_DEFINITION[dc.key] ?? null,
             score: Number((s?.transformedScore ?? 0).toFixed(1)),
             level,
-            levelLabel: levelLabel(level),
-            bounds: toBounds(table.domains[dc.key]),
-            action: needsAction(level) ? DOMAIN_ACTION[dc.key] ?? null : null,
+            levelLabel: nivelDom !== null ? levelLabel(level) : "No calculable",
+            bounds: nivelDom !== null ? toBounds(table.domains[dc.key]) : [],
+            action: nivelDom !== null && needsAction(level) ? DOMAIN_ACTION[dc.key] ?? null : null,
             dimensions: dims,
         });
     }
@@ -387,7 +399,9 @@ export async function buildIndividualData(
 
     const contactBits = [settings?.email, settings?.phone, settings?.city].filter(Boolean);
 
-    const overallLevel = asLevel(scoredResult.overallRiskCategory);
+    const rawOverall = asLevel(scoredResult.overallRiskCategory);
+    const overallValid = rawOverall !== null;
+    const overallLevel: RiskLevel = rawOverall ?? "SIN_RIESGO";
     const questionnaireLabel = isStress
         ? "Cuestionario de evaluación del estrés"
         : assessment.questionnaireType === "EXTRALABORAL"
@@ -431,12 +445,17 @@ export async function buildIndividualData(
                 }),
             },
             overall: {
+                isValid: overallValid,
                 score: Number((totals.transformedScore ?? 0).toFixed(1)),
                 level: overallLevel,
-                levelLabel: levelLabel(overallLevel),
-                bounds: toBounds(table.total),
-                meaning: RISK_INTERPRETATION[overallLevel].meaning,
-                action: RISK_INTERPRETATION[overallLevel].action,
+                levelLabel: overallValid ? levelLabel(overallLevel) : "No calculable",
+                bounds: overallValid ? toBounds(table.total) : [],
+                meaning: overallValid
+                    ? RISK_INTERPRETATION[overallLevel].meaning
+                    : "El cuestionario no cuenta con el mínimo de ítems respondidos que exige el manual de la Batería, de modo que no es posible calcular un puntaje ni asignar un nivel de riesgo. Los resultados por dimensión y por dominio quedan igualmente sin validez.",
+                action: overallValid
+                    ? RISK_INTERPRETATION[overallLevel].action
+                    : "Completar los ítems faltantes o repetir la aplicación del cuestionario. Este informe no puede sustentar decisiones ni presentarse ante la autoridad mientras el resultado no sea calculable.",
             },
             domains,
             dimensions: flat,

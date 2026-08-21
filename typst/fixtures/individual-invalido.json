@@ -103,17 +103,11 @@
   "overall": {
     "score": 73.3,
     "level": "MUY_ALTO",
-    "levelLabel": "Muy alto",
-    "bounds": [
-      19.7,
-      25.8,
-      31.5,
-      38,
-      100
-    ],
-    "meaning": "Nivel de riesgo con amplia posibilidad de asociarse a respuestas muy altas de estrés y, por tanto, a afectación de la salud del trabajador.",
-    "action": "Intervención inmediata en el marco de un sistema de vigilancia epidemiológica. Requiere seguimiento individual documentado.",
-    "isValid": true
+    "levelLabel": "No calculable",
+    "bounds": [],
+    "meaning": "El cuestionario no cuenta con el mínimo de ítems respondidos que exige el manual de la Batería, de modo que no es posible calcular un puntaje ni asignar un nivel de riesgo.",
+    "action": "Completar los ítems faltantes o repetir la aplicación del cuestionario.",
+    "isValid": false
   },
   "domains": [
     {

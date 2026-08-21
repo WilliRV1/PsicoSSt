@@ -206,6 +206,16 @@ según los niveles de riesgo definidos en la Resolución 2764 de 2022.
 
 = Resultado global
 
+#if not D.overall.isValid [
+  #note-block(accent: rc("MUY_ALTO"))[
+    *Resultado no calculable.* Al cuestionario le faltan ítems por responder, y
+    el manual de la Batería prohíbe calcular el puntaje en ese caso. Este
+    documento deja constancia de la aplicación, pero no establece un nivel de
+    riesgo ni puede sustentar decisiones.
+  ]
+  #v(8pt)
+]
+
 #block(width: 100%, inset: 13pt, fill: panel, stroke: (left: 3pt + rc(D.overall.level), rest: 0.35pt + rule), {
   grid(
     columns: (1fr, auto),
