@@ -5,6 +5,7 @@ import { FormType, QuestionnaireType, ItemResponses, ScoredResultData } from "@/
 import { scoreQuestionnaire } from "@/lib/scoring";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getItemText } from "@/config/battery";
 
 interface ManualFormProps {
     workerId: string;
@@ -375,6 +376,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
     // mode === "QUESTIONNAIRE"
     const currentVal = responses[String(currentItem)];
+    const currentText = getItemText(qType, formType, currentItem);
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background animate-in fade-in">
@@ -418,19 +420,28 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 ) : (
                     <div className="w-full max-w-4xl text-center space-y-12 relative animate-in slide-in-from-right-8 duration-300">
                         
-                        {/* Question Number */}
+                        {/* Número de ítem */}
                         <div className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black text-lg shadow-sm tracking-tight">
-                            Pregunta {currentItem}
+                            Pregunta {currentItem} de {items.length}
                         </div>
 
-                        {/* Question Text */}
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-[1.1] tracking-tight">
-                            ¿Pregunta {currentItem}?
+                        {/* Enunciado literal del cuadernillo. El tamaño se
+                            reduce en los textos largos para que quepan sin
+                            desbordar en pantallas pequeñas. */}
+                        <h2
+                            className={`font-black text-foreground leading-[1.15] tracking-tight ${
+                                (currentText?.length ?? 0) > 95
+                                    ? "text-2xl md:text-3xl lg:text-4xl"
+                                    : "text-3xl md:text-4xl lg:text-5xl"
+                            }`}
+                        >
+                            {currentText ?? `Pregunta ${currentItem}`}
                         </h2>
-                        
-                        {/* Subtitle / Helper (optional) */}
+
                         <p className="text-lg text-muted-foreground font-medium">
-                            En el último mes, ¿con qué frecuencia...
+                            {isStress
+                                ? "En los últimos tres meses, ¿con qué frecuencia?"
+                                : "Señale la frecuencia con la que ocurre"}
                         </p>
 
                         {/* Likert Buttons */}

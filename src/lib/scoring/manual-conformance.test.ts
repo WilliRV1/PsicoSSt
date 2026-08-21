@@ -4,6 +4,7 @@ import formB from "@/config/battery/form-b-config.json";
 import extralaboral from "@/config/battery/extralaboral-config.json";
 import stress from "@/config/battery/stress-config.json";
 import baremos from "@/config/battery/baremos.json";
+import itemTexts from "@/config/battery/items.json";
 import { lookupRiskCategory, scoreQuestionnaire } from "./index";
 import type { BaremoThreshold, ItemResponses } from "@/types/battery";
 
@@ -451,5 +452,49 @@ describe("M2 · validez de los resultados", () => {
         });
 
         expect(r.dimensions.relacion_colaboradores.rawScore).toBeGreaterThan(0);
+    });
+});
+
+// ════════════════════════════════════════════════════════════
+describe("Cuadernillos — enunciados de los ítems", () => {
+    it("cada cuestionario tiene el texto de todos sus ítems", () => {
+        const esperado: [string, number][] = [
+            ["A", 123],
+            ["B", 97],
+            ["EXTRALABORAL", 31],
+            ["STRESS", 31],
+        ];
+        for (const [clave, total] of esperado) {
+            const grupo = (itemTexts as Record<string, Record<string, string>>)[clave];
+            expect(grupo, clave).toBeDefined();
+            expect(Object.keys(grupo).length, clave).toBe(total);
+            for (let i = 1; i <= total; i++) {
+                const t = grupo[String(i)];
+                expect(t, `${clave} · ítem ${i}`).toBeTruthy();
+                // Un enunciado demasiado corto delata una extracción truncada.
+                expect(t.length, `${clave} · ítem ${i}: ${t}`).toBeGreaterThan(11);
+            }
+        }
+    });
+
+    it("ningún enunciado arrastra la columna de respuestas del cuadernillo", () => {
+        const cola = /\b(S[íi]\s+No|Siempre|Casi nunca|MUCHAS GRACIAS|DATOS GENERALES)\s*$/;
+        for (const grupo of Object.values(itemTexts as Record<string, Record<string, string>>)) {
+            for (const [n, t] of Object.entries(grupo)) {
+                expect(cola.test(t), `ítem ${n}: ${t}`).toBe(false);
+            }
+        }
+    });
+
+    it("los enunciados corresponden a la dimensión que los reclama", () => {
+        // Comprobación de sentido sobre ítems reconocibles: si el mapeo de
+        // ítems a dimensiones se desalineara, estos dejarían de cuadrar.
+        const A = (itemTexts as Record<string, Record<string, string>>).A;
+        const E = (itemTexts as Record<string, Record<string, string>>).EXTRALABORAL;
+        expect(A["1"]).toMatch(/ruido/i); // demandas ambientales
+        expect(A["63"]).toMatch(/jefe/i); // características del liderazgo
+        expect(A["115"]).toMatch(/colaboradores/i); // relación con los colaboradores
+        expect(E["1"]).toMatch(/transportarme|trasportarme/i); // desplazamiento
+        expect(E["29"]).toMatch(/dinero|gastos/i); // situación económica
     });
 });

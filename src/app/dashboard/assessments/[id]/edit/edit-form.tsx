@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getFormConfig } from "@/config/battery";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
 import { toast } from "sonner";
+import { getItemText } from "@/config/battery";
 
 interface DimensionScore {
     dimensionKey: string;
@@ -226,9 +227,10 @@ export default function EditAssessmentForm({
                                     </span>
                                 </div>
 
-                                {/* Item label placeholder */}
-                                <div className="flex-1 text-sm text-muted-foreground">
-                                    Ítem {itemNum}
+                                {/* Enunciado del cuadernillo, para poder
+                                    corregir sin tener el impreso al lado. */}
+                                <div className="flex-1 text-sm text-foreground">
+                                    {getItemText(initialQType, initialFormType, itemNum) ?? `Ítem ${itemNum}`}
                                     {changed && (
                                         <span className="ml-2 text-[10px] font-semibold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">
                                             MODIFICADO
