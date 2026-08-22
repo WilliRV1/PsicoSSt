@@ -1,115 +1,73 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import Image from "next/image";
 import { CheckCircle2, Clock } from "lucide-react";
+import { Logo } from "@/components/psicosst/logo";
+
+const REQUISITOS = [
+    "Licencia vigente en Seguridad y Salud en el Trabajo",
+    "Tarjeta profesional de psicólogo",
+    "Posgrado en Seguridad y Salud en el Trabajo",
+];
 
 export default function PendingApprovalPage() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center p-6"
-      style={{ background: "#07101C" }}
-    >
-      <div className="w-full max-w-sm text-center space-y-7">
-        {/* Logo */}
-        <Image
-          src="/logo-dark.png"
-          alt="PsicoSST"
-          width={148}
-          height={42}
-          className="h-9 w-auto object-contain mx-auto"
-          priority
-        />
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-background p-6">
+            <div className="flex w-full max-w-[420px] flex-col items-center gap-8">
+                <Logo size={34} />
 
-        {/* Card */}
-        <div
-          className="rounded-2xl p-8 space-y-6"
-          style={{ background: "#0B1929", border: "1px solid #162638" }}
-        >
-          {/* Icon */}
-          <div className="relative mx-auto w-fit">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{
-                background: "rgba(41, 121, 255, 0.08)",
-                border: "1px solid rgba(41, 121, 255, 0.2)",
-              }}
-            >
-              <Clock className="w-8 h-8" style={{ color: "#2979FF" }} />
+                <div className="flex w-full flex-col gap-6 rounded-2xl border border-border bg-surface p-8">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-light">
+                            <Clock className="h-7 w-7 text-primary" />
+                        </span>
+                        <div className="flex flex-col gap-1.5">
+                            <h1
+                                className="text-[22px] font-semibold tracking-[-0.01em] text-foreground"
+                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            >
+                                Tu cuenta está en revisión
+                            </h1>
+                            <p className="text-[13.5px] leading-relaxed text-text-secondary">
+                                Un administrador verifica tus credenciales profesionales. Recibirás
+                                el acceso por correo, normalmente en menos de 24 horas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 rounded-xl border border-border-muted bg-background p-4">
+                        <p
+                            className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-text-muted"
+                            style={{ fontFamily: "var(--font-barlow)" }}
+                        >
+                            Qué se verifica
+                        </p>
+                        <ul className="flex flex-col gap-2.5">
+                            {REQUISITOS.map(item => (
+                                <li key={item} className="flex items-start gap-2.5">
+                                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                                    <span className="text-[13px] leading-snug text-text-secondary">
+                                        {item}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <button
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        className="h-11 w-full rounded-lg border border-border bg-surface text-[13.5px] font-semibold text-text-secondary transition-colors hover:border-border-focus hover:text-foreground"
+                        style={{ fontFamily: "var(--font-barlow)" }}
+                    >
+                        Cerrar sesión
+                    </button>
+                </div>
+
+                <p className="text-center text-[11.5px] leading-relaxed text-text-muted">
+                    La verificación es un requisito de la Resolución 2764 de 2022: sólo un
+                    profesional con licencia vigente puede aplicar e interpretar la Batería.
+                </p>
             </div>
-            <span
-              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-              style={{ background: "#0B1929", border: "1px solid #162638" }}
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full animate-pulse"
-                style={{ background: "#2979FF" }}
-              />
-            </span>
-          </div>
-
-          {/* Text */}
-          <div className="space-y-2">
-            <h1
-              className="text-[20px] font-bold"
-              style={{ color: "#C4DAE8", fontFamily: "var(--font-barlow)" }}
-            >
-              Cuenta en Revisión
-            </h1>
-            <p className="text-[13.5px] leading-relaxed" style={{ color: "#3A5872" }}>
-              Tu solicitud está siendo verificada por un administrador.
-              Recibirás acceso en menos de 24 horas.
-            </p>
-          </div>
-
-          {/* Checklist */}
-          <div
-            className="rounded-xl p-4 text-left space-y-2.5"
-            style={{ background: "rgba(11, 25, 42, 0.6)", border: "1px solid #121F2E" }}
-          >
-            <p
-              className="text-[10px] font-semibold uppercase tracking-[0.18em] mb-3"
-              style={{ color: "#2E4A62", fontFamily: "var(--font-barlow)" }}
-            >
-              Qué se verifica
-            </p>
-            {[
-              "Licencia SST vigente",
-              "Tarjeta profesional de psicólogo",
-              "Posgrado en Seguridad y Salud en el Trabajo",
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-3">
-                <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#00C9A7" }} />
-                <span className="text-[13px]" style={{ color: "#3A5872" }}>
-                  {item}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Sign out */}
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full py-2.5 rounded-xl text-[13.5px] font-semibold transition-all duration-150"
-            style={{
-              background: "rgba(11, 25, 42, 0.7)",
-              border: "1px solid #162638",
-              color: "#3A5872",
-              fontFamily: "var(--font-barlow)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "#5A80A0";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#243C55";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "#3A5872";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#162638";
-            }}
-          >
-            Cerrar Sesión
-          </button>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

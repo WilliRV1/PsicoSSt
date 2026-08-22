@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
         setError("");
 
         if (newPassword !== confirmPassword) {
-            setError("Las contrasenas no coinciden");
+            setError("Las contraseñas no coinciden");
             return;
         }
 
@@ -81,18 +81,20 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
-            <div className="w-full max-w-sm space-y-8">
-                <div className="text-center">
-                    <Logo />
-                </div>
+            <div className="flex w-full max-w-[420px] flex-col items-center gap-8">
+                <Logo size={34} />
+                <div className="w-full space-y-6 rounded-2xl border border-border bg-surface p-8">
 
                 {/* Step 1: Enter email */}
                 {step === 1 && (
                     <>
                         <div className="space-y-2">
-                            <h1 className="text-2xl font-bold text-foreground">Recuperar contrasena</h1>
+                            <h1
+                                className="text-[24px] font-semibold tracking-[-0.01em] text-foreground"
+                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            >Recuperar contraseña</h1>
                             <p className="text-sm text-muted-foreground">
-                                Ingresa tu correo y te enviaremos un codigo de 6 digitos.
+                                Ingresa tu correo y te enviaremos un código de 6 dígitos.
                             </p>
                         </div>
 
@@ -105,7 +107,7 @@ export default function ForgotPasswordPage() {
 
                         <form className="space-y-5" onSubmit={handleRequestCode}>
                             <div className="space-y-1.5">
-                                <Label htmlFor="email">Correo electronico</Label>
+                                <Label htmlFor="email">Correo electrónico</Label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
@@ -128,7 +130,7 @@ export default function ForgotPasswordPage() {
                                         Enviando...
                                     </>
                                 ) : (
-                                    "Enviar codigo"
+                                    "Enviar código"
                                 )}
                             </Button>
                         </form>
@@ -136,7 +138,7 @@ export default function ForgotPasswordPage() {
                         <p className="text-center text-sm text-muted-foreground">
                             <Link href="/login" className="font-medium text-primary hover:underline inline-flex items-center gap-1">
                                 <ArrowLeft className="h-3 w-3" />
-                                Volver a iniciar sesion
+                                Volver a iniciar sesión
                             </Link>
                         </p>
                     </>
@@ -146,9 +148,12 @@ export default function ForgotPasswordPage() {
                 {step === 2 && (
                     <>
                         <div className="space-y-2">
-                            <h1 className="text-2xl font-bold text-foreground">Ingresa el codigo</h1>
+                            <h1
+                                className="text-[24px] font-semibold tracking-[-0.01em] text-foreground"
+                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            >Ingresa el código</h1>
                             <p className="text-sm text-muted-foreground">
-                                Enviamos un codigo de 6 digitos a <strong>{email}</strong>. Expira en 10 minutos.
+                                Enviamos un código de 6 dígitos a <strong>{email}</strong>. Expira en 10 minutos.
                             </p>
                         </div>
 
@@ -161,7 +166,7 @@ export default function ForgotPasswordPage() {
 
                         <form className="space-y-5" onSubmit={handleResetPassword}>
                             <div className="space-y-2">
-                                <Label>Codigo de verificacion</Label>
+                                <Label>Código de verificación</Label>
                                 <div className="flex justify-center">
                                     <InputOTP
                                         maxLength={6}
@@ -181,7 +186,7 @@ export default function ForgotPasswordPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="newPassword">Nueva contrasena</Label>
+                                <Label htmlFor="newPassword">Nueva contraseña</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
@@ -197,7 +202,7 @@ export default function ForgotPasswordPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="confirmPassword">Confirmar contrasena</Label>
+                                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
@@ -205,7 +210,7 @@ export default function ForgotPasswordPage() {
                                         type="password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="Repite la contrasena"
+                                        placeholder="Repite la contraseña"
                                         className="pl-9"
                                         required
                                     />
@@ -219,7 +224,7 @@ export default function ForgotPasswordPage() {
                                         Verificando...
                                     </>
                                 ) : (
-                                    "Cambiar contrasena"
+                                    "Cambiar contraseña"
                                 )}
                             </Button>
 
@@ -228,7 +233,7 @@ export default function ForgotPasswordPage() {
                                 onClick={() => { setStep(1); setError(""); setCode(""); }}
                                 className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
                             >
-                                Reenviar codigo
+                                Reenviar código
                             </button>
                         </form>
                     </>
@@ -241,16 +246,20 @@ export default function ForgotPasswordPage() {
                             <CheckCircle className="h-7 w-7" />
                         </div>
                         <div className="space-y-2">
-                            <h1 className="text-2xl font-bold text-foreground">Contrasena actualizada</h1>
+                            <h1
+                                className="text-[24px] font-semibold tracking-[-0.01em] text-foreground"
+                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            >Contraseña actualizada</h1>
                             <p className="text-sm text-muted-foreground">
-                                Tu contrasena ha sido cambiada exitosamente.
+                                Tu contraseña ha sido cambiada exitosamente.
                             </p>
                         </div>
                         <Button onClick={() => router.push("/login")} className="w-full">
-                            Iniciar sesion
+                            Iniciar sesión
                         </Button>
                     </div>
                 )}
+                </div>
             </div>
         </div>
     );

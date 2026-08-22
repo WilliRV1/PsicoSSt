@@ -44,13 +44,13 @@ export default function MfaVerifyPage() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
             <div className="w-full max-w-md">
-                <div className="mb-8 text-center"><Logo /></div>
+                <div className="mb-8 flex justify-center"><Logo size={34} /></div>
                 <Card className="text-center">
                     <CardHeader>
                         <div className="mx-auto mb-2">
                             <LockKeyhole className="h-10 w-10 text-primary" />
                         </div>
-                        <CardTitle className="text-xl">Verificación MFA</CardTitle>
+                        <CardTitle className="text-xl font-semibold tracking-[-0.01em]" style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}>Verificación MFA</CardTitle>
                         <CardDescription>
                             Ingresa el código de 6 dígitos de tu aplicación de autenticación.
                         </CardDescription>
