@@ -118,7 +118,7 @@ export default function RegisterPage() {
     background: "rgba(11, 25, 42, 0.7)",
     border: "1px solid #162638",
     color: "#C4DAE8",
-    fontFamily: "var(--font-source-sans)",
+    fontFamily: "var(--font-sans)",
   };
   const labelStyle = {
     color: "#2E4A62",
