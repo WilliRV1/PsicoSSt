@@ -52,7 +52,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
             // Remove client items if worker doesn't attend clients
             if (hasCustomerInteraction === false) {
                 if (formType === "A") items = items.filter(i => i < 106 || i > 114);
-                if (formType === "B") items = items.filter(i => i < 80 || i > 88);
+                if (formType === "B") items = items.filter(i => i < 89 || i > 97);
             }
             // Remove boss items if worker is not boss (Form A only)
             if (formType === "A" && isBoss === false) {
@@ -149,8 +149,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 setMode("CONTROL_BOSS");
                 return;
             }
-            // Form B: Clients starts at 80
-            if (formType === "B" && currentItem === 79 && hasCustomerInteraction === null) {
+            // Form B: Clients starts at 89
+            if (formType === "B" && currentItem === 88 && hasCustomerInteraction === null) {
                 setMode("CONTROL_CLIENTS");
                 return;
             }
