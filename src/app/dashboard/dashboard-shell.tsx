@@ -34,6 +34,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { FeedbackButton } from "@/components/feedback/feedback-button"
 
 interface Notification {
     id: string
@@ -348,6 +349,8 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
                     {children}
                 </main>
             </div>
+
+            <FeedbackButton />
         </div>
     )
 }

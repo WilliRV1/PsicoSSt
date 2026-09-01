@@ -13,6 +13,29 @@ export default function Error({
 }) {
     useEffect(() => {
         console.error("Application error:", error);
+
+        // Se reporta solo. Durante el piloto es lo que permite enterarse de un
+        // fallo sin depender de que la persona lo cuente, que es justo lo que
+        // no ocurre cuando está con un trabajador delante.
+        fetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                kind: "CRASH",
+                message: error.message || "Error sin mensaje",
+                path: typeof window !== "undefined" ? window.location.pathname : null,
+                stack: error.stack ?? null,
+                context: {
+                    digest: error.digest,
+                    viewport:
+                        typeof window !== "undefined"
+                            ? `${window.innerWidth}x${window.innerHeight}`
+                            : null,
+                },
+            }),
+            // Si el envío falla no hay nada que hacer: la pantalla de error ya
+            // está en pantalla y encadenar otro error sólo la empeoraría.
+        }).catch(() => {});
     }, [error]);
 
     return (

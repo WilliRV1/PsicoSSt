@@ -45,6 +45,7 @@ model Psychologist {
   assessmentReports  AssessmentReport[]
 
   @@map("psychologists")
+  feedback              Feedback[]
 }
 
 /// Psychologist's digital signature (drawn or uploaded image)
@@ -624,4 +625,47 @@ enum TransportMeans {
   TRANSPORTE_PUBLICO
   TRANSPORTE_EMPRESA
   OTRO
+}
+
+/// Reporte enviado desde la aplicación: un comentario del profesional o un
+/// error capturado automáticamente. Es el canal de retroalimentación del
+/// piloto, y por eso guarda el contexto —la pantalla, el navegador— junto al
+/// texto: sin él un "no me funciona" no es accionable.
+model Feedback {
+  id             String         @id @default(uuid()) @db.Uuid
+  psychologistId String?        @map("psychologist_id") @db.Uuid
+  kind           FeedbackKind   @default(COMMENT)
+  /// Lo que escribió la persona, o el mensaje del error capturado.
+  message        String         @db.Text
+  /// Ruta de la aplicación desde la que se envió.
+  path           String?
+  /// Traza del error, cuando lo hubo.
+  stack          String?        @db.Text
+  /// JSONB: navegador, tamaño de ventana y demás contexto del envío.
+  context        Json?
+  status         FeedbackStatus @default(NEW)
+  /// Nota interna del administrador al revisarlo.
+  adminNote      String?        @map("admin_note") @db.Text
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  psychologist   Psychologist?  @relation(fields: [psychologistId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([psychologistId])
+  @@map("feedback")
+}
+
+enum FeedbackKind {
+  /// Comentario o sugerencia escrita por el profesional.
+  COMMENT
+  /// Problema que el profesional reporta a mano.
+  BUG
+  /// Error capturado por la aplicación, sin intervención del usuario.
+  CRASH
+}
+
+enum FeedbackStatus {
+  NEW
+  READ
+  RESOLVED
 }

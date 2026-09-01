@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
     Users, Building2, ClipboardList, FileText, UserCheck, UserX,
     Clock, Shield, ArrowRight, Activity,
+    MessageSquare,
 } from "lucide-react";
 
 export default async function AdminDashboardPage() {
@@ -180,6 +181,13 @@ export default async function AdminDashboardPage() {
                             className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                         >
                             <span className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /> Registro de auditoría</span>
+                            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Link>
+                        <Link
+                            href="/dashboard/admin/feedback"
+                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                        >
+                            <span className="flex items-center gap-2"><MessageSquare className="h-4 w-4 text-muted-foreground" /> Reportes del piloto</span>
                             <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                         </Link>
                     </div>
