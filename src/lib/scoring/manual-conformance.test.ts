@@ -439,6 +439,23 @@ describe("M2 · validez de los resultados", () => {
         expect(r.total.isValid).toBe(true);
     });
 
+    it("Forma B: omitir demandas emocionales no invalida reconocimiento ni recompensa", () => {
+        // Si no atiende clientes, el manual excluye únicamente 89–97. Este
+        // caso protege contra el límite histórico 80–88, que dejó inválidas
+        // evaluaciones por borrar preguntas de recompensa.
+        const responses: ItemResponses = {};
+        for (let i = 1; i <= 88; i++) responses[String(i)] = 2;
+
+        const r = scoreQuestionnaire(responses, "B", "INTRALABORAL", {
+            hasCustomerInteraction: false,
+        });
+
+        expect(r.dimensions.reconocimiento_compensacion.isValid).toBe(true);
+        expect(r.dimensions.recompensas_pertenencia.isValid).toBe(true);
+        expect(r.dimensions.demandas_emocionales.isFiltered).toBe(true);
+        expect(r.total.isValid).toBe(true);
+    });
+
     it("el nivel del cargo no decide si el trabajador tiene personal a cargo", () => {
         // Un técnico puede ser jefe y un profesional puede no serlo. La respuesta
         // a la pregunta de control es el único criterio del manual.

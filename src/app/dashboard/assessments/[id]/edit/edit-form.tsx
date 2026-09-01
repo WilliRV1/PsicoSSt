@@ -98,10 +98,24 @@ export default function EditAssessmentForm({
 
     const dimensions = config?.dimensions || [];
 
+    // Las preguntas de control no son respuestas faltantes. En particular, una
+    // persona que no atiende clientes no debe ver ni completar las demandas
+    // emocionales (89–97 en la Forma B / 106–114 en la Forma A). Mostrarlas
+    // como 0/N pendientes confundía la recuperación de evaluaciones antiguas.
+    const visibleDimensions = dimensions.filter(dim => !(
+        initialQType === "INTRALABORAL" &&
+        dim.key === "demandas_emocionales" &&
+        hasCustomerInteraction === false
+    ));
+
+    const missingItems = visibleDimensions.flatMap(dim =>
+        dim.items.filter(item => responses[String(item)] === undefined || responses[String(item)] === null)
+    );
+
     // Active dimension or first one
     const currentDim = activeDimensionKey
-        ? dimensions.find(d => d.key === activeDimensionKey) || dimensions[0]
-        : dimensions[0];
+        ? visibleDimensions.find(d => d.key === activeDimensionKey) || visibleDimensions[0]
+        : visibleDimensions[0];
 
     const handleChange = (itemNum: number, val: number) => {
         setResponses(prev => ({ ...prev, [String(itemNum)]: val }));
@@ -109,6 +123,10 @@ export default function EditAssessmentForm({
     };
 
     const handleSave = async () => {
+        if (missingItems.length > 0) {
+            toast.error(`Faltan ${missingItems.length} ítems: ${missingItems.join(", ")}`);
+            return;
+        }
         setIsSaving(true);
         try {
             const res = await fetch(`/api/assessments/${initialAssessmentId}`, {
@@ -147,10 +165,11 @@ export default function EditAssessmentForm({
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dimensiones</p>
                 </div>
                 <nav className="p-2 space-y-1">
-                    {dimensions.map((dim) => {
+                    {visibleDimensions.map((dim) => {
                         const dimScore = displayScore?.dimensions[dim.key];
-                        const isActive = (activeDimensionKey || dimensions[0]?.key) === dim.key;
+                        const isActive = (activeDimensionKey || visibleDimensions[0]?.key) === dim.key;
                         const answered = dim.items.filter(i => responses[String(i)] !== undefined).length;
+                        const missing = dim.items.length - answered;
                         return (
                             <button
                                 key={dim.key}
@@ -171,6 +190,7 @@ export default function EditAssessmentForm({
                                 </div>
                                 <div className={`text-[10px] mt-1 font-medium ${isActive ? "text-indigo-200" : "text-muted-foreground"}`}>
                                     {answered}/{dim.items.length} ítems
+                                    {missing > 0 && ` · faltan ${missing}`}
                                     {dimScore && ` · ${RISK_LABELS[dimScore.riskCategory]}`}
                                 </div>
                             </button>
@@ -181,6 +201,13 @@ export default function EditAssessmentForm({
 
             {/* ===== CENTER: Item Table ===== */}
             <main className="flex-1 flex flex-col overflow-hidden">
+                {missingItems.length > 0 && (
+                    <div className="mx-5 mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                        <span className="font-bold">Resultado no calculable:</span>{" "}
+                        faltan {missingItems.length} respuesta{missingItems.length !== 1 ? "s" : ""} ({missingItems.join(", ")}).
+                        Registra únicamente las respuestas reales del cuestionario antes de guardar.
+                    </div>
+                )}
                 {/* Toolbar */}
                 <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-card/80 backdrop-blur">
                     <div className="flex-1">
@@ -217,6 +244,8 @@ export default function EditAssessmentForm({
                                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border transition-all ${
                                     changed
                                         ? "border-amber-300 bg-amber-50/60"
+                                        : currentVal === undefined
+                                            ? "border-red-200 bg-red-50/50"
                                         : "border-transparent hover:border-border hover:bg-muted/40"
                                 }`}
                             >
@@ -316,6 +345,11 @@ export default function EditAssessmentForm({
 
                 {/* Save area */}
                 <div className="p-4 border-t border-border space-y-2">
+                    {missingItems.length > 0 && (
+                        <p className="text-[11px] text-red-700 font-semibold text-center bg-red-50 rounded-lg py-1.5 border border-red-200">
+                            Completa {missingItems.length} ítem{missingItems.length !== 1 ? "s" : ""} para recalcular
+                        </p>
+                    )}
                     {changedCount > 0 && (
                         <p className="text-[11px] text-amber-700 font-semibold text-center bg-amber-50 rounded-lg py-1.5 border border-amber-200">
                             {changedCount} ítem{changedCount !== 1 ? "s" : ""} modificado{changedCount !== 1 ? "s" : ""}
@@ -323,7 +357,7 @@ export default function EditAssessmentForm({
                     )}
                     <button
                         onClick={handleSave}
-                        disabled={isSaving || !hasChanges}
+                        disabled={isSaving || !hasChanges || missingItems.length > 0}
                         className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-muted disabled:text-muted-foreground text-white font-bold text-sm rounded-lg transition-all shadow-sm disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isSaving ? (
