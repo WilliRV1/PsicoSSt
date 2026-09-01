@@ -24,6 +24,9 @@ export async function DELETE(
         organizationId: true,
         questionnaireType: true,
         formType: true,
+        generatedReports: {
+          select: { isFinalized: true, status: true },
+        },
       },
     });
 
@@ -35,23 +38,46 @@ export async function DELETE(
       return NextResponse.json({ error: "Prohibido: Solo puedes borrar tus propias evaluaciones" }, { status: 403 });
     }
 
-    await prisma.assessment.delete({ where: { id } });
+    // Un informe firmado es un documento profesional y no debe poder borrarse
+    // desde la interfaz. Los borradores sí se eliminan junto con la prueba,
+    // evitando que su FK bloquee el borrado de evaluaciones de prueba.
+    const hasFinalReport = assessment.generatedReports.some(
+      report => report.isFinalized || report.status === "SIGNED" || report.status === "DELIVERED"
+    );
+    if (hasFinalReport) {
+      return NextResponse.json(
+        { error: "No se puede eliminar una evaluación con informe firmado o entregado." },
+        { status: 409 }
+      );
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.generatedReport.deleteMany({ where: { assessmentId: id } });
+      // response_sets, scored_results e informed_consents usan onDelete: Cascade.
+      await tx.assessment.delete({ where: { id } });
+    });
 
     const { ipAddress, userAgent } = extractRequestMeta(req);
-    await logAudit({
-      userId: session.user.id,
-      action: "DELETE",
-      resourceType: "assessment",
-      resourceId: id,
-      metadata: {
-        workerId: assessment.workerId,
-        organizationId: assessment.organizationId,
-        questionnaireType: assessment.questionnaireType,
-        formType: assessment.formType,
-      },
-      ipAddress,
-      userAgent,
-    });
+    try {
+      await logAudit({
+        userId: session.user.id,
+        action: "DELETE",
+        resourceType: "assessment",
+        resourceId: id,
+        metadata: {
+          workerId: assessment.workerId,
+          organizationId: assessment.organizationId,
+          questionnaireType: assessment.questionnaireType,
+          formType: assessment.formType,
+        },
+        ipAddress,
+        userAgent,
+      });
+    } catch (auditError) {
+      // La prueba ya fue eliminada; no reportar un falso fallo al usuario si
+      // sólo falló el registro de auditoría.
+      console.error("Error registrando auditoría de eliminación:", auditError);
+    }
 
     return NextResponse.json({ success: true, message: "Evaluación eliminada correctamente" });
   } catch (error: any) {

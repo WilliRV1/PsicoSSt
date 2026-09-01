@@ -102,6 +102,7 @@ function AssessmentSlot({
                     >
                         <FileDown className="w-3 h-3" />
                     </a>
+                    <DeleteAssessmentButton id={assessment.id} />
                 </div>
             </div>
         </td>
