@@ -38,6 +38,16 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
     const inputRef = useRef<HTMLDivElement>(null);
+    // Espejo síncrono de `responses`: el setTimeout de handleAnswer agenda
+    // advanceNext/submitAssessment con el closure de ese render, que puede
+    // quedar desactualizado antes de que el timeout dispare (sobre todo en el
+    // último ítem, justo antes de enviar). Leer de la ref evita perder la
+    // respuesta que se acaba de registrar.
+    const responsesRef = useRef<ItemResponses>({});
+    // Bloquea una segunda respuesta mientras la anterior sigue "en vuelo": sin
+    // esto, una doble pulsación de tecla agenda dos avances y el segundo salta
+    // la siguiente pregunta sin que el usuario la responda.
+    const advancingRef = useRef(false);
 
     // Generate Items list dynamically based on control answers
     const getItems = () => {
@@ -128,10 +138,16 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
     // Auto-save simulation & actual local state save
     const handleAnswer = (val: number) => {
-        setResponses(prev => ({ ...prev, [String(currentItem)]: val }));
-        
+        if (advancingRef.current) return;
+        advancingRef.current = true;
+
+        const updated = { ...responsesRef.current, [String(currentItem)]: val };
+        responsesRef.current = updated;
+        setResponses(updated);
+
         // Let user see the answer for a tiny fraction of time, then advance
         setTimeout(() => {
+            advancingRef.current = false;
             advanceNext();
         }, 150);
     };
@@ -181,7 +197,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
             // ficha; aquí sólo viajan las dos respuestas de control del
             // cuestionario. Antes se falsificaba el jobLevel para transmitir
             // "soy jefe", lo que además desviaba la selección de baremos.
-            const score = scoreQuestionnaire(responses, formType, qType, {
+            const finalResponses = responsesRef.current;
+            const score = scoreQuestionnaire(finalResponses, formType, qType, {
                 hasCustomerInteraction: hasCustomerInteraction ?? false,
                 hasPeopleInCharge: isBoss ?? undefined,
                 occupationalGroup:
@@ -195,7 +212,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 formType,
                 questionnaireType: qType,
                 assessmentDate,
-                responses,
+                responses: finalResponses,
                 hasCustomerInteraction: hasCustomerInteraction ?? false,
                 hasPeopleInCharge: isBoss ?? undefined,
                 occupationalGroup: formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
