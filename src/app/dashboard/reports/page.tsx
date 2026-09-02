@@ -6,6 +6,7 @@ import { BarChart3, Eye, FileDown, CheckCircle2, Clock, PenLine } from "lucide-r
 import FilterBar from "@/components/psicosst/filter-bar";
 import BulkExportButton from "@/components/psicosst/bulk-export-button";
 import { Suspense } from "react";
+import DeleteAssessmentButton from "../assessments/delete-assessment-button";
 
 const riskColors: Record<string, string> = {
     SIN_RIESGO: "bg-green-100 text-green-700",
@@ -245,6 +246,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                                                         <FileDown className="h-3.5 w-3.5" />
                                                         PDF
                                                     </a>
+                                                    <DeleteAssessmentButton id={assessment.id} />
                                                 </div>
                                             </td>
                                         </tr>
