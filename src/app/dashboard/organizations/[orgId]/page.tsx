@@ -371,7 +371,8 @@ export default function OrganizationDetailPage() {
                             )}
                             <div className="flex items-center gap-1.5">
                                 <Users className="w-4 h-4" />
-                                {org.employeeCount || 0} empleados declarados
+                                {workers.length} trabajador{workers.length === 1 ? "" : "es"} registrado{workers.length === 1 ? "" : "s"}
+                                {org.employeeCount ? ` (de ${org.employeeCount} declarados)` : ""}
                             </div>
                         </div>
                     </div>

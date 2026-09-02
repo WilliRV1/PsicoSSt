@@ -175,6 +175,11 @@ export default function ManualEntryPage() {
                         organizationName={selectedWorker.organization.name}
                         initialType={typeFromUrl ?? undefined}
                         onReset={() => {
+                            // Limpiar también la URL: si workerId sigue en el
+                            // query string, el efecto que carga el trabajador
+                            // desde la URL lo vuelve a seleccionar de inmediato
+                            // y "Cancelar" no tiene ningún efecto visible.
+                            router.replace("/dashboard/assessments/new/manual");
                             setSelectedWorker(null);
                             setSearchTerm("");
                             setTimeout(() => inputRef.current?.focus(), 100);
