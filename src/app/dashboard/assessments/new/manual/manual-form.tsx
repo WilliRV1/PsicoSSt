@@ -26,12 +26,12 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     const [assessmentDate, setAssessmentDate] = useState<string>(new Date().toISOString().substring(0, 10));
     
     // 2. Control Questions State
-    const [hasCustomerInteraction, setHasCustomerInteraction] = useState<boolean | null>(null);
-    const [isBoss, setIsBoss] = useState<boolean | null>(null);
+    const [hasCustomerInteraction, setHasCustomerInteractionState] = useState<boolean | null>(null);
+    const [isBoss, setIsBossState] = useState<boolean | null>(null);
 
     // 3. Responses State
     const [responses, setResponses] = useState<ItemResponses>({});
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndex, setCurrentIndexState] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [scoreResult, setScoreResult] = useState<ScoredResultData | null>(null);
     const [startTime, setStartTime] = useState<number>(0);
@@ -49,10 +49,38 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     // la siguiente pregunta sin que el usuario la responda.
     const advancingRef = useRef(false);
 
-    // Generate Items list dynamically based on control answers. Parametrizada
-    // (en vez de leer el estado directamente) para que handleControlAnswer
-    // pueda recalcularla con la respuesta que ACABA de dar, sin esperar a que
-    // el estado se confirme en un nuevo render.
+    // El listener de teclado se resuscribe en un useEffect cada vez que
+    // cambia el estado relevante, pero eso ocurre en un render POSTERIOR: hay
+    // una ventana real entre "advancingRef vuelve a false" y "React confirma
+    // el nuevo currentIndex y re-suscribe el listener" en la que un evento de
+    // tecla (típico al mantenerla presionada) puede ejecutarse contra un
+    // closure con el índice/ítem TODAVÍA VIEJO. Eso repetía la respuesta del
+    // ítem anterior y saltaba la del siguiente sin que el usuario la
+    // respondiera. Para que esto sea imposible, currentIndex/hasCustomerInteraction/
+    // isBoss se leen SIEMPRE desde estas refs (actualizadas de forma síncrona
+    // en el mismo momento que su estado), nunca desde la variable capturada
+    // por el closure del render.
+    const currentIndexRef = useRef(0);
+    const hasCustomerInteractionRef = useRef<boolean | null>(null);
+    const isBossRef = useRef<boolean | null>(null);
+
+    const setCurrentIndex = (updater: number | ((prev: number) => number)) => {
+        const next = typeof updater === "function"
+            ? (updater as (prev: number) => number)(currentIndexRef.current)
+            : updater;
+        currentIndexRef.current = next;
+        setCurrentIndexState(next);
+    };
+    const setHasCustomerInteraction = (value: boolean | null) => {
+        hasCustomerInteractionRef.current = value;
+        setHasCustomerInteractionState(value);
+    };
+    const setIsBoss = (value: boolean | null) => {
+        isBossRef.current = value;
+        setIsBossState(value);
+    };
+
+    // Generate Items list dynamically based on control answers.
     const computeItems = (customer: boolean | null, boss: boolean | null) => {
         let total = 0;
         if (qType === "STRESS" || qType === "EXTRALABORAL") total = 31;
@@ -75,6 +103,11 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
         return items;
     };
 
+    // items/currentItem derivados del ESTADO: correctos para renderizar. La
+    // lógica de avance (handleAnswer/advanceNext/goBack/handleControlAnswer)
+    // usa en cambio computeItems(...Ref.current) y currentIndexRef.current,
+    // nunca estas dos constantes, precisamente para no heredar el problema de
+    // closure obsoleto descrito arriba.
     const getItems = () => computeItems(hasCustomerInteraction, isBoss);
     const items = getItems();
     const currentItem = items[currentIndex];
@@ -120,7 +153,9 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 goBack();
             } else if (e.key === "ArrowDown") {
                 e.preventDefault();
-                if (responses[String(currentItem)] !== undefined && currentIndex < items.length - 1) {
+                const curItems = computeItems(hasCustomerInteractionRef.current, isBossRef.current);
+                const curItem = curItems[currentIndexRef.current];
+                if (responsesRef.current[String(curItem)] !== undefined && currentIndexRef.current < curItems.length - 1) {
                     setCurrentIndex(prev => prev + 1);
                 }
             }
@@ -128,25 +163,28 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
         window.addEventListener("keydown", handleGlobalKeyDown);
         return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-    }, [mode, currentIndex, items, responses, maxVal]);
+    }, [mode, maxVal]);
 
     const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
-        // currentItem (el ítem límite: 105/88/114) ya fue respondido antes de
-        // que advanceNext interceptara para mostrar esta pregunta — el índice
+        // El ítem límite (105/88/114) ya fue respondido antes de que
+        // advanceNext interceptara para mostrar esta pregunta — el índice
         // nunca avanzó. Si sólo hacemos setMode("QUESTIONNAIRE") sin mover el
         // índice, se vuelve a mostrar la MISMA pregunta ya contestada, y si el
         // operador confundido pulsa otro valor, sobreescribe la respuesta
         // original sin darse cuenta. Hay que decidir aquí mismo el siguiente
-        // paso, con la respuesta que se acaba de dar (el estado de React aún
-        // no se actualizó en este mismo tick).
-        const newCustomer = type === "CLIENTS" ? value : hasCustomerInteraction;
-        const newBoss = type === "BOSS" ? value : isBoss;
+        // paso, con la respuesta que se acaba de dar (las refs, no el estado,
+        // que aún no se confirmó en este mismo tick).
+        const oldCustomer = hasCustomerInteractionRef.current;
+        const oldBoss = isBossRef.current;
+        const boundaryItem = computeItems(oldCustomer, oldBoss)[currentIndexRef.current];
+
+        const newCustomer = type === "CLIENTS" ? value : oldCustomer;
+        const newBoss = type === "BOSS" ? value : oldBoss;
 
         if (type === "CLIENTS") setHasCustomerInteraction(value);
         else setIsBoss(value);
         setMode("QUESTIONNAIRE");
 
-        const boundaryItem = currentItem;
         const newItems = computeItems(newCustomer, newBoss);
         const idx = newItems.indexOf(boundaryItem);
 
@@ -165,12 +203,18 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
         }
     };
 
-    // Auto-save simulation & actual local state save
+    // Auto-save simulation & actual local state save. Lee y escribe SIEMPRE a
+    // través de las refs (nunca de `currentItem`/`currentIndex` capturados
+    // por el closure) para ser correcto sin importar qué copia desactualizada
+    // de esta función termine ejecutando un evento de tecla en vuelo.
     const handleAnswer = (val: number) => {
         if (advancingRef.current) return;
         advancingRef.current = true;
 
-        const updated = { ...responsesRef.current, [String(currentItem)]: val };
+        const curItems = computeItems(hasCustomerInteractionRef.current, isBossRef.current);
+        const curItem = curItems[currentIndexRef.current];
+
+        const updated = { ...responsesRef.current, [String(curItem)]: val };
         responsesRef.current = updated;
         setResponses(updated);
 
@@ -182,40 +226,42 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     };
 
     const advanceNext = () => {
+        const curItems = computeItems(hasCustomerInteractionRef.current, isBossRef.current);
+        const curIndex = currentIndexRef.current;
+        const curItem = curItems[curIndex];
+
         // Intercept for control questions
         if (qType === "INTRALABORAL") {
             // Form A: Clients starts at 106
-            if (formType === "A" && currentItem === 105 && hasCustomerInteraction === null) {
+            if (formType === "A" && curItem === 105 && hasCustomerInteractionRef.current === null) {
                 setMode("CONTROL_CLIENTS");
                 return;
             }
             // Form A: Boss starts at 115
-            if (formType === "A" && currentItem === (hasCustomerInteraction ? 114 : 105) && isBoss === null) {
+            if (formType === "A" && curItem === (hasCustomerInteractionRef.current ? 114 : 105) && isBossRef.current === null) {
                 setMode("CONTROL_BOSS");
                 return;
             }
             // Form B: Clients starts at 89
-            if (formType === "B" && currentItem === 88 && hasCustomerInteraction === null) {
+            if (formType === "B" && curItem === 88 && hasCustomerInteractionRef.current === null) {
                 setMode("CONTROL_CLIENTS");
                 return;
             }
         }
 
-        if (currentIndex < items.length - 1) {
+        if (curIndex < curItems.length - 1) {
             setCurrentIndex(prev => prev + 1);
-        } else if (currentIndex === items.length - 1) {
+        } else if (curIndex === curItems.length - 1) {
             // Reached the end!
-            submitAssessment();
+            submitAssessment(hasCustomerInteractionRef.current, isBossRef.current);
         }
     };
 
     const goBack = () => {
-        if (currentIndex > 0) {
+        if (currentIndexRef.current > 0) {
             setCurrentIndex(prev => prev - 1);
-        } else if (currentIndex === 0) {
-            // If we are at 0 and they want to go back, maybe let them re-do control questions?
-            // For now, do nothing.
         }
+        // Si ya está en el primer ítem, no hay a dónde retroceder.
     };
 
     // Acepta overrides porque handleControlAnswer puede llamar a esta función
