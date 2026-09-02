@@ -49,8 +49,11 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     // la siguiente pregunta sin que el usuario la responda.
     const advancingRef = useRef(false);
 
-    // Generate Items list dynamically based on control answers
-    const getItems = () => {
+    // Generate Items list dynamically based on control answers. Parametrizada
+    // (en vez de leer el estado directamente) para que handleControlAnswer
+    // pueda recalcularla con la respuesta que ACABA de dar, sin esperar a que
+    // el estado se confirme en un nuevo render.
+    const computeItems = (customer: boolean | null, boss: boolean | null) => {
         let total = 0;
         if (qType === "STRESS" || qType === "EXTRALABORAL") total = 31;
         if (qType === "INTRALABORAL" && formType === "A") total = 123;
@@ -60,18 +63,19 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
         if (qType === "INTRALABORAL") {
             // Remove client items if worker doesn't attend clients
-            if (hasCustomerInteraction === false) {
+            if (customer === false) {
                 if (formType === "A") items = items.filter(i => i < 106 || i > 114);
                 if (formType === "B") items = items.filter(i => i < 89 || i > 97);
             }
             // Remove boss items if worker is not boss (Form A only)
-            if (formType === "A" && isBoss === false) {
+            if (formType === "A" && boss === false) {
                 items = items.filter(i => i < 115 || i > 123);
             }
         }
         return items;
     };
 
+    const getItems = () => computeItems(hasCustomerInteraction, isBoss);
     const items = getItems();
     const currentItem = items[currentIndex];
     const isStress = qType === "STRESS";
@@ -127,12 +131,37 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     }, [mode, currentIndex, items, responses, maxVal]);
 
     const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
-        if (type === "CLIENTS") {
-            setHasCustomerInteraction(value);
-            setMode("QUESTIONNAIRE");
+        // currentItem (el ítem límite: 105/88/114) ya fue respondido antes de
+        // que advanceNext interceptara para mostrar esta pregunta — el índice
+        // nunca avanzó. Si sólo hacemos setMode("QUESTIONNAIRE") sin mover el
+        // índice, se vuelve a mostrar la MISMA pregunta ya contestada, y si el
+        // operador confundido pulsa otro valor, sobreescribe la respuesta
+        // original sin darse cuenta. Hay que decidir aquí mismo el siguiente
+        // paso, con la respuesta que se acaba de dar (el estado de React aún
+        // no se actualizó en este mismo tick).
+        const newCustomer = type === "CLIENTS" ? value : hasCustomerInteraction;
+        const newBoss = type === "BOSS" ? value : isBoss;
+
+        if (type === "CLIENTS") setHasCustomerInteraction(value);
+        else setIsBoss(value);
+        setMode("QUESTIONNAIRE");
+
+        const boundaryItem = currentItem;
+        const newItems = computeItems(newCustomer, newBoss);
+        const idx = newItems.indexOf(boundaryItem);
+
+        if (idx === -1) {
+            // No debería ocurrir: el ítem límite nunca cae dentro de un rango
+            // excluido por su propia pregunta de control.
+            setCurrentIndex(0);
+            return;
+        }
+        if (idx < newItems.length - 1) {
+            setCurrentIndex(idx + 1);
         } else {
-            setIsBoss(value);
-            setMode("QUESTIONNAIRE");
+            // El ítem límite quedó como el último de la lista filtrada (p. ej.
+            // Forma B con "no atiende clientes"): el cuestionario ya terminó.
+            submitAssessment(newCustomer, newBoss);
         }
     };
 
@@ -189,9 +218,19 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
         }
     };
 
-    const submitAssessment = async () => {
+    // Acepta overrides porque handleControlAnswer puede llamar a esta función
+    // en el mismo tick en que se respondió la pregunta de control (cuando el
+    // ítem límite resulta ser el último del cuestionario) — en ese momento el
+    // estado hasCustomerInteraction/isBoss aún no se confirmó en un render.
+    const submitAssessment = async (
+        customerOverride?: boolean | null,
+        bossOverride?: boolean | null
+    ) => {
         setIsSubmitting(true);
         try {
+            const finalCustomer = customerOverride !== undefined ? customerOverride : hasCustomerInteraction;
+            const finalBoss = bossOverride !== undefined ? bossOverride : isBoss;
+
             // 1. Calculate Score locally (optimistic)
             // El nivel del cargo del trabajador es el que está registrado en su
             // ficha; aquí sólo viajan las dos respuestas de control del
@@ -199,8 +238,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
             // "soy jefe", lo que además desviaba la selección de baremos.
             const finalResponses = responsesRef.current;
             const score = scoreQuestionnaire(finalResponses, formType, qType, {
-                hasCustomerInteraction: hasCustomerInteraction ?? false,
-                hasPeopleInCharge: isBoss ?? undefined,
+                hasCustomerInteraction: finalCustomer ?? false,
+                hasPeopleInCharge: finalBoss ?? undefined,
                 occupationalGroup:
                     formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
             });
@@ -213,8 +252,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 questionnaireType: qType,
                 assessmentDate,
                 responses: finalResponses,
-                hasCustomerInteraction: hasCustomerInteraction ?? false,
-                hasPeopleInCharge: isBoss ?? undefined,
+                hasCustomerInteraction: finalCustomer ?? false,
+                hasPeopleInCharge: finalBoss ?? undefined,
                 occupationalGroup: formType === "A" ? "jefes_profesionales_tecnicos" : "auxiliares_operativos",
                 inputMethod: "MANUAL",
                 informedConsent: {

@@ -238,6 +238,11 @@ export function stressItemValue(item: number, stored: number | undefined | null)
     return escala[stored] ?? 0;
 }
 
+/** Peso máximo posible de un ítem de estrés (stored=0, "Siempre"). */
+function stressItemMaxWeight(item: number): number {
+    return STRESS_WEIGHTS[item]?.[0] ?? 0;
+}
+
 export function scoreQuestionnaire(
     rawResponses: ItemResponses,
     formType: FormType,
@@ -278,6 +283,24 @@ export function scoreQuestionnaire(
     if (questionnaireType === "EXTRALABORAL") {
         baremoTable = baremoTable[occupationalGroup(metadata)];
     }
+
+    // El manual de estrés (M4) sólo publica baremo para el puntaje TOTAL —
+    // Tabla 6 clasifica por nivel ocupacional, nada más. No hay baremo propio
+    // para los 4 grupos de síntomas. A falta de uno publicado por subescala,
+    // se reutilizan aquí esas mismas cinco bandas para clasificar el puntaje
+    // ponderado de cada grupo (Tabla 4): es una lectura derivada, no un
+    // baremo oficial de subescala, pero preferible a que el desglose por
+    // síntoma caiga siempre en "Sin Riesgo" sin importar la gravedad real —
+    // que es lo que impedía que la alerta de salud mental (ver
+    // DIMENSION_ACTION.sintomas_psicoemocionales) se disparara alguna vez.
+    const stressTotalThresholds: BaremoThreshold | null =
+        questionnaireType === "STRESS" ? baremoTable[occupationalGroup(metadata)] : null;
+
+    // El manual no admite ítems faltantes en Estrés; se necesita saber esto
+    // antes de calificar cada grupo de síntomas, no sólo el total.
+    const stressComplete = questionnaireType === "STRESS"
+        ? STRESS_ITEMS.every(i => rawResponses[String(i)] !== undefined && rawResponses[String(i)] !== null)
+        : true;
 
     let processedResponses = { ...rawResponses };
     if (questionnaireType !== "STRESS") {
@@ -321,6 +344,41 @@ export function scoreQuestionnaire(
                 isValid: true,
                 isFiltered: true
             };
+        } else if (questionnaireType === "STRESS") {
+            // Puntaje real del grupo de síntomas: pesos de la Tabla 4, no el
+            // promedio genérico de calculateDimensionScore (que además usaba
+            // itemCount*4 como máximo, una escala equivocada — los ítems de
+            // estrés van de 0 a 3, no de 0 a 4).
+            let rawScore = 0;
+            let maxPossible = 0;
+            for (const item of dim.items) {
+                rawScore += stressItemValue(item, rawResponses[String(item)]);
+                maxPossible += stressItemMaxWeight(item);
+            }
+            const transformedScore = stressComplete && maxPossible > 0
+                ? (rawScore / maxPossible) * 100
+                : 0;
+            const roundedTransformed = round1(transformedScore);
+            const riskCategory: RiskCategory = (stressComplete && stressTotalThresholds)
+                ? lookupRiskCategory(roundedTransformed, stressTotalThresholds)
+                : "INVALIDO";
+
+            dimensionResults[dim.key] = {
+                dimensionKey: dim.key,
+                dimensionName: dim.name,
+                rawScore: stressComplete ? round1(rawScore) : 0,
+                maxPossible,
+                transformedScore: stressComplete ? roundedTransformed : 0,
+                transformationFactor: maxPossible,
+                riskCategory: stressComplete ? riskCategory : "INVALIDO",
+                riskLevel: stressComplete ? getRiskLevel(riskCategory) : 0,
+                itemCount: dim.items.length,
+                invertedItems: dim.invertedItems,
+                isValid: stressComplete
+            };
+            if (!stressComplete) {
+                allDimensionsValid = false;
+            }
         } else {
             const dimScore = calculateDimensionScore(
                 processedResponses,
@@ -364,11 +422,8 @@ export function scoreQuestionnaire(
         }
     } else if (questionnaireType === "STRESS") {
         // Todos los ítems deben estar respondidos: el manual no admite
-        // faltantes en este cuestionario.
-        allDimensionsValid = STRESS_ITEMS.every(
-            i => rawResponses[String(i)] !== undefined && rawResponses[String(i)] !== null
-        );
-
+        // faltantes en este cuestionario. Ya se reflejó en allDimensionsValid
+        // (vía stressComplete) al calificar cada grupo de síntomas arriba.
         if (allDimensionsValid) {
             const promedio = (desde: number, hasta: number) => {
                 let suma = 0;
@@ -396,7 +451,7 @@ export function scoreQuestionnaire(
     // idénticos, lo que sugería una diferenciación que el instrumento no hace.
     const totalThresholds: BaremoThreshold =
         questionnaireType === "STRESS"
-            ? baremoTable[occupationalGroup(metadata)]
+            ? (stressTotalThresholds as BaremoThreshold)
             : baremoTable.total;
 
     const roundedTotalTransformed = round1(totalTransformed);

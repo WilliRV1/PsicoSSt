@@ -418,72 +418,6 @@
           20.1,
           100
         ]
-      },
-      "oportunidades_habilidades": {
-        "sinRiesgo": [
-          0,
-          0.9
-        ],
-        "bajo": [
-          1,
-          6.3
-        ],
-        "medio": [
-          6.4,
-          18.8
-        ],
-        "alto": [
-          18.9,
-          31.3
-        ],
-        "muyAlto": [
-          31.4,
-          100
-        ]
-      },
-      "influencia_entorno": {
-        "sinRiesgo": [
-          0,
-          18.8
-        ],
-        "bajo": [
-          18.9,
-          31.3
-        ],
-        "medio": [
-          31.4,
-          43.8
-        ],
-        "alto": [
-          43.9,
-          50
-        ],
-        "muyAlto": [
-          50.1,
-          100
-        ]
-      },
-      "participacion_manejo_cambio": {
-        "sinRiesgo": [
-          0,
-          12.5
-        ],
-        "bajo": [
-          12.6,
-          25
-        ],
-        "medio": [
-          25.1,
-          37.5
-        ],
-        "alto": [
-          37.6,
-          50
-        ],
-        "muyAlto": [
-          50.1,
-          100
-        ]
       }
     },
     "domains": {
@@ -952,94 +886,6 @@
           18.9,
           100
         ]
-      },
-      "caracteristicas_liderazgo": {
-        "sinRiesgo": [
-          0,
-          3.8
-        ],
-        "bajo": [
-          3.9,
-          13.5
-        ],
-        "medio": [
-          13.6,
-          25
-        ],
-        "alto": [
-          25.1,
-          38.5
-        ],
-        "muyAlto": [
-          38.6,
-          100
-        ]
-      },
-      "participacion_manejo_cambio": {
-        "sinRiesgo": [
-          0,
-          16.7
-        ],
-        "bajo": [
-          16.8,
-          33.3
-        ],
-        "medio": [
-          33.4,
-          41.7
-        ],
-        "alto": [
-          41.8,
-          58.3
-        ],
-        "muyAlto": [
-          58.4,
-          100
-        ]
-      },
-      "oportunidades_habilidades": {
-        "sinRiesgo": [
-          0,
-          12.5
-        ],
-        "bajo": [
-          12.6,
-          25
-        ],
-        "medio": [
-          25.1,
-          37.5
-        ],
-        "alto": [
-          37.6,
-          56.3
-        ],
-        "muyAlto": [
-          56.4,
-          100
-        ]
-      },
-      "influencia_entorno": {
-        "sinRiesgo": [
-          0,
-          12.5
-        ],
-        "bajo": [
-          12.6,
-          25
-        ],
-        "medio": [
-          25.1,
-          31.3
-        ],
-        "alto": [
-          31.4,
-          50
-        ],
-        "muyAlto": [
-          50.1,
-          100
-        ]
       }
     },
     "domains": {
@@ -1110,28 +956,6 @@
         ]
       },
       "recompensa": {
-        "sinRiesgo": [
-          0,
-          2.5
-        ],
-        "bajo": [
-          2.6,
-          10
-        ],
-        "medio": [
-          10.1,
-          17.5
-        ],
-        "alto": [
-          17.6,
-          27.5
-        ],
-        "muyAlto": [
-          27.6,
-          100
-        ]
-      },
-      "recompensas": {
         "sinRiesgo": [
           0,
           2.5

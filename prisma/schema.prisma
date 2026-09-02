@@ -184,6 +184,14 @@ model Assessment {
   assessmentDate    DateTime          @map("assessment_date") @db.Date
   status            AssessmentStatus  @default(DRAFT)
   inputMethod       InputMethod       @default(MANUAL) @map("input_method")
+  /// Respuestas de control vigentes CUANDO SE HIZO esta evaluación puntual.
+  /// hasCustomerInteraction/hasPeopleInCharge en Worker son el valor actual y
+  /// pueden cambiar con una evaluación posterior; sin esta copia, editar una
+  /// evaluación vieja la recalificaba con un criterio de control que no
+  /// aplicaba en la fecha en que se hizo. Nulo en filas anteriores a este
+  /// campo (se usa el valor del trabajador como mejor aproximación).
+  hasCustomerInteraction Boolean?     @map("has_customer_interaction")
+  hasPeopleInCharge      Boolean?     @map("has_people_in_charge")
   notes             String?
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")

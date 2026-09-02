@@ -382,6 +382,46 @@ describe("M4 · cuestionario para la evaluación del estrés", () => {
         expect(bands(baremos.stress.jefes_profesionales_tecnicos)).toEqual([7.8, 12.6, 17.7, 25, 100]);
         expect(bands(baremos.stress.auxiliares_operativos)).toEqual([6.5, 11.8, 17, 23.4, 100]);
     });
+
+    it("el desglose por grupo de síntomas refleja la gravedad real, no siempre Sin Riesgo", () => {
+        // baremos.json no publica baremo propio por grupo de síntomas (sólo
+        // para el total), y el motor calificaba cada grupo con un promedio
+        // simple sin baremo, cayendo siempre en SIN_RIESGO sin importar la
+        // respuesta — lo que impedía que la alerta de salud mental de
+        // sintomas_psicoemocionales se disparara jamás. Responder "Siempre"
+        // a los 9 ítems de ese grupo debe clasificarlo en un nivel alto.
+        const responses: ItemResponses = {};
+        for (let i = 1; i <= 31; i++) responses[String(i)] = 3; // resto en "Nunca"
+        for (const i of [23, 24, 25, 26, 27, 28, 29, 30, 31]) responses[String(i)] = 0; // "Siempre"
+
+        const r = scoreQuestionnaire(responses, "A", "STRESS", {
+            jobLevel: "PROFESIONAL",
+            occupationalGroup: "jefes_profesionales_tecnicos",
+        });
+
+        const psicoemocional = r.dimensions.sintomas_psicoemocionales;
+        expect(psicoemocional.isValid).toBe(true);
+        expect(psicoemocional.transformedScore).toBe(100);
+        expect(["ALTO", "MUY_ALTO"]).toContain(psicoemocional.riskCategory);
+
+        const fisiologico = r.dimensions.sintomas_fisiologicos;
+        expect(fisiologico.transformedScore).toBe(0);
+        expect(fisiologico.riskCategory).toBe("SIN_RIESGO");
+    });
+
+    it("estrés incompleto invalida también el desglose por grupo de síntomas", () => {
+        const responses: ItemResponses = {};
+        for (let i = 1; i <= 30; i++) responses[String(i)] = 0; // falta el ítem 31
+
+        const r = scoreQuestionnaire(responses, "A", "STRESS", {
+            jobLevel: "PROFESIONAL",
+            occupationalGroup: "jefes_profesionales_tecnicos",
+        });
+
+        expect(r.total.isValid).toBe(false);
+        expect(r.dimensions.sintomas_psicoemocionales.isValid).toBe(false);
+        expect(r.dimensions.sintomas_psicoemocionales.riskCategory).toBe("INVALIDO");
+    });
 });
 
 // ════════════════════════════════════════════════════════════

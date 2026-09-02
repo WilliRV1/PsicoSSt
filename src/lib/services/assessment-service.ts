@@ -1,11 +1,53 @@
 import { prisma } from "@/lib/prisma";
 import { scoreQuestionnaire } from "@/lib/scoring";
+import { getFormConfig } from "@/config/battery";
 import {
     FormType,
     QuestionnaireType,
     ItemResponses,
     ScoredResultData
 } from "@/types/battery";
+
+/**
+ * Valida que cada respuesta pertenezca realmente a la Forma/tipo de
+ * cuestionario declarado y que su valor esté en la escala correcta.
+ *
+ * Sin esto se podían guardar ítems fuera del rango real de la forma (p. ej.
+ * 100-123 en Forma B, que no existen ahí) sin ningún error, y Estrés aceptaba
+ * 0-4 cuando su escala real es 0-3 — un valor de 4 se puntuaba en silencio
+ * como el mejor resultado posible en vez de rechazarse.
+ */
+function validateResponses(
+    responses: ItemResponses,
+    formType: FormType,
+    questionnaireType: QuestionnaireType
+) {
+    const config = getFormConfig(formType, questionnaireType);
+    if (!config) {
+        throw new Error(`Configuración no encontrada para ${questionnaireType} Forma ${formType}.`);
+    }
+
+    const validItems = new Set<number>();
+    for (const dim of config.dimensions) {
+        for (const item of dim.items) validItems.add(item);
+    }
+
+    const maxValue = questionnaireType === "STRESS" ? 3 : 4;
+
+    for (const [itemKey, value] of Object.entries(responses)) {
+        const itemNum = Number(itemKey);
+        if (!Number.isInteger(itemNum) || !validItems.has(itemNum)) {
+            throw new Error(
+                `Ítem ${itemKey} no existe en ${questionnaireType} Forma ${formType}.`
+            );
+        }
+        if (typeof value !== "number" || value < 0 || value > maxValue || !Number.isInteger(value)) {
+            throw new Error(
+                `Ítem ${itemKey}: valor inválido "${value}". Debe ser un entero entre 0 y ${maxValue}.`
+            );
+        }
+    }
+}
 
 export class AssessmentService {
     /**
@@ -30,12 +72,8 @@ export class AssessmentService {
             consentText?: string;
         };
     }) {
-        // 0. Validate response values are in range 0-4
-        for (const [itemKey, value] of Object.entries(data.responses)) {
-            if (typeof value !== "number" || value < 0 || value > 4 || !Number.isInteger(value)) {
-                throw new Error(`Ítem ${itemKey}: valor inválido "${value}". Debe ser un entero entre 0 y 4.`);
-            }
-        }
+        // 0. Validate that every response belongs to this form/type and is in range
+        validateResponses(data.responses, data.formType, data.questionnaireType);
 
         // 0.5 Fetch worker metadata for scoring logic (Filter Questions & Stress Baremos)
         const worker = await prisma.worker.findUnique({
@@ -101,6 +139,12 @@ export class AssessmentService {
                         status: "SIGNED", // Changed to SIGNED to enable immediate reporting
                         completedAt: new Date(),
                         inputMethod: data.inputMethod || "MANUAL",
+                        // Copia fija de las respuestas de control vigentes en
+                        // este momento: workers.* es mutable y una evaluación
+                        // posterior puede cambiarlo, pero el criterio con el
+                        // que SE CALIFICÓ esta evaluación no debe moverse.
+                        hasCustomerInteraction: (worker as any).hasCustomerInteraction ?? null,
+                        hasPeopleInCharge: worker.hasPeopleInCharge ?? null,
                         // Create related response set
                         responseSet: {
                             create: {
@@ -192,13 +236,6 @@ export class AssessmentService {
      * Updates an existing assessment, recalculating scores using the strict scoring engine.
      */
     static async updateAssessment(assessmentId: string, psychologistId: string, newResponses: ItemResponses) {
-        // 0. Validate response values are in range 0-4
-        for (const [itemKey, value] of Object.entries(newResponses)) {
-            if (typeof value !== "number" || value < 0 || value > 4 || !Number.isInteger(value)) {
-                throw new Error(`Ítem ${itemKey}: valor inválido "${value}". Debe ser un entero entre 0 y 4.`);
-            }
-        }
-
         // 1. Fetch existing assessment to get metadata (including previous scores for audit diff)
         const existing = await prisma.assessment.findUnique({
             where: { id: assessmentId },
@@ -215,6 +252,9 @@ export class AssessmentService {
             throw new Error("No tienes permisos para editar esta evaluación");
         }
 
+        // 0. Validate that every response belongs to this form/type and is in range
+        validateResponses(newResponses, existing.formType as FormType, existing.questionnaireType as QuestionnaireType);
+
         // 2. Calculate scores using the pure scoring engine (NO MODIFICATIONS to the engine)
         console.log("Recalculando puntajes tras edición para:", existing.workerId);
         const scoredResult: ScoredResultData = scoreQuestionnaire(
@@ -225,8 +265,13 @@ export class AssessmentService {
                 occupationalGroup: existing.worker.jobLevel === "AUXILIAR" || existing.worker.jobLevel === "OPERATIVO" ? "auxiliares_operativos" : "jefes_profesionales_tecnicos",
                 gender: (existing.worker as any).gender || "F",
                 jobLevel: (existing.worker as any).jobLevel,
-                hasCustomerInteraction: (existing.worker as any).hasCustomerInteraction,
-                hasPeopleInCharge: existing.worker.hasPeopleInCharge ?? undefined
+                // El criterio de control es el vigente CUANDO SE HIZO esta
+                // evaluación (columna propia de Assessment), no el actual del
+                // trabajador — que pudo cambiar con una evaluación posterior.
+                // Las filas anteriores a este campo no tienen snapshot propio
+                // y usan el valor del trabajador como mejor aproximación.
+                hasCustomerInteraction: existing.hasCustomerInteraction ?? (existing.worker as any).hasCustomerInteraction,
+                hasPeopleInCharge: existing.hasPeopleInCharge ?? existing.worker.hasPeopleInCharge ?? undefined
             }
         );
 
