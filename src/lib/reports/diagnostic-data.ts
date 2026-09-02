@@ -146,6 +146,20 @@ export interface DiagnosticData {
         /** Áreas agregadas por quedar bajo el umbral de anonimato. */
         withheld: { areas: number; workers: number; assessments: number };
     };
+    /**
+     * Cruce de las áreas reportadas (ya filtradas por anonimato) contra las
+     * dimensiones de mayor prioridad de la organización. Señala si una
+     * dimensión crítica en general se concentra en un área puntual o se
+     * repite en todas — el dato que de verdad orienta dónde intervenir
+     * primero, más allá del ranking de "Resultados por área" o de
+     * "Priorización de dimensiones" por separado.
+     */
+    areaDimensionMatrix: {
+        areas: string[];
+        dimensions: { key: string; name: string }[];
+        /** [índice de área][índice de dimensión]. */
+        cells: { criticalPercent: number; avg: number; count: number }[][];
+    };
 }
 
 export interface DiagnosticAssets {
@@ -497,6 +511,54 @@ export async function buildDiagnosticData(
     }
     reported.sort((a, b) => b.criticalPercent - a.criticalPercent || b.workers - a.workers);
 
+    // ── cruce área × dimensión ─────────────────────────────
+    // Sólo sobre las áreas que ya pasaron el piso de anonimato (`reported`) y
+    // las dimensiones de mayor prioridad de la organización: cruzar TODAS las
+    // dimensiones contra TODAS las áreas produciría una tabla ilegible, y el
+    // interés real está en dónde se concentra lo que ya se identificó como
+    // crítico, no en el detalle completo.
+    const TOP_DIMENSIONS_FOR_CROSSTAB = 6;
+    const topDimensionKeys = dimensions
+        .slice(0, TOP_DIMENSIONS_FOR_CROSSTAB)
+        .map(d => d.key);
+
+    const areaDimAcc: Record<string, Record<string, { critical: number; sum: number; n: number }>> = {};
+    for (const [areaName, list] of Object.entries(areaGroups)) {
+        for (const a of list) {
+            const sr = a.scoredResult;
+            if (!sr) continue;
+            const dims = (sr.dimensionScores ?? {}) as Record<string, StoredScore>;
+            for (const [k, d] of Object.entries(dims)) {
+                const key = d.dimensionKey ?? k;
+                if (!topDimensionKeys.includes(key)) continue;
+                if (!d.riskCategory) continue;
+                const areaBucket = (areaDimAcc[areaName] ??= {});
+                const cell = (areaBucket[key] ??= { critical: 0, sum: 0, n: 0 });
+                cell.n++;
+                if (isCritical(d.riskCategory)) cell.critical++;
+                if (typeof d.transformedScore === "number") cell.sum += d.transformedScore;
+            }
+        }
+    }
+
+    const areaDimensionMatrix = {
+        areas: reported.map(a => a.name),
+        dimensions: topDimensionKeys.map(key => ({
+            key,
+            name: dimensions.find(d => d.key === key)?.name ?? key,
+        })),
+        cells: reported.map(a =>
+            topDimensionKeys.map(key => {
+                const cell = areaDimAcc[a.name]?.[key];
+                return {
+                    criticalPercent: cell && cell.n > 0 ? Math.round((cell.critical / cell.n) * 100) : 0,
+                    avg: cell && cell.n > 0 ? Number((cell.sum / cell.n).toFixed(1)) : 0,
+                    count: cell?.n ?? 0,
+                };
+            })
+        ),
+    };
+
     // ── marca y firma ─────────────────────────────────────
     const settings = org.psychologist.settings;
     const sig =
@@ -572,6 +634,7 @@ export async function buildDiagnosticData(
                     assessments: withheldAssessments,
                 },
             },
+            areaDimensionMatrix,
         },
         assets: { logo, signature },
     };

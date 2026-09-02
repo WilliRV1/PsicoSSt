@@ -207,6 +207,34 @@
   }
 })
 
+// Mapa de calor de dos ejes arbitrarios (p. ej. área × dimensión), con
+// celdas en porcentaje (0-100). A diferencia de heat-matrix, el sombreado se
+// calcula sobre una escala fija de 0 a 100 y no contra el pico de la matriz:
+// así una celda del 40% siempre se ve igual de crítica sin importar cuál sea
+// la celda más alta de este informe en particular.
+#let crosstab-heat(matrix, row-labels: (), col-labels: (), row-header: "") = block(breakable: false, {
+  set text(font: sans, size: 7pt)
+  table(
+    columns: (1.6fr,) + (1fr,) * col-labels.len(),
+    align: center + horizon,
+    inset: (x: 5pt, y: 7pt),
+    stroke: 0.35pt + rule,
+    table.header(
+      table.cell(fill: paper, align: left, label-text(row-header, size: 5.6pt, tracking: 0.05em)),
+      ..col-labels.map(c => table.cell(fill: paper, label-text(c, size: 5.6pt, tracking: 0.05em)))
+    ),
+    ..matrix.enumerate().map(((i, row)) => (
+      table.cell(align: left, fill: paper,
+        text(font: sans, size: 7pt, fill: ink, weight: 500, row-labels.at(i))),
+      ..row.map(v => table.cell(
+        fill: if v == 0 { paper } else { ink.lighten(100% - (14% + 66% * calc.min(v, 100) / 100)) },
+        text(fill: if v > 55 { paper } else { ink },
+          weight: 600, num(if v == 0 { "·" } else { str(v) + "%" }))
+      ))
+    )).flatten()
+  )
+})
+
 #let bullets(items) = for it in items [
   #grid(columns: (11pt, 1fr), gutter: 0pt,
     text(fill: ink3, "—"),

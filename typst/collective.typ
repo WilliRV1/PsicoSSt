@@ -446,6 +446,29 @@
       ]
     ]
   ]
+
+  #if D.areaDimensionMatrix.areas.len() > 0 and D.areaDimensionMatrix.dimensions.len() > 0 [
+    = Cruce área × dimensión
+
+    Porcentaje de trabajadores en riesgo alto o muy alto por área, para las
+    dimensiones de mayor prioridad. Señala si intervenir de forma localizada o
+    en toda la organización.
+
+    #v(4pt)
+    #let dim-codes = range(D.areaDimensionMatrix.dimensions.len()).map(i => "D" + str(i + 1))
+    #crosstab-heat(
+      D.areaDimensionMatrix.cells.map(row => row.map(c => c.criticalPercent)),
+      row-labels: D.areaDimensionMatrix.areas,
+      col-labels: dim-codes,
+      row-header: "Área",
+    )
+    #v(5pt)
+    #micro[
+      #D.areaDimensionMatrix.dimensions.enumerate()
+        .map(((i, d)) => dim-codes.at(i) + " — " + d.name)
+        .join("   ·   ")
+    ]
+  ]
 ]
 
 = Conclusiones

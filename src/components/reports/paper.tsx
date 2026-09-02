@@ -530,3 +530,90 @@ export function HeatMatrix({
         </div>
     );
 }
+
+/**
+ * Mapa de calor de dos ejes arbitrarios (p. ej. área × dimensión), en
+ * porcentaje. A diferencia de HeatMatrix, el sombreado es sobre una escala
+ * fija de 0 a 100 y no contra el pico de la matriz: una celda del 40%
+ * siempre se ve igual de crítica sin importar cuál sea el máximo de este
+ * informe en particular. Espejo de crosstab-heat en typst/lib/theme.typ.
+ */
+export function CrosstabHeat({
+    matrix,
+    rowLabels,
+    colLabels,
+    rowHeader,
+}: {
+    matrix: number[][];
+    rowLabels: string[];
+    colLabels: string[];
+    rowHeader: string;
+}) {
+    return (
+        <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                    <tr>
+                        <th
+                            style={{
+                                border: `1px solid ${PAPER.rule}`,
+                                padding: "7px 8px",
+                                textAlign: "left",
+                            }}
+                        >
+                            <Label style={{ fontSize: 8.5, letterSpacing: "0.05em" }}>{rowHeader}</Label>
+                        </th>
+                        {colLabels.map(c => (
+                            <th
+                                key={c}
+                                style={{ border: `1px solid ${PAPER.rule}`, padding: "7px 4px" }}
+                            >
+                                <Label style={{ fontSize: 8.5, letterSpacing: "0.05em" }}>{c}</Label>
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {matrix.map((row, i) => (
+                        <tr key={i}>
+                            <th
+                                style={{
+                                    border: `1px solid ${PAPER.rule}`,
+                                    padding: "7px 8px",
+                                    textAlign: "left",
+                                    fontWeight: 500,
+                                    color: PAPER.ink,
+                                }}
+                            >
+                                {rowLabels[i]}
+                            </th>
+                            {row.map((v, j) => {
+                                const t = Math.min(v, 100) / 100;
+                                return (
+                                    <td
+                                        key={j}
+                                        style={{
+                                            ...numStyle,
+                                            border: `1px solid ${PAPER.rule}`,
+                                            padding: "9px 4px",
+                                            textAlign: "center",
+                                            fontWeight: 600,
+                                            fontSize: 12.5,
+                                            background:
+                                                v === 0
+                                                    ? PAPER.paper
+                                                    : `rgba(22,21,15,${0.14 + 0.66 * t})`,
+                                            color: v > 55 ? PAPER.paper : PAPER.ink,
+                                        }}
+                                    >
+                                        {v === 0 ? "·" : `${v}%`}
+                                    </td>
+                                );
+                            })}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}

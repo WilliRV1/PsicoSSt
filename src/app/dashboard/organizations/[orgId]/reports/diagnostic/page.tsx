@@ -5,6 +5,7 @@ import { buildDiagnosticData } from "@/lib/reports/diagnostic-data";
 import { DownloadReportButton } from "@/components/reports/download-report-button";
 import {
     BandScale,
+    CrosstabHeat,
     ETable,
     HeatMatrix,
     Label,
@@ -64,7 +65,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
     }
 
     const d = built.data;
-    const { coverage, distributions, domains, dimensions, areas, groups } = d;
+    const { coverage, distributions, domains, dimensions, areas, groups, areaDimensionMatrix } = d;
     const criticas = dimensions.filter(x => x.criticalPercent >= 20);
     const accionables = criticas.filter(x => x.action);
 
@@ -511,8 +512,41 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     </>
                 )}
 
-                {/* ── 7. Nivel de riesgo de la empresa ── */}
-                <SectionTitle n={7}>Nivel de riesgo de la empresa</SectionTitle>
+                {/* ── 7. Cruce área × dimensión ── */}
+                <SectionTitle n={7}>Cruce área × dimensión</SectionTitle>
+                <p style={{ marginTop: 0 }}>
+                    Porcentaje de trabajadores en riesgo alto o muy alto para cada una de las
+                    dimensiones de mayor prioridad, desglosado por área. Una dimensión crítica en el
+                    resultado general puede concentrarse en un área puntual o repetirse en todas, y de
+                    eso depende si la intervención debe ser localizada o organizacional.
+                </p>
+                {areaDimensionMatrix.areas.length === 0 || areaDimensionMatrix.dimensions.length === 0 ? (
+                    <NoteBlock>
+                        No hay suficientes áreas por encima del umbral de anonimato, o ninguna
+                        dimensión con casos en riesgo crítico, para construir este cruce.
+                    </NoteBlock>
+                ) : (
+                    <>
+                        <CrosstabHeat
+                            matrix={areaDimensionMatrix.cells.map(row => row.map(c => c.criticalPercent))}
+                            rowLabels={areaDimensionMatrix.areas}
+                            colLabels={areaDimensionMatrix.dimensions.map((_, i) => `D${i + 1}`)}
+                            rowHeader="Área"
+                        />
+                        <Micro size={11} color={PAPER.ink3} style={{ marginTop: 10 }}>
+                            {areaDimensionMatrix.dimensions
+                                .map((dm, i) => `D${i + 1} — ${dm.name}`)
+                                .join("   ·   ")}
+                        </Micro>
+                        <Micro size={11} color={PAPER.ink3} style={{ marginTop: 4 }}>
+                            Cada celda es el porcentaje de trabajadores de esa área en riesgo alto o muy
+                            alto para esa dimensión, sobre quienes la tienen calificada.
+                        </Micro>
+                    </>
+                )}
+
+                {/* ── 8. Nivel de riesgo de la empresa ── */}
+                <SectionTitle n={8}>Nivel de riesgo de la empresa</SectionTitle>
                 <p style={{ marginTop: 0 }}>
                     El parágrafo del artículo 3 de la Resolución 2764 de 2022 fija cómo se determina
                     el nivel de riesgo psicosocial intralaboral de una empresa: se promedia el
@@ -544,7 +578,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 )}
 
                 {/* ── 8. Conclusiones ── */}
-                <SectionTitle n={8}>Conclusiones</SectionTitle>
+                <SectionTitle n={9}>Conclusiones</SectionTitle>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                     {[
                         `La organización aplicó ${coverage.totalAssessments} evaluaciones a ${coverage.uniqueWorkers} trabajadores entre ${d.org.dateStart} y ${d.org.dateEnd}. ${coverage.criticalWorkers} trabajadores —el ${coverage.criticalWorkerPercent}% de los evaluados— presentaron al menos un instrumento en riesgo alto o muy alto. Sobre el total de evaluaciones, la proporción crítica es del ${coverage.criticalPercent}%.`,
@@ -568,7 +602,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 </ul>
 
                 {/* ── 9. Recomendaciones ── */}
-                <SectionTitle n={9}>Recomendaciones</SectionTitle>
+                <SectionTitle n={10}>Recomendaciones</SectionTitle>
                 {accionables.length === 0 ? (
                     <NoteBlock>
                         Ninguna dimensión alcanza el 20% de trabajadores en riesgo alto o muy alto,

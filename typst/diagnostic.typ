@@ -407,6 +407,42 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   ]
 ]
 
+= Cruce área × dimensión
+
+Porcentaje de trabajadores en riesgo alto o muy alto para cada una de las
+dimensiones de mayor prioridad, desglosado por área. Una dimensión crítica en
+el resultado general puede concentrarse en un área puntual o repetirse en
+todas, y de eso depende si la intervención debe ser localizada o
+organizacional.
+
+#if D.areaDimensionMatrix.areas.len() == 0 or D.areaDimensionMatrix.dimensions.len() == 0 [
+  #v(4pt)
+  #note-block[
+    No hay suficientes áreas por encima del umbral de anonimato, o ninguna
+    dimensión con casos en riesgo crítico, para construir este cruce.
+  ]
+] else [
+  #v(4pt)
+  #let dim-codes = range(D.areaDimensionMatrix.dimensions.len()).map(i => "D" + str(i + 1))
+  #crosstab-heat(
+    D.areaDimensionMatrix.cells.map(row => row.map(c => c.criticalPercent)),
+    row-labels: D.areaDimensionMatrix.areas,
+    col-labels: dim-codes,
+    row-header: "Área",
+  )
+  #v(5pt)
+  #micro[
+    #D.areaDimensionMatrix.dimensions.enumerate()
+      .map(((i, d)) => dim-codes.at(i) + " — " + d.name)
+      .join("   ·   ")
+  ]
+  #v(2pt)
+  #micro[
+    Cada celda es el porcentaje de trabajadores de esa área en riesgo alto o
+    muy alto para esa dimensión, sobre quienes la tienen calificada.
+  ]
+]
+
 = Nivel de riesgo de la empresa
 
 El parágrafo del artículo 3 de la Resolución 2764 de 2022 fija cómo se
