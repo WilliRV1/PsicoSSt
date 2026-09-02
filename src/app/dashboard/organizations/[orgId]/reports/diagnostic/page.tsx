@@ -70,9 +70,9 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
     const accionables = criticas.filter(x => x.action);
 
     const instruments = [
-        { title: "Intralaboral", n: coverage.intra, dist: distributions.intra },
-        { title: "Extralaboral", n: coverage.extra, dist: distributions.extra },
-        { title: "Estrés", n: coverage.stress, dist: distributions.stress },
+        { title: "Intralaboral", dist: distributions.intra },
+        { title: "Extralaboral", dist: distributions.extra },
+        { title: "Estrés", dist: distributions.stress },
     ];
 
     return (
@@ -139,9 +139,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5 mt-8">
                     {[
-                        ["Periodo evaluado", `${d.org.dateStart} — ${d.org.dateEnd}`],
                         ["Trabajadores evaluados", String(coverage.uniqueWorkers)],
-                        ["Evaluaciones aplicadas", String(coverage.totalAssessments)],
                         ["Fecha del informe", d.org.today],
                         ["Trabajadores en riesgo crítico", `${coverage.criticalWorkerPercent}%`],
                         ["Profesional responsable", d.professional.name],
@@ -174,40 +172,32 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 </p>
 
                 <SubTitle>Cobertura de la evaluación</SubTitle>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                     <StatCard value={coverage.uniqueWorkers} label="Trabajadores evaluados" />
-                    <StatCard value={coverage.totalAssessments} label="Evaluaciones aplicadas" />
                     <StatCard
                         value={`${coverage.criticalWorkerPercent}%`}
                         label="Trabajadores en riesgo alto o muy alto"
                         accent={coverage.criticalWorkerPercent >= 20 ? rc("ALTO") : PAPER.ink}
                     />
-                    <StatCard
-                        value={`${coverage.intra}/${coverage.extra}/${coverage.stress}`}
-                        label="Evaluaciones intra / extra / estrés"
-                    />
                 </div>
 
                 <Micro style={{ marginTop: 14 }}>
-                    A cada trabajador se le aplican hasta tres cuestionarios, de modo que el número
-                    de evaluaciones es mayor que el de personas. Los porcentajes por instrumento y
-                    por área se calculan sobre evaluaciones. El nivel de riesgo de la empresa, del
-                    que depende la periodicidad de la evaluación, se determina aparte según el
-                    artículo 3 de la Resolución 2764 de 2022.
+                    A cada trabajador se le aplican hasta tres cuestionarios —intralaboral,
+                    extralaboral y de estrés—. El nivel de riesgo de la empresa, del que depende la
+                    periodicidad de la evaluación, se determina aparte según el artículo 3 de la
+                    Resolución 2764 de 2022.
                 </Micro>
 
                 {coverage.predominant && (
                     <p style={{ marginTop: 16, marginBottom: 0 }}>
-                        El nivel de riesgo más frecuente entre las evaluaciones aplicadas es{" "}
+                        El nivel de riesgo más frecuente es{" "}
                         <strong>{coverage.predominant.label.toLowerCase()}</strong>, con el{" "}
                         {coverage.predominant.percent}% de los resultados.
                         {coverage.highest && coverage.highest.level !== coverage.predominant.level && (
                             <>
                                 {" "}
                                 El nivel más severo registrado es{" "}
-                                <strong>{coverage.highest.label.toLowerCase()}</strong>, presente en{" "}
-                                {coverage.highest.count}{" "}
-                                {coverage.highest.count === 1 ? "evaluación" : "evaluaciones"}.
+                                <strong>{coverage.highest.label.toLowerCase()}</strong>.
                             </>
                         )}
                     </p>
@@ -216,10 +206,10 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 {coverage.unsigned > 0 && (
                     <div style={{ marginTop: 16 }}>
                         <NoteBlock accent={rc("MEDIO")}>
-                            <strong>Evaluaciones sin firma.</strong> {coverage.unsigned} de las{" "}
-                            {coverage.totalAssessments} evaluaciones incluidas están calificadas pero
-                            aún no firmadas. Los resultados estadísticos son válidos, pero el informe
-                            no debe presentarse ante la autoridad hasta que todas estén suscritas.
+                            <strong>Evaluaciones sin firma.</strong> Algunas de las evaluaciones
+                            incluidas están calificadas pero aún no firmadas. Los resultados
+                            estadísticos son válidos, pero el informe no debe presentarse ante la
+                            autoridad hasta que todas estén suscritas.
                         </NoteBlock>
                     </div>
                 )}
@@ -241,7 +231,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 </p>
 
                 <div className="space-y-3">
-                    {instruments.map(({ title, n, dist }) => (
+                    {instruments.map(({ title, dist }) => (
                         <div
                             key={title}
                             style={{
@@ -250,20 +240,15 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                                 padding: 16,
                             }}
                         >
-                            <div className="flex items-baseline justify-between gap-4">
-                                <span
-                                    style={{
-                                        fontFamily: "var(--font-report-serif), Georgia, serif",
-                                        fontSize: 16,
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    {title}
-                                </span>
-                                <Micro size={11} color={PAPER.ink3}>
-                                    {n} evaluaciones
-                                </Micro>
-                            </div>
+                            <span
+                                style={{
+                                    fontFamily: "var(--font-report-serif), Georgia, serif",
+                                    fontSize: 16,
+                                    fontWeight: 600,
+                                }}
+                            >
+                                {title}
+                            </span>
                             <div style={{ marginTop: 10 }}>
                                 <StackedBar dist={dist} height={11} />
                             </div>
@@ -365,16 +350,13 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                     concentra el daño en un subgrupo aunque el promedio lo diluya.
                 </p>
                 <ETable
-                    headers={["Dimensión", "Instrumento", "Evaluados", "Promedio", "% crítico", "Prioridad"]}
-                    align={["left", "left", "center", "center", "center", "center"]}
+                    headers={["Dimensión", "Instrumento", "Promedio", "% crítico", "Prioridad"]}
+                    align={["left", "left", "center", "center", "center"]}
                     rows={dimensions.map(x => [
                         <span key="n" style={{ color: PAPER.ink, fontWeight: 500 }}>
                             {x.name}
                         </span>,
                         x.questionnaire,
-                        <span key="c" style={numStyle}>
-                            {x.count}
-                        </span>,
                         <span key="a" style={numStyle}>
                             {x.avg}
                         </span>,
@@ -468,17 +450,14 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                             alto, para dirigir la intervención donde la exposición se concentra.
                         </p>
                         <ETable
-                            headers={["Área", "Trabajadores", "Evaluaciones", "% crítico", "Distribución"]}
-                            align={["left", "center", "center", "center", "left"]}
+                            headers={["Área", "Trabajadores", "% crítico", "Distribución"]}
+                            align={["left", "center", "center", "left"]}
                             rows={areas.reported.map(a => [
                                 <span key="n" style={{ color: PAPER.ink, fontWeight: 500 }}>
                                     {a.name}
                                 </span>,
                                 <span key="w" style={numStyle}>
                                     {a.workers}
-                                </span>,
-                                <span key="e" style={numStyle}>
-                                    {a.assessments}
                                 </span>,
                                 <span
                                     key="p"
@@ -504,9 +483,8 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                             <Micro size={11} color={PAPER.ink3} style={{ marginTop: 10 }}>
                                 Se omitieron {areas.withheld.areas} áreas que no alcanzan los{" "}
                                 {d.minGroupSize} trabajadores necesarios para reportarlas sin
-                                comprometer el anonimato. Sus {areas.withheld.workers} trabajadores y{" "}
-                                {areas.withheld.assessments} evaluaciones sí están incluidos en las
-                                cifras generales.
+                                comprometer el anonimato. Sus {areas.withheld.workers} trabajadores sí
+                                están incluidos en las cifras generales.
                             </Micro>
                         )}
                     </>
@@ -581,7 +559,7 @@ export default async function DiagnosticReportPage({ params }: PageProps) {
                 <SectionTitle n={9}>Conclusiones</SectionTitle>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                     {[
-                        `La organización aplicó ${coverage.totalAssessments} evaluaciones a ${coverage.uniqueWorkers} trabajadores entre ${d.org.dateStart} y ${d.org.dateEnd}. ${coverage.criticalWorkers} trabajadores —el ${coverage.criticalWorkerPercent}% de los evaluados— presentaron al menos un instrumento en riesgo alto o muy alto. Sobre el total de evaluaciones, la proporción crítica es del ${coverage.criticalPercent}%.`,
+                        `Se evaluaron ${coverage.uniqueWorkers} trabajadores. ${coverage.criticalWorkers} trabajadores —el ${coverage.criticalWorkerPercent}% de los evaluados— presentaron al menos un instrumento en riesgo alto o muy alto.`,
                         d.companyRisk.annualRequired
                             ? "El nivel de riesgo psicosocial intralaboral de la empresa resulta alto o muy alto. Conforme al artículo 3 de la Resolución 2764 de 2022, la evaluación debe repetirse de forma anual, enmarcada en un sistema de vigilancia epidemiológica, y las condiciones identificadas requieren intervención inmediata en la fuente."
                             : "El nivel de riesgo psicosocial intralaboral de la empresa se ubica en medio o bajo. Conforme al artículo 3 de la Resolución 2764 de 2022, la evaluación se repite cada dos años y requiere intervención tanto en la fuente como en el trabajador.",

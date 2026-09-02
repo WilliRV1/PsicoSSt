@@ -184,7 +184,6 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5 mt-8">
                     {[
-                        ["Periodo", `${org.dateStart} — ${org.dateEnd}`],
                         ["Fecha del informe", org.today],
                         ["Profesional responsable", professional.name],
                     ].map(([lbl, val]) => (
@@ -203,9 +202,8 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                     contrato temporal que en una con quince años de antigüedad.
                 </p>
 
-                <div className="grid grid-cols-3 gap-3 mt-5">
+                <div className="grid grid-cols-2 gap-3 mt-5">
                     <StatCard value={coverage.evaluated} label="Trabajadores evaluados" />
-                    <StatCard value={coverage.assessments} label="Evaluaciones aplicadas" />
                     <StatCard
                         value={coverage.registered}
                         label="Trabajadores registrados"

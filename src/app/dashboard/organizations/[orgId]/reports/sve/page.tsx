@@ -69,9 +69,9 @@ export default async function SVEReportPage({ params }: PageProps) {
     const href = `/api/organizations/${orgId}/sve/pdf`;
 
     const instruments = [
-        { title: "Intralaboral", n: summary.intraA + summary.intraB, dist: distributions.intra },
-        { title: "Extralaboral", n: summary.extra, dist: distributions.extra },
-        { title: "Estrés", n: summary.stress, dist: distributions.stress },
+        { title: "Intralaboral", dist: distributions.intra },
+        { title: "Extralaboral", dist: distributions.extra },
+        { title: "Estrés", dist: distributions.stress },
     ];
 
     return (
@@ -124,7 +124,6 @@ export default async function SVEReportPage({ params }: PageProps) {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5 mt-8">
                     {[
-                        ["Periodo evaluado", `${org.dateStart} — ${org.dateEnd}`],
                         ["Fecha del informe", org.today],
                         ["Profesional responsable", org.psychologistName],
                     ].map(([lbl, val]) => (
@@ -136,9 +135,8 @@ export default async function SVEReportPage({ params }: PageProps) {
                 </div>
 
                 <SectionTitle n={1}>Población y cobertura</SectionTitle>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     <StatCard value={summary.uniqueWorkers} label="Trabajadores" />
-                    <StatCard value={summary.totalAssessments} label="Evaluaciones aplicadas" />
                     <StatCard
                         value={groups.d}
                         label="Grupo D · trabajadores"
@@ -152,9 +150,9 @@ export default async function SVEReportPage({ params }: PageProps) {
                 </div>
 
                 <Micro style={{ marginTop: 14 }}>
-                    A cada trabajador se le aplican hasta tres cuestionarios, de modo que el número
-                    de evaluaciones es mayor que el de personas. El umbral del 20% de la Resolución
-                    2764 se contrasta contra el número de trabajadores.
+                    A cada trabajador se le aplican hasta tres cuestionarios —intralaboral,
+                    extralaboral y de estrés—. El umbral del 20% de la Resolución 2764 se contrasta
+                    contra el número de trabajadores.
                 </Micro>
 
                 {summary.needsSVE && (
@@ -172,7 +170,7 @@ export default async function SVEReportPage({ params }: PageProps) {
 
                 <SectionTitle n={2}>Perfil general de riesgo</SectionTitle>
                 <div className="space-y-3">
-                    {instruments.map(({ title, n, dist }) => (
+                    {instruments.map(({ title, dist }) => (
                         <div
                             key={title}
                             style={{
@@ -181,14 +179,9 @@ export default async function SVEReportPage({ params }: PageProps) {
                                 padding: 16,
                             }}
                         >
-                            <div className="flex items-baseline justify-between gap-4">
-                                <span style={{ fontFamily: serif, fontSize: 16, fontWeight: 600 }}>
-                                    {title}
-                                </span>
-                                <Micro size={11} color={PAPER.ink3}>
-                                    {n} evaluaciones
-                                </Micro>
-                            </div>
+                            <span style={{ fontFamily: serif, fontSize: 16, fontWeight: 600 }}>
+                                {title}
+                            </span>
                             <div style={{ marginTop: 10 }}>
                                 <StackedBar dist={dist} height={11} />
                             </div>

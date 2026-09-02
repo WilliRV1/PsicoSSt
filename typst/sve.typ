@@ -55,7 +55,6 @@
       ("Empresa", D.org.name),
       ("NIT / Ubicación", D.org.nit + if D.org.city != none { " · " + D.org.city } else { "" }),
       ("Trabajadores evaluados", str(D.summary.uniqueWorkers)),
-      ("Período de evaluación", D.org.dateStart + " — " + D.org.dateEnd),
       ("Responsable técnico", D.org.psychologistName),
       ("Licencia SST", D.org.psychologistLicense),
     ).map(((lbl, val)) => block({
@@ -289,8 +288,6 @@ mediante la Resolución 2764 de 2022.
     ("Razón social", D.org.name),
     ("NIT", D.org.nit),
     ("Trabajadores evaluados", str(D.summary.uniqueWorkers)),
-    ("Evaluaciones aplicadas", str(D.summary.totalAssessments) + " — Intralaboral A: " + str(D.summary.intraA) + " · Intralaboral B: " + str(D.summary.intraB) + " · Extralaboral: " + str(D.summary.extra) + " · Estrés: " + str(D.summary.stress)),
-    ("Período de evaluación", D.org.dateStart + " — " + D.org.dateEnd),
     ("Áreas evaluadas", if D.areas.len() > 0 { D.areas.map(a => a.name).join(", ") } else { "No especificado" }),
     ("Responsable técnico", D.org.psychologistName + " — Licencia SST " + D.org.psychologistLicense),
   ).map(((a, b)) => (text(weight: 600, fill: ink, a), b)),
@@ -397,11 +394,10 @@ estrés como enfermedad laboral, o cuando se requiera un proceso de reubicación
 
 #block(breakable: false, {
   grid(
-    columns: (1fr, 1fr, 1fr, 1fr),
+    columns: (1fr, 1fr, 1fr),
     column-gutter: 6pt,
     ..(
       (str(D.summary.uniqueWorkers), "Trabajadores"),
-      (str(D.summary.totalAssessments), "Evaluaciones aplicadas"),
       (str(D.groups.d), "Grupo D · trabajadores"),
       (str(D.summary.criticalWorkerPercent) + "%", "Trabajadores en zona crítica"),
     ).map(((val, lbl)) => block(
@@ -420,17 +416,14 @@ estrés como enfermedad laboral, o cuando se requiera un proceso de reubicación
 Distribución porcentual de los niveles de riesgo obtenidos en cada uno de los cuestionarios aplicados.
 
 #block(breakable: true, {
-  for (key, title, n) in (
-    ("intra", "Intralaboral", D.summary.intraA + D.summary.intraB),
-    ("extra", "Extralaboral", D.summary.extra),
-    ("stress", "Sintomatología de estrés", D.summary.stress),
+  for (key, title) in (
+    ("intra", "Intralaboral"),
+    ("extra", "Extralaboral"),
+    ("stress", "Sintomatología de estrés"),
   ) {
     let dist = D.distributions.at(key)
-    let cnt = D.counts.at(key)
     block(width: 100%, breakable: false, inset: (bottom: 11pt), {
-      grid(columns: (1fr, auto), align: (left + bottom, right + bottom),
-        text(font: serif, size: 10.5pt, weight: 600, fill: ink, title),
-        text(font: sans, size: 7pt, fill: ink3, num("N = " + str(n))))
+      text(font: serif, size: 10.5pt, weight: 600, fill: ink, title)
       v(4pt)
       stacked-bar(dist, height: 11pt)
       v(4pt)
@@ -441,7 +434,6 @@ Distribución porcentual de los niveles de riesgo obtenidos en cada uno de los c
           linebreak()
           text(font: sans, size: 8.5pt, weight: 600, fill: rc(k),
             num(str(dist.at(k, default: 0)) + "%"))
-          text(font: sans, size: 6.5pt, fill: ink3, num("  (" + str(cnt.at(k, default: 0)) + ")"))
         }))
       )
     })
@@ -773,9 +765,9 @@ factores de riesgo psicosocial, incluyendo los elementos descritos en el present
 = Conclusiones
 
 #bullets((
-  [Se evaluaron *#num(str(D.summary.uniqueWorkers)) trabajadores* de la empresa *#D.org.name* mediante la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial, completando *#num(str(D.summary.totalAssessments)) evaluaciones* entre los cuestionarios intralaboral, extralaboral y de estrés, durante el período comprendido entre el #D.org.dateStart y el #D.org.dateEnd.],
+  [Se evaluaron *#num(str(D.summary.uniqueWorkers)) trabajadores* de la empresa *#D.org.name* mediante la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial, entre los cuestionarios intralaboral, extralaboral y de estrés.],
 
-  [El *#num(str(D.summary.criticalWorkerPercent) + "%")* de los trabajadores evaluados —#num(str(D.summary.criticalWorkers)) de #num(str(D.summary.uniqueWorkers))— presentó al menos un instrumento en nivel de riesgo Alto o Muy Alto, lo que #if D.summary.criticalWorkerPercent > 30 [constituye una proporción significativamente elevada que exige intervención prioritaria e inmediata.] else if D.summary.criticalWorkerPercent > 15 [representa una proporción moderada que amerita implementar acciones de intervención y seguimiento sistemático.] else [refleja un perfil de riesgo favorable, en el cual corresponde mantener y fortalecer las acciones de promoción y prevención.] Medido sobre el total de evaluaciones aplicadas, y no sobre personas, la proporción en riesgo crítico es del #num(str(D.summary.criticalPercent) + "%").],
+  [El *#num(str(D.summary.criticalWorkerPercent) + "%")* de los trabajadores evaluados —#num(str(D.summary.criticalWorkers)) de #num(str(D.summary.uniqueWorkers))— presentó al menos un instrumento en nivel de riesgo Alto o Muy Alto, lo que #if D.summary.criticalWorkerPercent > 30 [constituye una proporción significativamente elevada que exige intervención prioritaria e inmediata.] else if D.summary.criticalWorkerPercent > 15 [representa una proporción moderada que amerita implementar acciones de intervención y seguimiento sistemático.] else [refleja un perfil de riesgo favorable, en el cual corresponde mantener y fortalecer las acciones de promoción y prevención.]],
 
   [La correlación entre condiciones de trabajo y condiciones de salud permitió clasificar la población en cuatro grupos: Grupo A, sanos, con #num(str(D.groups.a)); Grupo B, vulnerables, con #num(str(D.groups.b)); Grupo C, adaptados, con #num(str(D.groups.c)); y Grupo D, prioridad de intervención, con #num(str(D.groups.d)) trabajadores.],
 ))

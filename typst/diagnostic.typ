@@ -28,16 +28,11 @@
 )
 
 // Distribución de un instrumento: barra apilada más los porcentajes.
-#let dist-panel(title, n, dist) = block(
+#let dist-panel(title, dist) = block(
   width: 100%, inset: 10pt, fill: panel, stroke: 0.35pt + rule,
   {
     set par(justify: false, leading: 0.55em)
-    grid(
-      columns: (1fr, auto),
-      align: (left + horizon, right + horizon),
-      text(font: serif, size: 10.5pt, weight: 600, fill: ink, title),
-      text(font: sans, size: 7pt, fill: ink3, num(str(n)) + " evaluaciones"),
-    )
+    text(font: serif, size: 10.5pt, weight: 600, fill: ink, title)
     v(7pt)
     stacked-bar(dist, height: 9pt)
     v(6pt)
@@ -119,9 +114,7 @@
     column-gutter: 12pt,
     row-gutter: 8mm,
     ..(
-      ("Periodo evaluado", D.org.dateStart + " — " + D.org.dateEnd),
       ("Trabajadores evaluados", str(D.coverage.uniqueWorkers)),
-      ("Evaluaciones aplicadas", str(D.coverage.totalAssessments)),
       ("Fecha del informe", D.org.today),
       ("Trabajadores en riesgo crítico", str(D.coverage.criticalWorkerPercent) + "%"),
       ("Sector económico", if D.org.economicSector != none { D.org.economicSector } else { "No registrado" }),
@@ -190,48 +183,39 @@ situaciones individuales.
 == Cobertura de la evaluación
 
 #grid(
-  columns: (1fr, 1fr, 1fr, 1fr),
+  columns: (1fr, 1fr),
   column-gutter: 8pt,
   stat(str(D.coverage.uniqueWorkers), "Trabajadores evaluados"),
-  stat(str(D.coverage.totalAssessments), "Evaluaciones aplicadas"),
   stat(str(D.coverage.criticalWorkerPercent) + "%", "Trabajadores en riesgo alto o muy alto"),
-  stat(str(D.coverage.intra) + "/" + str(D.coverage.extra) + "/" + str(D.coverage.stress),
-    "Evaluaciones intra / extra / estrés"),
 )
 
 #v(7pt)
 
 #micro[
   A cada trabajador se le aplican hasta tres cuestionarios —intralaboral,
-  extralaboral y de estrés—, de modo que el número de evaluaciones es mayor que
-  el de personas. A lo largo del informe se indica en cada caso cuál de las dos
-  bases se está usando: los porcentajes por instrumento y por área se calculan
-  sobre evaluaciones, mientras que las cifras de personas se cuentan sobre
-  trabajadores. El nivel de riesgo de la empresa, del que depende la
-  periodicidad de la evaluación, se calcula aparte según el artículo 3 de la
+  extralaboral y de estrés—. El nivel de riesgo de la empresa, del que depende
+  la periodicidad de la evaluación, se calcula aparte según el artículo 3 de la
   Resolución 2764 de 2022.
 ]
 
 #v(8pt)
 
 #if D.coverage.predominant != none [
-  El nivel de riesgo más frecuente entre las evaluaciones aplicadas es
-  *#lower(D.coverage.predominant.label)*, con el #D.coverage.predominant.percent% de
-  los resultados.
+  El nivel de riesgo más frecuente es *#lower(D.coverage.predominant.label)*, con
+  el #D.coverage.predominant.percent% de los resultados.
   #if D.coverage.highest != none and D.coverage.highest.level != D.coverage.predominant.level [
-    El nivel más severo registrado es *#lower(D.coverage.highest.label)*, presente en
-    #D.coverage.highest.count #if D.coverage.highest.count == 1 { "evaluación" } else { "evaluaciones" }.
+    El nivel más severo registrado es *#lower(D.coverage.highest.label)*.
   ]
 ]
 
 #if D.coverage.unsigned > 0 [
   #v(4pt)
   #note-block(accent: rc("MEDIO"))[
-    *Evaluaciones sin firma.* #D.coverage.unsigned de las
-    #D.coverage.totalAssessments evaluaciones incluidas en este diagnóstico están
-    calificadas pero aún no han sido firmadas por el profesional. Los resultados
-    estadísticos son válidos, pero el informe no debe presentarse ante la
-    autoridad hasta que todas las evaluaciones estén suscritas.
+    *Evaluaciones sin firma.* Algunas de las evaluaciones incluidas en este
+    diagnóstico están calificadas pero aún no han sido firmadas por el
+    profesional. Los resultados estadísticos son válidos, pero el informe no
+    debe presentarse ante la autoridad hasta que todas las evaluaciones estén
+    suscritas.
   ]
 ]
 
@@ -255,11 +239,11 @@ tres instrumentos.
 
 #v(5pt)
 
-#dist-panel("Intralaboral", D.coverage.intra, D.distributions.intra)
+#dist-panel("Intralaboral", D.distributions.intra)
 #v(7pt)
-#dist-panel("Extralaboral", D.coverage.extra, D.distributions.extra)
+#dist-panel("Extralaboral", D.distributions.extra)
 #v(7pt)
-#dist-panel("Estrés", D.coverage.stress, D.distributions.stress)
+#dist-panel("Estrés", D.distributions.stress)
 
 #v(9pt)
 #risk-legend()
@@ -293,13 +277,12 @@ subgrupo aunque el promedio lo diluya.
 #v(5pt)
 
 #etable(
-  columns: (2.2fr, auto, auto, auto, auto, auto),
-  align-spec: (left, left, center, center, center, center),
-  header: ("Dimensión", "Instrumento", "Evaluados", "Promedio", "% crítico", "Prioridad"),
+  columns: (2.4fr, auto, auto, auto, auto),
+  align-spec: (left, left, center, center, center),
+  header: ("Dimensión", "Instrumento", "Promedio", "% crítico", "Prioridad"),
   rows: D.dimensions.map(d => (
     text(fill: ink, weight: 500, d.name),
     d.questionnaire,
-    str(d.count),
     num(str(d.avg)),
     text(fill: if d.criticalPercent >= 40 { rc("MUY_ALTO") }
                else if d.criticalPercent >= 20 { rc("ALTO") }
@@ -368,9 +351,8 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   #note-block[
     Ninguna área de la organización alcanza los #D.minGroupSize trabajadores que
     se exigen para reportarla por separado sin comprometer el anonimato de sus
-    integrantes. Sus #D.areas.withheld.workers trabajadores y
-    #D.areas.withheld.assessments evaluaciones se encuentran incluidos en las
-    cifras generales de este informe.
+    integrantes. Sus #D.areas.withheld.workers trabajadores se encuentran
+    incluidos en las cifras generales de este informe.
   ]
 ] else [
   Áreas ordenadas por la proporción de evaluaciones en riesgo alto o muy alto.
@@ -380,13 +362,12 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
   #v(5pt)
 
   #etable(
-    columns: (2fr, auto, auto, auto, 2fr),
-    align-spec: (left, center, center, center, left),
-    header: ("Área", "Trabajadores", "Evaluaciones", "% crítico", "Distribución"),
+    columns: (2.4fr, auto, auto, 2fr),
+    align-spec: (left, center, center, left),
+    header: ("Área", "Trabajadores", "% crítico", "Distribución"),
     rows: D.areas.reported.map(a => (
       text(fill: ink, weight: 500, a.name),
       num(str(a.workers)),
-      num(str(a.assessments)),
       text(fill: if a.criticalPercent >= 40 { rc("MUY_ALTO") }
                  else if a.criticalPercent >= 20 { rc("ALTO") }
                  else { ink2 },
@@ -400,9 +381,8 @@ calificados los dos cuestionarios#if D.correlationBase > 0 [: #D.correlationBase
     #micro[
       Se omitieron #D.areas.withheld.areas áreas que no alcanzan los
       #D.minGroupSize trabajadores necesarios para reportarlas sin comprometer el
-      anonimato de sus integrantes. Sus #D.areas.withheld.workers trabajadores y
-      #D.areas.withheld.assessments evaluaciones sí están incluidos en las cifras
-      generales del informe.
+      anonimato de sus integrantes. Sus #D.areas.withheld.workers trabajadores sí
+      están incluidos en las cifras generales del informe.
     ]
   ]
 ]
@@ -486,12 +466,10 @@ la evaluación deba repetirse cada año o cada dos.
 #let criticas = D.dimensions.filter(d => d.criticalPercent >= 20)
 
 #bullets((
-  [La organización aplicó #D.coverage.totalAssessments evaluaciones a
-   #D.coverage.uniqueWorkers trabajadores entre #D.org.dateStart y
-   #D.org.dateEnd. #D.coverage.criticalWorkers trabajadores —el
+  [Se evaluaron #D.coverage.uniqueWorkers trabajadores de la organización.
+   #D.coverage.criticalWorkers trabajadores —el
    #D.coverage.criticalWorkerPercent% de los evaluados— presentaron al menos un
-   instrumento en riesgo alto o muy alto. Sobre el total de evaluaciones, y no
-   sobre personas, la proporción crítica es del #D.coverage.criticalPercent%.],
+   instrumento en riesgo alto o muy alto.],
   ..(if D.companyRisk.annualRequired {
       ([El nivel de riesgo psicosocial intralaboral de la empresa resulta alto o
         muy alto en #D.companyRisk.byForm.filter(f => f.level == "ALTO" or f.level == "MUY_ALTO").map(f => "la forma " + f.form).join(" y "). Conforme al

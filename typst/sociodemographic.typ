@@ -94,8 +94,6 @@
     row-gutter: 8mm,
     ..(
       ("Trabajadores evaluados", str(D.coverage.evaluated)),
-      ("Evaluaciones aplicadas", str(D.coverage.assessments)),
-      ("Periodo", D.org.dateStart + " — " + D.org.dateEnd),
       ("Fecha del informe", D.org.today),
       ("Sector económico", if D.org.economicSector != none { D.org.economicSector } else { "No registrado" }),
       ("Trabajadores registrados", str(D.coverage.registered)),
@@ -137,11 +135,10 @@ indefinido.
 #v(4pt)
 
 #grid(
-  columns: (1fr, 1fr, 1fr),
+  columns: (1fr, 1fr),
   column-gutter: 8pt,
   ..(
     (str(D.coverage.evaluated), "Trabajadores evaluados"),
-    (str(D.coverage.assessments), "Evaluaciones aplicadas"),
     (str(D.coverage.registered), "Trabajadores registrados"),
   ).map(((val, lbl)) => block(
     width: 100%, height: 20mm, inset: 9pt, fill: panel, stroke: 0.35pt + rule,

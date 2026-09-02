@@ -693,5 +693,23 @@
       "workers": 14,
       "assessments": 42
     }
+  },
+  "areaDimensionMatrix": {
+    "areas": [],
+    "dimensions": [
+      {
+        "key": "demandas_ambientales",
+        "name": "Demandas ambientales y de esfuerzo físico"
+      },
+      {
+        "key": "demandas_jornada",
+        "name": "Demandas de la jornada de trabajo"
+      },
+      {
+        "key": "retroalimentacion_desempeno",
+        "name": "Retroalimentación del desempeño"
+      }
+    ],
+    "cells": []
   }
 }

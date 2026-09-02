@@ -245,16 +245,39 @@ async function generateNarrative(
         .slice(0, 8)
         .map(x => `${x.name} (${x.questionnaire}): ${x.criticalPercent}% en riesgo crítico`);
 
+    // Para cada dimensión crítica, si su cruce por área muestra una brecha
+    // grande entre la peor y la mejor área, es un dato más persuasivo que el
+    // promedio general: dice si conviene una intervención localizada o una de
+    // toda la organización. Sólo se reporta cuando la brecha es amplia (≥25
+    // puntos), para no saturar el prompt con ruido cuando el riesgo está
+    // parejo en todas las áreas.
+    const areaConcentration = d.areaDimensionMatrix.dimensions
+        .map((dim, j) => {
+            const values = d.areaDimensionMatrix.cells
+                .map((row, i) => ({ area: d.areaDimensionMatrix.areas[i], pct: row[j].criticalPercent }))
+                .filter(v => v.pct > 0 || d.areaDimensionMatrix.cells.length > 0);
+            if (values.length < 2) return null;
+            const max = values.reduce((a, b) => (b.pct > a.pct ? b : a));
+            const min = values.reduce((a, b) => (b.pct < a.pct ? b : a));
+            if (max.pct - min.pct < 25) return null;
+            return `${dim.name} se concentra en ${max.area} (${max.pct}%) frente al resto (mínimo ${min.pct}% en ${min.area})`;
+        })
+        .filter((x): x is string => x !== null)
+        .slice(0, 3);
+
     const prompt = `Eres un consultor senior en riesgo psicosocial y salud ocupacional en Colombia.
 
 Datos de la organización ${d.org.name}:
 - Trabajadores evaluados: ${d.coverage.uniqueWorkers}
-- Evaluaciones aplicadas: ${d.coverage.totalAssessments}
 - Trabajadores en riesgo alto o muy alto: ${d.coverage.criticalWorkers} (${d.coverage.criticalWorkerPercent}%)
 - Índice de salud psicosocial: ${healthScore}/100
 - Dimensiones críticas: ${topDimensions.length ? topDimensions.join("; ") : "ninguna supera el 20%"}
+- Concentración por área de las dimensiones críticas: ${areaConcentration.length ? areaConcentration.join("; ") : "sin concentraciones marcadas por área"}
 - Grupo de prioridad de intervención (riesgo y sintomatología simultáneos): ${d.groups.prioritarios} trabajadores
 - Alertas por subgrupo: ${alerts.length ? alerts.map(a => `${a.group} (${a.variable}): ${a.riskPercent}%`).join("; ") : "ninguna"}
+
+No menciones cifras de cuántas evaluaciones o pruebas se aplicaron, ni fechas
+o periodos de aplicación: este informe no expone esos datos.
 
 Responde únicamente con un objeto JSON:
 {

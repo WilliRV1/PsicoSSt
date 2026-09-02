@@ -810,5 +810,115 @@
       "time": "180 días",
       "impact": "Medio"
     }
-  ]
+  ],
+  "areaDimensionMatrix": {
+    "areas": [
+      "Producción",
+      "Mantenimiento",
+      "Logística y almacén",
+      "Administración",
+      "Comercial"
+    ],
+    "dimensions": [
+      {
+        "key": "demandas_ambientales",
+        "name": "Demandas ambientales y de esfuerzo físico"
+      },
+      {
+        "key": "demandas_jornada",
+        "name": "Demandas de la jornada de trabajo"
+      },
+      {
+        "key": "retroalimentacion_desempeno",
+        "name": "Retroalimentación del desempeño"
+      }
+    ],
+    "cells": [
+      [
+        {
+          "criticalPercent": 10,
+          "avg": 20,
+          "count": 10
+        },
+        {
+          "criticalPercent": 25,
+          "avg": 30,
+          "count": 10
+        },
+        {
+          "criticalPercent": 40,
+          "avg": 40,
+          "count": 10
+        }
+      ],
+      [
+        {
+          "criticalPercent": 10,
+          "avg": 20,
+          "count": 10
+        },
+        {
+          "criticalPercent": 25,
+          "avg": 30,
+          "count": 10
+        },
+        {
+          "criticalPercent": 40,
+          "avg": 40,
+          "count": 10
+        }
+      ],
+      [
+        {
+          "criticalPercent": 10,
+          "avg": 20,
+          "count": 10
+        },
+        {
+          "criticalPercent": 25,
+          "avg": 30,
+          "count": 10
+        },
+        {
+          "criticalPercent": 40,
+          "avg": 40,
+          "count": 10
+        }
+      ],
+      [
+        {
+          "criticalPercent": 10,
+          "avg": 20,
+          "count": 10
+        },
+        {
+          "criticalPercent": 25,
+          "avg": 30,
+          "count": 10
+        },
+        {
+          "criticalPercent": 40,
+          "avg": 40,
+          "count": 10
+        }
+      ],
+      [
+        {
+          "criticalPercent": 10,
+          "avg": 20,
+          "count": 10
+        },
+        {
+          "criticalPercent": 25,
+          "avg": 30,
+          "count": 10
+        },
+        {
+          "criticalPercent": 40,
+          "avg": 40,
+          "count": 10
+        }
+      ]
+    ]
+  }
 }

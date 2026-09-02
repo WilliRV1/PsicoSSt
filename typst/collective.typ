@@ -126,7 +126,6 @@
     column-gutter: 12pt,
     row-gutter: 8mm,
     ..(
-      ("Periodo evaluado", D.org.dateStart + " — " + D.org.dateEnd),
       ("Trabajadores evaluados", str(D.coverage.uniqueWorkers)),
       ("Índice de salud", str(D.healthScore) + "/100"),
       ("Fecha del informe", D.org.today),
@@ -161,10 +160,9 @@
 = Panorama general
 
 #grid(
-  columns: (1fr, 1fr, 1fr, 1fr),
+  columns: (1fr, 1fr, 1fr),
   column-gutter: 8pt,
   stat(str(D.coverage.uniqueWorkers), "Trabajadores evaluados"),
-  stat(str(D.coverage.totalAssessments), "Evaluaciones aplicadas"),
   stat(str(D.coverage.criticalWorkers), "En riesgo alto o muy alto",
     accent: if D.coverage.criticalWorkerPercent >= 20 { rc("ALTO") } else { ink }),
   stat(str(D.groups.prioritarios), "Prioridad de intervención",
@@ -178,10 +176,8 @@
 #v(8pt)
 
 #micro[
-  A cada trabajador se le aplican hasta tres cuestionarios, de modo que el
-  número de evaluaciones supera al de personas. Las cifras que se refieren a
-  trabajadores y las que se refieren a evaluaciones se identifican como tales a
-  lo largo del informe.
+  A cada trabajador se le aplican hasta tres cuestionarios: intralaboral,
+  extralaboral y de estrés.
 ]
 
 == Vigencia del diagnóstico
@@ -205,18 +201,11 @@
 
   #if D.narrative != none [
     #D.narrative
-
-    #v(4pt)
-    #micro[
-      Texto redactado con asistencia de inteligencia artificial a partir de las
-      cifras de este informe, y sujeto a la revisión del profesional que lo
-      suscribe.
-    ]
   ] else [
     #note-block[
-      No se generó la lectura consultiva asistida para este informe. Las
-      conclusiones y recomendaciones que siguen se derivan directamente de los
-      resultados y no dependen de esa capa.
+      No se generó una lectura consultiva para este informe. Las conclusiones y
+      recomendaciones que siguen se derivan directamente de los resultados y no
+      dependen de esa sección.
     ]
   ]
 
@@ -356,19 +345,14 @@
 
   = Distribución por instrumento
 
-  #for (title, n, dist) in (
-    ("Intralaboral", D.coverage.intra, D.distributions.intra),
-    ("Extralaboral", D.coverage.extra, D.distributions.extra),
-    ("Estrés", D.coverage.stress, D.distributions.stress),
+  #for (title, dist) in (
+    ("Intralaboral", D.distributions.intra),
+    ("Extralaboral", D.distributions.extra),
+    ("Estrés", D.distributions.stress),
   ) {
     block(width: 100%, breakable: false, inset: (bottom: 9pt), {
       set par(justify: false)
-      grid(
-        columns: (1fr, auto),
-        align: (left + horizon, right + horizon),
-        text(font: serif, size: 10pt, weight: 600, fill: ink, title),
-        text(font: sans, size: 7pt, fill: ink3, num(str(n)) + " evaluaciones"),
-      )
+      text(font: serif, size: 10pt, weight: 600, fill: ink, title)
       v(5pt)
       stacked-bar(dist, height: 9pt)
       v(5pt)
@@ -422,13 +406,12 @@
     = Resultados por área
 
     #etable(
-      columns: (2fr, auto, auto, auto, 2fr),
-      align-spec: (left, center, center, center, left),
-      header: ("Área", "Trabajadores", "Evaluaciones", "% crítico", "Distribución"),
+      columns: (2.4fr, auto, auto, 2fr),
+      align-spec: (left, center, center, left),
+      header: ("Área", "Trabajadores", "% crítico", "Distribución"),
       rows: D.areas.reported.map(a => (
         text(fill: ink, weight: 500, a.name),
         num(str(a.workers)),
-        num(str(a.assessments)),
         text(fill: if a.criticalPercent >= 40 { rc("MUY_ALTO") }
                    else if a.criticalPercent >= 20 { rc("ALTO") } else { ink2 },
           weight: 600, num(str(a.criticalPercent) + "%")),
@@ -474,10 +457,8 @@
 = Conclusiones
 
 #bullets((
-  [Se evaluaron #D.coverage.uniqueWorkers trabajadores mediante
-   #D.coverage.totalAssessments aplicaciones de la Batería, entre
-   #D.org.dateStart y #D.org.dateEnd. El índice de salud psicosocial resultante
-   es de #D.healthScore sobre 100.],
+  [Se evaluaron #D.coverage.uniqueWorkers trabajadores mediante la Batería. El
+   índice de salud psicosocial resultante es de #D.healthScore sobre 100.],
   ..(if D.coverage.criticalWorkerPercent >= 20 {
       ([#D.coverage.criticalWorkers trabajadores —el
         #D.coverage.criticalWorkerPercent%— presentan al menos un instrumento en
