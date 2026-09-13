@@ -43,6 +43,7 @@ model Psychologist {
   paymentOrders      PaymentOrder[]
   settings           PsychologistSettings?
   assessmentReports  AssessmentReport[]
+  assessmentInvitations AssessmentInvitation[]
 
   @@map("psychologists")
   feedback              Feedback[]
@@ -118,6 +119,7 @@ model Organization {
   workers               Worker[]
   interventionPlans     InterventionPlan[]
   assessmentReports     AssessmentReport[]
+  assessmentInvitations AssessmentInvitation[]
 
   @@map("organizations")
 }
@@ -167,6 +169,7 @@ model Worker {
   assessments            Assessment[]
   consents               InformedConsent[]
   organization           Organization      @relation(fields: [organizationId], references: [id])
+  assessmentInvitations  AssessmentInvitation[]
 
   @@unique([documentType, documentId, organizationId])
   @@index([organizationId])
@@ -203,6 +206,9 @@ model Assessment {
   generatedReports  GeneratedReport[]
   responseSet       ResponseSet?
   scoredResult      ScoredResult?
+  invitationAsIntra AssessmentInvitation? @relation("InvitationIntra")
+  invitationAsExtra AssessmentInvitation? @relation("InvitationExtra")
+  invitationAsStress AssessmentInvitation? @relation("InvitationStress")
 
   @@index([psychologistId, status])
   @@index([organizationId, assessmentDate])
@@ -593,6 +599,57 @@ model PasswordResetToken {
 
   @@index([psychologistId, createdAt(sort: Desc)])
   @@map("password_reset_tokens")
+}
+
+/// Invitación de autoaplicación remota: token de un solo uso que permite a
+/// un trabajador SIN cuenta diligenciar la batería (o parte de ella) por su
+/// cuenta. Vive independiente de Assessment hasta completarse — recién ahí
+/// se invoca AssessmentService.createAssessment (sin modificarla) por cada
+/// tipo de cuestionario incluido en plannedTypes. El psicólogo que la crea
+/// sigue siendo el responsable/custodio legal (Res. 2764/2022, art. 5.3).
+model AssessmentInvitation {
+  id                       String                     @id @default(uuid()) @db.Uuid
+  workerId                 String                     @map("worker_id") @db.Uuid
+  psychologistId           String                     @map("psychologist_id") @db.Uuid
+  organizationId           String                     @map("organization_id") @db.Uuid
+  formType                 FormType                   @map("form_type")
+  /// Cuáles de los 3 instrumentos incluye esta invitación. String[] (no un
+  /// array de enum) a propósito: un array de QuestionnaireType[] dispara un
+  /// bug real de Prisma 7 + @prisma/adapter-pg ("isObjectEnumValue is not a
+  /// function") — validado como QuestionnaireType en la capa de aplicación.
+  plannedTypes             String[]                   @map("planned_types")
+  /// SHA-256 del token; el token en claro nunca se persiste.
+  tokenHash                String                     @unique @map("token_hash")
+  status                   AssessmentInvitationStatus @default(PENDING)
+  expiresAt                DateTime                   @map("expires_at")
+  /// Correo capturado al invitar; no se persiste en Worker.
+  contactEmail             String                     @map("contact_email")
+  /// Se llenan a medida que el trabajador completa cada sección — sirven
+  /// también como checkpoint de progreso si cierra la pestaña a mitad.
+  intralaboralAssessmentId String?                    @unique @map("intralaboral_assessment_id") @db.Uuid
+  extralaboralAssessmentId String?                    @unique @map("extralaboral_assessment_id") @db.Uuid
+  stressAssessmentId       String?                    @unique @map("stress_assessment_id") @db.Uuid
+  completedAt              DateTime?                  @map("completed_at")
+  cancelledAt              DateTime?                  @map("cancelled_at")
+  createdAt                DateTime                   @default(now()) @map("created_at")
+  updatedAt                DateTime                   @updatedAt @map("updated_at")
+
+  worker                 Worker       @relation(fields: [workerId], references: [id])
+  psychologist           Psychologist @relation(fields: [psychologistId], references: [id])
+  organization           Organization @relation(fields: [organizationId], references: [id])
+  intralaboralAssessment Assessment?  @relation("InvitationIntra", fields: [intralaboralAssessmentId], references: [id])
+  extralaboralAssessment Assessment?  @relation("InvitationExtra", fields: [extralaboralAssessmentId], references: [id])
+  stressAssessment       Assessment?  @relation("InvitationStress", fields: [stressAssessmentId], references: [id])
+
+  @@index([psychologistId, status])
+  @@index([workerId])
+  @@map("assessment_invitations")
+}
+
+enum AssessmentInvitationStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
 }
 
 /// Payment order for Wompi integration

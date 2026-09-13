@@ -2,11 +2,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { ClipboardList, Plus, FileDown, Eye, PenLine, CheckCircle2, Clock, AlertCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
 import DeleteAssessmentButton from "./delete-assessment-button";
+import InvitationActions from "./invitation-actions";
 
 const riskCfg: Record<string, { label: string; cls: string }> = {
     SIN_RIESGO: { label: "Sin Riesgo", cls: "bg-green-100 text-green-700 border-green-200" },
@@ -36,19 +37,45 @@ interface SlotAssessment {
     overallRiskCategory: string | null;
 }
 
+interface SlotInvitation {
+    id: string;
+    expiresAt: Date;
+}
+
 function AssessmentSlot({
     type,
     label,
     assessment,
+    invitation,
     workerId,
     orgId,
 }: {
     type: string;
     label: string;
     assessment: SlotAssessment | null;
+    invitation: SlotInvitation | null;
     workerId: string;
     orgId: string;
 }) {
+    if (!assessment && invitation) {
+        const isExpired = new Date(invitation.expiresAt) < new Date();
+        return (
+            <td className="px-3 py-4 align-middle">
+                <div className="flex flex-col items-start gap-1.5">
+                    <span className="text-[11px] text-text-muted font-medium uppercase tracking-wider">{label}</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${isExpired ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"}`}>
+                        <Send className="w-3 h-3" />
+                        {isExpired ? "Enlace vencido" : "Invitación enviada"}
+                    </span>
+                    <span className="text-[11px] text-text-muted">
+                        Vence {new Date(invitation.expiresAt).toLocaleDateString("es-CO", { day: "numeric", month: "short" })}
+                    </span>
+                    <InvitationActions id={invitation.id} />
+                </div>
+            </td>
+        );
+    }
+
     if (!assessment) {
         return (
             <td className="px-3 py-4 align-middle">
@@ -152,6 +179,11 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                     },
                     orderBy: { assessmentDate: "desc" },
                 },
+                assessmentInvitations: {
+                    where: { psychologistId: psychId, status: "PENDING" },
+                    select: { id: true, plannedTypes: true, expiresAt: true },
+                    orderBy: { createdAt: "desc" },
+                },
             },
             orderBy: [{ organization: { name: "asc" } }, { fullName: "asc" }],
             take: 200,
@@ -177,6 +209,13 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                 overallRiskCategory: found.scoredResult?.overallRiskCategory ?? null,
             };
         };
+        // Una invitación pendiente cubre un tipo mientras ese tipo no tenga
+        // ya un Assessment propio (se crea de inmediato al completar esa
+        // sección del wizard, aunque la invitación completa siga pendiente).
+        const invitationByType = (type: string): SlotInvitation | null => {
+            const found = w.assessmentInvitations.find(inv => inv.plannedTypes.includes(type as any));
+            return found ? { id: found.id, expiresAt: found.expiresAt } : null;
+        };
         const complete = ["INTRALABORAL", "EXTRALABORAL", "STRESS"].every(t =>
             w.assessments.some(a => a.questionnaireType === t && ["SCORED", "REVIEWED", "SIGNED"].includes(a.status))
         );
@@ -185,6 +224,9 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
             intra: byType("INTRALABORAL"),
             extra: byType("EXTRALABORAL"),
             stress: byType("STRESS"),
+            intraInvite: invitationByType("INTRALABORAL"),
+            extraInvite: invitationByType("EXTRALABORAL"),
+            stressInvite: invitationByType("STRESS"),
             complete,
         };
     });
@@ -207,12 +249,20 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                         <span><strong className="text-amber-600">{pendingCount}</strong> incompletos</span>
                     </div>
                 </div>
-                <Button asChild size="sm">
-                    <Link href="/dashboard/assessments/new/manual">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Digitalizar evaluación
-                    </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button asChild size="sm" variant="outline">
+                        <Link href="/dashboard/assessments/new/invite">
+                            <Send className="w-4 h-4 mr-2" />
+                            Enviar enlace al trabajador
+                        </Link>
+                    </Button>
+                    <Button asChild size="sm">
+                        <Link href="/dashboard/assessments/new/manual">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Digitalizar evaluación
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -274,6 +324,7 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                                         type="INTRALABORAL"
                                         label="Intra"
                                         assessment={worker.intra}
+                                        invitation={worker.intraInvite}
                                         workerId={worker.id}
                                         orgId={worker.organization.id}
                                     />
@@ -281,6 +332,7 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                                         type="EXTRALABORAL"
                                         label="Extra"
                                         assessment={worker.extra}
+                                        invitation={worker.extraInvite}
                                         workerId={worker.id}
                                         orgId={worker.organization.id}
                                     />
@@ -288,6 +340,7 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                                         type="STRESS"
                                         label="Estrés"
                                         assessment={worker.stress}
+                                        invitation={worker.stressInvite}
                                         workerId={worker.id}
                                         orgId={worker.organization.id}
                                     />

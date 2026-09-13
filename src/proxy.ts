@@ -12,6 +12,9 @@ const PUBLIC_PAGES = [
   "/mfa-setup",
   "/privacy",
   "/terms",
+  // Autoaplicación remota por link tokenizado (ver AssessmentInvitation) —
+  // el trabajador no tiene cuenta; la autorización la hace el propio token.
+  "/e",
 ];
 
 /**
@@ -25,6 +28,12 @@ export async function proxy(req: NextRequest) {
 
   // NextAuth internal handler — always allow
   if (pathname.startsWith("/api/auth")) {
+    return NextResponse.next();
+  }
+
+  // Endpoints públicos de autoaplicación remota — la autorización real la
+  // hace cada route handler validando el hash del token, no una sesión.
+  if (pathname.startsWith("/api/public/")) {
     return NextResponse.next();
   }
 

@@ -140,6 +140,43 @@ export function paymentReceiptEmail(
     };
 }
 
+export function assessmentInvitationEmail(
+    workerFullName: string,
+    psychologistFullName: string,
+    url: string,
+    expiresAt: Date
+) {
+    const formattedExpiry = expiresAt.toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+
+    return {
+        subject: "Invitacion para diligenciar tu evaluacion psicosocial - PsicoSST",
+        html: layout(`
+            <h2 style="margin:0 0 16px;color:#18181b;font-size:18px">Hola ${workerFullName},</h2>
+            <p style="color:#3f3f46;line-height:1.6;margin:0 0 16px">
+                ${psychologistFullName} te invita a diligenciar tu evaluacion de riesgo psicosocial
+                de forma virtual. El proceso toma unos minutos y tus respuestas son
+                <strong>confidenciales</strong>: solo tu psicologo(a) las vera.
+            </p>
+            <div style="text-align:center;margin:24px 0">
+                <a href="${url}" style="display:inline-block;background:#18181b;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+                    Diligenciar evaluacion
+                </a>
+            </div>
+            <p style="color:#71717a;font-size:12px;margin:0 0 8px">
+                Puedes hacerlo desde tu celular o computador. Si cierras la pagina a mitad,
+                puedes volver a abrir este mismo enlace para continuar donde quedaste.
+            </p>
+            <p style="color:#ef4444;font-size:13px;font-weight:600;margin:0">
+                Este enlace vence el ${formattedExpiry}.
+            </p>
+        `),
+    };
+}
+
 export function passwordResetEmail(fullName: string, code: string) {
     return {
         subject: "Codigo de recuperacion - PsicoSST",
