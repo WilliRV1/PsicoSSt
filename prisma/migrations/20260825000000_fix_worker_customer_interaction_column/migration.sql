@@ -1,0 +1,11 @@
+-- Corrige un hueco en el historial de migraciones: "workers.has_customer_interaction"
+-- existe en la base de datos real (se agregó fuera del flujo de migraciones
+-- en algún momento) y el schema.prisma ya la declara, pero ninguna migración
+-- registrada la crea. Eso rompe la reconstrucción desde cero en la base de
+-- datos "shadow" que usa `prisma migrate dev` (la migración
+-- 20260901120000_assessment_control_snapshot intenta leerla de "workers" y
+-- falla porque, en un rebuild limpio, esa columna nunca se creó).
+--
+-- IF NOT EXISTS la hace inofensiva contra la base de datos real, que ya la
+-- tiene.
+ALTER TABLE "workers" ADD COLUMN IF NOT EXISTS "has_customer_interaction" BOOLEAN NOT NULL DEFAULT true;
