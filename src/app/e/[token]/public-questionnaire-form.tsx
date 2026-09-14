@@ -121,6 +121,15 @@ export default function PublicQuestionnaireForm({
 
         if (type === "CLIENTS") setHasCustomerInteraction(value);
         else setIsBoss(value);
+
+        // Forma A sin atención a clientes: el ítem 105 es también el límite de
+        // la pregunta de jefatura (115-123). Si no se formula aquí, advanceNext
+        // ya pasó ese límite y nunca aparece.
+        if (type === "CLIENTS" && formType === "A" && newCustomer === false && newBoss === null) {
+            setMode("CONTROL_BOSS");
+            return;
+        }
+
         setMode("QUESTIONNAIRE");
 
         const newItems = computeItems(newCustomer, newBoss);
