@@ -168,7 +168,7 @@ export default function InvitationFlow({ token }: { token: string }) {
 
     if (screen === "QUESTIONNAIRE" && view && currentType) {
         return (
-            <div className="min-h-screen flex flex-col">
+            <div className="min-h-screen flex flex-col overflow-x-hidden">
                 <PublicQuestionnaireForm
                     token={token}
                     questionnaireType={currentType}

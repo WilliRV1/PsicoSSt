@@ -5,8 +5,6 @@ import { AssessmentInvitationService } from "@/lib/services/assessment-invitatio
 import { sendEmail } from "@/lib/email/resend";
 import { assessmentInvitationEmail } from "@/lib/email/templates";
 
-const APP_URL = process.env.APP_URL || "http://localhost:3000";
-
 export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -41,7 +39,9 @@ export async function POST(request: NextRequest) {
             contactEmail,
         });
 
-        const url = `${APP_URL}/e/${token}`;
+        // Dominio real desde el que opera el psicólogo: APP_URL no está
+        // configurada en Vercel y el enlace saldría apuntando a localhost.
+        const url = `${request.nextUrl.origin}/e/${token}`;
 
         const psychologist = await prisma.psychologist.findUnique({
             where: { id: session.user.id },
