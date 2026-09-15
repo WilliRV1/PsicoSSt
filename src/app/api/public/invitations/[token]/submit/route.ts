@@ -41,6 +41,7 @@ export async function POST(
 
         const { allDone } = await AssessmentInvitationService.submitSection(token, questionnaireType, {
             consentGranted: body.consentGranted === true,
+            consentSignature: body.consentSignature,
             hasCustomerInteraction: body.hasCustomerInteraction,
             hasPeopleInCharge: body.hasPeopleInCharge,
             responses: body.responses,

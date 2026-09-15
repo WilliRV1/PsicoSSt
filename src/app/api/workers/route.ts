@@ -126,9 +126,9 @@ export async function POST(request: NextRequest) {
             hasCustomerInteraction
         } = body;
 
-        if (!documentId || !fullName || !organizationId || !jobLevel || !educationLevel) {
+        if (!documentId || !fullName || !organizationId || !jobLevel) {
             return NextResponse.json(
-                { error: "Documento, nombre, nivel educativo, organización y nivel de cargo son obligatorios" },
+                { error: "Documento, nombre, organización y forma del cuestionario son obligatorios" },
                 { status: 400 }
             );
         }

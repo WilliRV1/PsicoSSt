@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import PublicQuestionnaireForm from "./public-questionnaire-form";
+import SignaturePad from "./signature-pad";
+import SociodemographicForm from "./sociodemographic-form";
 import { QuestionnaireType } from "@/types/battery";
 
 const QUESTIONNAIRE_ORDER: QuestionnaireType[] = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
@@ -20,9 +22,10 @@ interface PublicInvitationView {
     plannedTypes: QuestionnaireType[];
     doneTypes: QuestionnaireType[];
     effectiveStatus: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "NOT_FOUND";
+    sociodemographicsCompleted: boolean;
 }
 
-type Screen = "LOADING" | "ERROR" | "CONSENT" | "QUESTIONNAIRE" | "DONE";
+type Screen = "LOADING" | "ERROR" | "CONSENT" | "SOCIODEMOGRAPHICS" | "QUESTIONNAIRE" | "DONE";
 
 function nextPendingType(view: PublicInvitationView): QuestionnaireType | null {
     return QUESTIONNAIRE_ORDER.find((t) => view.plannedTypes.includes(t) && !view.doneTypes.includes(t)) ?? null;
@@ -33,6 +36,7 @@ export default function InvitationFlow({ token }: { token: string }) {
     const [view, setView] = useState<PublicInvitationView | null>(null);
     const [currentType, setCurrentType] = useState<QuestionnaireType | null>(null);
     const [errorMessage, setErrorMessage] = useState("");
+    const [signature, setSignature] = useState<string | null>(null);
 
     const load = () => {
         setScreen("LOADING");
@@ -155,15 +159,26 @@ export default function InvitationFlow({ token }: { token: string }) {
                             psicólogo(a) responsable para este fin.
                         </p>
                     </div>
+                    <div>
+                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                            Firma de aceptación
+                        </label>
+                        <SignaturePad onChange={setSignature} />
+                    </div>
                     <button
-                        onClick={() => setScreen("QUESTIONNAIRE")}
-                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors"
+                        disabled={!signature}
+                        onClick={() => setScreen(view.sociodemographicsCompleted ? "QUESTIONNAIRE" : "SOCIODEMOGRAPHICS")}
+                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors disabled:opacity-50"
                     >
-                        Acepto y quiero continuar
+                        Acepto y firmo
                     </button>
                 </div>
             </div>
         );
+    }
+
+    if (screen === "SOCIODEMOGRAPHICS") {
+        return <SociodemographicForm token={token} onDone={() => setScreen("QUESTIONNAIRE")} />;
     }
 
     if (screen === "QUESTIONNAIRE" && view && currentType) {
@@ -174,6 +189,7 @@ export default function InvitationFlow({ token }: { token: string }) {
                     questionnaireType={currentType}
                     formType={view.formType}
                     sectionLabel={SECTION_LABEL[currentType]}
+                    consentSignature={signature ?? undefined}
                     onSectionComplete={handleSectionComplete}
                 />
             </div>

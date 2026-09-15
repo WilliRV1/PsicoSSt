@@ -34,6 +34,7 @@ export interface PublicInvitationView {
     plannedTypes: QuestionnaireType[];
     doneTypes: QuestionnaireType[];
     effectiveStatus: "PENDING" | "COMPLETED" | "CANCELLED" | "EXPIRED" | "NOT_FOUND";
+    sociodemographicsCompleted: boolean;
 }
 
 export class AssessmentInvitationService {
@@ -77,7 +78,7 @@ export class AssessmentInvitationService {
         const invitation = await prisma.assessmentInvitation.findUnique({
             where: { tokenHash },
             include: {
-                worker: { select: { fullName: true } },
+                worker: { select: { fullName: true, sociodemographicsCompletedAt: true } },
                 organization: { select: { name: true } },
                 psychologist: { select: { fullName: true } },
             },
@@ -92,6 +93,7 @@ export class AssessmentInvitationService {
                 plannedTypes: [],
                 doneTypes: [],
                 effectiveStatus: "NOT_FOUND",
+                sociodemographicsCompleted: false,
             };
         }
 
@@ -112,7 +114,26 @@ export class AssessmentInvitationService {
             plannedTypes: invitation.plannedTypes as QuestionnaireType[],
             doneTypes,
             effectiveStatus,
+            sociodemographicsCompleted: invitation.worker.sociodemographicsCompletedAt != null,
         };
+    }
+
+    /**
+     * Resuelve el workerId dueño de un token de invitación — usado por la
+     * ruta pública de sociodemográficos, que no tiene sesión autenticada.
+     */
+    static async resolveWorkerId(token: string): Promise<string> {
+        const tokenHash = hashToken(token);
+        const invitation = await prisma.assessmentInvitation.findUnique({
+            where: { tokenHash },
+            select: { workerId: true, status: true, expiresAt: true },
+        });
+        if (!invitation) throw new Error("INVITATION_NOT_FOUND");
+        if (invitation.status === "CANCELLED") throw new Error("INVITATION_CANCELLED");
+        if (invitation.status === "PENDING" && invitation.expiresAt < new Date()) {
+            throw new Error("INVITATION_EXPIRED");
+        }
+        return invitation.workerId;
     }
 
     /**
@@ -127,6 +148,7 @@ export class AssessmentInvitationService {
         questionnaireType: QuestionnaireType,
         payload: {
             consentGranted: boolean;
+            consentSignature?: string;
             hasCustomerInteraction?: boolean;
             hasPeopleInCharge?: boolean;
             responses: ItemResponses;
@@ -178,6 +200,7 @@ export class AssessmentInvitationService {
                         "El trabajador aceptó digitalmente el consentimiento informado " +
                         "presentado antes de diligenciar este cuestionario, vía enlace " +
                         "remoto enviado por su psicólogo(a) tratante.",
+                    consentSignature: payload.consentSignature,
                 },
             });
             assessmentId = result.id;

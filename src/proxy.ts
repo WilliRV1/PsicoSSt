@@ -15,6 +15,9 @@ const PUBLIC_PAGES = [
   // Autoaplicación remota por link tokenizado (ver AssessmentInvitation) —
   // el trabajador no tiene cuenta; la autorización la hace el propio token.
   "/e",
+  // Enlace único por empresa (ver OrganizationInvitationLink) — el
+  // trabajador se identifica con su cédula antes de resolver a /e/[token].
+  "/c",
 ];
 
 /**

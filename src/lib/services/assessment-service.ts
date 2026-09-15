@@ -70,6 +70,8 @@ export class AssessmentService {
             consentGranted: boolean;
             consentMethod: "VERBAL" | "WRITTEN" | "DIGITAL";
             consentText?: string;
+            /** Firma dibujada por el trabajador (PNG base64), flujo de autoservicio. */
+            consentSignature?: string;
         };
     }) {
         // 0. Validate that every response belongs to this form/type and is in range
@@ -176,6 +178,7 @@ export class AssessmentService {
                             consentGranted: data.informedConsent.consentGranted,
                             consentMethod: data.informedConsent.consentMethod as any,
                             consentText: data.informedConsent.consentText || "Confirmación de consentimiento físico firmado.",
+                            consentSignature: data.informedConsent.consentSignature,
                             consentedAt: new Date()
                         }
                     });

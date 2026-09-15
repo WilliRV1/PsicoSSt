@@ -141,6 +141,11 @@ export default function OrganizationDetailPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [form, setForm] = useState({ ...EMPTY_WORKER_FORM });
+    // Forma A/B elegida por el psicólogo al crear: determina jobLevel (única
+    // señal que usa el motor de puntuación para elegir baremo/forma — ver
+    // occupationalGroup() en lib/scoring/index.ts). El resto de
+    // sociodemográficos los llena el propio trabajador en su autoservicio.
+    const [intraFormType, setIntraFormType] = useState<"A" | "B">("A");
 
     // Edit org modal
     const [showEditOrgModal, setShowEditOrgModal] = useState(false);
@@ -194,10 +199,11 @@ export default function OrganizationDetailPage() {
         setError(null);
 
         try {
+            const jobLevel = intraFormType === "B" ? "AUXILIAR" : "PROFESIONAL";
             const res = await fetch("/api/workers", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...form, organizationId: orgId })
+                body: JSON.stringify({ ...form, jobLevel, organizationId: orgId })
             });
 
             const data = await res.json();
@@ -205,6 +211,7 @@ export default function OrganizationDetailPage() {
 
             setShowModal(false);
             setForm({ ...EMPTY_WORKER_FORM });
+            setIntraFormType("A");
             fetchData();
         } catch (err: any) {
             setError(err.message);
@@ -575,7 +582,47 @@ export default function OrganizationDetailPage() {
                                     </div>
                                 )}
 
-                                <WorkerFormFields form={form} setForm={setForm} organizationId={orgId} />
+                                <div className="space-y-2">
+                                    <Label>Nombre completo *</Label>
+                                    <Input required value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} />
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="space-y-2">
+                                        <Label>Tipo doc.</Label>
+                                        <select
+                                            value={form.documentType}
+                                            onChange={e => setForm(f => ({ ...f, documentType: e.target.value }))}
+                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                                        >
+                                            <option value="CC">CC</option>
+                                            <option value="CE">CE</option>
+                                            <option value="TI">TI</option>
+                                            <option value="PA">PA</option>
+                                            <option value="OTHER">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-span-2 space-y-2">
+                                        <Label>Número de cédula *</Label>
+                                        <Input required value={form.documentId} onChange={e => setForm(f => ({ ...f, documentId: e.target.value }))} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Forma del cuestionario intralaboral *</Label>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2 text-sm">
+                                            <input type="radio" name="intraFormType" checked={intraFormType === "A"} onChange={() => setIntraFormType("A")} />
+                                            Forma A — Jefatura / Profesional / Técnico
+                                        </label>
+                                        <label className="flex items-center gap-2 text-sm">
+                                            <input type="radio" name="intraFormType" checked={intraFormType === "B"} onChange={() => setIntraFormType("B")} />
+                                            Forma B — Auxiliar / Operativo
+                                        </label>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    El resto de los datos sociodemográficos los diligencia el propio trabajador al entrar a su
+                                    evaluación (enlace de la empresa).
+                                </p>
                             </div>
 
                             <div className="p-6 border-t border-border bg-muted/50 flex justify-end gap-3">

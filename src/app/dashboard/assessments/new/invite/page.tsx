@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { FormType, QuestionnaireType, JobLevel } from "@/types/battery";
+import { QuestionnaireType } from "@/types/battery";
 
-interface Worker {
+interface Organization {
     id: string;
-    fullName: string;
-    documentId: string;
-    organizationId: string;
-    jobLevel: JobLevel;
-    organization: { name: string };
+    name: string;
+    nit: string;
 }
 
 const ALL_TYPES: { value: QuestionnaireType; label: string }[] = [
@@ -22,75 +19,54 @@ const ALL_TYPES: { value: QuestionnaireType; label: string }[] = [
     { value: "STRESS", label: "Estrés" },
 ];
 
-function defaultFormType(jobLevel: Worker["jobLevel"]): FormType {
-    return jobLevel === "AUXILIAR" || jobLevel === "OPERATIVO" ? "B" : "A";
-}
-
-export default function InviteWorkerPage() {
+/**
+ * Enlace único por empresa: el trabajador se identifica con su cédula al
+ * entrar (ver OrganizationInvitationLinkService) — ya no se busca ni se
+ * invita a un trabajador puntual desde aquí.
+ */
+export default function CompanyInvitationLinkPage() {
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [workers, setWorkers] = useState<Worker[]>([]);
-    const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
-    const [isSearching, setIsSearching] = useState(false);
+    const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-    const [formType, setFormType] = useState<FormType>("A");
     const [plannedTypes, setPlannedTypes] = useState<QuestionnaireType[]>(["INTRALABORAL", "EXTRALABORAL", "STRESS"]);
-    const [contactEmail, setContactEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [result, setResult] = useState<{ url: string; expiresAt: string } | null>(null);
+    const [result, setResult] = useState<{ url: string } | null>(null);
     const [copied, setCopied] = useState(false);
 
-    const inputRef = useRef<HTMLInputElement>(null);
-
     useEffect(() => {
-        if (!selectedWorker) inputRef.current?.focus();
-    }, [selectedWorker]);
+        fetch("/api/organizations")
+            .then((res) => res.json())
+            .then((data) => setOrganizations(data.data || []))
+            .catch((err) => console.error(err));
+    }, []);
 
-    useEffect(() => {
-        if (searchTerm.length < 2) {
-            setWorkers([]);
-            return;
-        }
-        const t = setTimeout(async () => {
-            setIsSearching(true);
-            try {
-                const res = await fetch(`/api/workers/search?q=${encodeURIComponent(searchTerm)}`);
-                const data = await res.json();
-                setWorkers(data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setIsSearching(false);
-            }
-        }, 300);
-        return () => clearTimeout(t);
-    }, [searchTerm]);
-
-    const selectWorker = (w: Worker) => {
-        setSelectedWorker(w);
-        setFormType(defaultFormType(w.jobLevel));
-    };
+    const filteredOrgs = organizations.filter((o) =>
+        o.name.toLowerCase().includes(searchTerm.toLowerCase()) || o.nit.includes(searchTerm)
+    );
 
     const toggleType = (t: QuestionnaireType) => {
         setPlannedTypes((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
     };
 
     const handleSubmit = async () => {
-        if (!selectedWorker || plannedTypes.length === 0 || !contactEmail) return;
+        if (!selectedOrg || plannedTypes.length === 0) return;
         setIsSubmitting(true);
         try {
-            const res = await fetch("/api/assessments/invitations", {
+            const res = await fetch("/api/organization-invitation-links", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    workerId: selectedWorker.id,
-                    formType,
+                    organizationId: selectedOrg.id,
+                    // Irrelevante para calificar — cada trabajador usa su propia
+                    // forma A/B según el jobLevel con el que fue registrado.
+                    formType: "A",
                     plannedTypes,
-                    contactEmail,
                 }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Error al crear la invitación");
-            setResult({ url: data.url, expiresAt: data.expiresAt });
+            if (!res.ok) throw new Error(data.error || "Error al crear el enlace");
+            setResult({ url: data.url });
         } catch (error: any) {
             toast.error(error.message);
         } finally {
@@ -112,11 +88,10 @@ export default function InviteWorkerPage() {
                     <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
                         <Check className="w-8 h-8" />
                     </div>
-                    <h2 className="text-xl font-bold text-foreground">Invitación enviada</h2>
+                    <h2 className="text-xl font-bold text-foreground">Enlace de la empresa listo</h2>
                     <p className="text-sm text-muted-foreground">
-                        Se envió un correo a <strong>{contactEmail}</strong> con el enlace. Guarda una copia ahora —
-                        por seguridad no podrás volver a verlo en texto claro; si lo necesitas de nuevo, tendrás que
-                        reenviarlo desde el listado de evaluaciones.
+                        Comparte este enlace con todos los trabajadores de <strong>{selectedOrg?.name}</strong> — cada uno se
+                        identifica con su cédula al entrar. Crear un enlace nuevo para esta empresa invalida este.
                     </p>
                     <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-xl p-3">
                         <input readOnly value={result.url} className="flex-1 bg-transparent text-xs text-foreground outline-none truncate" />
@@ -134,7 +109,7 @@ export default function InviteWorkerPage() {
 
     return (
         <div className="min-h-[calc(100vh-4rem)] flex flex-col animate-in fade-in duration-300">
-            {!selectedWorker ? (
+            {!selectedOrg ? (
                 <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4">
                     <div className="w-full space-y-4">
                         <Link href="/dashboard/assessments" className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary hover:text-foreground transition-colors mb-2">
@@ -142,42 +117,38 @@ export default function InviteWorkerPage() {
                             Volver a Evaluaciones
                         </Link>
                         <div className="text-center mb-8">
-                            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Enviar enlace al trabajador</h1>
-                            <p className="text-muted-foreground mt-2">Busca al trabajador que va a diligenciar su propia evaluación.</p>
+                            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Enlace de autoservicio por empresa</h1>
+                            <p className="text-muted-foreground mt-2">
+                                Elige la empresa — cada trabajador entra al mismo enlace y se identifica con su cédula.
+                            </p>
                         </div>
                         <div className="relative shadow-xl rounded-2xl bg-card border border-border overflow-hidden">
                             <div className="flex items-center px-4 py-4 border-b border-border bg-muted/30">
                                 <input
-                                    ref={inputRef}
                                     type="text"
-                                    placeholder="Buscar trabajador..."
+                                    placeholder="Buscar empresa..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="flex-1 bg-transparent border-none outline-none px-2 text-lg text-foreground placeholder:text-muted-foreground"
                                 />
-                                {isSearching && <span className="text-xs text-muted-foreground">Buscando...</span>}
                             </div>
-                            {workers.length > 0 && (
-                                <div className="max-h-[300px] overflow-y-auto">
-                                    {workers.map((w) => (
-                                        <div
-                                            key={w.id}
-                                            onClick={() => selectWorker(w)}
-                                            className="px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-muted transition-colors border-l-4 border-transparent"
-                                        >
-                                            <div>
-                                                <p className="font-medium text-foreground">{w.fullName}</p>
-                                                <p className="text-sm text-muted-foreground mt-0.5">
-                                                    CC: {w.documentId} <span className="mx-2">•</span> {w.organization.name}
-                                                </p>
-                                            </div>
+                            <div className="max-h-[300px] overflow-y-auto">
+                                {filteredOrgs.map((o) => (
+                                    <div
+                                        key={o.id}
+                                        onClick={() => setSelectedOrg(o)}
+                                        className="px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-muted transition-colors border-l-4 border-transparent"
+                                    >
+                                        <div>
+                                            <p className="font-medium text-foreground">{o.name}</p>
+                                            <p className="text-sm text-muted-foreground mt-0.5">NIT: {o.nit}</p>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                            {searchTerm.length >= 2 && workers.length === 0 && !isSearching && (
-                                <div className="px-6 py-8 text-center text-muted-foreground">No se encontraron trabajadores.</div>
-                            )}
+                                    </div>
+                                ))}
+                                {filteredOrgs.length === 0 && (
+                                    <div className="px-6 py-8 text-center text-muted-foreground">No se encontraron empresas.</div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -185,8 +156,8 @@ export default function InviteWorkerPage() {
                 <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-4">
                     <div className="w-full bg-card border border-border shadow-xl rounded-3xl p-8 space-y-6">
                         <div className="text-center">
-                            <h2 className="text-xl font-bold text-foreground">{selectedWorker.fullName}</h2>
-                            <p className="text-muted-foreground text-sm mt-1">{selectedWorker.organization.name}</p>
+                            <h2 className="text-xl font-bold text-foreground">{selectedOrg.name}</h2>
+                            <p className="text-muted-foreground text-sm mt-1">NIT: {selectedOrg.nit}</p>
                         </div>
 
                         <div>
@@ -206,41 +177,16 @@ export default function InviteWorkerPage() {
                             </div>
                         </div>
 
-                        {plannedTypes.includes("INTRALABORAL") && (
-                            <div>
-                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Forma (Intralaboral)</label>
-                                <select
-                                    value={formType}
-                                    onChange={(e) => setFormType(e.target.value as FormType)}
-                                    className="w-full h-11 rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
-                                >
-                                    <option value="A">Forma A (Jefaturas / Profesionales / Técnicos)</option>
-                                    <option value="B">Forma B (Auxiliares / Operativos)</option>
-                                </select>
-                            </div>
-                        )}
-
-                        <div>
-                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Correo del trabajador</label>
-                            <input
-                                type="email"
-                                value={contactEmail}
-                                onChange={(e) => setContactEmail(e.target.value)}
-                                placeholder="correo@ejemplo.com"
-                                className="w-full h-11 rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"
-                            />
-                        </div>
-
                         <div className="flex gap-3 pt-2">
-                            <Button variant="outline" onClick={() => setSelectedWorker(null)} className="flex-1 h-12 rounded-xl">
+                            <Button variant="outline" onClick={() => setSelectedOrg(null)} className="flex-1 h-12 rounded-xl">
                                 Cancelar
                             </Button>
                             <Button
                                 onClick={handleSubmit}
-                                disabled={isSubmitting || plannedTypes.length === 0 || !contactEmail}
+                                disabled={isSubmitting || plannedTypes.length === 0}
                                 className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
                             >
-                                {isSubmitting ? "Enviando..." : "Enviar enlace"}
+                                {isSubmitting ? "Generando..." : "Generar enlace"}
                             </Button>
                         </div>
                     </div>

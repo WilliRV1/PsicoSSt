@@ -10,6 +10,7 @@ interface PublicQuestionnaireFormProps {
     questionnaireType: QuestionnaireType;
     formType: FormType;
     sectionLabel: string;
+    consentSignature?: string;
     onSectionComplete: (allDone: boolean) => void;
 }
 
@@ -31,6 +32,7 @@ export default function PublicQuestionnaireForm({
     questionnaireType: qType,
     formType,
     sectionLabel,
+    consentSignature,
     onSectionComplete,
 }: PublicQuestionnaireFormProps) {
     const [mode, setMode] = useState<Mode>("QUESTIONNAIRE");
@@ -209,6 +211,7 @@ export default function PublicQuestionnaireForm({
                     hasCustomerInteraction: finalCustomer ?? undefined,
                     hasPeopleInCharge: finalBoss ?? undefined,
                     consentGranted: true,
+                    consentSignature,
                 }),
             });
 
