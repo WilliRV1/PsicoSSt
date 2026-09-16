@@ -43,7 +43,8 @@ export default function TermsPage() {
                 <li>Los creditos adquiridos no tienen fecha de vencimiento.</li>
                 <li>Los creditos no son reembolsables una vez consumidos.</li>
                 <li>Los precios estan expresados en pesos colombianos (COP) e incluyen IVA cuando aplique.</li>
-                <li>Los pagos se procesan a traves de la pasarela Wompi, sujeto a sus propios terminos de servicio.</li>
+                <li>Los pagos se procesan a traves de la pasarela Mercado Pago, sujeto a sus propios terminos de servicio. Se aceptan tarjetas de credito y debito, PSE, Nequi y pago en efectivo.</li>
+                <li>Los creditos se acreditan al confirmarse el pago. Los medios que no son inmediatos —PSE y pago en efectivo— pueden tardar desde unos minutos hasta varios dias en reflejarse; el cupon de pago en efectivo indica su propia fecha de vencimiento.</li>
             </ul>
 
             <h2>4. Responsabilidades del Usuario</h2>

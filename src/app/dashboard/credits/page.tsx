@@ -1,17 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Coins, Check, ArrowDown, ArrowUp, Gift, AlertTriangle, Clock } from "lucide-react";
-
-interface CreditPackage {
-    id: string;
-    name: string;
-    credits: number;
-    priceCOP: number;
-    pricePerCredit: number;
-    discount: number;
-    popular?: boolean;
-}
+import { Coins, Check, ArrowDown, ArrowUp, Gift, AlertTriangle } from "lucide-react";
+import { CREDIT_PACKAGES, formatCOP } from "@/config/credit-packages";
+import { BuyPackageButton } from "@/components/payments/buy-package-button";
 
 interface Transaction {
     id: string;
@@ -24,35 +16,19 @@ interface Transaction {
     createdAt: string;
 }
 
-const PACKAGES: CreditPackage[] = [
-    { id: "starter", name: "Starter", credits: 20, priceCOP: 60000, pricePerCredit: 3000, discount: 0 },
-    { id: "profesional", name: "Profesional", credits: 50, priceCOP: 125000, pricePerCredit: 2500, discount: 17 },
-    { id: "business", name: "Business", credits: 100, priceCOP: 200000, pricePerCredit: 2000, discount: 33, popular: true },
-    { id: "enterprise", name: "Enterprise", credits: 500, priceCOP: 750000, pricePerCredit: 1500, discount: 50 },
-    { id: "corporativo", name: "Corporativo", credits: 1000, priceCOP: 1200000, pricePerCredit: 1200, discount: 60 },
-];
-
-function formatCOP(amount: number): string {
-    return new Intl.NumberFormat("es-CO", {
-        style: "currency",
-        currency: "COP",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount);
-}
-
 const txTypeConfig: Record<string, { label: string; icon: "up" | "down" | "gift"; color: string }> = {
     PURCHASE: { label: "Compra", icon: "up", color: "text-green-600" },
     TRIAL_GRANT: { label: "Trial", icon: "gift", color: "text-indigo-600" },
     ADMIN_GRANT: { label: "Asignacion", icon: "gift", color: "text-blue-600" },
     CONSUMPTION: { label: "Consumo", icon: "down", color: "text-red-600" },
     REFUND: { label: "Reembolso", icon: "up", color: "text-emerald-600" },
+    // Reversión por reembolso o contracargo en la pasarela: resta créditos.
+    REVERSAL: { label: "Reversion", icon: "down", color: "text-red-700" },
 };
 
 export default function CreditsPage() {
     const [balance, setBalance] = useState<number | null>(null);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const refreshData = useCallback(() => {
         fetch("/api/credits").then((r) => r.json()).then((d) => setBalance(d.balance)).catch(() => {});
@@ -115,22 +91,11 @@ export default function CreditsPage() {
                 </div>
             )}
 
-            {/* Message */}
-            {message && (
-                <div className={`rounded-xl border px-5 py-3 text-sm font-medium ${
-                    message.type === "success"
-                        ? "border-green-200 bg-green-50 text-green-800"
-                        : "border-red-200 bg-red-50 text-red-800"
-                }`}>
-                    {message.text}
-                </div>
-            )}
-
             {/* Packages */}
             <div>
                 <h3 className="font-semibold text-foreground mb-4">Paquetes de creditos</h3>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                    {PACKAGES.map((pkg) => (
+                    {CREDIT_PACKAGES.map((pkg) => (
                         <div
                             key={pkg.id}
                             className={`relative rounded-xl border-2 bg-card p-5 shadow-sm transition-all hover:shadow-md ${
@@ -179,10 +144,7 @@ export default function CreditsPage() {
                                 </div>
                             </div>
 
-                            <div className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                                <Clock className="w-4 h-4" />
-                                <span>Pagos próximamente</span>
-                            </div>
+                            <BuyPackageButton packageId={pkg.id} label="Comprar" />
                         </div>
                     ))}
                 </div>

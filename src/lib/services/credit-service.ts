@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { TRIAL_CREDITS, getPackageById } from "@/config/credit-packages";
+import type { Prisma } from "@/generated/prisma/client";
+import { TRIAL_CREDITS, getPackageById, type CreditPackage } from "@/config/credit-packages";
 
 export class CreditService {
     /**
@@ -45,7 +46,9 @@ export class CreditService {
     }
 
     /**
-     * Purchase a credit package. Returns the new balance.
+     * Compra directa de un paquete (sin pasarela: asignación administrativa o
+     * pruebas). Delega en `creditPurchaseInTx` para que exista UNA sola
+     * implementación del asiento de compra.
      */
     static async purchasePackage(
         psychologistId: string,
@@ -55,28 +58,13 @@ export class CreditService {
         const pkg = getPackageById(packageId);
         if (!pkg) throw new Error("Paquete no encontrado");
 
-        return await prisma.$transaction(async (tx) => {
-            const psych = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { increment: pkg.credits } },
-                select: { creditBalance: true },
-            });
-
-            const transaction = await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "PURCHASE",
-                    amount: pkg.credits,
-                    balanceAfter: psych.creditBalance,
-                    packageId: pkg.id,
-                    priceCOP: pkg.priceCOP,
-                    paymentRef,
-                    description: `Compra paquete ${pkg.name}: ${pkg.credits} créditos`,
-                },
-            });
-
-            return { balance: psych.creditBalance, transactionId: transaction.id };
-        });
+        return prisma.$transaction((tx) =>
+            this.creditPurchaseInTx(tx, {
+                psychologistId,
+                pkg,
+                paymentRef: paymentRef ?? null,
+            })
+        );
     }
 
     /**
@@ -248,5 +236,83 @@ export class CreditService {
             take: limit,
             skip: offset,
         });
+    }
+
+    /**
+     * Acredita un paquete comprado DENTRO de una transacción ya abierta.
+     *
+     * Existe aparte de `purchasePackage` porque la acreditación de un pago no
+     * puede abrir su propia transacción: tiene que compartir la del cobro, de
+     * modo que marcar la orden como pagada y sumar los créditos sean el mismo
+     * hecho atómico. Si se separaran, una caída entre ambos pasos dejaría al
+     * psicólogo con el cobro hecho y sin créditos.
+     *
+     * Quien llama es responsable de garantizar que no se acredite dos veces
+     * (ver `PaymentService`, que usa `creditTransactionId` como cerrojo).
+     */
+    static async creditPurchaseInTx(
+        tx: Prisma.TransactionClient,
+        params: { psychologistId: string; pkg: CreditPackage; paymentRef: string | null }
+    ): Promise<{ transactionId: string; balance: number }> {
+        const psych = await tx.psychologist.update({
+            where: { id: params.psychologistId },
+            data: { creditBalance: { increment: params.pkg.credits } },
+            select: { creditBalance: true },
+        });
+
+        const transaction = await tx.creditTransaction.create({
+            data: {
+                psychologistId: params.psychologistId,
+                type: "PURCHASE",
+                amount: params.pkg.credits,
+                balanceAfter: psych.creditBalance,
+                packageId: params.pkg.id,
+                priceCOP: params.pkg.priceCOP,
+                paymentRef: params.paymentRef,
+                description: `Compra paquete ${params.pkg.name}: ${params.pkg.credits} créditos`,
+            },
+            select: { id: true },
+        });
+
+        return { transactionId: transaction.id, balance: psych.creditBalance };
+    }
+
+    /**
+     * Retira créditos tras un reembolso o un contracargo en la pasarela.
+     *
+     * El saldo PUEDE quedar negativo, y es intencional: si el psicólogo ya gastó
+     * los créditos antes de que llegara el contracargo, dejarlo en cero le
+     * regalaría el consumo. En negativo, `consumeCreditForAssessment` lo frena
+     * (exige saldo >= 1) hasta que regularice, y el libro conserva la historia
+     * completa en vez de esconderla.
+     */
+    static async reverseInTx(
+        tx: Prisma.TransactionClient,
+        params: {
+            psychologistId: string;
+            credits: number;
+            paymentRef: string;
+            reason: string;
+        }
+    ): Promise<{ transactionId: string; balance: number }> {
+        const psych = await tx.psychologist.update({
+            where: { id: params.psychologistId },
+            data: { creditBalance: { decrement: params.credits } },
+            select: { creditBalance: true },
+        });
+
+        const transaction = await tx.creditTransaction.create({
+            data: {
+                psychologistId: params.psychologistId,
+                type: "REVERSAL",
+                amount: -params.credits,
+                balanceAfter: psych.creditBalance,
+                paymentRef: params.paymentRef,
+                description: `Reversión de pago (${params.reason}): -${params.credits} créditos`,
+            },
+            select: { id: true },
+        });
+
+        return { transactionId: transaction.id, balance: psych.creditBalance };
     }
 }

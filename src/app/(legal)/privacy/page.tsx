@@ -117,7 +117,7 @@ export default function PrivacyPage() {
             </p>
             <ul>
                 <li><strong>Proveedor de infraestructura:</strong> Para el alojamiento de la plataforma y base de datos.</li>
-                <li><strong>Wompi (Bancolombia):</strong> Para el procesamiento de pagos. Los datos financieros son manejados directamente por Wompi conforme a sus politicas de seguridad PCI-DSS.</li>
+                <li><strong>Mercado Pago:</strong> Para el procesamiento de pagos. Los datos financieros —numero de tarjeta y codigo de seguridad— son capturados y tratados directamente por Mercado Pago conforme a sus politicas de seguridad PCI-DSS. PsicoSST no recibe, no procesa y no almacena esos datos en ningun momento: unicamente conserva el identificador de la transaccion, el medio de pago utilizado y el monto, para efectos contables y de soporte.</li>
                 <li><strong>Proveedor de correo electronico:</strong> Para el envio de comunicaciones transaccionales.</li>
                 <li><strong>Proveedor de inteligencia artificial:</strong> Para la generacion de analisis orientativos. Los datos enviados son anonimizados cuando es posible.</li>
             </ul>
