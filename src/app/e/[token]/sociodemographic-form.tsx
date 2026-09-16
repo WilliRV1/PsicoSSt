@@ -32,9 +32,9 @@ const EMPTY_FORM = {
 };
 
 const SELECT_CLASS =
-    "flex h-11 w-full rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500";
+    "flex h-11 w-full rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-ring";
 const INPUT_CLASS =
-    "w-full h-11 rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500";
+    "w-full h-11 rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-ring";
 
 /**
  * Sociodemográficos que hoy diligencia el psicólogo manualmente al crear el
@@ -288,7 +288,7 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                 <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+                    className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
                 >
                     {isSubmitting ? "Guardando..." : "Continuar"}
                 </button>

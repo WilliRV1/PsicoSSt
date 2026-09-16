@@ -95,7 +95,7 @@ export default function InvitationFlow({ token }: { token: string }) {
     if (screen === "LOADING") {
         return (
             <div className="min-h-screen flex items-center justify-center px-4">
-                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-teal-light border-t-primary rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -115,7 +115,7 @@ export default function InvitationFlow({ token }: { token: string }) {
         return (
             <div className="min-h-screen flex items-center justify-center px-4">
                 <div className="max-w-sm w-full text-center space-y-4">
-                    <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
+                    <div className="w-16 h-16 bg-teal-light text-teal-dark rounded-full flex items-center justify-center mx-auto shadow-inner border border-primary/20">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                         </svg>
@@ -168,7 +168,7 @@ export default function InvitationFlow({ token }: { token: string }) {
                     <button
                         disabled={!signature}
                         onClick={() => setScreen(view.sociodemographicsCompleted ? "QUESTIONNAIRE" : "SOCIODEMOGRAPHICS")}
-                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
+                        className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
                     >
                         Acepto y firmo
                     </button>

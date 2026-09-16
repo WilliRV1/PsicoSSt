@@ -73,7 +73,7 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
     if (screen === "LOADING") {
         return (
             <div className="min-h-screen flex items-center justify-center px-4">
-                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-teal-light border-t-primary rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -116,14 +116,14 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
                             onChange={(e) => setDocumentId(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleIdentify()}
                             placeholder="Ej: 1020304050"
-                            className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium outline-none focus:ring-2 focus:ring-ring"
                         />
-                        {errorMessage && <p className="text-xs text-red-600 mt-2">{errorMessage}</p>}
+                        {errorMessage && <p className="text-xs text-danger mt-2">{errorMessage}</p>}
                     </div>
                     <button
                         onClick={handleIdentify}
                         disabled={isSubmitting || !documentId.trim()}
-                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+                        className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
                     >
                         {isSubmitting ? "Validando..." : "Continuar"}
                     </button>

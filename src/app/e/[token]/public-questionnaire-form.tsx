@@ -300,13 +300,13 @@ export default function PublicQuestionnaireForm({
                     <div className="flex flex-col gap-4 mt-6 max-w-sm mx-auto">
                         <button
                             onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true)}
-                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all active:scale-95 shadow-sm"
+                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-primary bg-teal-light hover:bg-teal-light/70 transition-all active:scale-95 shadow-sm"
                         >
-                            <span className="text-xl font-bold text-indigo-900">SÍ</span>
+                            <span className="text-xl font-bold text-teal-dark">SÍ</span>
                         </button>
                         <button
                             onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false)}
-                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-border bg-card hover:border-indigo-300 hover:bg-muted/50 transition-all active:scale-95"
+                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all active:scale-95"
                         >
                             <span className="text-xl font-bold text-foreground">NO</span>
                         </button>
@@ -324,7 +324,7 @@ export default function PublicQuestionnaireForm({
     if (mode === "SAVING") {
         return (
             <div className="flex-1 flex flex-col items-center justify-center px-4 py-24">
-                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6"></div>
+                <div className="w-12 h-12 border-4 border-teal-light border-t-primary rounded-full animate-spin mb-6"></div>
                 <p className="text-muted-foreground text-sm">Guardando tus respuestas...</p>
             </div>
         );
@@ -344,7 +344,7 @@ export default function PublicQuestionnaireForm({
                 </div>
                 <div className="w-full max-w-2xl mx-auto h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                        className="h-full bg-primary transition-all duration-300 ease-out"
                         style={{ width: `${(currentIndex / items.length) * 100}%` }}
                     ></div>
                 </div>
@@ -379,11 +379,11 @@ export default function PublicQuestionnaireForm({
                                     onClick={() => handleAnswer(val - 1)}
                                     className={`flex flex-col items-center justify-center w-full sm:w-[110px] h-[100px] rounded-2xl border-2 transition-all duration-150 ${
                                         isSelected
-                                            ? "border-indigo-600 bg-indigo-50 shadow-md scale-105"
+                                            ? "border-primary bg-teal-light shadow-md scale-105"
                                             : "border-border bg-card active:scale-95"
                                     }`}
                                 >
-                                    <span className={`text-sm font-black text-center leading-tight px-2 ${isSelected ? "text-indigo-900" : "text-foreground"}`}>
+                                    <span className={`text-sm font-black text-center leading-tight px-2 ${isSelected ? "text-teal-dark" : "text-foreground"}`}>
                                         {label}
                                     </span>
                                 </button>
