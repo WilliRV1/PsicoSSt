@@ -219,6 +219,8 @@ model Assessment {
   /// campo (se usa el valor del trabajador como mejor aproximación).
   hasCustomerInteraction Boolean?     @map("has_customer_interaction")
   hasPeopleInCharge      Boolean?     @map("has_people_in_charge")
+  /// Carga que originó esta evaluación (inputMethod BULK o IMPORTED).
+  importJobId       String?           @map("import_job_id") @db.Uuid
   notes             String?
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
@@ -234,6 +236,7 @@ model Assessment {
   invitationAsExtra AssessmentInvitation? @relation("InvitationExtra")
   invitationAsStress AssessmentInvitation? @relation("InvitationStress")
   invitationAsClima  AssessmentInvitation? @relation("InvitationClima")
+  importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
 
   @@index([psychologistId, status])
   @@index([organizationId, assessmentDate])
@@ -422,12 +425,22 @@ model InterventionAction {
   @@map("intervention_actions")
 }
 
-/// Bulk import job tracking
+/// Trazabilidad de una carga por archivo.
+///
+/// `kind` distingue respuestas crudas (RESPONSES, api/v1/import) de puntajes
+/// ya calificados (SCORES, api/imports/scores). Las evaluaciones creadas
+/// apuntan al job: es la prueba de origen que el informe imprime.
 model ImportJob {
   id             String    @id @default(uuid()) @db.Uuid
   psychologistId String    @map("psychologist_id") @db.Uuid
   organizationId String    @map("organization_id") @db.Uuid
+  /// RESPONSES | SCORES
+  kind           String    @default("RESPONSES")
+  /// SIRPSI | OTRO (sólo SCORES)
+  source         String?
   fileName       String    @map("file_name")
+  /// SHA-256 del archivo tal como se recibió.
+  fileHash       String?   @map("file_hash")
   totalRows      Int       @map("total_rows")
   successRows    Int       @default(0) @map("success_rows")
   failedRows     Int       @default(0) @map("failed_rows")
@@ -437,6 +450,8 @@ model ImportJob {
   startedAt      DateTime? @map("started_at")
   completedAt    DateTime? @map("completed_at")
   createdAt      DateTime  @default(now()) @map("created_at")
+
+  assessments    Assessment[]
 
   @@index([psychologistId])
   @@map("import_jobs")
@@ -490,10 +505,17 @@ enum RiskCategory {
   MUY_ALTO
 }
 
-/// Input method for responses
+/// Cómo entraron los datos de la evaluación. Es evidencia: un inspector
+/// pregunta primero cómo se aplicó y de dónde salieron los resultados.
 enum InputMethod {
+  /// Digitada por el psicólogo en sesión.
   MANUAL
+  /// Respuestas crudas cargadas por archivo (api/v1/import).
   BULK
+  /// Diligenciada por el trabajador por enlace tokenizado.
+  SELF_SERVICE
+  /// Puntajes ya calificados en otra herramienta (SIRPSI u otra): sin respuestas crudas.
+  IMPORTED
 }
 
 /// Report lifecycle status

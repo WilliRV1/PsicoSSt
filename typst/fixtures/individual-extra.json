@@ -10,6 +10,12 @@
       "family": "BATTERY",
       "regulated": true,
       "provisionalBaremos": false
+    },
+    "provenance": {
+      "method": "SELF_SERVICE",
+      "source": null,
+      "importedAt": null,
+      "importJobId": null
     }
   },
   "brand": {

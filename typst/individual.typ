@@ -246,6 +246,24 @@ según los niveles de riesgo definidos en la Resolución 2764 de 2022.
 
 *Actuación requerida.* #D.overall.action
 
+#if D.meta.provenance.method == "IMPORTED" [
+  #v(4pt)
+  #note-block[
+    *Procedencia de los resultados.* Puntajes calificados en
+    #(if D.meta.provenance.source == "SIRPSI" { "SIRPSI (Ministerio del Trabajo)" } else { "una herramienta externa" })
+    e importados a esta plataforma el #D.meta.provenance.importedAt
+    (registro de carga #D.meta.provenance.importJobId). Los niveles de riesgo se
+    derivaron aquí con los baremos vigentes del manual; no se conservan las
+    respuestas ítem por ítem.
+  ]
+] else if D.meta.provenance.method == "SELF_SERVICE" [
+  #v(4pt)
+  #note-block[
+    *Modalidad.* Cuestionario diligenciado por el trabajador mediante enlace
+    personal emitido y custodiado por el profesional responsable.
+  ]
+]
+
 #if D.meta.instrument.provisionalBaremos [
   #v(4pt)
   #note-block[

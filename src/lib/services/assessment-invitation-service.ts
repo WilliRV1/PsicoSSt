@@ -202,11 +202,7 @@ export class AssessmentInvitationService {
                 responses: payload.responses,
                 hasCustomerInteraction: payload.hasCustomerInteraction,
                 hasPeopleInCharge: payload.hasPeopleInCharge,
-                // El enum InputMethod del esquema solo tiene MANUAL y BULK: no
-                // existe un valor para autoservicio remoto. Queda MANUAL —que
-                // al menos distingue "lo diligenció una persona" de "vino de
-                // una carga masiva"— hasta que se pueda agregar SELF_SERVICE.
-                inputMethod: "MANUAL",
+                inputMethod: "SELF_SERVICE",
                 informedConsent: {
                     consentGranted: true,
                     consentMethod: "DIGITAL",

@@ -99,7 +99,7 @@ export class AssessmentService {
         hasCustomerInteraction?: boolean;
         /** Respuesta a "soy jefe de otras personas en mi trabajo" (forma A). */
         hasPeopleInCharge?: boolean;
-        inputMethod?: "MANUAL" | "BULK";
+        inputMethod?: "MANUAL" | "BULK" | "SELF_SERVICE" | "IMPORTED";
         informedConsent?: {
             consentGranted: boolean;
             consentMethod: "VERBAL" | "WRITTEN" | "DIGITAL";
@@ -307,6 +307,15 @@ export class AssessmentService {
             throw new AssessmentLockedError(
                 "No se puede editar una evaluación con informe firmado o entregado. " +
                     "Para corregirla hay que revocar primero el informe."
+            );
+        }
+
+        // Una evaluación importada no tiene respuestas crudas que editar: los
+        // puntajes vinieron ya calificados de otra herramienta. Se reimporta.
+        if (existing.inputMethod === "IMPORTED" || !existing.responseSet) {
+            throw new AssessmentLockedError(
+                "Esta evaluación fue importada con puntajes ya calificados y no tiene respuestas editables. " +
+                    "Para corregirla, vuelva a importar el archivo."
             );
         }
 

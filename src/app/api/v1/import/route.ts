@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AssessmentService } from "@/lib/services/assessment-service";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
+import { INSTRUMENT_IDS, getInstrument, isInstrumentId } from "@/config/instruments";
 import { getErrorMessage } from "@/lib/utils";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -62,10 +63,10 @@ export async function POST(request: NextRequest) {
                     throw new Error("Falta el número de documento del trabajador");
                 }
 
-                const validQTypes: QuestionnaireType[] = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
-                if (!qType || !validQTypes.includes(qType)) {
-                    throw new Error(`Tipo de cuestionario inválido: "${qType}". Use: ${validQTypes.join(", ")}`);
+                if (!isInstrumentId(qType)) {
+                    throw new Error(`Tipo de cuestionario inválido: "${qType}". Use: ${INSTRUMENT_IDS.join(", ")}`);
                 }
+                const scale = getInstrument(qType).scale;
 
                 const validFormTypes: FormType[] = ["A", "B"];
                 if (formType && !validFormTypes.includes(formType)) {
@@ -90,8 +91,8 @@ export async function POST(request: NextRequest) {
                     if (rawVal === "" || rawVal === undefined) continue;
 
                     const val = parseInt(rawVal);
-                    if (isNaN(val) || val < 0 || val > 4) {
-                        throw new Error(`Ítem ${itemNum}: valor "${rawVal}" inválido. Debe ser 0-4`);
+                    if (isNaN(val) || val < scale.min || val > scale.max) {
+                        throw new Error(`Ítem ${itemNum}: valor "${rawVal}" inválido. Debe ser ${scale.min}-${scale.max}`);
                     }
                     responses[String(itemNum)] = val;
                 }

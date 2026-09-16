@@ -74,6 +74,13 @@ export interface IndividualData {
             regulated: boolean;
             provisionalBaremos: boolean;
         };
+        /** MANUAL | BULK | SELF_SERVICE | IMPORTED, con el origen si fue importada. */
+        provenance: {
+            method: string;
+            source: string | null;
+            importedAt: string | null;
+            importJobId: string | null;
+        };
     };
     brand: {
         tradeName: string | null;
@@ -373,6 +380,7 @@ export async function buildIndividualData(
                 },
             },
             scoredResult: true,
+            importJob: { select: { id: true, source: true, createdAt: true } },
             generatedReports: { take: 1, orderBy: { generatedAt: "desc" } },
         },
     });
@@ -560,6 +568,14 @@ export async function buildIndividualData(
                     family: instrument.family,
                     regulated: instrument.regulated,
                     provisionalBaremos: instrument.provisionalBaremos ?? false,
+                },
+                // Es lo primero que pregunta un inspector: cómo se aplicó y de
+                // dónde salieron los resultados.
+                provenance: {
+                    method: assessment.inputMethod,
+                    source: assessment.importJob?.source ?? null,
+                    importedAt: assessment.importJob ? fmtDate(new Date(assessment.importJob.createdAt)) : null,
+                    importJobId: assessment.importJob?.id ?? null,
                 },
             },
             brand: {
