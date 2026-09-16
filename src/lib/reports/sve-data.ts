@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
 import { loadImage, type ReportImage } from "./images";
+import { BATTERY_IDS } from "@/config/instruments";
 
 export const RISK_ORDER = ["SIN_RIESGO", "BAJO", "MEDIO", "ALTO", "MUY_ALTO"] as const;
 export type RiskLevel = (typeof RISK_ORDER)[number];
@@ -156,7 +157,13 @@ export async function buildSVEData(
 
     const [assessments, settings, signature] = await Promise.all([
         prisma.assessment.findMany({
-            where: { organizationId: orgId, status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] } },
+            // Vigilancia epidemiológica de riesgo psicosocial: sólo la Batería
+            // normativa; el clima es un instrumento libre.
+            where: {
+                organizationId: orgId,
+                questionnaireType: { in: BATTERY_IDS },
+                status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] },
+            },
             include: {
                 worker: {
                     select: {

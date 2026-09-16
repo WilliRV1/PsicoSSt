@@ -4,7 +4,13 @@
     "formLabel": null,
     "isStress": true,
     "isAnonymous": false,
-    "licenseMissing": false
+    "licenseMissing": false,
+    "instrument": {
+      "id": "STRESS",
+      "family": "BATTERY",
+      "regulated": true,
+      "provisionalBaremos": false
+    }
   },
   "brand": {
     "tradeName": "PsicoSST Consultoría",

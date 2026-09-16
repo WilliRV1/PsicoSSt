@@ -3,12 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { AssessmentService } from "@/lib/services/assessment-service";
 import { consumeUnit, refundUnit } from "@/lib/entitlements";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
+import { INSTRUMENT_IDS, getInstrument, sortByOrder } from "@/config/instruments";
 
 const DEFAULT_EXPIRY_DAYS = 7;
 
 /// Orden fijo en que el trabajador diligencia los instrumentos, independiente
 /// del orden en que el psicólogo los haya marcado al crear la invitación.
-const QUESTIONNAIRE_ORDER: QuestionnaireType[] = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
+const QUESTIONNAIRE_ORDER: QuestionnaireType[] = sortByOrder(INSTRUMENT_IDS);
 
 function generateToken() {
     const token = crypto.randomBytes(32).toString("hex");
@@ -20,10 +21,8 @@ function hashToken(token: string) {
     return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export function assessmentIdField(type: QuestionnaireType): "intralaboralAssessmentId" | "extralaboralAssessmentId" | "stressAssessmentId" {
-    if (type === "INTRALABORAL") return "intralaboralAssessmentId";
-    if (type === "EXTRALABORAL") return "extralaboralAssessmentId";
-    return "stressAssessmentId";
+export function assessmentIdField(type: QuestionnaireType) {
+    return getInstrument(type).invitationColumn;
 }
 
 export interface PublicInvitationView {

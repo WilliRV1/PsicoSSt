@@ -6,6 +6,7 @@ import { scoreQuestionnaire } from "@/lib/scoring";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getItemText } from "@/config/battery";
+import { getInstrument } from "@/config/instruments";
 import { getErrorMessage } from "@/lib/utils";
 
 interface ManualFormProps {
@@ -82,14 +83,11 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
     // Generate Items list dynamically based on control answers.
     const computeItems = (customer: boolean | null, boss: boolean | null) => {
-        let total = 0;
-        if (qType === "STRESS" || qType === "EXTRALABORAL") total = 31;
-        if (qType === "INTRALABORAL" && formType === "A") total = 123;
-        if (qType === "INTRALABORAL" && formType === "B") total = 97;
+        const total = getInstrument(qType).config(formType).totalItems;
 
         let items = Array.from({ length: total }, (_, i) => i + 1);
 
-        if (qType === "INTRALABORAL") {
+        if (getInstrument(qType).hasControlQuestions) {
             // Remove client items if worker doesn't attend clients
             if (customer === false) {
                 if (formType === "A") items = items.filter(i => i < 106 || i > 114);
@@ -112,7 +110,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     const items = getItems();
     const currentItem = items[currentIndex];
     const isStress = qType === "STRESS";
-    const maxVal = isStress ? 4 : 5;
+    const scale = getInstrument(qType).scale;
+    const maxVal = scale.max - scale.min + 1;
 
     // Timer logic
     useEffect(() => {
@@ -558,25 +557,21 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                         <p className="text-lg text-muted-foreground font-medium">
                             {isStress
                                 ? "En los últimos tres meses, ¿con qué frecuencia?"
-                                : "Señale la frecuencia con la que ocurre"}
+                                : getInstrument(qType).family === "CLIMA"
+                                  ? "Indique su grado de acuerdo con la afirmación"
+                                  : "Señale la frecuencia con la que ocurre"}
                         </p>
 
-                        {/* Likert Buttons */}
+                        {/* Likert Buttons: el valor guardado es min + índice (0-4 batería, 0-3 estrés, 1-5 clima) */}
                         <div className="grid grid-cols-2 sm:flex sm:justify-center gap-3 md:gap-5 mt-12">
-                            {[1, 2, 3, 4, ...(isStress ? [] : [5])].map((val) => {
-                                const isSelected = currentVal === val - 1;
-                                
-                                let label = "";
-                                if (isStress) {
-                                    label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "A veces" : "Nunca";
-                                } else {
-                                    label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "Algunas veces" : val === 4 ? "Casi nunca" : "Nunca";
-                                }
+                            {scale.labels.map((label, idx) => {
+                                const val = scale.min + idx;
+                                const isSelected = currentVal === val;
 
                                 return (
                                     <button
                                         key={val}
-                                        onClick={() => handleAnswer(val - 1)}
+                                        onClick={() => handleAnswer(val)}
                                         className={`flex flex-col items-center justify-center w-full sm:w-[130px] h-[130px] rounded-3xl border-2 transition-all duration-150 group relative ${
                                             isSelected 
                                             ? "border-indigo-600 bg-indigo-50 shadow-[0_8px_24px_-8px_rgba(79,70,229,0.4)] scale-105 z-10" 

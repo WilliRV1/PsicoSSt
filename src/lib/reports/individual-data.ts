@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos, getFormConfig } from "@/config/battery";
 import { scoreGeneralTotal } from "@/lib/scoring";
-import type { ScoredResultData, TotalScore } from "@/types/battery";
+import { getInstrument } from "@/config/instruments";
+import type { FormType, QuestionnaireType, ScoredResultData, TotalScore } from "@/types/battery";
 import { loadImage, type ReportImage } from "./images";
 import {
     DIMENSION_ACTION,
@@ -62,6 +63,17 @@ export interface IndividualData {
         isAnonymous: boolean;
         /** Sin fecha de expedición de licencia el informe no es válido. */
         licenseMissing: boolean;
+        /**
+         * `regulated` gobierna el bloque normativo del informe; con
+         * `provisionalBaremos` la plantilla advierte que los cortes son de
+         * referencia interna (clima), no de una autoridad.
+         */
+        instrument: {
+            id: QuestionnaireType;
+            family: "BATTERY" | "CLIMA";
+            regulated: boolean;
+            provisionalBaremos: boolean;
+        };
     };
     brand: {
         tradeName: string | null;
@@ -175,34 +187,32 @@ interface BaremoTables {
  * cuatro grupos de síntomas no se baremizan por separado en el manual.
  */
 function resolveBaremos(
-    questionnaireType: string,
-    formType: string,
+    questionnaireType: QuestionnaireType,
+    formType: FormType,
     jobLevel: string | null
 ): BaremoTables {
-    const all = getBaremos() as unknown as Record<string, Record<string, unknown>>;
+    const all = getBaremos() as unknown as Record<string, unknown>;
+    const instrument = getInstrument(questionnaireType);
     const group =
         jobLevel === "AUXILIAR" || jobLevel === "OPERATIVO"
             ? "auxiliares_operativos"
             : "jefes_profesionales_tecnicos";
 
-    if (questionnaireType === "EXTRALABORAL") {
-        const t = (all.extralaboral?.[group] ?? {}) as {
-            dimensions?: Record<string, BaremoEntry>;
-            total?: BaremoEntry;
-        };
-        return { dimensions: t.dimensions ?? {}, domains: {}, total: t.total ?? null };
-    }
+    let table = all[instrument.baremoKey(formType)] as Record<string, unknown> | undefined;
 
-    if (questionnaireType === "STRESS") {
-        // M4 Tabla 6 estratifica el baremo del estrés únicamente por nivel
-        // ocupacional. El lookup buscaba antes un nivel por sexo que el archivo
-        // de baremos no tiene, así que siempre caía en null y el informe se
-        // imprimía sin su escala.
-        const stress = all.stress as Record<string, BaremoEntry> | undefined;
+    // M4 Tabla 6 estratifica el baremo del estrés únicamente por nivel
+    // ocupacional y sólo para el total: los grupos de síntomas no tienen escala.
+    if (instrument.totalStrategy === "weighted") {
+        const stress = table as Record<string, BaremoEntry> | undefined;
         return { dimensions: {}, domains: {}, total: stress?.[group] ?? null };
     }
 
-    const t = (all[formType === "A" ? "intralaboral_a" : "intralaboral_b"] ?? {}) as {
+    // Extralaboral: tablas distintas por grupo ocupacional (M3 Tablas 17 y 18).
+    if (instrument.usesOccupationalGroup) {
+        table = (table as Record<string, Record<string, unknown>> | undefined)?.[group];
+    }
+
+    const t = (table ?? {}) as {
         dimensions?: Record<string, BaremoEntry>;
         domains?: Record<string, BaremoEntry>;
         total?: BaremoEntry;
@@ -380,8 +390,9 @@ export async function buildIndividualData(
     const settings = psychologist.settings;
     const report = assessment.generatedReports[0];
 
+    const instrument = getInstrument(assessment.questionnaireType);
     const isStress = assessment.questionnaireType === "STRESS";
-    const levelLabel = (l: RiskLevel) => (isStress ? STRESS_LABEL[l] : RISK_LABEL[l]);
+    const levelLabel = (l: RiskLevel) => instrument.levelLabels[l];
 
     // ── baremos ───────────────────────────────────────────
     const table = resolveBaremos(
@@ -531,11 +542,7 @@ export async function buildIndividualData(
               }
             : null;
 
-    const questionnaireLabel = isStress
-        ? "Cuestionario de evaluación del estrés"
-        : assessment.questionnaireType === "EXTRALABORAL"
-          ? "Cuestionario de factores de riesgo psicosocial extralaboral"
-          : "Cuestionario de factores de riesgo psicosocial intralaboral";
+    const questionnaireLabel = instrument.label;
 
     return {
         data: {
@@ -548,6 +555,12 @@ export async function buildIndividualData(
                 isStress,
                 isAnonymous: anonymous,
                 licenseMissing: !psychologist.sstLicenseDate,
+                instrument: {
+                    id: instrument.id,
+                    family: instrument.family,
+                    regulated: instrument.regulated,
+                    provisionalBaremos: instrument.provisionalBaremos ?? false,
+                },
             },
             brand: {
                 tradeName: settings?.tradeName ?? settings?.consultingRoomName ?? null,
@@ -580,10 +593,10 @@ export async function buildIndividualData(
                 levelLabel: overallValid ? levelLabel(overallLevel) : "No calculable",
                 bounds: overallValid ? toBounds(table.total) : [],
                 meaning: overallValid
-                    ? RISK_INTERPRETATION[overallLevel].meaning
+                    ? instrument.interpretation[overallLevel].meaning
                     : "El cuestionario no cuenta con el mínimo de ítems respondidos que exige el manual de la Batería, de modo que no es posible calcular un puntaje ni asignar un nivel de riesgo. Los resultados por dimensión y por dominio quedan igualmente sin validez.",
                 action: overallValid
-                    ? RISK_INTERPRETATION[overallLevel].action
+                    ? instrument.interpretation[overallLevel].action
                     : "Completar los ítems faltantes o repetir la aplicación del cuestionario. Este informe no puede sustentar decisiones ni presentarse ante la autoridad mientras el resultado no sea calculable.",
             },
             generalTotal,

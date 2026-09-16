@@ -1,10 +1,5 @@
-import {
-    formAConfig,
-    formBConfig,
-    extralaboralConfig,
-    stressConfig,
-    baremos
-} from "@/config/battery";
+import { formAConfig, formBConfig, baremos } from "@/config/battery";
+import { getInstrument, type ScaleDef } from "@/config/instruments";
 import {
     RiskCategory,
     DimensionScore,
@@ -15,7 +10,6 @@ import {
     QuestionnaireType,
     BaremoThreshold,
     ItemResponses,
-    FormConfig,
     DimensionConfig,
     DomainConfig,
 } from "@/types/battery";
@@ -27,6 +21,9 @@ interface BaremoFormTable {
     total: BaremoThreshold;
 }
 
+/** Escala de la Batería (0-4). Es el valor por omisión de las funciones públicas. */
+const BATTERY_SCALE: ScaleDef = { min: 0, max: 4, labels: [] };
+
 /**
  * Redondeo estricto a 1 decimal por aproximación
  */
@@ -36,6 +33,11 @@ function round1(value: number): number {
 
 /**
  * Validates if a dimension should be nullified based on missing items.
+ *
+ * Únicas dimensiones que admiten un ítem sin respuesta: las que declara cada
+ * instrumento en `missingTolerance` (M2 p. 80 para el intralaboral, M3 p. 148
+ * para el extralaboral). En el resto, un solo faltante invalida la dimensión,
+ * su dominio y el total.
  */
 export function validateDimensionNullity(
     responses: ItemResponses,
@@ -50,36 +52,22 @@ export function validateDimensionNullity(
 
     if (missingCount === 0) return true;
 
-    // Únicas dimensiones que admiten un ítem sin respuesta: M2 p. 80 para el
-    // intralaboral y M3 p. 148 para el extralaboral. En el resto, un solo
-    // faltante invalida la dimensión, su dominio y el total.
-    const tolerantDimensions: Record<string, string[]> = {
-        INTRALABORAL: [
-            "liderazgo_caracteristicas",
-            "relaciones_sociales",
-            "relacion_colaboradores",
-            "demandas_ambientales"
-        ],
-        EXTRALABORAL: ["caracteristicas_vivienda"],
-        STRESS: []
-    };
-
-    return missingCount === 1 &&
-        (tolerantDimensions[questionnaireType] ?? []).includes(dimensionKey);
+    return missingCount === 1 && getInstrument(questionnaireType).missingTolerance.includes(dimensionKey);
 }
 
 /**
- * Reverses scores for specific items (4 - value).
+ * Reverses scores for specific items: `max + min - value` (4 - value en la Batería).
  */
 export function applyInversions(
     responses: ItemResponses,
-    invertedItems: number[]
+    invertedItems: number[],
+    scale: ScaleDef = BATTERY_SCALE
 ): ItemResponses {
     const result = { ...responses };
     for (const item of invertedItems) {
         const key = String(item);
         if (key in result && result[key] !== undefined && result[key] !== null) {
-            result[key] = 4 - result[key];
+            result[key] = scale.max + scale.min - result[key];
         }
     }
     return result;
@@ -120,8 +108,9 @@ export function calculateDimensionScore(
     baremoTable: Record<string, BaremoThreshold>,
     questionnaireType: QuestionnaireType
 ): DimensionScore {
+    const scale = getInstrument(questionnaireType).scale;
     const isValid = validateDimensionNullity(responses, config.items, config.key, questionnaireType);
-    
+
     let rawScore = 0;
 
     if (isValid) {
@@ -137,9 +126,12 @@ export function calculateDimensionScore(
     }
 
     const itemCount = config.items.length;
-    const transformationFactor = itemCount * 4; // Fijo (Tabla 25 y 14)
-    
-    const transformedScore = (!isValid || transformationFactor === 0) ? 0 : (rawScore / transformationFactor) * 100;
+    // Tabla 25 y 14: ítems × amplitud de la escala. En la Batería (0-4) es
+    // itemCount*4; una escala 1-5 descuenta el mínimo para que 0-100 sea real.
+    const transformationFactor = itemCount * (scale.max - scale.min);
+    const offset = itemCount * scale.min;
+
+    const transformedScore = (!isValid || transformationFactor === 0) ? 0 : ((rawScore - offset) / transformationFactor) * 100;
     const roundedTransformed = round1(transformedScore);
 
     const thresholds = baremoTable[config.key];
@@ -236,9 +228,9 @@ export function scoreGeneralTotal(
     const formType = intralaboral.formType;
     const config = formType === "A" ? formAConfig : formBConfig;
     const transformationFactor = config.generalTransformationFactor;
-    const thresholds = (baremos as any).total_general[
+    const thresholds = (baremos as unknown as { total_general: Record<string, BaremoThreshold> }).total_general[
         formType === "A" ? "forma_a" : "forma_b"
-    ] as BaremoThreshold;
+    ];
 
     const isValid =
         intralaboral.questionnaireType === "INTRALABORAL" &&
@@ -263,9 +255,6 @@ export function scoreGeneralTotal(
         isValid
     };
 }
-
-/** Los 31 ítems del cuestionario de estrés, tercera versión. */
-const STRESS_ITEMS = Array.from({ length: 31 }, (_, i) => i + 1);
 
 /**
  * Valor de un ítem del cuestionario de estrés.
@@ -315,25 +304,15 @@ export function scoreQuestionnaire(
         hasPeopleInCharge?: boolean
     }
 ): ScoredResultData {
-    let config: FormConfig;
-    let baremoKey: string;
+    const instrument = getInstrument(questionnaireType);
+    const config = instrument.config(formType);
+    const weighted = instrument.totalStrategy === "weighted";
 
-    if (questionnaireType === "INTRALABORAL") {
-        config = formType === "A" ? (formAConfig as FormConfig) : (formBConfig as FormConfig);
-        baremoKey = formType === "A" ? "intralaboral_a" : "intralaboral_b";
-    } else if (questionnaireType === "EXTRALABORAL") {
-        config = extralaboralConfig as unknown as FormConfig;
-        baremoKey = "extralaboral";
-    } else {
-        config = stressConfig as unknown as FormConfig;
-        baremoKey = "stress";
-    }
+    let baremoTable = (baremos as unknown as Record<string, BaremoFormTable>)[instrument.baremoKey(formType)];
 
-    let baremoTable = (baremos as unknown as Record<string, BaremoFormTable>)[baremoKey];
-
-    // Los baremos de extralaboral y de estrés están estratificados por nivel
-    // ocupacional (M3 Tabla 17, M4 Tabla 5).
-    if (questionnaireType === "EXTRALABORAL") {
+    // Los baremos de extralaboral están estratificados por nivel ocupacional
+    // (M3 Tabla 17); los de estrés también, pero sólo para el total (abajo).
+    if (instrument.usesOccupationalGroup && !weighted) {
         baremoTable = (baremoTable as unknown as Record<string, BaremoFormTable>)[occupationalGroup(metadata)];
     }
 
@@ -342,21 +321,21 @@ export function scoreQuestionnaire(
     // de síntomas, así que sus puntajes se reportan como descriptivos y sin
     // nivel: reutilizar aquí las bandas del total fabricaba una clasificación
     // que el instrumento no respalda.
-    const stressTotalThresholds: BaremoThreshold | null =
-        questionnaireType === "STRESS"
-            ? (baremoTable as unknown as Record<string, BaremoThreshold>)[occupationalGroup(metadata)]
-            : null;
+    const weightedTotalThresholds: BaremoThreshold | null = weighted
+        ? (baremoTable as unknown as Record<string, BaremoThreshold>)[occupationalGroup(metadata)]
+        : null;
 
-    // El manual no admite ítems faltantes en Estrés; se necesita saber esto
-    // antes de calificar cada grupo de síntomas, no sólo el total.
-    const stressComplete = questionnaireType === "STRESS"
-        ? STRESS_ITEMS.every(i => rawResponses[String(i)] !== undefined && rawResponses[String(i)] !== null)
+    // Los instrumentos que no admiten faltantes (estrés, M4) necesitan saberlo
+    // antes de calificar cada grupo, no sólo el total.
+    const allItems = config.dimensions.flatMap(d => d.items);
+    const isComplete = instrument.requireComplete
+        ? allItems.every(i => rawResponses[String(i)] !== undefined && rawResponses[String(i)] !== null)
         : true;
 
     let processedResponses = { ...rawResponses };
-    if (questionnaireType !== "STRESS") {
+    if (!weighted) {
         for (const dim of config.dimensions) {
-            processedResponses = applyInversions(processedResponses, dim.invertedItems);
+            processedResponses = applyInversions(processedResponses, dim.invertedItems, instrument.scale);
         }
     }
 
@@ -365,7 +344,7 @@ export function scoreQuestionnaire(
 
     for (const dim of config.dimensions) {
         let isFiltered = false;
-        if (questionnaireType === "INTRALABORAL") {
+        if (instrument.hasControlQuestions) {
             // El manual (M2, Paso 2): quien responde que no es jefe de otras
             // personas no debe responder los ítems 115 a 123, y la dimensión
             // "relación con los colaboradores" obtiene puntaje bruto cero. El
@@ -381,13 +360,14 @@ export function scoreQuestionnaire(
         }
 
         if (isFiltered) {
+            const factor = dim.items.length * (instrument.scale.max - instrument.scale.min);
             dimensionResults[dim.key] = {
                 dimensionKey: dim.key,
                 dimensionName: dim.name,
                 rawScore: 0,
-                maxPossible: dim.items.length * 4,
+                maxPossible: factor,
                 transformedScore: 0,
-                transformationFactor: dim.items.length * 4,
+                transformationFactor: factor,
                 riskCategory: "SIN_RIESGO",
                 riskLevel: 1,
                 itemCount: dim.items.length,
@@ -395,7 +375,7 @@ export function scoreQuestionnaire(
                 isValid: true,
                 isFiltered: true
             };
-        } else if (questionnaireType === "STRESS") {
+        } else if (weighted) {
             // Puntaje real del grupo de síntomas: pesos de la Tabla 4, no el
             // promedio genérico de calculateDimensionScore (que además usaba
             // itemCount*4 como máximo, una escala equivocada — los ítems de
@@ -406,7 +386,7 @@ export function scoreQuestionnaire(
                 rawScore += stressItemValue(item, rawResponses[String(item)]);
                 maxPossible += stressItemMaxWeight(item);
             }
-            const transformedScore = stressComplete && maxPossible > 0
+            const transformedScore = isComplete && maxPossible > 0
                 ? (rawScore / maxPossible) * 100
                 : 0;
             const roundedTransformed = round1(transformedScore);
@@ -414,18 +394,18 @@ export function scoreQuestionnaire(
             dimensionResults[dim.key] = {
                 dimensionKey: dim.key,
                 dimensionName: dim.name,
-                rawScore: stressComplete ? round1(rawScore) : 0,
+                rawScore: isComplete ? round1(rawScore) : 0,
                 maxPossible,
-                transformedScore: stressComplete ? roundedTransformed : 0,
+                transformedScore: isComplete ? roundedTransformed : 0,
                 transformationFactor: maxPossible,
-                riskCategory: stressComplete ? null : "INVALIDO",
+                riskCategory: isComplete ? null : "INVALIDO",
                 riskLevel: 0,
                 itemCount: dim.items.length,
                 invertedItems: dim.invertedItems,
-                isValid: stressComplete,
-                isUnscored: stressComplete
+                isValid: isComplete,
+                isUnscored: isComplete
             };
-            if (!stressComplete) {
+            if (!isComplete) {
                 allDimensionsValid = false;
             }
         } else {
@@ -446,7 +426,7 @@ export function scoreQuestionnaire(
     let totalRaw = 0;
     let totalTransformed = 0;
 
-    if (questionnaireType === "INTRALABORAL") {
+    if (instrument.totalStrategy === "domains") {
         for (const dom of config.domains) {
             const domainScore = calculateDomainScore(
                 dom,
@@ -458,21 +438,24 @@ export function scoreQuestionnaire(
                 totalRaw += domainScore.rawScore;
             }
         }
-        
+
         if (allDimensionsValid) {
             totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
         }
-    } else if (questionnaireType === "EXTRALABORAL") {
+    } else if (instrument.totalStrategy === "flat") {
+        // Suma de brutos de las dimensiones. En una escala con mínimo distinto
+        // de cero se descuenta el mínimo acumulado para que 0-100 sea real.
         for (const key in dimensionResults) {
             totalRaw += dimensionResults[key].rawScore;
         }
         if (allDimensionsValid) {
-            totalTransformed = (totalRaw / config.totalTransformationFactor) * 100;
+            const offset = allItems.length * instrument.scale.min;
+            totalTransformed = ((totalRaw - offset) / config.totalTransformationFactor) * 100;
         }
-    } else if (questionnaireType === "STRESS") {
+    } else {
         // Todos los ítems deben estar respondidos: el manual no admite
         // faltantes en este cuestionario. Ya se reflejó en allDimensionsValid
-        // (vía stressComplete) al calificar cada grupo de síntomas arriba.
+        // (vía isComplete) al calificar cada grupo de síntomas arriba.
         if (allDimensionsValid) {
             const promedio = (desde: number, hasta: number) => {
                 let suma = 0;
@@ -498,10 +481,9 @@ export function scoreQuestionnaire(
     // La Tabla 6 del manual del estrés distingue baremos por nivel ocupacional
     // y por nada más. La tabla anterior los duplicaba por sexo con valores
     // idénticos, lo que sugería una diferenciación que el instrumento no hace.
-    const totalThresholds: BaremoThreshold =
-        questionnaireType === "STRESS"
-            ? (stressTotalThresholds as BaremoThreshold)
-            : baremoTable.total;
+    const totalThresholds: BaremoThreshold = weighted
+        ? (weightedTotalThresholds as BaremoThreshold)
+        : baremoTable.total;
 
     const roundedTotalTransformed = round1(totalTransformed);
     const totalCategory: RiskCategory =

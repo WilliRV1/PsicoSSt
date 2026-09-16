@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
         let unitConsumed = false;
         try {
             await assertCan(session.user.id, "CREATE_ASSESSMENT");
+            if (data.questionnaireType === "CLIMA") {
+                await assertCan(session.user.id, "USE_CLIMA");
+            }
             const { consumed } = await consumeUnit(session.user.id, {
                 workerId: data.workerId,
                 questionnaireType: data.questionnaireType,

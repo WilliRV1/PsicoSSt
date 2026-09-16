@@ -7,6 +7,7 @@ import EditWorkerProfileButton from "@/components/workers/EditWorkerProfileButto
 import WorkerTrendChart from "@/components/workers/worker-trend-chart";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { dueInfo, isCriticalLevel, workerValidity } from "@/lib/compliance/cadence";
+import { INSTRUMENT_IDS } from "@/config/instruments";
 
 const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: React.ReactNode }) => {
     const texts: Record<string, string> = {
@@ -57,6 +58,7 @@ const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
     STRESS: "Estrés",
+    CLIMA: "Clima",
 };
 
 const statusConfig: Record<string, { label: string; class: string }> = {
@@ -222,7 +224,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
             {/* Risk summary cards */}
             {Object.keys(latestByType).length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {["INTRALABORAL", "EXTRALABORAL", "STRESS"].map(type => {
+                    {INSTRUMENT_IDS.map(type => {
                         const a = latestByType[type];
                         if (!a) return (
                             <div key={type} className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-center">

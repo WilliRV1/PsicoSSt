@@ -10,6 +10,7 @@ import {
     toSuppressedPercentages,
 } from "@/lib/reports/anonymity";
 import { getErrorMessage } from "@/lib/utils";
+import { BATTERY_IDS } from "@/config/instruments";
 
 export async function POST(
     request: NextRequest,
@@ -33,7 +34,7 @@ export async function POST(
 
     // ── Diagnostic data (same logic as /reports/diagnostic) ──────────────────
     const assessments = await prisma.assessment.findMany({
-        where: { organizationId: orgId, status: "SIGNED" },
+        where: { organizationId: orgId, status: "SIGNED", questionnaireType: { in: BATTERY_IDS } },
         select: {
             workerId: true,
             questionnaireType: true,

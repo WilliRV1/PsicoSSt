@@ -12,6 +12,7 @@ import {
 } from "./battery-content";
 import { MIN_GROUP_SIZE } from "./anonymity";
 import { organizationValidity, type Validity } from "@/lib/compliance/cadence";
+import { BATTERY_IDS } from "@/config/instruments";
 
 /**
  * Datos del informe diagnóstico organizacional.
@@ -254,6 +255,9 @@ export async function buildDiagnosticData(
     const assessments = await prisma.assessment.findMany({
         where: {
             organizationId: orgId,
+            // Sólo la Batería normativa: el clima es un instrumento libre y no
+            // entra en el diagnóstico de riesgo psicosocial.
+            questionnaireType: { in: BATTERY_IDS },
             status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] },
             scoredResult: { isNot: null },
         },

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
 import { getItemText } from "@/config/battery";
+import { getInstrument } from "@/config/instruments";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 
@@ -78,14 +79,11 @@ export default function PublicQuestionnaireForm({
     };
 
     const computeItems = (customer: boolean | null, boss: boolean | null) => {
-        let total = 0;
-        if (qType === "STRESS" || qType === "EXTRALABORAL") total = 31;
-        if (qType === "INTRALABORAL" && formType === "A") total = 123;
-        if (qType === "INTRALABORAL" && formType === "B") total = 97;
+        const total = getInstrument(qType).config(formType).totalItems;
 
         let items = Array.from({ length: total }, (_, i) => i + 1);
 
-        if (qType === "INTRALABORAL") {
+        if (getInstrument(qType).hasControlQuestions) {
             if (customer === false) {
                 if (formType === "A") items = items.filter((i) => i < 106 || i > 114);
                 if (formType === "B") items = items.filter((i) => i < 89 || i > 97);
@@ -114,7 +112,8 @@ export default function PublicQuestionnaireForm({
     const items = computeItems(hasCustomerInteraction, isBoss);
     const currentItem = items[currentIndex];
     const isStress = qType === "STRESS";
-    const maxVal = isStress ? 4 : 5;
+    const scale = getInstrument(qType).scale;
+    const maxVal = scale.max - scale.min + 1;
 
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -362,22 +361,22 @@ export default function PublicQuestionnaireForm({
                     </h2>
 
                     <p className="text-sm text-muted-foreground font-medium">
-                        {isStress ? "En los últimos tres meses, ¿con qué frecuencia?" : "Señala la frecuencia con la que ocurre"}
+                        {isStress
+                            ? "En los últimos tres meses, ¿con qué frecuencia?"
+                            : getInstrument(qType).family === "CLIMA"
+                              ? "Indica tu grado de acuerdo con la afirmación"
+                              : "Señala la frecuencia con la que ocurre"}
                     </p>
 
+                    {/* El valor guardado es min + índice (0-4 batería, 0-3 estrés, 1-5 clima) */}
                     <div className="grid grid-cols-2 sm:flex sm:justify-center gap-3 mt-8">
-                        {[1, 2, 3, 4, ...(isStress ? [] : [5])].map((val) => {
-                            const isSelected = currentVal === val - 1;
-                            let label = "";
-                            if (isStress) {
-                                label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "A veces" : "Nunca";
-                            } else {
-                                label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "Algunas veces" : val === 4 ? "Casi nunca" : "Nunca";
-                            }
+                        {scale.labels.map((label, idx) => {
+                            const val = scale.min + idx;
+                            const isSelected = currentVal === val;
                             return (
                                 <button
                                     key={val}
-                                    onClick={() => handleAnswer(val - 1)}
+                                    onClick={() => handleAnswer(val)}
                                     className={`flex flex-col items-center justify-center w-full sm:w-[110px] h-[100px] rounded-2xl border-2 transition-all duration-150 ${
                                         isSelected
                                             ? "border-indigo-600 bg-indigo-50 shadow-md scale-105"

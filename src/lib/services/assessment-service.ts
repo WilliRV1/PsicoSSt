@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma";
 import { scoreQuestionnaire } from "@/lib/scoring";
 import { getFormConfig } from "@/config/battery";
+import { getInstrument } from "@/config/instruments";
 import { getErrorMessage } from "@/lib/utils";
 import {
     FormType,
@@ -50,7 +51,7 @@ function validateResponses(
         for (const item of dim.items) validItems.add(item);
     }
 
-    const maxValue = questionnaireType === "STRESS" ? 3 : 4;
+    const { min: minValue, max: maxValue } = getInstrument(questionnaireType).scale;
 
     for (const [itemKey, value] of Object.entries(responses)) {
         const itemNum = Number(itemKey);
@@ -59,9 +60,9 @@ function validateResponses(
                 `Ítem ${itemKey} no existe en ${questionnaireType} Forma ${formType}.`
             );
         }
-        if (typeof value !== "number" || value < 0 || value > maxValue || !Number.isInteger(value)) {
+        if (typeof value !== "number" || value < minValue || value > maxValue || !Number.isInteger(value)) {
             throw new Error(
-                `Ítem ${itemKey}: valor inválido "${value}". Debe ser un entero entre 0 y ${maxValue}.`
+                `Ítem ${itemKey}: valor inválido "${value}". Debe ser un entero entre ${minValue} y ${maxValue}.`
             );
         }
     }

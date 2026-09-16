@@ -8,7 +8,7 @@ const riskLabels: Record<string, string> = {
     SIN_RIESGO: "Sin Riesgo", BAJO: "Bajo", MEDIO: "Medio", ALTO: "Alto", MUY_ALTO: "Muy Alto",
 };
 const questionnaireLabels: Record<string, string> = {
-    INTRALABORAL: "Intralaboral", EXTRALABORAL: "Extralaboral", STRESS: "Estrés",
+    INTRALABORAL: "Intralaboral", EXTRALABORAL: "Extralaboral", STRESS: "Estrés", CLIMA: "Clima",
 };
 const statusLabels: Record<string, string> = {
     SCORED: "Calificado", REVIEWED: "Revisado", SIGNED: "Firmado", COMPLETED: "Completado",

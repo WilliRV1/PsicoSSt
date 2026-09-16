@@ -18,8 +18,12 @@ export type RiskCategory =
 /** Form type determining questionnaire variant */
 export type FormType = "A" | "B";
 
-/** Questionnaire instrument type */
-export type QuestionnaireType = "INTRALABORAL" | "EXTRALABORAL" | "STRESS";
+/**
+ * Instrumento. Los tres primeros son la Batería normativa; CLIMA es un
+ * instrumento libre (sin restricción legal) que reutiliza el mismo motor.
+ * La definición de cada uno vive en `src/config/instruments`.
+ */
+export type QuestionnaireType = "INTRALABORAL" | "EXTRALABORAL" | "STRESS" | "CLIMA";
 
 /** Job levels determining form type or filters */
 export type JobLevel = "JEFATURA" | "PROFESIONAL" | "TECNICO" | "AUXILIAR" | "OPERATIVO";

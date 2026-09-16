@@ -233,6 +233,7 @@ model Assessment {
   invitationAsIntra AssessmentInvitation? @relation("InvitationIntra")
   invitationAsExtra AssessmentInvitation? @relation("InvitationExtra")
   invitationAsStress AssessmentInvitation? @relation("InvitationStress")
+  invitationAsClima  AssessmentInvitation? @relation("InvitationClima")
 
   @@index([psychologistId, status])
   @@index([organizationId, assessmentDate])
@@ -465,6 +466,8 @@ enum QuestionnaireType {
   INTRALABORAL
   EXTRALABORAL
   STRESS
+  /// Clima organizacional: instrumento libre, fuera de la Batería normativa.
+  CLIMA
 }
 
 /// Assessment lifecycle status
@@ -733,6 +736,7 @@ model AssessmentInvitation {
   intralaboralAssessmentId String?                    @unique @map("intralaboral_assessment_id") @db.Uuid
   extralaboralAssessmentId String?                    @unique @map("extralaboral_assessment_id") @db.Uuid
   stressAssessmentId       String?                    @unique @map("stress_assessment_id") @db.Uuid
+  climaAssessmentId        String?                    @unique @map("clima_assessment_id") @db.Uuid
   completedAt              DateTime?                  @map("completed_at")
   cancelledAt              DateTime?                  @map("cancelled_at")
   createdAt                DateTime                   @default(now()) @map("created_at")
@@ -744,6 +748,7 @@ model AssessmentInvitation {
   intralaboralAssessment Assessment?  @relation("InvitationIntra", fields: [intralaboralAssessmentId], references: [id])
   extralaboralAssessment Assessment?  @relation("InvitationExtra", fields: [extralaboralAssessmentId], references: [id])
   stressAssessment       Assessment?  @relation("InvitationStress", fields: [stressAssessmentId], references: [id])
+  climaAssessment        Assessment?  @relation("InvitationClima", fields: [climaAssessmentId], references: [id])
 
   @@index([psychologistId, status])
   @@index([workerId])

@@ -4,7 +4,13 @@
     "formLabel": null,
     "isStress": false,
     "isAnonymous": false,
-    "licenseMissing": false
+    "licenseMissing": false,
+    "instrument": {
+      "id": "EXTRALABORAL",
+      "family": "BATTERY",
+      "regulated": true,
+      "provisionalBaremos": false
+    }
   },
   "brand": {
     "tradeName": "PsicoSST Consultoría",

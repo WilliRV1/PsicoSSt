@@ -246,6 +246,16 @@ según los niveles de riesgo definidos en la Resolución 2764 de 2022.
 
 *Actuación requerida.* #D.overall.action
 
+#if D.meta.instrument.provisionalBaremos [
+  #v(4pt)
+  #note-block[
+    Los cortes de esta escala son de referencia interna del profesional, no
+    baremos publicados por una autoridad. Este instrumento no hace parte de la
+    Batería normativa de riesgo psicosocial y sus resultados no sustentan
+    obligaciones del SG-SST.
+  ]
+]
+
 #if D.generalTotal != none [
   #v(10pt)
   == Puntaje total general

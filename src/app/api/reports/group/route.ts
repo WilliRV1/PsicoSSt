@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
 import { MIN_GROUP_SIZE } from "@/lib/reports/anonymity";
+import { BATTERY_IDS } from "@/config/instruments";
 import { getErrorMessage } from "@/lib/utils";
 import type { Prisma } from "@/generated/prisma";
 import type { DimensionScore, DomainScore } from "@/types/battery";
@@ -50,7 +51,9 @@ export async function GET(request: Request) {
 
         const whereClause: Prisma.ScoredResultWhereInput = {
             assessment: {
-                organizationId
+                organizationId,
+                // Agregado de riesgo psicosocial: sólo la Batería normativa.
+                questionnaireType: { in: BATTERY_IDS },
             }
         };
 

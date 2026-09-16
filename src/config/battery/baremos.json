@@ -1454,5 +1454,188 @@
         100
       ]
     }
+  },
+  "clima": {
+    "_nota": "Cortes de referencia interna por quintiles (no normativos). Nivel = desfavorabilidad.",
+    "provisional": true,
+    "dimensions": {
+      "liderazgo": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      },
+      "comunicacion": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      },
+      "reconocimiento": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      },
+      "condiciones_trabajo": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      },
+      "trabajo_equipo": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      },
+      "desarrollo": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      },
+      "pertenencia": {
+        "sinRiesgo": [
+          0,
+          20
+        ],
+        "bajo": [
+          20.1,
+          40
+        ],
+        "medio": [
+          40.1,
+          60
+        ],
+        "alto": [
+          60.1,
+          80
+        ],
+        "muyAlto": [
+          80.1,
+          100
+        ]
+      }
+    },
+    "domains": {},
+    "total": {
+      "sinRiesgo": [
+        0,
+        20
+      ],
+      "bajo": [
+        20.1,
+        40
+      ],
+      "medio": [
+        40.1,
+        60
+      ],
+      "alto": [
+        60.1,
+        80
+      ],
+      "muyAlto": [
+        80.1,
+        100
+      ]
+    }
   }
 }
