@@ -282,7 +282,7 @@ export default async function ReportPage({ params }: PageProps) {
                         <section className="report-section">
                             <h3>1. Marco Normativo Aplicable</h3>
                             <div style={{ fontSize: "0.83rem", lineHeight: 1.75, color: "#374151" }}>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 2rem" }}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: "0.75rem 2rem" }}>
                                     {[
                                         { norm: "Resolución 2646/2008", desc: "Define responsabilidades para la identificación, evaluación, prevención, intervención y monitoreo permanente de los factores de riesgo psicosocial en el trabajo y sus efectos en la salud." },
                                         { norm: "Resolución 2764/2022", desc: "Adopta oficialmente la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial como herramienta obligatoria en Colombia." },

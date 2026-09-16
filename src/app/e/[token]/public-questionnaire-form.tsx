@@ -142,6 +142,13 @@ export default function PublicQuestionnaireForm({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, maxVal]);
 
+    // En móvil una pregunta larga puede dejar la pantalla desplazada; la
+    // siguiente debe empezar desde arriba y no a media altura. Sin
+    // `behavior: smooth`: el salto instantáneo se lee como pantalla nueva.
+    useEffect(() => {
+        if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "auto" });
+    }, [currentIndex, mode]);
+
     const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
         const oldCustomer = hasCustomerInteractionRef.current;
         const oldBoss = isBossRef.current;
@@ -292,27 +299,33 @@ export default function PublicQuestionnaireForm({
         const topCheckpoint = checkpointsRef.current[checkpointsRef.current.length - 1];
         const canGoBack = !!topCheckpoint && topCheckpoint.landingIndex === null;
         return (
-            <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-4 py-12 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-4 py-10 sm:py-12 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
                 <div className="w-full text-center space-y-8">
-                    <h2 className="text-2xl font-black text-foreground mb-2">
+                    <h2 className="text-2xl sm:text-3xl font-black text-foreground leading-[1.2] tracking-tight mb-2">
                         {isClient ? "¿Atiendes clientes o usuarios en tu trabajo?" : "¿Eres jefe de otras personas en tu trabajo?"}
                     </h2>
-                    <div className="flex flex-col gap-4 mt-6 max-w-sm mx-auto">
+                    <div className="flex flex-col gap-3 mt-6 max-w-sm mx-auto">
                         <button
+                            type="button"
                             onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true)}
-                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all active:scale-95 shadow-sm"
+                            className="flex items-center justify-center min-h-[68px] px-5 rounded-2xl border-2 border-primary bg-teal-light hover:bg-teal-light/70 transition-all active:scale-[0.98] shadow-sm touch-manipulation select-none"
                         >
-                            <span className="text-xl font-bold text-indigo-900">SÍ</span>
+                            <span className="text-xl font-bold text-teal-dark">SÍ</span>
                         </button>
                         <button
+                            type="button"
                             onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false)}
-                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-border bg-card hover:border-indigo-300 hover:bg-muted/50 transition-all active:scale-95"
+                            className="flex items-center justify-center min-h-[68px] px-5 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all active:scale-[0.98] touch-manipulation select-none"
                         >
                             <span className="text-xl font-bold text-foreground">NO</span>
                         </button>
                     </div>
                     {canGoBack && (
-                        <button onClick={goBackFromControl} className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
+                        <button
+                            type="button"
+                            onClick={goBackFromControl}
+                            className="inline-flex items-center justify-center min-h-[44px] px-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground underline underline-offset-4 touch-manipulation"
+                        >
                             Volver a la pregunta anterior
                         </button>
                     )}
@@ -324,8 +337,8 @@ export default function PublicQuestionnaireForm({
     if (mode === "SAVING") {
         return (
             <div className="flex-1 flex flex-col items-center justify-center px-4 py-24">
-                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6"></div>
-                <p className="text-muted-foreground text-sm">Guardando tus respuestas...</p>
+                <div className="w-12 h-12 border-4 border-teal-light border-t-primary rounded-full animate-spin mb-6"></div>
+                <p className="text-muted-foreground text-[15px]">Guardando tus respuestas...</p>
             </div>
         );
     }
@@ -333,34 +346,48 @@ export default function PublicQuestionnaireForm({
     const currentVal = responses[String(currentItem)];
     const currentText = getItemText(qType, formType, currentItem);
 
+    // Además del índice > 0, se puede volver cuando la pregunta actual es
+    // donde aterrizó una pregunta de control (aunque sea el índice 0).
+    const topCheckpoint = checkpointsRef.current[checkpointsRef.current.length - 1];
+    const canGoBack = currentIndex > 0 || (!!topCheckpoint && topCheckpoint.landingIndex === currentIndex);
+
     return (
-        <div className="flex-1 flex flex-col min-h-[70vh] animate-in fade-in">
-            <div className="px-4 pt-4 pb-2">
-                <div className="flex justify-between items-center mb-1.5 max-w-2xl mx-auto">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{sectionLabel}</span>
-                    <span className="text-[11px] font-bold text-muted-foreground font-mono">
+        <div className="flex-1 flex flex-col min-h-[70vh] motion-safe:animate-in motion-safe:fade-in">
+            {/* Progreso — pegado arriba: en un cuestionario de 100+ ítems el
+                trabajador necesita ver cuánto falta sin volver a subir. */}
+            <div className="sticky top-0 z-20 bg-background border-b border-border-muted px-4 pt-3 pb-2.5">
+                <div className="flex justify-between items-baseline gap-3 mb-2 max-w-2xl mx-auto">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest truncate min-w-0">
+                        {sectionLabel}
+                    </span>
+                    <span className="text-sm font-bold text-foreground font-mono tabular-nums shrink-0">
                         {currentIndex + 1} / {items.length}
                     </span>
                 </div>
-                <div className="w-full max-w-2xl mx-auto h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="w-full max-w-2xl mx-auto h-2 bg-muted rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                        className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
                         style={{ width: `${(currentIndex / items.length) * 100}%` }}
                     ></div>
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-                <div className="w-full max-w-2xl text-center space-y-8 animate-in slide-in-from-right-8 duration-300">
+            <div className="flex-1 flex flex-col justify-center px-4 py-6 sm:py-10">
+                {/* `key` por ítem: sin él la animación sólo corre al montar y
+                    dos preguntas seguidas parecen la misma pantalla. */}
+                <div
+                    key={currentItem}
+                    className="w-full max-w-2xl mx-auto motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-200"
+                >
                     <h2
-                        className={`font-black text-foreground leading-[1.2] tracking-tight ${
+                        className={`text-center font-black text-foreground leading-[1.25] tracking-tight ${
                             (currentText?.length ?? 0) > 95 ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl"
                         }`}
                     >
                         {currentText ?? `Pregunta ${currentItem}`}
                     </h2>
 
-                    <p className="text-sm text-muted-foreground font-medium">
+                    <p className="mt-3 text-center text-[15px] text-muted-foreground font-medium">
                         {isStress
                             ? "En los últimos tres meses, ¿con qué frecuencia?"
                             : getInstrument(qType).family === "CLIMA"
@@ -368,34 +395,64 @@ export default function PublicQuestionnaireForm({
                               : "Señala la frecuencia con la que ocurre"}
                     </p>
 
-                    {/* El valor guardado es min + índice (0-4 batería, 0-3 estrés, 1-5 clima) */}
-                    <div className="grid grid-cols-2 sm:flex sm:justify-center gap-3 mt-8">
+                    {/* El valor guardado es min + índice (0-4 batería, 0-3 estrés, 1-5 clima).
+                        En móvil cada opción es una fila completa — el objetivo táctil es
+                        toda la fila, no un círculo de 20px — y en pantalla ancha vuelven a
+                        ser tarjetas en línea. Sin anchos fijos: `flex-1` reparte por igual
+                        sean 4 o 5 opciones. */}
+                    <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:gap-3">
                         {scale.labels.map((label, idx) => {
                             const val = scale.min + idx;
                             const isSelected = currentVal === val;
                             return (
                                 <button
                                     key={val}
+                                    type="button"
+                                    aria-pressed={isSelected}
                                     onClick={() => handleAnswer(val)}
-                                    className={`flex flex-col items-center justify-center w-full sm:w-[110px] h-[100px] rounded-2xl border-2 transition-all duration-150 ${
+                                    className={`flex w-full items-center gap-3 min-h-[56px] px-4 py-3 rounded-2xl border-2 text-left transition-all duration-150 touch-manipulation select-none sm:flex-1 sm:flex-col sm:items-center sm:justify-center sm:text-center sm:min-h-[104px] sm:px-2.5 sm:gap-0 ${
                                         isSelected
-                                            ? "border-indigo-600 bg-indigo-50 shadow-md scale-105"
-                                            : "border-border bg-card active:scale-95"
+                                            ? "border-primary bg-teal-light shadow-md"
+                                            : "border-border bg-card active:bg-muted/60 active:scale-[0.98]"
                                     }`}
                                 >
-                                    <span className={`text-sm font-black text-center leading-tight px-2 ${isSelected ? "text-indigo-900" : "text-foreground"}`}>
+                                    <span
+                                        className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center sm:hidden ${
+                                            isSelected ? "border-primary" : "border-border"
+                                        }`}
+                                    >
+                                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-primary"></span>}
+                                    </span>
+                                    <span
+                                        className={`text-base sm:text-sm font-black leading-tight ${
+                                            isSelected ? "text-teal-dark" : "text-foreground"
+                                        }`}
+                                    >
                                         {label}
                                     </span>
                                 </button>
                             );
                         })}
                     </div>
+                </div>
+            </div>
 
-                    {currentIndex > 0 && (
-                        <button onClick={goBack} className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
-                            Volver a la pregunta anterior
-                        </button>
-                    )}
+            {/* Navegación pegada abajo: responder avanza solo, así que el único
+                control es volver — y debe estar siempre al alcance del pulgar,
+                no al final del scroll. */}
+            <div
+                className="sticky bottom-0 z-20 bg-background border-t border-border-muted px-4 pt-3"
+                style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+                <div className="max-w-2xl mx-auto">
+                    <button
+                        type="button"
+                        onClick={goBack}
+                        disabled={!canGoBack}
+                        className="w-full min-h-[48px] rounded-xl border border-border bg-card text-[15px] font-bold text-text-secondary transition-all hover:bg-muted/50 hover:text-foreground active:scale-[0.99] disabled:opacity-40 disabled:active:scale-100 touch-manipulation select-none"
+                    >
+                        Volver a la pregunta anterior
+                    </button>
                 </div>
             </div>
         </div>

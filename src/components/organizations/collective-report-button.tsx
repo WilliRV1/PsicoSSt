@@ -42,11 +42,11 @@ export default function CollectiveReportButton({ orgId, orgName }: { orgId: stri
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleDownload("executive")} disabled={loading !== null}>
-                    <FileBarChart className="mr-2 h-4 w-4 text-orange-500" />
+                    <FileBarChart className="mr-2 h-4 w-4" style={{ color: "var(--color-warning)" }} />
                     Informe Ejecutivo (Gerencia)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleDownload("technical")} disabled={loading !== null}>
-                    <FileText className="mr-2 h-4 w-4 text-blue-500" />
+                    <FileText className="mr-2 h-4 w-4" style={{ color: "var(--color-info)" }} />
                     Informe Técnico (Psicólogo)
                 </DropdownMenuItem>
             </DropdownMenuContent>

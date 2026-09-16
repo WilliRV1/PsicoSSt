@@ -4,16 +4,20 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
 import {
     AlertTriangle,
     ArrowLeft,
     CheckCircle2,
     Clock,
     ExternalLink,
+    FlaskConical,
     Loader2,
+    Lock,
     RotateCcw,
     XCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ProcessResult } from "@/components/payments/payment-brick";
 import { formatCOP } from "@/config/plans";
 
@@ -27,6 +31,11 @@ import { formatCOP } from "@/config/plans";
  * Dos clases de error, y no se mezclan: la orden no existe (fatal: se
  * sustituye la pantalla) y el intento de pago falló (no fatal: se muestra
  * encima del formulario, que sigue montado para reintentar).
+ *
+ * Presentación: un aviso es una ficha del sistema (tokens `--color-risk-*` /
+ * `--color-info`), no verdes y rojos sueltos de la paleta por defecto de
+ * Tailwind, y la columna mantiene un solo bloque por ancho de pantalla en
+ * móvil.
  */
 
 interface EstadoOrden {
@@ -55,18 +64,27 @@ const PaymentBrick = dynamic(
     {
         ssr: false,
         loading: () => (
-            <div className="rounded-xl border border-border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
+            <div
+                className="flex items-center justify-center gap-2.5 rounded-xl border border-dashed px-6 py-12 text-[13px] text-text-secondary"
+                style={{ borderColor: "var(--color-border)", background: "var(--color-surface-muted)" }}
+            >
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Cargando medios de pago…
             </div>
         ),
     }
 );
 
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+
 /** Cada cuánto se vuelve a consultar mientras el pago está en vuelo. */
 const INTERVALO_CONSULTA_MS = 5_000;
 
 const ESTADOS_CERRADOS_SIN_PAGO = ["REJECTED", "CANCELLED", "EXPIRED", "ERROR"];
 const ESTADOS_REVERTIDOS = ["REFUNDED", "CHARGED_BACK"];
+
+/** Volver siempre lleva al plan: /dashboard/credits sólo redirige allí. */
+const RUTA_PLAN = "/dashboard/plan";
 
 export function CheckoutClient({ internalRef }: { internalRef: string }) {
     const router = useRouter();
@@ -143,9 +161,9 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
     if (cargando) {
         return (
             <Contenedor>
-                <div className="flex items-center justify-center gap-3 py-16 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Cargando tu orden…</span>
+                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-20 text-center shadow-sm">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <p className="text-[14px] text-text-secondary">Cargando tu orden…</p>
                 </div>
             </Contenedor>
         );
@@ -156,10 +174,10 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
             <Contenedor>
                 <Aviso
                     tono="error"
-                    icono={<XCircle className="h-5 w-5 text-red-500" />}
+                    icono={XCircle}
                     titulo="Orden no disponible"
                     texto={errorFatal ?? "No pudimos cargar esta orden."}
-                    accion={<Volver texto="Volver a los paquetes" />}
+                    accion={<Volver texto="Volver a mi plan" />}
                 />
             </Contenedor>
         );
@@ -167,34 +185,60 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
 
     const pagosDeshabilitados = !orden.publicKey;
     const vencimiento = new Date(orden.expiresAt);
+    const cerradoSinPago =
+        !orden.pending && !orden.settled && ESTADOS_CERRADOS_SIN_PAGO.includes(orden.status);
 
     return (
         <Contenedor>
-            <div className="flex items-start justify-between gap-4 mb-6">
-                <div>
-                    <h2 className="text-xl font-semibold text-foreground">
-                        {orden.package
-                            ? `Paquete ${orden.package.name}`
-                            : "Compra de créditos"}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {orden.package && `${orden.package.credits} créditos · `}
-                        {formatCOP(orden.amountCOP)}
-                    </p>
+            {/* Encabezado + resumen de la orden */}
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+                <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-text-muted">
+                            Orden de compra
+                        </p>
+                        <h1 className="mt-1.5 text-[20px] font-semibold tracking-[-0.02em] text-foreground sm:text-[22px]">
+                            {orden.package ? orden.package.name : "Compra de unidades"}
+                        </h1>
+                        <p className="mt-1 font-mono text-[12px] tabular-nums text-text-muted">
+                            Ref. {orden.internalRef}
+                        </p>
+                    </div>
+                    <Link
+                        href={RUTA_PLAN}
+                        className="inline-flex shrink-0 items-center gap-1.5 self-start text-[13px] font-medium text-text-secondary transition-colors hover:text-foreground"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Volver
+                    </Link>
                 </div>
-                <Link
-                    href="/dashboard/credits"
-                    className="shrink-0 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Volver
-                </Link>
+
+                <dl className="mt-5 grid grid-cols-1 gap-3 border-t border-border-muted pt-5 sm:grid-cols-2">
+                    {orden.package && orden.package.credits > 0 && (
+                        <div className="flex items-baseline justify-between gap-3 sm:block">
+                            <dt className="text-[11px] font-semibold uppercase tracking-[0.09em] text-text-muted">
+                                Incluye
+                            </dt>
+                            <dd className="font-mono text-[15px] font-semibold tabular-nums text-foreground sm:mt-1.5">
+                                {orden.package.credits} trabajadores
+                            </dd>
+                        </div>
+                    )}
+                    <div className="flex items-baseline justify-between gap-3 sm:block sm:text-right">
+                        <dt className="text-[11px] font-semibold uppercase tracking-[0.09em] text-text-muted">
+                            Total a pagar
+                        </dt>
+                        <dd className="font-mono text-[22px] font-semibold leading-none tabular-nums text-foreground sm:mt-1.5">
+                            {formatCOP(orden.amountCOP)}
+                        </dd>
+                    </div>
+                </dl>
             </div>
 
             {orden.mode === "test" && (
                 <Aviso
-                    tono="aviso"
-                    icono={<AlertTriangle className="h-5 w-5 text-amber-500" />}
+                    tono="info"
+                    icono={FlaskConical}
                     titulo="Modo de pruebas"
                     texto="No se cobra dinero real. Usa las tarjetas de prueba de Mercado Pago y, como correo del pagador, cualquier correo real distinto al de la cuenta que recibe los pagos (los correos @testuser.com no funcionan con estas credenciales)."
                 />
@@ -204,16 +248,17 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
             {orden.settled && orden.status === "APPROVED" && (
                 <Aviso
                     tono="exito"
-                    icono={<CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    icono={CheckCircle2}
                     titulo="¡Pago aprobado!"
-                    texto={`Se acreditaron ${orden.package?.credits ?? ""} créditos a tu cuenta.`}
+                    texto={
+                        orden.package?.credits
+                            ? `Se acreditaron ${orden.package.credits} trabajadores a tu cuenta.`
+                            : "Tu compra quedó acreditada en la cuenta."
+                    }
                     accion={
-                        <Link
-                            href="/dashboard/credits"
-                            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                        >
-                            Ver mis créditos
-                        </Link>
+                        <Button asChild className="press-feedback w-full sm:w-auto">
+                            <Link href={RUTA_PLAN}>Ver mi plan</Link>
+                        </Button>
                     }
                 />
             )}
@@ -222,16 +267,14 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
             {ESTADOS_REVERTIDOS.includes(orden.status) && (
                 <Aviso
                     tono="error"
-                    icono={<RotateCcw className="h-5 w-5 text-red-500" />}
-                    titulo={
-                        orden.status === "REFUNDED" ? "Pago reembolsado" : "Pago con contracargo"
-                    }
+                    icono={RotateCcw}
+                    titulo={orden.status === "REFUNDED" ? "Pago reembolsado" : "Pago con contracargo"}
                     texto={
                         orden.settled
                             ? `${orden.message} Los ${orden.package?.credits ?? ""} créditos de esta compra fueron retirados de tu saldo.`
                             : orden.message
                     }
-                    accion={<Volver texto="Ver mis créditos" />}
+                    accion={<Volver texto="Ver mi plan" />}
                 />
             )}
 
@@ -239,7 +282,8 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
             {orden.pending && (
                 <Aviso
                     tono="aviso"
-                    icono={<Clock className="h-5 w-5 text-amber-500 animate-pulse" />}
+                    icono={Clock}
+                    iconoAnimado
                     titulo="Esperando confirmación"
                     texto={
                         orden.paymentTypeId === "ticket" && !Number.isNaN(vencimiento.getTime())
@@ -248,34 +292,33 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
                     }
                     accion={
                         orden.externalResourceUrl ? (
-                            <a
-                                href={orden.externalResourceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                            >
-                                {orden.paymentTypeId === "ticket"
-                                    ? "Ver mi cupón de pago"
-                                    : "Continuar en el banco"}
-                                <ExternalLink className="h-4 w-4" />
-                            </a>
+                            <Button asChild className="press-feedback w-full sm:w-auto">
+                                <a
+                                    href={orden.externalResourceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {orden.paymentTypeId === "ticket"
+                                        ? "Ver mi cupón de pago"
+                                        : "Continuar en el banco"}
+                                    <ExternalLink className="h-4 w-4" />
+                                </a>
+                            </Button>
                         ) : undefined
                     }
                 />
             )}
 
             {/* Cerrado sin pago */}
-            {!orden.pending &&
-                !orden.settled &&
-                ESTADOS_CERRADOS_SIN_PAGO.includes(orden.status) && (
-                    <Aviso
-                        tono="error"
-                        icono={<XCircle className="h-5 w-5 text-red-500" />}
-                        titulo="El pago no se completó"
-                        texto={orden.message}
-                        accion={<Volver texto="Intentar de nuevo" />}
-                    />
-                )}
+            {cerradoSinPago && (
+                <Aviso
+                    tono="error"
+                    icono={XCircle}
+                    titulo="El pago no se completó"
+                    texto={orden.message}
+                    accion={<Volver texto="Intentar de nuevo" />}
+                />
+            )}
 
             {/* Formulario de pago */}
             {orden.status === "CREATED" && !pagosDeshabilitados && (
@@ -283,20 +326,28 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
                     {errorPago && (
                         <Aviso
                             tono="error"
-                            icono={<AlertTriangle className="h-5 w-5 text-red-500" />}
+                            icono={AlertTriangle}
                             titulo="No se pudo procesar el pago"
                             texto={errorPago}
                         />
                     )}
-                    <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-                        <PaymentBrick
-                            publicKey={orden.publicKey!}
-                            internalRef={orden.internalRef}
-                            amountCOP={orden.amountCOP}
-                            payerEmail={orden.mode === "production" ? orden.payerEmail : null}
-                            onResult={manejarResultado}
-                            onFailure={manejarFallo}
-                        />
+                    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                        <div className="flex items-center gap-2 border-b border-border-muted px-4 py-3 sm:px-6">
+                            <Lock className="h-3.5 w-3.5 shrink-0 text-primary" />
+                            <p className="text-[12px] font-medium text-text-secondary">
+                                Pago seguro procesado por Mercado Pago
+                            </p>
+                        </div>
+                        <div className="p-4 sm:p-6">
+                            <PaymentBrick
+                                publicKey={orden.publicKey!}
+                                internalRef={orden.internalRef}
+                                amountCOP={orden.amountCOP}
+                                payerEmail={orden.mode === "production" ? orden.payerEmail : null}
+                                onResult={manejarResultado}
+                                onFailure={manejarFallo}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -304,7 +355,7 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
             {orden.status === "CREATED" && pagosDeshabilitados && (
                 <Aviso
                     tono="error"
-                    icono={<AlertTriangle className="h-5 w-5 text-red-500" />}
+                    icono={AlertTriangle}
                     titulo="Pagos no disponibles"
                     texto="La pasarela aún no está configurada. Escríbenos y te ayudamos a completar la compra."
                 />
@@ -314,46 +365,94 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
 }
 
 function Contenedor({ children }: { children: React.ReactNode }) {
-    return <div className="max-w-2xl mx-auto space-y-4">{children}</div>;
+    const reduceMotion = useReducedMotion();
+    return (
+        <motion.div
+            initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.22, ease: EASE_OUT }}
+            className="mx-auto w-full max-w-2xl space-y-4"
+        >
+            {children}
+        </motion.div>
+    );
 }
 
 function Volver({ texto }: { texto: string }) {
     return (
-        <Link
-            href="/dashboard/credits"
-            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-            {texto}
-        </Link>
+        <Button asChild className="press-feedback w-full sm:w-auto">
+            <Link href={RUTA_PLAN}>{texto}</Link>
+        </Button>
     );
 }
 
+type Tono = "exito" | "aviso" | "error" | "info";
+
+/**
+ * Los cuatro tonos salen de los tokens del sistema: éxito de la escala de
+ * riesgo bajo, advertencia de la media, error de la muy alta, e información
+ * del azul informativo. Así el modo oscuro llega gratis.
+ */
+const TONOS: Record<Tono, { bg: string; border: string; text: string; icono: string }> = {
+    exito: {
+        bg: "var(--color-risk-low-bg)",
+        border: "var(--color-risk-low-border)",
+        text: "var(--color-risk-low-text)",
+        icono: "var(--color-risk-low-solid)",
+    },
+    aviso: {
+        bg: "var(--color-risk-medium-bg)",
+        border: "var(--color-risk-medium-border)",
+        text: "var(--color-risk-medium-text)",
+        icono: "var(--color-risk-medium-solid)",
+    },
+    error: {
+        bg: "var(--color-risk-veryhigh-bg)",
+        border: "var(--color-risk-veryhigh-border)",
+        text: "var(--color-risk-veryhigh-text)",
+        icono: "var(--color-risk-veryhigh-solid)",
+    },
+    info: {
+        bg: "color-mix(in srgb, var(--color-info) 10%, transparent)",
+        border: "color-mix(in srgb, var(--color-info) 28%, transparent)",
+        text: "var(--color-info)",
+        icono: "var(--color-info)",
+    },
+};
+
 function Aviso({
     tono,
-    icono,
+    icono: Icono,
+    iconoAnimado = false,
     titulo,
     texto,
     accion,
 }: {
-    tono: "exito" | "aviso" | "error";
-    icono: React.ReactNode;
+    tono: Tono;
+    icono: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+    iconoAnimado?: boolean;
     titulo: string;
     texto: string;
     accion?: React.ReactNode;
 }) {
-    const estilos = {
-        exito: "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
-        aviso: "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30",
-        error: "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30",
-    }[tono];
+    const estilo = TONOS[tono];
 
     return (
-        <div className={`rounded-xl border px-5 py-4 flex items-start gap-3 ${estilos}`} role={tono === "error" ? "alert" : undefined}>
-            <div className="shrink-0 mt-0.5">{icono}</div>
+        <div
+            className="flex items-start gap-3 rounded-xl border px-4 py-4 sm:px-5"
+            style={{ background: estilo.bg, borderColor: estilo.border }}
+            role={tono === "error" ? "alert" : undefined}
+        >
+            <Icono
+                className={`mt-0.5 h-5 w-5 shrink-0 ${iconoAnimado ? "animate-pulse" : ""}`}
+                style={{ color: estilo.icono }}
+            />
             <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm text-foreground">{titulo}</p>
-                <p className="text-sm text-muted-foreground mt-1">{texto}</p>
-                {accion && <div className="mt-3">{accion}</div>}
+                <p className="text-[14px] font-semibold" style={{ color: estilo.text }}>
+                    {titulo}
+                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-text-secondary">{texto}</p>
+                {accion && <div className="mt-4">{accion}</div>}
             </div>
         </div>
     );

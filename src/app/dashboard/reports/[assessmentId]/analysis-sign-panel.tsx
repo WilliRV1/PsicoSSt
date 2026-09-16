@@ -134,7 +134,7 @@ export default function AnalysisSignPanel({
 
     return (
         <div className="analysis-editor-box">
-            <div className="no-print" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div className="no-print" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "8px" }}>
                 <label className="analysis-editor-label" htmlFor="clinical-analysis" style={{ margin: 0 }}>
                     Interpretación Profesional
                     {!isSigned && <span className="analysis-editor-required">*</span>}
@@ -148,14 +148,14 @@ export default function AnalysisSignPanel({
                             alignItems: "center",
                             gap: "6px",
                             padding: "6px 12px",
-                            background: generatingAI ? "#94a3b8" : "linear-gradient(135deg, #7c3aed, #4f46e5)",
-                            color: "white",
+                            background: generatingAI ? "var(--color-text-muted)" : "linear-gradient(135deg, var(--color-primary), var(--color-teal-dark))",
+                            color: "var(--color-primary-foreground)",
                             border: "none",
                             borderRadius: "8px",
                             fontSize: "0.75rem",
                             fontWeight: 700,
                             cursor: generatingAI ? "not-allowed" : "pointer",
-                            boxShadow: generatingAI ? "none" : "0 2px 8px rgba(124,58,237,0.35)",
+                            boxShadow: generatingAI ? "none" : "0 2px 8px rgba(0,154,128,0.35)",
                             transition: "all 0.2s",
                         }}
                         title="Generar interpretación profesional con Inteligencia Artificial"
@@ -169,7 +169,7 @@ export default function AnalysisSignPanel({
             </div>
 
             {aiError && (
-                <div className="no-print" style={{ marginBottom: "10px", padding: "8px 12px", background: "#fef2f2", color: "#991b1b", borderRadius: "8px", fontSize: "0.75rem", border: "1px solid #fecaca" }}>
+                <div className="no-print" style={{ marginBottom: "10px", padding: "8px 12px", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderRadius: "8px", fontSize: "0.75rem", border: "1px solid var(--color-risk-veryhigh-border)" }}>
                     ⚠️ {aiError}
                 </div>
             )}
@@ -227,7 +227,7 @@ export default function AnalysisSignPanel({
             )}
 
             {!isSigned && !hasSignature && (
-                <div className="no-print" style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", background: "#fefce8", border: "1px solid #fde68a", fontSize: "0.75rem", color: "#92400e" }}>
+                <div className="no-print" style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", background: "var(--color-risk-medium-bg)", border: "1px solid var(--color-risk-medium-border)", fontSize: "0.75rem", color: "var(--color-risk-medium-text)" }}>
                     <PenSquare style={{ width: "0.875rem", height: "0.875rem", flexShrink: 0 }} />
                     <span>Sin firma digital configurada — el PDF no incluirá imagen de firma. <Link href="/dashboard/profile" style={{ fontWeight: 600, textDecoration: "underline" }}>Configurar en perfil</Link>.</span>
                 </div>

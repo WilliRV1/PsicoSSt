@@ -71,15 +71,15 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
                         alignItems: "center",
                         gap: "6px",
                         padding: "8px 14px",
-                        background: generating ? "#94a3b8" : "linear-gradient(135deg, #0051BA, #1E88E5)",
-                        color: "white",
+                        background: generating ? "var(--color-text-muted)" : "linear-gradient(135deg, var(--color-primary), var(--color-teal-dark))",
+                        color: "var(--color-primary-foreground)",
                         border: "none",
                         borderRadius: "8px",
                         fontSize: "0.8rem",
                         fontWeight: 700,
                         cursor: generating ? "not-allowed" : "pointer",
                         transition: "all 0.2s",
-                        boxShadow: generating ? "none" : "0 2px 8px rgba(0,81,186,0.3)",
+                        boxShadow: generating ? "none" : "0 2px 8px rgba(0,154,128,0.3)",
                     }}
                     title="Generar recomendaciones con Inteligencia Artificial"
                 >
@@ -91,7 +91,7 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
             </div>
 
             {error && (
-                <div style={{ marginBottom: "10px", padding: "10px 14px", background: "#FFCDD2", color: "#B71C1C", borderRadius: "8px", fontSize: "0.8rem", border: "1px solid #EF9A9A" }}>
+                <div style={{ marginBottom: "10px", padding: "10px 14px", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderRadius: "8px", fontSize: "0.8rem", border: "1px solid var(--color-risk-veryhigh-border)" }}>
                     ⚠️ {error}
                 </div>
             )}
@@ -104,17 +104,17 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
                 style={{
                     width: "100%",
                     padding: "12px",
-                    border: "1px solid #E8E8E8",
+                    border: "1px solid var(--color-border)",
                     borderRadius: "8px",
                     fontSize: "0.85rem",
                     lineHeight: 1.6,
                     resize: "vertical",
                     fontFamily: "inherit",
                     outline: "none",
-                    color: "#212121",
+                    color: "var(--color-foreground)",
                 }}
-                onFocus={e => { e.target.style.borderColor = "#0051BA"; }}
-                onBlur={e => { e.target.style.borderColor = "#E8E8E8"; }}
+                onFocus={e => { e.target.style.borderColor = "var(--color-primary)"; }}
+                onBlur={e => { e.target.style.borderColor = "var(--color-border)"; }}
             />
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px" }}>
@@ -127,8 +127,8 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
                             alignItems: "center",
                             gap: "6px",
                             padding: "7px 14px",
-                            background: "#4CAF50",
-                            color: "white",
+                            background: "var(--color-primary)",
+                            color: "var(--color-primary-foreground)",
                             border: "none",
                             borderRadius: "8px",
                             fontSize: "0.8rem",
@@ -141,7 +141,7 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
                     </button>
                 )}
                 {saved && recommendations && (
-                    <span style={{ fontSize: "0.75rem", color: "#4CAF50", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-teal-dark)", display: "flex", alignItems: "center", gap: "4px" }}>
                         <CheckCircle style={{ width: 13, height: 13 }} /> Guardado
                     </span>
                 )}
@@ -154,8 +154,8 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
                             gap: "5px",
                             padding: "7px 12px",
                             background: "transparent",
-                            color: "#999",
-                            border: "1px solid #E8E8E8",
+                            color: "var(--color-text-muted)",
+                            border: "1px solid var(--color-border)",
                             borderRadius: "8px",
                             fontSize: "0.75rem",
                             cursor: "pointer",
@@ -166,7 +166,7 @@ export default function AIRecommendationsSection({ assessmentId, initialRecommen
                 )}
             </div>
 
-            <p style={{ fontSize: "0.7rem", color: "#999", marginTop: "8px" }}>
+            <p style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", marginTop: "8px" }}>
                 💡 Puedes editar el texto generado antes de firmar. Se incluirá en el PDF del informe.
             </p>
 

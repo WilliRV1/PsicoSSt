@@ -36,34 +36,34 @@ interface EditAssessmentFormProps {
 
 
 const STRESS_LABELS: Record<number, { label: string; color: string }> = {
-    0: { label: "Siempre",        color: "bg-red-100 text-red-700 border border-red-200" },
-    1: { label: "Casi siempre",   color: "bg-orange-100 text-orange-700 border border-orange-200" },
-    2: { label: "A veces",        color: "bg-yellow-100 text-yellow-700 border border-yellow-200" },
-    3: { label: "Nunca",          color: "bg-emerald-100 text-emerald-700 border border-emerald-200" },
+    0: { label: "Siempre",        color: "bg-risk-veryhigh-bg text-risk-veryhigh-text border border-risk-veryhigh-border" },
+    1: { label: "Casi siempre",   color: "bg-risk-high-bg text-risk-high-text border border-risk-high-border" },
+    2: { label: "A veces",        color: "bg-risk-medium-bg text-risk-medium-text border border-risk-medium-border" },
+    3: { label: "Nunca",          color: "bg-risk-low-bg text-risk-low-text border border-risk-low-border" },
 };
 
 const INTRA_EXTRA_LABELS: Record<number, { label: string; color: string }> = {
-    0: { label: "Siempre",        color: "bg-red-100 text-red-700 border border-red-200" },
-    1: { label: "Casi siempre",   color: "bg-orange-100 text-orange-700 border border-orange-200" },
-    2: { label: "Algunas veces",  color: "bg-yellow-100 text-yellow-700 border border-yellow-200" },
-    3: { label: "Rara vez",       color: "bg-blue-100 text-blue-700 border border-blue-200" },
-    4: { label: "Nunca",          color: "bg-emerald-100 text-emerald-700 border border-emerald-200" },
+    0: { label: "Siempre",        color: "bg-risk-veryhigh-bg text-risk-veryhigh-text border border-risk-veryhigh-border" },
+    1: { label: "Casi siempre",   color: "bg-risk-high-bg text-risk-high-text border border-risk-high-border" },
+    2: { label: "Algunas veces",  color: "bg-risk-medium-bg text-risk-medium-text border border-risk-medium-border" },
+    3: { label: "Rara vez",       color: "bg-risk-low-bg text-risk-low-text border border-risk-low-border" },
+    4: { label: "Nunca",          color: "bg-risk-none-bg text-risk-none-text border border-risk-none-border" },
 };
 
 const RISK_COLORS: Record<string, string> = {
-    SIN_RIESGO: "text-emerald-600 bg-emerald-50",
-    BAJO:       "text-lime-600 bg-lime-50",
-    MEDIO:      "text-yellow-600 bg-yellow-50",
-    ALTO:       "text-orange-600 bg-orange-50",
-    MUY_ALTO:   "text-red-600 bg-red-50",
+    SIN_RIESGO: "text-risk-none-text bg-risk-none-bg",
+    BAJO:       "text-risk-low-text bg-risk-low-bg",
+    MEDIO:      "text-risk-medium-text bg-risk-medium-bg",
+    ALTO:       "text-risk-high-text bg-risk-high-bg",
+    MUY_ALTO:   "text-risk-veryhigh-text bg-risk-veryhigh-bg",
 };
 
 const RISK_DOT: Record<string, string> = {
-    SIN_RIESGO: "bg-emerald-500",
-    BAJO:       "bg-lime-500",
-    MEDIO:      "bg-yellow-500",
-    ALTO:       "bg-orange-500",
-    MUY_ALTO:   "bg-red-500",
+    SIN_RIESGO: "bg-risk-none-solid",
+    BAJO:       "bg-risk-low-solid",
+    MEDIO:      "bg-risk-medium-solid",
+    ALTO:       "bg-risk-high-solid",
+    MUY_ALTO:   "bg-risk-veryhigh-solid",
 };
 
 const RISK_LABELS: Record<string, string> = {
@@ -158,9 +158,9 @@ export default function EditAssessmentForm({
     ).length;
 
     return (
-        <div className="flex h-[calc(100vh-120px)] overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+        <div className="flex flex-col md:flex-row h-auto md:h-[calc(100vh-120px)] overflow-hidden rounded-xl border border-border bg-card shadow-xl">
             {/* ===== LEFT SIDEBAR: Dimension Navigator ===== */}
-            <aside className="w-64 flex-shrink-0 border-r border-border bg-muted/40 overflow-y-auto">
+            <aside className="w-full md:w-64 flex-shrink-0 max-h-56 md:max-h-none border-b md:border-b-0 md:border-r border-border bg-muted/40 overflow-y-auto">
                 <div className="p-4 border-b border-border">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dimensiones</p>
                 </div>
@@ -176,7 +176,7 @@ export default function EditAssessmentForm({
                                 onClick={() => setActiveDimensionKey(dim.key)}
                                 className={`w-full text-left px-3 py-2.5 rounded-lg transition-all group ${
                                     isActive
-                                        ? "bg-indigo-600 text-white shadow-sm"
+                                        ? "bg-primary text-primary-foreground shadow-sm"
                                         : "hover:bg-muted text-foreground"
                                 }`}
                             >
@@ -184,11 +184,11 @@ export default function EditAssessmentForm({
                                     <span className="text-xs font-semibold leading-tight line-clamp-2">{dim.name}</span>
                                     {dimScore && (
                                         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                            isActive ? "bg-white/70" : dimScore.riskCategory ? RISK_DOT[dimScore.riskCategory] : "bg-slate-300"
+                                            isActive ? "bg-white/70" : dimScore.riskCategory ? RISK_DOT[dimScore.riskCategory] : "bg-risk-none-solid"
                                         }`} />
                                     )}
                                 </div>
-                                <div className={`text-[10px] mt-1 font-medium ${isActive ? "text-indigo-200" : "text-muted-foreground"}`}>
+                                <div className={`text-[10px] mt-1 font-medium ${isActive ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                                     {answered}/{dim.items.length} ítems
                                     {missing > 0 && ` · faltan ${missing}`}
                                     {dimScore && ` · ${dimScore.riskCategory ? RISK_LABELS[dimScore.riskCategory] : "Sin baremo"}`}
@@ -200,16 +200,16 @@ export default function EditAssessmentForm({
             </aside>
 
             {/* ===== CENTER: Item Table ===== */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden min-h-[50vh] md:min-h-0">
                 {missingItems.length > 0 && (
-                    <div className="mx-5 mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    <div className="mx-5 mt-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-risk-medium-text">
                         <span className="font-bold">Resultado no calculable:</span>{" "}
                         faltan {missingItems.length} respuesta{missingItems.length !== 1 ? "s" : ""} ({missingItems.join(", ")}).
                         Registra únicamente las respuestas reales del cuestionario antes de guardar.
                     </div>
                 )}
                 {/* Toolbar */}
-                <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-card/80 backdrop-blur">
+                <div className="flex flex-wrap items-center gap-3 px-5 py-3 border-b border-border bg-card/80 backdrop-blur">
                     <div className="flex-1">
                         <p className="font-bold text-sm text-foreground">{currentDim?.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -225,7 +225,7 @@ export default function EditAssessmentForm({
                             placeholder="Buscar ítem #..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="pl-8 pr-3 py-1.5 text-xs rounded-md border border-input bg-background w-36 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="pl-8 pr-3 py-1.5 text-xs rounded-md border border-input bg-background w-36 focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                     </div>
                 </div>
@@ -240,27 +240,27 @@ export default function EditAssessmentForm({
                         return (
                             <div
                                 key={itemNum}
-                                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border transition-all ${
+                                className={`flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-lg border transition-all ${
                                     changed
-                                        ? "border-amber-300 bg-amber-50/60"
+                                        ? "border-warning/40 bg-warning/10"
                                         : currentVal === undefined
-                                            ? "border-red-200 bg-red-50/50"
+                                            ? "border-danger/25 bg-danger/8"
                                         : "border-transparent hover:border-border hover:bg-muted/40"
                                 }`}
                             >
                                 {/* Item number */}
                                 <div className="w-10 flex-shrink-0 text-center">
-                                    <span className={`text-xs font-bold rounded px-1.5 py-0.5 ${changed ? "bg-amber-200 text-amber-800" : "bg-muted text-muted-foreground"}`}>
+                                    <span className={`text-xs font-bold rounded px-1.5 py-0.5 ${changed ? "bg-risk-medium-bg text-risk-medium-text" : "bg-muted text-muted-foreground"}`}>
                                         #{itemNum}
                                     </span>
                                 </div>
 
                                 {/* Enunciado del cuadernillo, para poder
                                     corregir sin tener el impreso al lado. */}
-                                <div className="flex-1 text-sm text-foreground">
+                                <div className="flex-1 min-w-[140px] text-sm text-foreground">
                                     {getItemText(initialQType, initialFormType, itemNum) ?? `Ítem ${itemNum}`}
                                     {changed && (
-                                        <span className="ml-2 text-[10px] font-semibold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">
+                                        <span className="ml-2 text-[10px] font-semibold text-risk-medium-text bg-risk-medium-bg px-1.5 py-0.5 rounded">
                                             MODIFICADO
                                         </span>
                                     )}
@@ -299,7 +299,7 @@ export default function EditAssessmentForm({
             </main>
 
             {/* ===== RIGHT PANEL: Live Score ===== */}
-            <aside className="w-56 flex-shrink-0 border-l border-border bg-muted/40 overflow-y-auto flex flex-col">
+            <aside className="w-full md:w-56 flex-shrink-0 max-h-72 md:max-h-none border-t md:border-t-0 md:border-l border-border bg-muted/40 overflow-y-auto flex flex-col">
                 <div className="p-4 border-b border-border">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Puntaje Guardado</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">Se actualiza al guardar</p>
@@ -326,13 +326,13 @@ export default function EditAssessmentForm({
                                     <div key={dim.dimensionKey} className="space-y-1">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[10px] text-muted-foreground font-medium truncate pr-1">{dim.dimensionName}</span>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${dim.riskCategory ? RISK_COLORS[dim.riskCategory] : "bg-slate-100 text-slate-600"}`}>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${dim.riskCategory ? RISK_COLORS[dim.riskCategory] : "bg-risk-none-bg text-risk-none-text"}`}>
                                                 {dim.riskCategory ? RISK_LABELS[dim.riskCategory] : "Sin baremo"}
                                             </span>
                                         </div>
                                         <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
                                             <div
-                                                className={`h-full transition-all duration-300 ${dim.riskCategory ? RISK_DOT[dim.riskCategory] : "bg-slate-300"}`}
+                                                className={`h-full transition-all duration-300 ${dim.riskCategory ? RISK_DOT[dim.riskCategory] : "bg-risk-none-solid"}`}
                                                 style={{ width: `${dim.transformedScore}%` }}
                                             />
                                         </div>
@@ -345,19 +345,19 @@ export default function EditAssessmentForm({
                 {/* Save area */}
                 <div className="p-4 border-t border-border space-y-2">
                     {missingItems.length > 0 && (
-                        <p className="text-[11px] text-red-700 font-semibold text-center bg-red-50 rounded-lg py-1.5 border border-red-200">
+                        <p className="text-[11px] text-danger font-semibold text-center bg-danger/8 rounded-lg py-1.5 border border-danger/25">
                             Completa {missingItems.length} ítem{missingItems.length !== 1 ? "s" : ""} para recalcular
                         </p>
                     )}
                     {changedCount > 0 && (
-                        <p className="text-[11px] text-amber-700 font-semibold text-center bg-amber-50 rounded-lg py-1.5 border border-amber-200">
+                        <p className="text-[11px] text-risk-medium-text font-semibold text-center bg-risk-medium-bg rounded-lg py-1.5 border border-risk-medium-border">
                             {changedCount} ítem{changedCount !== 1 ? "s" : ""} modificado{changedCount !== 1 ? "s" : ""}
                         </p>
                     )}
                     <button
                         onClick={handleSave}
                         disabled={isSaving || !hasChanges || missingItems.length > 0}
-                        className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-muted disabled:text-muted-foreground text-white font-bold text-sm rounded-lg transition-all shadow-sm disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground text-primary-foreground font-bold text-sm rounded-lg transition-all shadow-sm disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isSaving ? (
                             <>

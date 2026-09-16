@@ -86,7 +86,10 @@ export default function CompanyInvitationLinkPage() {
         return (
             <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center max-w-lg mx-auto w-full px-4">
                 <div className="w-full bg-card border border-border shadow-xl rounded-3xl p-8 text-center space-y-5">
-                    <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
+                    <div
+                        className="w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-inner border"
+                        style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)", borderColor: "var(--color-teal)" }}
+                    >
                         <Check className="w-8 h-8" />
                     </div>
                     <h2 className="text-xl font-bold text-foreground">Enlace de la empresa listo</h2>
@@ -97,7 +100,7 @@ export default function CompanyInvitationLinkPage() {
                     <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-xl p-3">
                         <input readOnly value={result.url} className="flex-1 bg-transparent text-xs text-foreground outline-none truncate" />
                         <button onClick={copyLink} className="shrink-0 p-2 rounded-lg hover:bg-muted transition-colors" title="Copiar enlace">
-                            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                            {copied ? <Check className="w-4 h-4" style={{ color: "var(--color-success)" }} /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                         </button>
                     </div>
                     <Link href="/dashboard/assessments">
@@ -185,7 +188,7 @@ export default function CompanyInvitationLinkPage() {
                             <Button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting || plannedTypes.length === 0}
-                                className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                                className="flex-1 h-12 rounded-xl font-semibold"
                             >
                                 {isSubmitting ? "Generando..." : "Generar enlace"}
                             </Button>

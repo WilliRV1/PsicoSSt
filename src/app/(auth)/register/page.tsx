@@ -152,7 +152,7 @@ export default function RegisterPage() {
                         <div className="flex flex-col gap-1.5">
                             <h1
                                 className="text-[22px] font-semibold tracking-[-0.01em] text-foreground"
-                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                                style={{ fontFamily: "var(--font-heading)" }}
                             >
                                 Solicitud enviada
                             </h1>
@@ -185,7 +185,7 @@ export default function RegisterPage() {
                     <div className="flex flex-col gap-1.5">
                         <h1
                             className="text-[32px] font-semibold leading-[1.12] tracking-[-0.01em] text-foreground"
-                            style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            style={{ fontFamily: "var(--font-heading)" }}
                         >
                             Solicitar acceso
                         </h1>
@@ -315,7 +315,7 @@ export default function RegisterPage() {
                     <div className="flex flex-col gap-4">
                         <h2
                             className="max-w-[470px] text-[42px] font-semibold leading-[1.1] tracking-[-0.015em] text-balance text-foreground"
-                            style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            style={{ fontFamily: "var(--font-heading)" }}
                         >
                             Sólo un profesional con licencia puede firmar estos informes
                         </h2>

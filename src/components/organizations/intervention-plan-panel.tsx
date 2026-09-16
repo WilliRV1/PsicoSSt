@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   FileDown,
 } from "lucide-react";
+import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 
 interface Action {
   id: string;
@@ -38,11 +39,11 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Cancelado",
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-800 border border-amber-200",
-  IN_PROGRESS: "bg-blue-100 text-blue-800 border border-blue-200",
-  DONE: "bg-green-100 text-green-800 border border-green-200",
-  CANCELLED: "bg-gray-100 text-gray-600 border border-gray-200",
+const STATUS_STYLE: Record<string, { background: string; color: string }> = {
+  PENDING: { background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+  IN_PROGRESS: { background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+  DONE: { background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+  CANCELLED: { background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" },
 };
 
 const STATUS_CYCLE: Record<string, "PENDING" | "IN_PROGRESS" | "DONE"> = {
@@ -51,25 +52,9 @@ const STATUS_CYCLE: Record<string, "PENDING" | "IN_PROGRESS" | "DONE"> = {
   DONE: "PENDING",
 };
 
-const RISK_LABELS: Record<string, string> = {
-  SIN_RIESGO: "Sin Riesgo",
-  BAJO: "Bajo",
-  MEDIO: "Medio",
-  ALTO: "Alto",
-  MUY_ALTO: "Muy Alto",
-};
-
-const RISK_COLORS: Record<string, string> = {
-  SIN_RIESGO: "bg-green-100 text-green-800 border border-green-200",
-  BAJO: "bg-lime-100 text-lime-800 border border-lime-200",
-  MEDIO: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-  ALTO: "bg-orange-100 text-orange-800 border border-orange-200",
-  MUY_ALTO: "bg-red-100 text-red-800 border border-red-200",
-};
-
-const PLAN_STATUS_COLORS: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-800 border border-green-200",
-  CLOSED: "bg-gray-100 text-gray-600 border border-gray-200",
+const PLAN_STATUS_STYLE: Record<string, { background: string; color: string }> = {
+  ACTIVE: { background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+  CLOSED: { background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" },
 };
 
 const PLAN_STATUS_LABELS: Record<string, string> = {
@@ -322,10 +307,8 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
                 Período: {plan.period}
               </span>
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  PLAN_STATUS_COLORS[plan.status] ??
-                  "bg-gray-100 text-gray-600 border border-gray-200"
-                }`}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                style={PLAN_STATUS_STYLE[plan.status] ?? { background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" }}
               >
                 {PLAN_STATUS_LABELS[plan.status] ?? plan.status}
               </span>
@@ -361,7 +344,7 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2 flex flex-col gap-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Medida <span className="text-red-500">*</span>
+                Medida <span className="text-danger">*</span>
               </label>
               <textarea
                 value={newAction.measure}
@@ -376,7 +359,7 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Responsable <span className="text-red-500">*</span>
+                Responsable <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -542,14 +525,7 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
                   </td>
                   <td className="px-4 py-3">
                     {action.riskCategory ? (
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          RISK_COLORS[action.riskCategory] ??
-                          "bg-gray-100 text-gray-600 border border-gray-200"
-                        }`}
-                      >
-                        {RISK_LABELS[action.riskCategory] ?? action.riskCategory}
-                      </span>
+                      <RiskBadge level={action.riskCategory as RiskLevel} size="sm" />
                     ) : (
                       <span className="text-muted-foreground/40">—</span>
                     )}
@@ -560,10 +536,8 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
                         onClick={() => handleToggleStatus(action)}
                         disabled={updatingId === action.id}
                         title="Haz clic para avanzar el estado"
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-opacity hover:opacity-75 disabled:opacity-50 ${
-                          STATUS_COLORS[action.status] ??
-                          "bg-gray-100 text-gray-600 border border-gray-200"
-                        }`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-opacity hover:opacity-75 disabled:opacity-50"
+                        style={STATUS_STYLE[action.status] ?? { background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" }}
                       >
                         {updatingId === action.id ? (
                           <Clock className="w-3 h-3 animate-spin" />
@@ -574,9 +548,8 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
                       </button>
                     ) : (
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                          STATUS_COLORS[action.status]
-                        }`}
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+                        style={STATUS_STYLE[action.status]}
                       >
                         {STATUS_LABELS[action.status]}
                       </span>
@@ -587,7 +560,9 @@ export default function InterventionPlanPanel({ orgId }: { orgId: string }) {
                       onClick={() => handleDeleteAction(action.id)}
                       disabled={updatingId === action.id}
                       title="Eliminar medida"
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
+                      className="p-1.5 rounded-lg text-muted-foreground transition-colors disabled:opacity-40"
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--color-danger)"; (e.currentTarget as HTMLElement).style.background = "var(--color-risk-veryhigh-bg)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = ""; (e.currentTarget as HTMLElement).style.background = ""; }}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

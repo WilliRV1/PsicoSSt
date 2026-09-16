@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; caret-color: #009A80; }
+
+  /* Selección, cursor, barra de desplazamiento y anillo de foco vienen con
+     valores por defecto del navegador que no son de ningún sistema de diseño.
+     Tematizarlos es la señal más barata de que la página se construyó. */
+  ::selection { background: rgba(0,154,128,0.16); color: #0B0F14; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E4E8EB; border-radius: 999px;
+                              border: 3px solid #F7F8F9; }
+  ::-webkit-scrollbar-thumb:hover { background: #646F7A; }
+  :focus-visible { outline: 2px solid #0B0F14; outline-offset: 2px; border-radius: 6px; }
+  /* Toda tabla de datos alinea en columna sin pedirlo. */
+  td, th { font-variant-numeric: tabular-nums; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Etiqueta menor: pie de cifra, leyenda de gráfico, nombre de columna.
+     Caja normal. Las versalitas espaciadas eran el disfraz de «documento». */
+  .rub { font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+         color: #646F7A; }
+  /* Encabezado de sección. No es un ojo de buey sobre un titular: es el
+     titular de su bloque y pesa lo que pesa. */
+  .rub-ink { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em;
+             color: #0B0F14; }
+
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
+
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
+
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #646F7A; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #646F7A; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #007A65; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+  .btn-off { background: #F0F2F4; color: #646F7A; }
+  .btn-foco { box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #0B0F14; }
+
+  /* Esqueleto de carga. Un disco girando en mitad del contenido no dice
+     qué está llegando; una silueta sí. */
+  .hueso { background: #F0F2F4; border-radius: 6px; display: block; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #646F7A;
+           display: flex; align-items: center; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #646F7A;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* La clase .anim queda sólo para superficies de persuasión —portada,
+     acceso—, donde la entrada es parte del argumento. En las pantallas de
+     producto no se usa: quien abre un panel entra a una tarea, no a ver cómo
+     se carga. Ahí el único movimiento es el que informa de un estado. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:#F7F8F9;overflow:hidden">
+<div style="width:390px;height:844px;background:#F7F8F9;display:flex;flex-direction:column;overflow:hidden">
+      <div style="height:48px;flex-shrink:0"></div>
+      
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 24px 32px;justify-content:center">
+    <div style="width:56px;height:56px;border-radius:16px;background:#E4F6F1;display:flex;align-items:center;justify-content:center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h1 class="display" style="font-size:40px;margin-top:24px">Listo. Gracias.</h1>
+    <p class="prose" style="font-size:16px;margin-top:14px">
+      Respondió los <span class="num">185</span> ítems de los tres cuestionarios. A partir de aquí
+      el trabajo es del psicólogo responsable.
+    </p>
+
+    <div style="margin-top:30px;border-top:1px solid #E4E8EB">
+      <div style="padding:15px 0;border-bottom:1px solid #EFF2F4">
+        <p style="font-size:14px;font-weight:600;color:#0B0F14">Sus respuestas ya no se pueden modificar</p>
+        <p style="font-size:13px;line-height:1.5;color:#55636E;margin-top:3px">La batería se califica sobre el conjunto cerrado de respuestas.</p>
+      </div><div style="padding:15px 0;border-bottom:1px solid #EFF2F4">
+        <p style="font-size:14px;font-weight:600;color:#0B0F14">No recibirá su resultado individual por aquí</p>
+        <p style="font-size:13px;line-height:1.5;color:#55636E;margin-top:3px">Si quiere conocerlo, puede pedírselo directamente al psicólogo responsable.</p>
+      </div><div style="padding:15px 0;border-bottom:1px solid #EFF2F4">
+        <p style="font-size:14px;font-weight:600;color:#0B0F14">Su empresa recibirá el diagnóstico del grupo</p>
+        <p style="font-size:13px;line-height:1.5;color:#55636E;margin-top:3px">Sin nombres y solo sobre grupos de cinco personas o más.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;padding:17px 19px;border-radius:11px;background:#FFFFFF;border:1px solid #E4E8EB">
+      <p style="font-size:13.5px;font-weight:600;color:#0B0F14">¿Necesita hablar con alguien?</p>
+      <p style="font-size:13px;line-height:1.55;color:#55636E;margin-top:5px">
+        Línea nacional de salud mental <span class="num">192</span>, opción <span class="num">4</span> · gratuita, 24 horas.
+      </p>
+    </div>
+
+    <div style="margin-top:auto;padding-top:26px;display:flex;justify-content:center"><div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="19.8" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:15.8px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#646F7A;line-height:1">Riesgo psicosocial</span>
+    </div></div></div>
+  </div>
+    </div>
+</div>
+</x-dc>
+
+</body>
+</html>

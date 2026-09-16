@@ -18,9 +18,9 @@ export default function ReportToolbar({
                 ← Volver a Evaluaciones
             </a>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {isSigned && (
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-teal-dark">
                         <CheckCircle2 className="w-4 h-4" />
                         Reporte Firmado
                     </span>
@@ -30,7 +30,7 @@ export default function ReportToolbar({
                     href={`${pdfUrl}?anon=true`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors border border-slate-300"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-muted hover:bg-muted/70 text-foreground text-sm font-semibold rounded-lg transition-colors border border-border"
                     title="Descargar versión anónima para presentar a gerencia"
                 >
                     <FileDown className="w-4 h-4" />

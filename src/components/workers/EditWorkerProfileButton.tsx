@@ -142,7 +142,7 @@ export default function EditWorkerProfileButton({ worker }: { worker: EditableWo
 
                         <div className="overflow-y-auto p-4 flex-1">
                             {error && (
-                                <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+                                <div className="mb-4 rounded-lg p-3 text-sm border" style={{ background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderColor: "var(--color-risk-veryhigh-border)" }}>
                                     {error}
                                 </div>
                             )}
@@ -161,7 +161,8 @@ export default function EditWorkerProfileButton({ worker }: { worker: EditableWo
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                                className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium press-feedback disabled:opacity-50"
+                                style={{ background: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
                             >
                                 {saving ? (
                                     <>

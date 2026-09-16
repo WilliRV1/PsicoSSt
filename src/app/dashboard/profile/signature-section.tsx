@@ -99,7 +99,7 @@ export default function SignatureSection({ initialSignature }: SignatureSectionP
                 {signature && (
                     <button
                         onClick={handleDelete}
-                        className="text-xs font-bold text-red-600 hover:text-red-800 transition-colors"
+                        className="text-xs font-bold text-danger hover:opacity-80 transition-opacity"
                     >
                         Eliminar Firma Existente
                     </button>
@@ -134,13 +134,13 @@ export default function SignatureSection({ initialSignature }: SignatureSectionP
                         <div className="flex bg-muted p-1 rounded-lg">
                             <button
                                 onClick={() => setActiveTab("draw")}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === "draw" ? "bg-card text-indigo-600 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === "draw" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 Dibujar firma
                             </button>
                             <button
                                 onClick={() => setActiveTab("upload")}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === "upload" ? "bg-card text-indigo-600 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === "upload" ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 Subir imagen
                             </button>
@@ -171,10 +171,10 @@ export default function SignatureSection({ initialSignature }: SignatureSectionP
                             <div className="space-y-3">
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-indigo-200 rounded-xl p-8 text-center bg-indigo-50/30 hover:bg-indigo-50 transition-colors cursor-pointer"
+                                    className="border-2 border-dashed border-primary/20 rounded-xl p-8 text-center bg-teal-light/40 hover:bg-teal-light transition-colors cursor-pointer"
                                 >
-                                    <svg className="w-8 h-8 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                    <p className="text-xs font-bold text-indigo-600">Haz clic para seleccionar archivo</p>
+                                    <svg className="w-8 h-8 text-primary/60 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    <p className="text-xs font-bold text-primary">Haz clic para seleccionar archivo</p>
                                     <p className="text-[10px] text-muted-foreground mt-1">PNG o JPG con fondo blanco/transparente</p>
                                     <input
                                         type="file"

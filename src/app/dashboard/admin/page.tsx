@@ -73,15 +73,15 @@ export default async function AdminDashboardPage() {
 
             {/* Pending alert */}
             {pendingPsychologists > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-3.5 flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-amber-500 shrink-0" />
+                <div className="rounded-xl border px-5 py-3.5 flex items-center gap-3" style={{ borderColor: "var(--color-risk-medium-border)", background: "var(--color-risk-medium-bg)" }}>
+                    <Clock className="h-5 w-5 shrink-0" style={{ color: "var(--color-risk-medium-solid)" }} />
                     <div className="flex-1">
-                        <p className="font-semibold text-sm text-amber-800">
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-risk-medium-text)" }}>
                             {pendingPsychologists} solicitud{pendingPsychologists > 1 ? "es" : ""} pendiente{pendingPsychologists > 1 ? "s" : ""}
                         </p>
-                        <p className="text-xs text-amber-700">Psicólogos esperando aprobación de cuenta.</p>
+                        <p className="text-xs" style={{ color: "var(--color-risk-medium-text)" }}>Psicólogos esperando aprobación de cuenta.</p>
                     </div>
-                    <Link href="/dashboard/admin/psychologists/pending" className="text-xs font-semibold text-amber-700 underline shrink-0">
+                    <Link href="/dashboard/admin/psychologists/pending" className="text-xs font-semibold underline shrink-0" style={{ color: "var(--color-risk-medium-text)" }}>
                         Revisar →
                     </Link>
                 </div>
@@ -90,19 +90,19 @@ export default async function AdminDashboardPage() {
             {/* Stats grid */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {[
-                    { label: "Psicólogos activos", value: activePsychologists, icon: UserCheck, color: "text-green-600", bg: "bg-green-50", ring: "ring-green-200" },
-                    { label: "Organizaciones", value: totalOrganizations, icon: Building2, color: "text-blue-600", bg: "bg-blue-50", ring: "ring-blue-200" },
-                    { label: "Trabajadores", value: totalWorkers, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50", ring: "ring-indigo-200" },
-                    { label: "Evaluaciones", value: totalAssessments, icon: ClipboardList, color: "text-orange-600", bg: "bg-orange-50", ring: "ring-orange-200" },
-                ].map(({ label, value, icon: Icon, color, bg, ring }) => (
-                    <div key={label} className={`rounded-xl border border-border bg-card p-5 shadow-sm ring-1 ${ring}`}>
+                    { label: "Psicólogos activos", value: activePsychologists, icon: UserCheck, color: "var(--color-teal-dark)", bg: "var(--color-teal-light)" },
+                    { label: "Organizaciones", value: totalOrganizations, icon: Building2, color: "var(--color-info)", bg: "color-mix(in srgb, var(--color-info) 14%, transparent)" },
+                    { label: "Trabajadores", value: totalWorkers, icon: Users, color: "var(--color-primary)", bg: "var(--color-teal-light)" },
+                    { label: "Evaluaciones", value: totalAssessments, icon: ClipboardList, color: "var(--color-warning)", bg: "color-mix(in srgb, var(--color-warning) 14%, transparent)" },
+                ].map(({ label, value, icon: Icon, color, bg }) => (
+                    <div key={label} className="rounded-xl border border-border bg-card p-5 shadow-sm">
                         <div className="flex items-start justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">{label}</p>
                                 <p className="mt-1.5 text-3xl font-bold text-foreground">{value}</p>
                             </div>
-                            <div className={`rounded-lg p-2.5 ${bg}`}>
-                                <Icon className={`h-5 w-5 ${color}`} />
+                            <div className="rounded-lg p-2.5" style={{ background: bg }}>
+                                <Icon className="h-5 w-5" style={{ color }} />
                             </div>
                         </div>
                     </div>
@@ -122,16 +122,16 @@ export default async function AdminDashboardPage() {
                             <span className="font-semibold">{totalPsychologists}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-green-700">Activos</span>
-                            <span className="font-semibold text-green-700">{activePsychologists}</span>
+                            <span style={{ color: "var(--color-teal-dark)" }}>Activos</span>
+                            <span className="font-semibold" style={{ color: "var(--color-teal-dark)" }}>{activePsychologists}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-amber-700">Pendientes</span>
-                            <span className="font-semibold text-amber-700">{pendingPsychologists}</span>
+                            <span style={{ color: "var(--color-risk-medium-text)" }}>Pendientes</span>
+                            <span className="font-semibold" style={{ color: "var(--color-risk-medium-text)" }}>{pendingPsychologists}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-red-700">Suspendidos</span>
-                            <span className="font-semibold text-red-700">{suspendedPsychologists}</span>
+                            <span style={{ color: "var(--color-risk-veryhigh-text)" }}>Suspendidos</span>
+                            <span className="font-semibold" style={{ color: "var(--color-risk-veryhigh-text)" }}>{suspendedPsychologists}</span>
                         </div>
                     </div>
                 </div>
@@ -147,12 +147,12 @@ export default async function AdminDashboardPage() {
                             <span className="font-semibold">{totalAssessments}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-green-700">Firmados</span>
-                            <span className="font-semibold text-green-700">{signedAssessments}</span>
+                            <span style={{ color: "var(--color-teal-dark)" }}>Firmados</span>
+                            <span className="font-semibold" style={{ color: "var(--color-teal-dark)" }}>{signedAssessments}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-amber-700">Pendientes</span>
-                            <span className="font-semibold text-amber-700">{totalAssessments - signedAssessments}</span>
+                            <span style={{ color: "var(--color-risk-medium-text)" }}>Pendientes</span>
+                            <span className="font-semibold" style={{ color: "var(--color-risk-medium-text)" }}>{totalAssessments - signedAssessments}</span>
                         </div>
                     </div>
                 </div>

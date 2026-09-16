@@ -53,7 +53,10 @@ export default function ConsentRecorder({
 
     if (isConsented) {
         return (
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            <span
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium"
+                style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+            >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Consentimiento registrado
             </span>
@@ -62,7 +65,10 @@ export default function ConsentRecorder({
 
     return (
         <div className="relative inline-flex items-center gap-2" ref={popoverRef}>
-            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">
+            <span
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium"
+                style={{ background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" }}
+            >
                 <AlertTriangle className="h-3.5 w-3.5" />
                 Sin consentimiento
             </span>

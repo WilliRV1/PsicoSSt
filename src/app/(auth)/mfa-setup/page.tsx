@@ -122,7 +122,7 @@ export default function MfaSetupPage() {
                         <div className="mx-auto mb-2">
                             <ShieldCheck className="h-10 w-10 text-primary" />
                         </div>
-                        <CardTitle className="text-xl font-semibold tracking-[-0.01em]" style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}>Configurar Autenticación en Dos Pasos</CardTitle>
+                        <CardTitle className="text-xl font-semibold tracking-[-0.01em]" style={{ fontFamily: "var(--font-heading)" }}>Configurar Autenticación en Dos Pasos</CardTitle>
                         <CardDescription>
                             Protege el acceso a la información de tus evaluaciones con un segundo paso de verificación.
                         </CardDescription>

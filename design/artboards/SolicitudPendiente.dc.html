@@ -1,0 +1,354 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; caret-color: #009A80; }
+
+  /* Selección, cursor, barra de desplazamiento y anillo de foco vienen con
+     valores por defecto del navegador que no son de ningún sistema de diseño.
+     Tematizarlos es la señal más barata de que la página se construyó. */
+  ::selection { background: rgba(0,154,128,0.16); color: #0B0F14; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E4E8EB; border-radius: 999px;
+                              border: 3px solid #F7F8F9; }
+  ::-webkit-scrollbar-thumb:hover { background: #646F7A; }
+  :focus-visible { outline: 2px solid #0B0F14; outline-offset: 2px; border-radius: 6px; }
+  /* Toda tabla de datos alinea en columna sin pedirlo. */
+  td, th { font-variant-numeric: tabular-nums; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Etiqueta menor: pie de cifra, leyenda de gráfico, nombre de columna.
+     Caja normal. Las versalitas espaciadas eran el disfraz de «documento». */
+  .rub { font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+         color: #646F7A; }
+  /* Encabezado de sección. No es un ojo de buey sobre un titular: es el
+     titular de su bloque y pesa lo que pesa. */
+  .rub-ink { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em;
+             color: #0B0F14; }
+
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
+
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
+
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #646F7A; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #646F7A; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #007A65; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+  .btn-off { background: #F0F2F4; color: #646F7A; }
+  .btn-foco { box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #0B0F14; }
+
+  /* Esqueleto de carga. Un disco girando en mitad del contenido no dice
+     qué está llegando; una silueta sí. */
+  .hueso { background: #F0F2F4; border-radius: 6px; display: block; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #646F7A;
+           display: flex; align-items: center; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #646F7A;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* La clase .anim queda sólo para superficies de persuasión —portada,
+     acceso—, donde la entrada es parte del argumento. En las pantallas de
+     producto no se usa: quien abre un panel entra a una tarea, no a ver cómo
+     se carga. Ahí el único movimiento es el que informa de un estado. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
+</style>
+</helmet>
+<div style="width:1440px;height:960px;background:#F7F8F9;overflow:hidden">
+<div class="shell" style="height:960px">
+  <aside class="side">
+    <div class="side-brand"><div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="22.5" height="25" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.0px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#646F7A;line-height:1">Riesgo psicosocial</span>
+    </div></div></div>
+    <div style="padding:0 12px 14px">
+    <div style="display:flex;align-items:center;gap:9px;height:40px;padding:0 10px;border-radius:10px;background:transparent;border:1px solid #E4E8EB">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg>
+      <span style="flex:1;min-width:0;font-size:13px;font-weight:400;color:#646F7A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Elija una empresa</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg>
+    </div>
+  </div>
+    <nav class="side-nav">
+      <div class="side-group">
+        <div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><span>Resumen</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><span>Trabajadores</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><span>Evaluaciones</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><span>Informes</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><span>Analítica</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><span>Tendencias</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Intervenciones</span></div><div class="nav" style="color:#E4E8EB"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#E4E8EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Vigilancia</span></div>
+      </div>
+      <div class="side-group">
+        <p class="rub" style="font-size:11.5px">Cartera</p>
+        <div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><span>Centro de control</span></div><div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><span>Empresas</span></div><div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M2 7h20v10H2zM2 11h20M6 15h3"/></svg><span>Créditos</span></div><div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 9l1.5-5h15L21 9M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM9 13h6"/></svg><span>Planes</span></div><div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Equipo</span></div><div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1.7a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V1.7a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg><span>Configuración</span></div><div class="nav" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><span>Asistente IA</span></div><div class="nav nav-on" style=""><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#0B0F14" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Panel admin</span></div>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <div class="side-user">
+        <div style="width:28px;height:28px;border-radius:9px;background:#0B0F14;color:#FFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">MT</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:12.5px;font-weight:500;color:#0B0F14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">María Torres Gómez</p>
+          <p class="num" style="font-size:11px;color:#646F7A;margin-top:1px">Lic. SST 2019-4471</p>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+    <div style="display:flex;align-items:center;gap:18px">
+      <div class="busca">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg><span style="flex:1">Buscar</span><span class="kbd">⌘K</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#646F7A">
+         <span style="">Panel admin</span><span style="color:#E4E8EB">/</span><span style="">Pendientes</span><span style="color:#E4E8EB">/</span><span style="color:#0B0F14;font-weight:500">Valeria Ochoa Mesa</span>
+       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:9px;background:#F0F2F4">
+        <span class="num" style="font-size:13px;font-weight:600;color:#55636E">47</span>
+        <span style="font-size:12.5px;color:#646F7A">créditos</span>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#646F7A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </div>
+  </header>
+    <div class="body">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:26px">
+    <div style="min-width:0">
+      <h1 class="display" style="font-size:40px">Valeria Ochoa Mesa</h1>
+      <p style="font-size:13px;color:#646F7A;margin-top:10px">Solicitud <span class="num">#SR-2026-0418</span> · recibida hace 3 días</p>
+      <p style="font-size:13.5px;line-height:1.6;color:#55636E;margin-top:6px;max-width:640px">Aprobar esta cuenta le da acceso a datos de salud de terceros. Verifique los tres documentos antes de decidir: la responsabilidad de la habilitación es de quien aprueba.</p>
+    </div>
+    
+  </div>
+
+  <div style="display:flex;gap:34px">
+    <section style="flex:1;min-width:0">
+      
+        <div class="card" style="padding:20px 22px;margin-bottom:12px">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <span style="width:22px;height:22px;border-radius:999px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                <p style="font-size:14.5px;font-weight:600;color:#0B0F14">Tarjeta profesional de psicólogo</p><span class="chip" style="background:#E7F8EF;color:#067647">Verificado</span>
+              </div>
+              <p style="font-size:12.5px;color:#55636E;margin-top:5px">N.º 224118 · expedida el 2018-04-20 por el Colegio Colombiano de Psicólogos</p>
+              <p style="font-size:12px;color:#646F7A;margin-top:6px">Verificado contra el registro público</p>
+              <div style="display:flex;gap:9px;margin-top:12px">
+                <span class="btn btn-sec" style="height:30px;font-size:12px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>Ver documento</span>
+                <span class="btn btn-ghost" style="height:30px;font-size:12px">Marcar como no válido</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:20px 22px;margin-bottom:12px">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <span style="width:22px;height:22px;border-radius:999px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                <p style="font-size:14.5px;font-weight:600;color:#0B0F14">Posgrado en Seguridad y Salud en el Trabajo</p><span class="chip" style="background:#E7F8EF;color:#067647">Verificado</span>
+              </div>
+              <p style="font-size:12.5px;color:#55636E;margin-top:5px">Especialización · Universidad del Rosario · acta 2019-1140</p>
+              <p style="font-size:12px;color:#646F7A;margin-top:6px">Documento adjunto y legible</p>
+              <div style="display:flex;gap:9px;margin-top:12px">
+                <span class="btn btn-sec" style="height:30px;font-size:12px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>Ver documento</span>
+                <span class="btn btn-ghost" style="height:30px;font-size:12px">Marcar como no válido</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:20px 22px;margin-bottom:12px">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <span style="width:22px;height:22px;border-radius:999px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                <p style="font-size:14.5px;font-weight:600;color:#0B0F14">Licencia vigente en SST</p><span class="chip" style="background:#E7F8EF;color:#067647">Verificado</span>
+              </div>
+              <p style="font-size:12.5px;color:#55636E;margin-top:5px">N.º 2018-2207 · Secretaría de Salud de Cundinamarca · vence 2027-04-30</p>
+              <p style="font-size:12px;color:#646F7A;margin-top:6px">Vigente al momento de la revisión</p>
+              <div style="display:flex;gap:9px;margin-top:12px">
+                <span class="btn btn-sec" style="height:30px;font-size:12px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>Ver documento</span>
+                <span class="btn btn-ghost" style="height:30px;font-size:12px">Marcar como no válido</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <div style="margin-top:20px;padding:20px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E8EB">
+        <p class="lbl" style="margin-bottom:9px">Nota de la revisión (queda en la auditoría)</p>
+        <div style="min-height:72px;border:1px solid #E4E8EB;border-radius:9px;background:#F7F8F9;padding:12px 14px">
+          <p style="font-size:13px;color:#55636E">Los tres documentos coinciden con el registro público del Colegio. Licencia vigente hasta 2027.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="width:376px;flex-shrink:0">
+      <div class="card" style="padding:22px 24px">
+        <p class="rub rub-ink">Datos de la solicitud</p>
+        <div style="margin-top:14px">
+          
+            <div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;">
+              <span style="font-size:12px;color:#646F7A">Correo</span>
+              <span class="num" style="font-size:12px;color:#0B0F14;text-align:right">valeria@consultorio.co</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+              <span style="font-size:12px;color:#646F7A">Teléfono</span>
+              <span class="num" style="font-size:12px;color:#0B0F14;text-align:right">+57 310 442 1178</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+              <span style="font-size:12px;color:#646F7A">Ciudad</span>
+              <span class="num" style="font-size:12px;color:#0B0F14;text-align:right">Bogotá D.C.</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+              <span style="font-size:12px;color:#646F7A">Origen</span>
+              <span class="num" style="font-size:12px;color:#0B0F14;text-align:right">Invitación de María Torres</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+              <span style="font-size:12px;color:#646F7A">Recibida</span>
+              <span class="num" style="font-size:12px;color:#0B0F14;text-align:right">2026-09-13 10:22</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+              <span style="font-size:12px;color:#646F7A">IP de registro</span>
+              <span class="num" style="font-size:12px;color:#0B0F14;text-align:right">181.51.204.66</span>
+            </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px 24px;margin-top:18px">
+        <p class="rub rub-ink">Decisión</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:10px">
+          Al aprobar, la persona recibe un correo y debe activar el segundo factor antes de entrar por primera vez.
+        </p>
+        <span class="btn btn-pri" style="width:100%;justify-content:center;margin-top:14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>Aprobar la cuenta</span>
+        <span class="btn btn-sec" style="width:100%;justify-content:center;margin-top:8px">Pedir más documentos</span>
+        <span class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:4px;color:#F04438">Rechazar</span>
+      </div>
+    </section>
+  </div></div>
+  </div>
+</div>
+</div>
+</x-dc>
+
+</body>
+</html>

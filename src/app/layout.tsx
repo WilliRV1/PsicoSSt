@@ -1,25 +1,31 @@
 import type { Metadata } from "next";
-import { Barlow_Semi_Condensed, IBM_Plex_Sans, IBM_Plex_Mono, Source_Serif_4, Inter } from "next/font/google";
+import { Barlow_Semi_Condensed, Geist, Geist_Mono, Source_Serif_4, Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const barlow = Barlow_Semi_Condensed({
-  variable: "--font-barlow",
+// Geist cubre interfaz, titular y cifra: una sola familia contemporánea con
+// cifras tabulares, en vez de IBM Plex Sans + IBM Plex Mono compitiendo por
+// tono. Ver globals.css para el razonamiento completo.
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-const ibmPlexSans = IBM_Plex_Sans({
-  variable: "--font-sans",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-mono",
+// Barlow queda sólo para el logotipo (ver components/psicosst/logo.tsx, que
+// la referencia directamente y nunca pasa por --font-heading): es la marca,
+// no la interfaz.
+const barlow = Barlow_Semi_Condensed({
+  variable: "--font-barlow",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["600", "700"],
 });
 
 // Las mismas dos familias que componen los PDF. Se cargan aquí para que la
@@ -49,7 +55,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${barlow.variable} ${ibmPlexSans.variable} ${ibmPlexMono.variable} ${reportSerif.variable} ${reportSans.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${barlow.variable} ${reportSerif.variable} ${reportSans.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

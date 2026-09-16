@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; caret-color: #009A80; }
+
+  /* Selección, cursor, barra de desplazamiento y anillo de foco vienen con
+     valores por defecto del navegador que no son de ningún sistema de diseño.
+     Tematizarlos es la señal más barata de que la página se construyó. */
+  ::selection { background: rgba(0,154,128,0.16); color: #0B0F14; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E4E8EB; border-radius: 999px;
+                              border: 3px solid #F7F8F9; }
+  ::-webkit-scrollbar-thumb:hover { background: #646F7A; }
+  :focus-visible { outline: 2px solid #0B0F14; outline-offset: 2px; border-radius: 6px; }
+  /* Toda tabla de datos alinea en columna sin pedirlo. */
+  td, th { font-variant-numeric: tabular-nums; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Etiqueta menor: pie de cifra, leyenda de gráfico, nombre de columna.
+     Caja normal. Las versalitas espaciadas eran el disfraz de «documento». */
+  .rub { font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+         color: #646F7A; }
+  /* Encabezado de sección. No es un ojo de buey sobre un titular: es el
+     titular de su bloque y pesa lo que pesa. */
+  .rub-ink { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em;
+             color: #0B0F14; }
+
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
+
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
+
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #646F7A; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #646F7A; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #007A65; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+  .btn-off { background: #F0F2F4; color: #646F7A; }
+  .btn-foco { box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #0B0F14; }
+
+  /* Esqueleto de carga. Un disco girando en mitad del contenido no dice
+     qué está llegando; una silueta sí. */
+  .hueso { background: #F0F2F4; border-radius: 6px; display: block; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #646F7A;
+           display: flex; align-items: center; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #646F7A;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* La clase .anim queda sólo para superficies de persuasión —portada,
+     acceso—, donde la entrada es parte del argumento. En las pantallas de
+     producto no se usa: quien abre un panel entra a una tarea, no a ver cómo
+     se carga. Ahí el único movimiento es el que informa de un estado. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
+
+      .p-rub { font-size: 9.5px; font-weight: 600; letter-spacing: 0.07em;
+               text-transform: uppercase; color: #6B7681; }
+      .p-prosa { font-size: 16px; line-height: 1.6; color: #3D4751;
+                 letter-spacing: -0.004em; text-wrap: pretty; }
+      .p-prosa strong { color: #0A0D11; font-weight: 600; }
+      .p-td { font-size: 15px; color: #0A0D11; padding: 8px 0;
+              border-bottom: 1px solid #DDE2E6; vertical-align: middle; }
+      .p-th { font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+              text-transform: uppercase; color: #6B7681; text-align: left;
+              padding: 0 0 8px; border-bottom: 1.2px solid #0A0D11; }
+</style>
+</helmet>
+<div style="width:794px;height:1123px;background:#F7F8F9;overflow:hidden">
+<div style="width:794px;height:1123px;background:#FFFFFF;padding:84px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="22.5" height="25" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.0px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#646F7A;line-height:1">Riesgo psicosocial</span>
+    </div></div>
+
+    <div style="margin-top:96px">
+      <h1 class="display" style="font-size:46px;color:#0A0D11;max-width:560px">
+        Evaluación de factores de riesgo psicosocial
+      </h1>
+      <p style="font-size:14px;color:#6B7681;margin-top:14px">Informe individual</p>
+      <p class="p-prosa" style="margin-top:16px;max-width:480px">
+        Batería de instrumentos del Ministerio de Trabajo de Colombia ·
+        Resolución 2764 de 2022.
+      </p>
+    </div>
+
+    <div style="margin-top:44px;border-top:1.2px solid #0A0D11">
+      
+        <div style="display:flex;gap:22px;padding:12px 0;">
+          <span class="p-rub" style="width:150px;flex-shrink:0;padding-top:4px">Trabajador evaluado</span>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:15.5px;font-weight:500;color:#0A0D11;letter-spacing:-0.012em">Hernán Duque Prieto</p>
+            <p class="num" style="font-size:12.5px;color:#6B7681;margin-top:2px">CC 79.114.226</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:22px;padding:12px 0;border-top:1px solid #DDE2E6">
+          <span class="p-rub" style="width:150px;flex-shrink:0;padding-top:4px">Empresa</span>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:15.5px;font-weight:500;color:#0A0D11;letter-spacing:-0.012em">Transportes Andinos S.A.S.</p>
+            <p class="num" style="font-size:12.5px;color:#6B7681;margin-top:2px">NIT 900.412.336-1</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:22px;padding:12px 0;border-top:1px solid #DDE2E6">
+          <span class="p-rub" style="width:150px;flex-shrink:0;padding-top:4px">Cargo y área</span>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:15.5px;font-weight:500;color:#0A0D11;letter-spacing:-0.012em">Supervisor de rutas · Conducción</p>
+            <p class="num" style="font-size:12.5px;color:#6B7681;margin-top:2px">Nivel técnico</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:22px;padding:12px 0;border-top:1px solid #DDE2E6">
+          <span class="p-rub" style="width:150px;flex-shrink:0;padding-top:4px">Instrumentos</span>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:15.5px;font-weight:500;color:#0A0D11;letter-spacing:-0.012em">Intralaboral Forma A, Extralaboral y Estrés</p>
+            <p class="num" style="font-size:12.5px;color:#6B7681;margin-top:2px">185 ítems</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:22px;padding:12px 0;border-top:1px solid #DDE2E6">
+          <span class="p-rub" style="width:150px;flex-shrink:0;padding-top:4px">Fecha de aplicación</span>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:15.5px;font-weight:500;color:#0A0D11;letter-spacing:-0.012em">2 de septiembre de 2026</p>
+            
+          </div>
+        </div>
+    </div>
+
+    <div style="margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:28px">
+      <div style="flex:1">
+        <p class="p-rub">Profesional responsable</p>
+        <svg width="164" height="48" viewBox="0 0 240 76" fill="none" style="margin-top:6px;display:block">
+          <path d="M12 56c18-34 26 14 42-16s22 20 36-10 26 26 42-4 24 18 40-8 22 14 32 2" stroke="#0A0D11" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M104 64c26 2 54 0 78-4" stroke="#0A0D11" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <div style="border-top:1px solid #0A0D11;width:206px;padding-top:7px">
+          <p style="font-size:14.5px;font-weight:600;color:#0A0D11">María Torres Gómez</p>
+          <p style="font-size:12px;color:#3D4751;margin-top:2px">Psicóloga especialista en SST</p>
+          <p class="num" style="font-size:12px;color:#6B7681;margin-top:1px">T.P. 118432 · Lic. SST 2019-4471</p>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <svg viewBox="0 0 21 21" width="80" height="80" shape-rendering="crispEdges"><rect x="0" y="0" width="1" height="1" fill="#0A0D11"/><rect x="1" y="0" width="1" height="1" fill="#0A0D11"/><rect x="2" y="0" width="1" height="1" fill="#0A0D11"/><rect x="3" y="0" width="1" height="1" fill="#0A0D11"/><rect x="4" y="0" width="1" height="1" fill="#0A0D11"/><rect x="5" y="0" width="1" height="1" fill="#0A0D11"/><rect x="6" y="0" width="1" height="1" fill="#0A0D11"/><rect x="9" y="0" width="1" height="1" fill="#0A0D11"/><rect x="12" y="0" width="1" height="1" fill="#0A0D11"/><rect x="14" y="0" width="1" height="1" fill="#0A0D11"/><rect x="15" y="0" width="1" height="1" fill="#0A0D11"/><rect x="16" y="0" width="1" height="1" fill="#0A0D11"/><rect x="17" y="0" width="1" height="1" fill="#0A0D11"/><rect x="18" y="0" width="1" height="1" fill="#0A0D11"/><rect x="19" y="0" width="1" height="1" fill="#0A0D11"/><rect x="20" y="0" width="1" height="1" fill="#0A0D11"/><rect x="0" y="1" width="1" height="1" fill="#0A0D11"/><rect x="6" y="1" width="1" height="1" fill="#0A0D11"/><rect x="8" y="1" width="1" height="1" fill="#0A0D11"/><rect x="12" y="1" width="1" height="1" fill="#0A0D11"/><rect x="18" y="1" width="1" height="1" fill="#0A0D11"/><rect x="0" y="2" width="1" height="1" fill="#0A0D11"/><rect x="2" y="2" width="1" height="1" fill="#0A0D11"/><rect x="3" y="2" width="1" height="1" fill="#0A0D11"/><rect x="4" y="2" width="1" height="1" fill="#0A0D11"/><rect x="6" y="2" width="1" height="1" fill="#0A0D11"/><rect x="10" y="2" width="1" height="1" fill="#0A0D11"/><rect x="11" y="2" width="1" height="1" fill="#0A0D11"/><rect x="12" y="2" width="1" height="1" fill="#0A0D11"/><rect x="18" y="2" width="1" height="1" fill="#0A0D11"/><rect x="0" y="3" width="1" height="1" fill="#0A0D11"/><rect x="2" y="3" width="1" height="1" fill="#0A0D11"/><rect x="3" y="3" width="1" height="1" fill="#0A0D11"/><rect x="4" y="3" width="1" height="1" fill="#0A0D11"/><rect x="6" y="3" width="1" height="1" fill="#0A0D11"/><rect x="8" y="3" width="1" height="1" fill="#0A0D11"/><rect x="18" y="3" width="1" height="1" fill="#0A0D11"/><rect x="0" y="4" width="1" height="1" fill="#0A0D11"/><rect x="2" y="4" width="1" height="1" fill="#0A0D11"/><rect x="3" y="4" width="1" height="1" fill="#0A0D11"/><rect x="4" y="4" width="1" height="1" fill="#0A0D11"/><rect x="6" y="4" width="1" height="1" fill="#0A0D11"/><rect x="18" y="4" width="1" height="1" fill="#0A0D11"/><rect x="0" y="5" width="1" height="1" fill="#0A0D11"/><rect x="6" y="5" width="1" height="1" fill="#0A0D11"/><rect x="7" y="5" width="1" height="1" fill="#0A0D11"/><rect x="10" y="5" width="1" height="1" fill="#0A0D11"/><rect x="13" y="5" width="1" height="1" fill="#0A0D11"/><rect x="18" y="5" width="1" height="1" fill="#0A0D11"/><rect x="0" y="6" width="1" height="1" fill="#0A0D11"/><rect x="1" y="6" width="1" height="1" fill="#0A0D11"/><rect x="2" y="6" width="1" height="1" fill="#0A0D11"/><rect x="3" y="6" width="1" height="1" fill="#0A0D11"/><rect x="4" y="6" width="1" height="1" fill="#0A0D11"/><rect x="5" y="6" width="1" height="1" fill="#0A0D11"/><rect x="6" y="6" width="1" height="1" fill="#0A0D11"/><rect x="7" y="6" width="1" height="1" fill="#0A0D11"/><rect x="11" y="6" width="1" height="1" fill="#0A0D11"/><rect x="14" y="6" width="1" height="1" fill="#0A0D11"/><rect x="15" y="6" width="1" height="1" fill="#0A0D11"/><rect x="16" y="6" width="1" height="1" fill="#0A0D11"/><rect x="17" y="6" width="1" height="1" fill="#0A0D11"/><rect x="18" y="6" width="1" height="1" fill="#0A0D11"/><rect x="19" y="6" width="1" height="1" fill="#0A0D11"/><rect x="20" y="6" width="1" height="1" fill="#0A0D11"/><rect x="5" y="7" width="1" height="1" fill="#0A0D11"/><rect x="6" y="7" width="1" height="1" fill="#0A0D11"/><rect x="7" y="7" width="1" height="1" fill="#0A0D11"/><rect x="13" y="7" width="1" height="1" fill="#0A0D11"/><rect x="14" y="7" width="1" height="1" fill="#0A0D11"/><rect x="20" y="7" width="1" height="1" fill="#0A0D11"/><rect x="1" y="8" width="1" height="1" fill="#0A0D11"/><rect x="3" y="8" width="1" height="1" fill="#0A0D11"/><rect x="10" y="8" width="1" height="1" fill="#0A0D11"/><rect x="12" y="8" width="1" height="1" fill="#0A0D11"/><rect x="14" y="8" width="1" height="1" fill="#0A0D11"/><rect x="16" y="8" width="1" height="1" fill="#0A0D11"/><rect x="18" y="8" width="1" height="1" fill="#0A0D11"/><rect x="0" y="9" width="1" height="1" fill="#0A0D11"/><rect x="11" y="9" width="1" height="1" fill="#0A0D11"/><rect x="12" y="9" width="1" height="1" fill="#0A0D11"/><rect x="13" y="9" width="1" height="1" fill="#0A0D11"/><rect x="14" y="9" width="1" height="1" fill="#0A0D11"/><rect x="15" y="9" width="1" height="1" fill="#0A0D11"/><rect x="2" y="10" width="1" height="1" fill="#0A0D11"/><rect x="5" y="10" width="1" height="1" fill="#0A0D11"/><rect x="8" y="10" width="1" height="1" fill="#0A0D11"/><rect x="11" y="10" width="1" height="1" fill="#0A0D11"/><rect x="14" y="10" width="1" height="1" fill="#0A0D11"/><rect x="17" y="10" width="1" height="1" fill="#0A0D11"/><rect x="20" y="10" width="1" height="1" fill="#0A0D11"/><rect x="2" y="11" width="1" height="1" fill="#0A0D11"/><rect x="6" y="11" width="1" height="1" fill="#0A0D11"/><rect x="9" y="11" width="1" height="1" fill="#0A0D11"/><rect x="10" y="11" width="1" height="1" fill="#0A0D11"/><rect x="13" y="11" width="1" height="1" fill="#0A0D11"/><rect x="17" y="11" width="1" height="1" fill="#0A0D11"/><rect x="0" y="12" width="1" height="1" fill="#0A0D11"/><rect x="1" y="12" width="1" height="1" fill="#0A0D11"/><rect x="2" y="12" width="1" height="1" fill="#0A0D11"/><rect x="8" y="12" width="1" height="1" fill="#0A0D11"/><rect x="9" y="12" width="1" height="1" fill="#0A0D11"/><rect x="15" y="12" width="1" height="1" fill="#0A0D11"/><rect x="16" y="12" width="1" height="1" fill="#0A0D11"/><rect x="17" y="12" width="1" height="1" fill="#0A0D11"/><rect x="5" y="13" width="1" height="1" fill="#0A0D11"/><rect x="7" y="13" width="1" height="1" fill="#0A0D11"/><rect x="9" y="13" width="1" height="1" fill="#0A0D11"/><rect x="11" y="13" width="1" height="1" fill="#0A0D11"/><rect x="13" y="13" width="1" height="1" fill="#0A0D11"/><rect x="20" y="13" width="1" height="1" fill="#0A0D11"/><rect x="0" y="14" width="1" height="1" fill="#0A0D11"/><rect x="6" y="14" width="1" height="1" fill="#0A0D11"/><rect x="7" y="14" width="1" height="1" fill="#0A0D11"/><rect x="8" y="14" width="1" height="1" fill="#0A0D11"/><rect x="9" y="14" width="1" height="1" fill="#0A0D11"/><rect x="10" y="14" width="1" height="1" fill="#0A0D11"/><rect x="0" y="15" width="1" height="1" fill="#0A0D11"/><rect x="6" y="15" width="1" height="1" fill="#0A0D11"/><rect x="9" y="15" width="1" height="1" fill="#0A0D11"/><rect x="12" y="15" width="1" height="1" fill="#0A0D11"/><rect x="15" y="15" width="1" height="1" fill="#0A0D11"/><rect x="18" y="15" width="1" height="1" fill="#0A0D11"/><rect x="0" y="16" width="1" height="1" fill="#0A0D11"/><rect x="6" y="16" width="1" height="1" fill="#0A0D11"/><rect x="8" y="16" width="1" height="1" fill="#0A0D11"/><rect x="12" y="16" width="1" height="1" fill="#0A0D11"/><rect x="16" y="16" width="1" height="1" fill="#0A0D11"/><rect x="19" y="16" width="1" height="1" fill="#0A0D11"/><rect x="20" y="16" width="1" height="1" fill="#0A0D11"/><rect x="0" y="17" width="1" height="1" fill="#0A0D11"/><rect x="6" y="17" width="1" height="1" fill="#0A0D11"/><rect x="10" y="17" width="1" height="1" fill="#0A0D11"/><rect x="11" y="17" width="1" height="1" fill="#0A0D11"/><rect x="12" y="17" width="1" height="1" fill="#0A0D11"/><rect x="18" y="17" width="1" height="1" fill="#0A0D11"/><rect x="19" y="17" width="1" height="1" fill="#0A0D11"/><rect x="0" y="18" width="1" height="1" fill="#0A0D11"/><rect x="1" y="18" width="1" height="1" fill="#0A0D11"/><rect x="2" y="18" width="1" height="1" fill="#0A0D11"/><rect x="3" y="18" width="1" height="1" fill="#0A0D11"/><rect x="4" y="18" width="1" height="1" fill="#0A0D11"/><rect x="5" y="18" width="1" height="1" fill="#0A0D11"/><rect x="6" y="18" width="1" height="1" fill="#0A0D11"/><rect x="8" y="18" width="1" height="1" fill="#0A0D11"/><rect x="15" y="18" width="1" height="1" fill="#0A0D11"/><rect x="17" y="18" width="1" height="1" fill="#0A0D11"/><rect x="19" y="18" width="1" height="1" fill="#0A0D11"/><rect x="0" y="19" width="1" height="1" fill="#0A0D11"/><rect x="6" y="19" width="1" height="1" fill="#0A0D11"/><rect x="16" y="19" width="1" height="1" fill="#0A0D11"/><rect x="17" y="19" width="1" height="1" fill="#0A0D11"/><rect x="18" y="19" width="1" height="1" fill="#0A0D11"/><rect x="19" y="19" width="1" height="1" fill="#0A0D11"/><rect x="20" y="19" width="1" height="1" fill="#0A0D11"/><rect x="0" y="20" width="1" height="1" fill="#0A0D11"/><rect x="6" y="20" width="1" height="1" fill="#0A0D11"/><rect x="7" y="20" width="1" height="1" fill="#0A0D11"/><rect x="10" y="20" width="1" height="1" fill="#0A0D11"/><rect x="13" y="20" width="1" height="1" fill="#0A0D11"/><rect x="16" y="20" width="1" height="1" fill="#0A0D11"/><rect x="19" y="20" width="1" height="1" fill="#0A0D11"/></svg>
+        <p class="num" style="font-size:9.5px;color:#6B7681;margin-top:6px">IN-2026-0918</p>
+        <p style="font-size:9.5px;color:#6B7681;margin-top:1px">Verificable en psicosst.co/v</p>
+      </div>
+    </div>
+
+    <p style="font-size:10px;line-height:1.55;color:#6B7681;margin-top:26px;padding-top:12px;border-top:1px solid #DDE2E6">
+      Documento reservado. Contiene datos sensibles de salud sometidos a la custodia del profesional
+      que lo suscribe (Ley 1090 de 2006) y al régimen de protección de datos personales
+      (Ley 1581 de 2012). Su reproducción o entrega a terceros sin autorización del titular está prohibida.
+    </p>
+  </div>
+</div>
+</x-dc>
+
+</body>
+</html>

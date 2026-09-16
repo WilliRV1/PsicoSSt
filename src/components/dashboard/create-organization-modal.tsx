@@ -12,7 +12,7 @@ import { getErrorMessage } from "@/lib/utils";
 const FormTooltip = ({ text }: { text: string }) => (
     <Tooltip>
         <TooltipTrigger type="button" tabIndex={-1} className="ml-1 cursor-help">
-            <Info className="h-4 w-4 text-gray-400 hover:text-primary transition-colors inline-block" />
+            <Info className="h-4 w-4 text-text-muted hover:text-primary transition-colors inline-block" />
         </TooltipTrigger>
         <TooltipContent className="max-w-[280px]">
             <p className="text-xs font-normal leading-relaxed">{text}</p>

@@ -37,61 +37,64 @@ function Profile({ b }: { b: ProfileBlock }) {
                     {b.note}
                 </Micro>
             )}
-            <table
-                style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    marginTop: 9,
-                    fontFamily: "var(--font-report-sans), sans-serif",
-                    fontSize: 12.5,
-                }}
-            >
-                <tbody>
-                    {b.rows.map((r, i) => (
-                        <tr
-                            key={r.label}
-                            style={{
-                                borderTop: i === 0 ? `1.3px solid ${PAPER.ink}` : `1px solid ${PAPER.rule}`,
-                            }}
-                        >
-                            <td style={{ padding: "6px 8px 6px 0", color: PAPER.ink }}>{r.label}</td>
-                            <td
+            <div style={{ overflowX: "auto" }}>
+                <table
+                    style={{
+                        width: "100%",
+                        minWidth: 320,
+                        borderCollapse: "collapse",
+                        marginTop: 9,
+                        fontFamily: "var(--font-report-sans), sans-serif",
+                        fontSize: 12.5,
+                    }}
+                >
+                    <tbody>
+                        {b.rows.map((r, i) => (
+                            <tr
+                                key={r.label}
                                 style={{
-                                    ...numStyle,
-                                    padding: "6px 8px",
-                                    textAlign: "right",
-                                    color: PAPER.ink2,
-                                    width: 48,
+                                    borderTop: i === 0 ? `1.3px solid ${PAPER.ink}` : `1px solid ${PAPER.rule}`,
                                 }}
                             >
-                                {r.count}
-                            </td>
-                            <td
-                                style={{
-                                    ...numStyle,
-                                    padding: "6px 8px",
-                                    textAlign: "right",
-                                    fontWeight: 600,
-                                    width: 62,
-                                }}
-                            >
-                                {r.pct}%
-                            </td>
-                            <td style={{ padding: "6px 0 6px 8px", width: "38%" }}>
-                                <div style={{ height: 6, background: PAPER.paper }}>
-                                    <div
-                                        style={{
-                                            height: 6,
-                                            width: `${(r.pct / peak) * 100}%`,
-                                            background: "rgba(22,21,15,0.42)",
-                                        }}
-                                    />
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                <td style={{ padding: "6px 8px 6px 0", color: PAPER.ink }}>{r.label}</td>
+                                <td
+                                    style={{
+                                        ...numStyle,
+                                        padding: "6px 8px",
+                                        textAlign: "right",
+                                        color: PAPER.ink2,
+                                        width: 48,
+                                    }}
+                                >
+                                    {r.count}
+                                </td>
+                                <td
+                                    style={{
+                                        ...numStyle,
+                                        padding: "6px 8px",
+                                        textAlign: "right",
+                                        fontWeight: 600,
+                                        width: 62,
+                                    }}
+                                >
+                                    {r.pct}%
+                                </td>
+                                <td style={{ padding: "6px 0 6px 8px", width: "38%" }}>
+                                    <div style={{ height: 6, background: PAPER.paper }}>
+                                        <div
+                                            style={{
+                                                height: 6,
+                                                width: `${(r.pct / peak) * 100}%`,
+                                                background: "rgba(22,21,15,0.42)",
+                                            }}
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             {b.missing > 0 && (
                 <Micro size={10.5} color={PAPER.ink3} style={{ marginTop: 7 }}>
                     Sin dato registrado: {b.missing}{" "}
@@ -128,7 +131,7 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                 </p>
                 <Link
                     href={`/dashboard/organizations/${orgId}`}
-                    className="inline-block mt-8 text-blue-600 font-semibold hover:underline"
+                    className="inline-block mt-8 text-primary font-semibold hover:underline"
                 >
                     ← Volver a la organización
                 </Link>

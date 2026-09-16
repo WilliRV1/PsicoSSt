@@ -54,11 +54,11 @@ export default async function SettingsPage() {
         PASSWORD_CHANGE: "Cambio de contraseña",
     };
 
-    const statusLabels: Record<string, { label: string; class: string }> = {
-        ACTIVE: { label: "Activo", class: "bg-green-100 text-green-700" },
-        PENDING: { label: "Pendiente", class: "bg-amber-100 text-amber-700" },
-        SUSPENDED: { label: "Suspendido", class: "bg-red-100 text-red-700" },
-        INACTIVE: { label: "Inactivo", class: "bg-gray-100 text-gray-600" },
+    const statusLabels: Record<string, { label: string; background: string; color: string }> = {
+        ACTIVE: { label: "Activo", background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+        PENDING: { label: "Pendiente", background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+        SUSPENDED: { label: "Suspendido", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" },
+        INACTIVE: { label: "Inactivo", background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" },
     };
 
     const statusInfo = statusLabels[psychologist.status] || statusLabels.ACTIVE;
@@ -73,13 +73,13 @@ export default async function SettingsPage() {
             {/* Account info */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="rounded-lg bg-indigo-50 p-2">
-                        <User className="h-4 w-4 text-indigo-600" />
+                    <div className="rounded-lg bg-teal-light p-2">
+                        <User className="h-4 w-4 text-primary" />
                     </div>
                     <h3 className="font-semibold text-foreground">Información de la cuenta</h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Nombre</p>
                         <p className="font-medium text-foreground">{psychologist.fullName}</p>
@@ -94,7 +94,7 @@ export default async function SettingsPage() {
                     </div>
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Estado</p>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusInfo.class}`}>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ background: statusInfo.background, color: statusInfo.color }}>
                             <Shield className="h-3 w-3" />
                             {statusInfo.label}
                         </span>
@@ -123,19 +123,19 @@ export default async function SettingsPage() {
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm text-center">
-                    <Building2 className="h-4 w-4 text-blue-600 mx-auto mb-1" />
+                    <Building2 className="h-4 w-4 text-info mx-auto mb-1" />
                     <p className="text-2xl font-bold text-foreground">{orgCount}</p>
                     <p className="text-xs text-muted-foreground">Empresas</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm text-center">
-                    <FileText className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                    <FileText className="h-4 w-4 text-teal-dark mx-auto mb-1" />
                     <p className="text-2xl font-bold text-foreground">{signedCount}</p>
                     <p className="text-xs text-muted-foreground">Firmados</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm text-center">
-                    <Clock className="h-4 w-4 text-amber-600 mx-auto mb-1" />
+                    <Clock className="h-4 w-4 mx-auto mb-1" style={{ color: "var(--color-risk-medium-solid)" }} />
                     <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
                     <p className="text-xs text-muted-foreground">Pendientes</p>
                 </div>
@@ -144,8 +144,8 @@ export default async function SettingsPage() {
             {/* Security */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="rounded-lg bg-emerald-50 p-2">
-                        <Shield className="h-4 w-4 text-emerald-600" />
+                    <div className="rounded-lg bg-teal-light p-2">
+                        <Shield className="h-4 w-4 text-teal-dark" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-foreground">Seguridad</h3>
@@ -158,11 +158,12 @@ export default async function SettingsPage() {
                             <p className="font-medium text-foreground">Autenticación de dos factores (MFA)</p>
                             <p className="text-xs text-muted-foreground">Protección adicional para tu cuenta.</p>
                         </div>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            psychologist.mfaEnabled
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                        }`}>
+                        <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                            style={psychologist.mfaEnabled
+                                ? { background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }
+                                : { background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" }}
+                        >
                             {psychologist.mfaEnabled ? "Activado" : "Desactivado"}
                         </span>
                     </div>
@@ -171,7 +172,10 @@ export default async function SettingsPage() {
                             <p className="font-medium text-foreground">Sesiones</p>
                             <p className="text-xs text-muted-foreground">Las sesiones expiran después de 8 horas.</p>
                         </div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                            style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+                        >
                             JWT activo
                         </span>
                     </div>
@@ -181,8 +185,8 @@ export default async function SettingsPage() {
             {/* Branding / White Label */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="rounded-lg bg-blue-50 p-2">
-                        <Palette className="h-4 w-4 text-blue-600" />
+                    <div className="rounded-lg p-2" style={{ background: "color-mix(in srgb, var(--color-info) 14%, transparent)" }}>
+                        <Palette className="h-4 w-4 text-info" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-foreground">Marca y Branding (White Label)</h3>
@@ -195,8 +199,8 @@ export default async function SettingsPage() {
             {/* Password change */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="rounded-lg bg-amber-50 p-2">
-                        <KeyRound className="h-4 w-4 text-amber-600" />
+                    <div className="rounded-lg p-2" style={{ background: "var(--color-risk-medium-bg)" }}>
+                        <KeyRound className="h-4 w-4" style={{ color: "var(--color-risk-medium-solid)" }} />
                     </div>
                     <div>
                         <h3 className="font-semibold text-foreground">Cambiar contraseña</h3>
@@ -209,8 +213,8 @@ export default async function SettingsPage() {
             {/* Recent activity */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="rounded-lg bg-purple-50 p-2">
-                        <Activity className="h-4 w-4 text-purple-600" />
+                    <div className="rounded-lg p-2" style={{ background: "color-mix(in srgb, var(--color-primary) 14%, transparent)" }}>
+                        <Activity className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-foreground">Actividad reciente</h3>

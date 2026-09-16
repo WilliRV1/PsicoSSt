@@ -3,119 +3,193 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Sistema visual — dirección «moderno y fluido».
+ *
+ * Geist sustituye a IBM Plex Sans/Mono como interfaz, titular y cifra: una
+ * sola familia contemporánea con cifras tabulares, en vez de tres voces
+ * distintas compitiendo. Barlow Semi Condensed se conserva únicamente para
+ * el logotipo (ver Logo, que lo referencia con var(--font-barlow) sin pasar
+ * por --font-heading). Source Serif 4 + Inter (variables --font-report-*)
+ * quedan intactas: son deliberadas, para que la vista previa del informe en
+ * pantalla use la misma tipografía que el PDF.
+ */
 @theme inline {
-  --font-sans:    var(--font-sans),    'IBM Plex Sans',         sans-serif;
-  --font-heading: var(--font-barlow),  'Barlow Semi Condensed', sans-serif;
-  --font-mono:    var(--font-mono),    'IBM Plex Mono',         monospace;
+  --font-sans:    var(--font-geist-sans), 'Geist', system-ui, sans-serif;
+  --font-heading: var(--font-geist-sans), 'Geist', system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace;
 
   /* ── Light mode ────────────────────────────────────────────── */
-  --color-background:    #F2F0EC;
-  --color-foreground:    #0C1520;
+  /* El lienzo pasa de un beige cálido a un neutro frío: es el detalle que
+     más rápido delata una interfaz "genérica" cuando se hace al revés. */
+  --color-background:    #F7F8F9;
+  --color-foreground:    #0B0F14;
 
   --color-primary:       #009A80;
   --color-primary-foreground: #FFFFFF;
 
   --color-teal:          #009A80;
-  --color-teal-light:    #CCF0E8;
+  --color-teal-light:    #E4F6F1;
   --color-teal-dark:     #007A65;
 
   --color-surface:       #FFFFFF;
-  --color-surface-muted: #E8E5E0;
+  --color-surface-muted: #F0F2F4;
 
-  --color-border:        #D4CFC8;
-  --color-border-muted:  #E2DED8;
-  --color-border-focus:  #009A80;
+  --color-border:        #E4E8EB;
+  --color-border-muted:  #EFF2F4;
+  --color-border-focus:  #0B0F14;
 
   --color-popover:           #FFFFFF;
-  --color-popover-foreground: #0C1520;
+  --color-popover-foreground: #0B0F14;
 
-  --color-text:           #0C1520;
+  --color-text:           #0B0F14;
   --color-text-secondary: #4A5F70;
-  --color-text-muted:     #8A9FAE;
+  /* Antes #8A9FAE: 2,4:1 contra el lienzo, muy por debajo del mínimo AA de
+     4,5:1 para texto de cuerpo. Este tono da 4,8:1 sobre el lienzo y 5,5:1
+     sobre superficie — es la misma familia de gris, sólo más oscura. */
+  --color-text-muted:     #5C6B77;
   --color-text-inverse:   #FFFFFF;
 
-  --color-success:  #16A34A;
-  --color-warning:  #D97706;
-  --color-danger:   #DC2626;
-  --color-info:     #2563EB;
+  --color-success:  #17B26A;
+  --color-warning:  #F79009;
+  --color-danger:   #F04438;
+  --color-info:     #2E90FA;
 
-  /* Risk */
-  --color-risk-none-bg:       #F2F0EC;
-  --color-risk-none-text:     #4A5F70;
-  --color-risk-none-border:   #D4CFC8;
-  --color-risk-low-bg:        #DCFCE7;
-  --color-risk-low-text:      #15803D;
-  --color-risk-low-border:    #BBF7D0;
-  --color-risk-medium-bg:     #FEF3C7;
-  --color-risk-medium-text:   #B45309;
-  --color-risk-medium-border: #FDE68A;
-  --color-risk-high-bg:       #FFEDD5;
-  --color-risk-high-text:     #C2410C;
-  --color-risk-high-border:   #FED7AA;
-  --color-risk-veryhigh-bg:   #FEE2E2;
-  --color-risk-veryhigh-text: #B91C1C;
-  --color-risk-veryhigh-border: #FECACA;
+  /* Riesgo — Resolución 2646 de 2008. Los cinco niveles conservan su
+     asociación semántica (verde→rojo) en la versión saturada y limpia en
+     vez del pastel de Tailwind por defecto; todas pasan AA (5,0–5,8:1)
+     contra su propio fondo. */
+  --color-risk-none-bg:       #F1F3F5;
+  --color-risk-none-text:     #55636E;
+  --color-risk-none-border:   #E4E8EB;
+  --color-risk-low-bg:        #E7F8EF;
+  --color-risk-low-text:      #067647;
+  --color-risk-low-border:    #CDF0DE;
+  --color-risk-medium-bg:     #FEF6E7;
+  --color-risk-medium-text:   #B54708;
+  --color-risk-medium-border: #FBE3BC;
+  --color-risk-high-bg:       #FEF0E7;
+  --color-risk-high-text:     #B93815;
+  --color-risk-high-border:   #FBD9C4;
+  --color-risk-veryhigh-bg:   #FEECEC;
+  --color-risk-veryhigh-text: #B42318;
+  --color-risk-veryhigh-border: #FBD2D2;
 
-  --radius-sm:  4px;
-  --radius-md:  8px;
+  /* Marcador macizo de cada nivel — para el indicador ordinal de cinco
+     pasos y para barras/gráficos, donde una píldora pastel no se lee. */
+  --color-risk-none-solid:     #A9B4BC;
+  --color-risk-low-solid:      #17B26A;
+  --color-risk-medium-solid:   #F79009;
+  --color-risk-high-solid:     #EF6820;
+  --color-risk-veryhigh-solid: #F04438;
+
+  /*
+   * Puente de compatibilidad con shadcn/ui.
+   *
+   * Casi todos los primitivos en src/components/ui/*.tsx (diálogo, menú
+   * desplegable, pestañas, acordeón, casilla, aviso, tarjeta…) se generaron
+   * asumiendo los nombres de variable por defecto de shadcn (--muted,
+   * --card, --ring, --destructive…), pero este tema nunca los definió: usa
+   * su propio vocabulario (--color-surface-muted, --color-danger…). El
+   * resultado, en 99 archivos, son clases como bg-muted o
+   * text-muted-foreground que Tailwind no genera porque el token no existe
+   * — no fallan, simplemente no pintan nada. Se enlazan aquí a los tokens
+   * reales en vez de reescribir cada componente.
+   */
+  --color-muted:              var(--color-surface-muted);
+  --color-muted-foreground:   var(--color-text-muted);
+  --color-card:               var(--color-surface);
+  --color-card-foreground:    var(--color-foreground);
+  --color-accent:             var(--color-surface-muted);
+  --color-accent-foreground:  var(--color-foreground);
+  --color-secondary:          var(--color-surface-muted);
+  --color-secondary-foreground: var(--color-foreground);
+  --color-destructive:        var(--color-danger);
+  --color-destructive-foreground: #FFFFFF;
+  --color-input:              var(--color-border);
+  --color-ring:               var(--color-primary);
+
+  --radius-sm:  8px;
+  --radius-md:  10px;
   --radius-lg:  12px;
   --radius-xl:  16px;
-  --radius-2xl: 24px;
+  --radius-2xl: 20px;
 
-  --shadow-sm:       0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-DEFAULT:  0 1px 3px 0 rgb(0 0 0 / 0.08);
-  --shadow-md:       0 4px 12px 0 rgb(0 0 0 / 0.08);
-  --shadow-elevated: 0 8px 24px 0 rgb(0 0 0 / 0.10);
+  /* Elevación suave: 1px de línea más un halo amplio y muy tenue, en vez de
+     "sólo filete, nunca sombra" — plano se lee como impreso, no como app. */
+  --shadow-sm:       0 1px 2px 0 rgb(11 15 20 / 0.04);
+  --shadow-DEFAULT:  0 1px 2px 0 rgb(11 15 20 / 0.04), 0 1px 3px 0 rgb(11 15 20 / 0.06);
+  --shadow-md:       0 1px 2px 0 rgb(11 15 20 / 0.04), 0 8px 20px -6px rgb(11 15 20 / 0.10);
+  --shadow-elevated: 0 1px 2px 0 rgb(11 15 20 / 0.04), 0 16px 40px -12px rgb(11 15 20 / 0.16);
 }
 
 /* ── Dark mode ────────────────────────────────────────────────── */
 .dark {
-  --color-background:    #0C1520;
-  --color-foreground:    #C8D5DE;
+  --color-background:    #0B0F14;
+  --color-foreground:    #E4E8EB;
 
-  --color-primary:       #00C9A7;
-  --color-primary-foreground: #0C1520;
+  --color-primary:       #14B8A0;
+  --color-primary-foreground: #06120F;
 
-  --color-teal:          #00C9A7;
-  --color-teal-light:    #002E27;
-  --color-teal-dark:     #009A80;
+  --color-teal:          #14B8A0;
+  --color-teal-light:    #0C2420;
+  --color-teal-dark:     #4FD3BE;
 
-  --color-surface:       #0F1C2A;
-  --color-surface-muted: #0A1420;
+  --color-surface:       #10151C;
+  --color-surface-muted: #161C24;
 
-  --color-border:        #1A2B3C;
-  --color-border-muted:  #142234;
-  --color-border-focus:  #00C9A7;
+  --color-border:        #232B34;
+  --color-border-muted:  #1A2128;
+  --color-border-focus:  #E4E8EB;
 
-  --color-popover:           #0F1C2A;
-  --color-popover-foreground: #C8D5DE;
+  --color-popover:           #10151C;
+  --color-popover-foreground: #E4E8EB;
 
-  --color-text:           #C8D5DE;
-  --color-text-secondary: #4E6478;
-  --color-text-muted:     #293D50;
-  --color-text-inverse:   #0C1520;
+  --color-text:           #E4E8EB;
+  --color-text-secondary: #A7B3BE;
+  --color-text-muted:     #7C8894;
+  --color-text-inverse:   #0B0F14;
 
-  --color-success:  #22C55E;
-  --color-warning:  #F59E0B;
-  --color-danger:   #EF4444;
-  --color-info:     #3B82F6;
+  --color-success:  #3FCE85;
+  --color-warning:  #FDB022;
+  --color-danger:   #F97066;
+  --color-info:     #53B1FD;
 
-  /* Risk dark */
-  --color-risk-none-bg:       #0F1C2A;
-  --color-risk-none-text:     #4E6478;
-  --color-risk-none-border:   #1A2B3C;
-  --color-risk-low-bg:        #052E1C;
-  --color-risk-low-text:      #4ADE80;
-  --color-risk-low-border:    #064E30;
-  --color-risk-medium-bg:     #431A04;
-  --color-risk-medium-text:   #FBBF24;
-  --color-risk-medium-border: #78350F;
-  --color-risk-high-bg:       #431004;
-  --color-risk-high-text:     #FB923C;
-  --color-risk-high-border:   #7C2D12;
-  --color-risk-veryhigh-bg:   #430A0A;
-  --color-risk-veryhigh-text: #F87171;
-  --color-risk-veryhigh-border: #7F1D1D;
+  /* Riesgo, modo oscuro */
+  --color-risk-none-bg:       #161C24;
+  --color-risk-none-text:     #A7B3BE;
+  --color-risk-none-border:   #232B34;
+  --color-risk-low-bg:        #0B2318;
+  --color-risk-low-text:      #3FCE85;
+  --color-risk-low-border:    #123B27;
+  --color-risk-medium-bg:     #2B1D07;
+  --color-risk-medium-text:   #FDB022;
+  --color-risk-medium-border: #442D0C;
+  --color-risk-high-bg:       #2B1607;
+  --color-risk-high-text:     #FF9C66;
+  --color-risk-high-border:   #44240C;
+  --color-risk-veryhigh-bg:   #2B0E0C;
+  --color-risk-veryhigh-text: #F97066;
+  --color-risk-veryhigh-border: #44160F;
+
+  --color-risk-none-solid:     #4A5560;
+  --color-risk-low-solid:      #3FCE85;
+  --color-risk-medium-solid:   #FDB022;
+  --color-risk-high-solid:     #FF9C66;
+  --color-risk-veryhigh-solid: #F97066;
+}
+
+/* ── Movimiento ───────────────────────────────────────────────────
+   Duraciones y curvas del manual de ingeniería de interfaz de Emil
+   Kowalski: techo de 300ms, curva de salida fuerte para lo que entra en
+   pantalla, sólo transform/opacity. No son tokens de color, así que viven
+   fuera de @theme inline (no generan utilidades, son variables planas). */
+:root {
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-press: 130ms;
+  --duration-menu: 180ms;
+  --duration-panel: 240ms;
 }
 
 /* ── Base ──────────────────────────────────────────────────────── */
@@ -127,23 +201,58 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01';
+    caret-color: var(--color-primary);
   }
+
+  /* Cifras tabulares en cualquier tabla, sin tener que acordarse de pedirlo
+     celda por celda: una columna de números alinea sola. */
+  table { font-variant-numeric: tabular-nums; }
 
   ::selection {
-    background-color: rgba(0, 201, 167, 0.2);
+    background-color: rgba(0, 154, 128, 0.18);
+    color: var(--color-foreground);
   }
 
-  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar       { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(26, 43, 60, 1); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(0, 201, 167, 0.3); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 99px;
+    border: 3px solid var(--color-background);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); background-clip: padding-box; }
+
+  /* El anillo de foco es del sistema, no el azul por defecto del navegador:
+     es la señal más barata de que una interfaz se construyó a propósito. */
+  :focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
 }
 
-/* ── Utilities ─────────────────────────────────────────────────── */
+/* ── Utilidades ─────────────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.font-heading { font-family: var(--font-barlow); }
+.font-heading { font-family: var(--font-heading); }
+.font-brand   { font-family: var(--font-barlow), 'Barlow Semi Condensed', sans-serif; }
+
+/* Respuesta al pulsar (Kowalski: scale(0.97), 100–160ms). Un componente sin
+   esto se siente muerto al tacto; se aplica con una clase en vez de en cada
+   sitio para que ningún botón nuevo se quede sin ella por descuido. */
+.press-feedback {
+  transition: transform var(--duration-press) var(--ease-out-strong);
+}
+.press-feedback:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press-feedback:active { transform: none; }
+}
 
 /* ── Print (legal, unchanged) ──────────────────────────────────── */
 @media print {

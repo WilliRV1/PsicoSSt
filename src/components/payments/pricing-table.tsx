@@ -80,7 +80,7 @@ export function PricingTable({ mode, currentPlan }: Props) {
                             <ul className="mt-6 space-y-2.5">
                                 {plan.features.map((f) => (
                                     <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
-                                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" /> {f}
+                                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> {f}
                                     </li>
                                 ))}
                             </ul>

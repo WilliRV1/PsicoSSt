@@ -44,16 +44,17 @@ export default function PasswordForm() {
         : 3;
 
     const strengthLabel = ["", "Débil", "Aceptable", "Fuerte"];
-    const strengthColor = ["", "bg-red-500", "bg-yellow-400", "bg-emerald-500"];
+    const strengthColor = ["", "bg-risk-veryhigh-solid", "bg-risk-medium-solid", "bg-risk-low-solid"];
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             {message && (
-                <div className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium ${
-                    message.type === "success"
-                        ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                        : "bg-red-50 border border-red-200 text-red-700"
-                }`}>
+                <div
+                    className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium border"
+                    style={message.type === "success"
+                        ? { background: "var(--color-risk-low-bg)", borderColor: "var(--color-risk-low-border)", color: "var(--color-risk-low-text)" }
+                        : { background: "var(--color-risk-veryhigh-bg)", borderColor: "var(--color-risk-veryhigh-border)", color: "var(--color-risk-veryhigh-text)" }}
+                >
                     {message.type === "success" && <CheckCircle2 className="h-4 w-4 shrink-0" />}
                     {message.text}
                 </div>
@@ -130,13 +131,13 @@ export default function PasswordForm() {
                     required
                     className={`w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${
                         form.confirmPassword && form.newPassword !== form.confirmPassword
-                            ? "border-red-400"
+                            ? "border-danger/60"
                             : "border-border focus:border-primary"
                     }`}
                     placeholder="••••••••"
                 />
                 {form.confirmPassword && form.newPassword !== form.confirmPassword && (
-                    <p className="text-xs text-red-600">Las contraseñas no coinciden.</p>
+                    <p className="text-xs text-danger">Las contraseñas no coinciden.</p>
                 )}
             </div>
 

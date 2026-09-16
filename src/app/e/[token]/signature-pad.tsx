@@ -29,7 +29,7 @@ export default function SignaturePad({ onChange }: SignaturePadProps) {
             ctx.lineWidth = 2.5;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
-            ctx.strokeStyle = "#1e1b4b";
+            ctx.strokeStyle = "#0B0F14";
         }
     }, []);
 

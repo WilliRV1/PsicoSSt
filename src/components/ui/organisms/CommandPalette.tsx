@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Search, Building2, Users, FileText, ClipboardList, Settings, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -10,12 +11,17 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const router = useRouter();
 
-  // Handle Ctrl+K shortcut and custom event
+  // Handle Ctrl+K shortcut, Escape and custom event
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((open) => !open);
+      }
+      // La insignia "ESC" del recuadro de búsqueda lo prometía, pero nada
+      // la escuchaba: sólo se cerraba haciendo clic fuera.
+      if (e.key === "Escape") {
+        setOpen(false);
       }
     };
     const openPalette = () => setOpen(true);
@@ -37,7 +43,10 @@ export function CommandPalette() {
     { name: "Nueva empresa", icon: <Building2 className="w-4 h-4" />, action: () => router.push("/dashboard/organizations?new=true") },
     { name: "Nueva intervención", icon: <FileText className="w-4 h-4" />, action: () => router.push("/dashboard/interventions/new") },
     { name: "Ir a configuración", icon: <Settings className="w-4 h-4" />, action: () => router.push("/dashboard/settings") },
-    { name: "Cerrar Sesión", icon: <LogOut className="w-4 h-4" />, action: () => router.push("/api/auth/signout") },
+    // navegar por GET a /api/auth/signout sólo muestra la página de
+    // confirmación sin estilos de NextAuth; signOut() hace el POST con CSRF
+    // que de verdad cierra la sesión, igual que el resto del panel.
+    { name: "Cerrar sesión", icon: <LogOut className="w-4 h-4" />, action: () => signOut({ callbackUrl: "/login" }) },
   ];
 
   const filteredCommands = query === "" 

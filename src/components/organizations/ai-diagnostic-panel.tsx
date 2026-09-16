@@ -175,10 +175,13 @@ export default function AIDiagnosticPanel({ orgId, orgName }: AIDiagnosticPanelP
     return (
         <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/10 flex items-center justify-between gap-3">
+            <div
+                className="px-5 py-4 border-b border-border flex items-center justify-between gap-3"
+                style={{ background: "color-mix(in srgb, var(--color-primary) 6%, transparent)" }}
+            >
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--color-teal-light)" }}>
+                        <Sparkles className="w-4 h-4" style={{ color: "var(--color-teal-dark)" }} />
                     </div>
                     <div>
                         <h3 className="text-[14px] font-semibold text-foreground">Diagnóstico Organizacional IA</h3>
@@ -194,7 +197,7 @@ export default function AIDiagnosticPanel({ orgId, orgName }: AIDiagnosticPanelP
                     {report && (
                         <>
                             <Button variant="outline" size="sm" onClick={copy} className="h-8 text-[12px] gap-1.5">
-                                {copied ? <CheckCheck className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                {copied ? <CheckCheck className="w-3.5 h-3.5" style={{ color: "var(--color-success)" }} /> : <Copy className="w-3.5 h-3.5" />}
                                 {copied ? "Copiado" : "Copiar"}
                             </Button>
                             <Button variant="outline" size="sm" onClick={generate} disabled={loading} className="h-8 text-[12px] gap-1.5">
@@ -212,7 +215,8 @@ export default function AIDiagnosticPanel({ orgId, orgName }: AIDiagnosticPanelP
                             size="sm"
                             onClick={generate}
                             disabled={loading}
-                            className="h-8 text-[12px] gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                            className="h-8 text-[12px] gap-1.5 press-feedback"
+                            style={{ background: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
                         >
                             {loading ? (
                                 <><Loader2 className="w-3.5 h-3.5 animate-spin" />Analizando...</>
@@ -235,10 +239,10 @@ export default function AIDiagnosticPanel({ orgId, orgName }: AIDiagnosticPanelP
             {loading && !report && (
                 <div className="px-5 py-16 flex flex-col items-center justify-center gap-4 text-center">
                     <div className="relative">
-                        <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                            <Sparkles className="w-6 h-6 text-indigo-600 animate-pulse" />
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--color-teal-light)" }}>
+                            <Sparkles className="w-6 h-6 animate-pulse" style={{ color: "var(--color-teal-dark)" }} />
                         </div>
-                        <Loader2 className="w-16 h-16 text-indigo-300 animate-spin absolute -inset-2" />
+                        <Loader2 className="w-16 h-16 animate-spin absolute -inset-2" style={{ color: "var(--color-teal-light)" }} />
                     </div>
                     <div>
                         <p className="text-[14px] font-semibold text-foreground">Analizando datos de {orgName}</p>

@@ -8,7 +8,7 @@ import colombiaData from "@/config/colombia.json";
 const FormTooltip = ({ text }: { text: string }) => (
     <Tooltip>
         <TooltipTrigger type="button" tabIndex={-1} className="ml-1 cursor-help">
-            <Info className="h-4 w-4 text-gray-400 hover:text-indigo-600 transition-colors inline-block" />
+            <Info className="h-4 w-4 text-text-muted hover:text-primary transition-colors inline-block" />
         </TooltipTrigger>
         <TooltipContent className="max-w-[280px]">
             <p className="text-xs font-normal leading-relaxed">{text}</p>
@@ -113,7 +113,7 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: WorkerFor
     const showCustomCity = showCustomDept || selectedCity === "OTRO" || (selectedCity !== "" && !isKnownCity);
 
     return (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <Label className="text-xs text-gray-500">Departamento</Label>
                 {showCustomDept ? (
@@ -125,7 +125,7 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: WorkerFor
                             placeholder="Escriba el departamento" 
                             autoFocus={selectedDept === "OTRO"}
                         />
-                        <button type="button" onClick={() => setForm((f) => ({ ...f, [deptKey]: "", [cityKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, [deptKey]: "", [cityKey]: "" }))} className="text-xs text-info hover:opacity-70 underline whitespace-nowrap">Lista</button>
                     </div>
                 ) : (
                     <select 
@@ -151,7 +151,7 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: WorkerFor
                             autoFocus={selectedCity === "OTRO"}
                         />
                         {!showCustomDept && (
-                            <button type="button" onClick={() => setForm((f) => ({ ...f, [cityKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                            <button type="button" onClick={() => setForm((f) => ({ ...f, [cityKey]: "" }))} className="text-xs text-info hover:opacity-70 underline whitespace-nowrap">Lista</button>
                         )}
                     </div>
                 ) : (
@@ -194,7 +194,7 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                             autoFocus={selectedValue === "OTRO"}
                         />
                         {!noOptionsAvailable && (
-                            <button type="button" onClick={() => setForm((f) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Cancelar</button>
+                            <button type="button" onClick={() => setForm((f) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-info hover:opacity-70 underline whitespace-nowrap">Cancelar</button>
                         )}
                     </div>
                     {((selectedValue === "OTRO" || selectedValue !== "") && !isKnown) && (
@@ -211,7 +211,7 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                 >
                     <option value="">Seleccione...</option>
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
-                    <option value="OTRO" className="font-semibold text-indigo-600">+ Crear nuevo...</option>
+                    <option value="OTRO" className="font-semibold text-primary">+ Crear nuevo...</option>
                 </select>
             )}
         </div>
@@ -237,13 +237,13 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: Work
     return (
         <div className="space-y-8">
             <div className="bg-white text-black p-6 border rounded-lg shadow-sm">
-                <div className="flex justify-between items-start border-b border-gray-300 pb-4 mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start border-b border-gray-300 pb-4 mb-6 gap-4">
                     <div className="space-y-4 flex-1">
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                             <span className="font-bold whitespace-nowrap">Fecha de evaluación:</span>
                             <span className="text-gray-400 italic text-sm">dd mm aaaa (Sólo lectura en creación)</span>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                             <span className="font-bold whitespace-nowrap">del respondiente (ID):</span>
                             <div className="flex gap-2">
                                 <select value={form.documentType} onChange={e => setForm((f) => ({ ...f, documentType: e.target.value }))} className="border border-gray-300 p-1 text-sm bg-white rounded">
@@ -257,7 +257,7 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: Work
                             </div>
                         </div>
                     </div>
-                    <div className="text-right text-xs text-gray-500 max-w-[200px]">
+                    <div className="text-left sm:text-right text-xs text-gray-500 sm:max-w-[200px]">
                         Libertad y Orden<br/>
                         Ministerio de la Protección Social<br/>
                         República de Colombia<br/>

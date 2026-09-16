@@ -32,10 +32,72 @@ const EMPTY_FORM = {
     displacementTime: "",
 };
 
+// `text-base` (16px) y no `text-sm`: por debajo de 16px Safari en iOS hace
+// zoom automático al enfocar el campo y el formulario queda desplazado a la
+// derecha. La altura sube a 52px para que el objetivo táctil sea cómodo.
 const SELECT_CLASS =
-    "flex h-11 w-full rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500";
+    "flex h-13 w-full rounded-xl border border-input bg-muted/50 px-4 text-base font-medium outline-none focus:ring-2 focus:ring-ring";
 const INPUT_CLASS =
-    "w-full h-11 rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500";
+    "w-full h-13 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium outline-none focus:ring-2 focus:ring-ring";
+
+/** La etiqueta es la pregunta que lee el trabajador: caja alta a 12px con
+ *  tracking ancho es lo que peor se lee a un brazo de distancia. */
+const LABEL_CLASS = "block text-[15px] font-semibold text-foreground mb-2";
+
+/**
+ * Opción en fila completa: el objetivo del dedo es toda la fila, no el
+ * círculo de 16px del radio nativo — que se conserva por accesibilidad y
+ * porque un `<label>` que lo envuelve ya lo activa al tocar cualquier punto.
+ */
+function RadioRow({
+    name,
+    label,
+    checked,
+    onSelect,
+}: {
+    name: string;
+    label: string;
+    checked: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <label
+            className={`flex items-center gap-3 min-h-[52px] px-4 py-2.5 rounded-xl border cursor-pointer transition-colors touch-manipulation select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${
+                checked ? "border-primary bg-teal-light" : "border-border bg-muted/40 active:bg-muted"
+            }`}
+        >
+            <input type="radio" name={name} checked={checked} onChange={onSelect} className="h-5 w-5 shrink-0 accent-primary" />
+            <span className={`text-base leading-snug ${checked ? "font-semibold text-teal-dark" : "text-foreground"}`}>
+                {label}
+            </span>
+        </label>
+    );
+}
+
+/** Variante compacta para listas de opciones muy cortas (estrato), donde
+ *  ocho filas completas serían una pantalla entera de scroll. */
+function RadioChip({
+    name,
+    label,
+    checked,
+    onSelect,
+}: {
+    name: string;
+    label: string;
+    checked: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <label
+            className={`flex items-center justify-center min-h-[48px] px-2 rounded-xl border text-[15px] font-semibold cursor-pointer transition-colors touch-manipulation select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${
+                checked ? "border-primary bg-teal-light text-teal-dark" : "border-border bg-muted/40 text-foreground active:bg-muted"
+            }`}
+        >
+            <input type="radio" name={name} checked={checked} onChange={onSelect} className="sr-only" />
+            {label}
+        </label>
+    );
+}
 
 /**
  * Sociodemográficos que hoy diligencia el psicólogo manualmente al crear el
@@ -71,40 +133,43 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 py-8">
-            <div className="max-w-lg w-full bg-card border border-border rounded-2xl shadow-sm p-6 space-y-5">
+        <div className="min-h-svh flex items-center justify-center px-4 py-8">
+            <div className="max-w-lg w-full bg-card border border-border rounded-2xl shadow-sm p-5 sm:p-6 space-y-6">
                 <div>
-                    <h1 className="text-lg font-bold text-foreground">Antes de empezar, cuéntanos de ti</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h1 className="text-xl font-bold text-foreground leading-snug">Antes de empezar, cuéntanos de ti</h1>
+                    <p className="text-[15px] leading-relaxed text-muted-foreground mt-1.5">
                         Esta información es necesaria para calificar correctamente tu evaluación. Tus respuestas son
                         confidenciales.
                     </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Sexo</label>
-                        <div className="flex gap-4">
+                        <label className={LABEL_CLASS}>Sexo</label>
+                        <div className="flex flex-col gap-2">
                             {[
                                 { v: "M", l: "Masculino" },
                                 { v: "F", l: "Femenino" },
                                 { v: "NO_BINARIO", l: "No binario" },
                             ].map((o) => (
-                                <label key={o.v} className="flex items-center gap-2 text-sm">
-                                    <input type="radio" name="gender" checked={form.gender === o.v} onChange={() => setForm((f) => ({ ...f, gender: o.v }))} />
-                                    {o.l}
-                                </label>
+                                <RadioRow
+                                    key={o.v}
+                                    name="gender"
+                                    label={o.l}
+                                    checked={form.gender === o.v}
+                                    onSelect={() => setForm((f) => ({ ...f, gender: o.v }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Fecha de nacimiento</label>
+                        <label className={LABEL_CLASS}>Fecha de nacimiento</label>
                         <input type="date" value={form.birthDate} onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))} className={INPUT_CLASS} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Estado civil</label>
+                        <label className={LABEL_CLASS}>Estado civil</label>
                         <select value={form.maritalStatus} onChange={(e) => setForm((f) => ({ ...f, maritalStatus: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
                             <option value="Soltero(a)">Soltero(a)</option>
@@ -116,7 +181,7 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Último nivel de estudios</label>
+                        <label className={LABEL_CLASS}>Último nivel de estudios</label>
                         <select value={form.educationLevel} onChange={(e) => setForm((f) => ({ ...f, educationLevel: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
                             <option value="Ninguno">Ninguno</option>
@@ -135,12 +200,12 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Ocupación o profesión</label>
+                        <label className={LABEL_CLASS}>Ocupación o profesión</label>
                         <input value={form.profession} onChange={(e) => setForm((f) => ({ ...f, profession: e.target.value }))} className={INPUT_CLASS} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Lugar de residencia</label>
+                        <label className={LABEL_CLASS}>Lugar de residencia</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <select
                                 value={form.residenceDepartment}
@@ -167,40 +232,46 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Estrato de tu vivienda</label>
-                        <div className="flex flex-wrap gap-3">
+                        <label className={LABEL_CLASS}>Estrato de tu vivienda</label>
+                        <div className="grid grid-cols-4 gap-2">
                             {["1", "2", "3", "4", "5", "6", "Finca", "No_se"].map((opt) => (
-                                <label key={opt} className="flex items-center gap-1.5 text-sm">
-                                    <input type="radio" name="stratum" checked={form.socioeconomicStratum === opt} onChange={() => setForm((f) => ({ ...f, socioeconomicStratum: opt }))} />
-                                    {opt === "No_se" ? "No sé" : opt}
-                                </label>
+                                <RadioChip
+                                    key={opt}
+                                    name="stratum"
+                                    label={opt === "No_se" ? "No sé" : opt}
+                                    checked={form.socioeconomicStratum === opt}
+                                    onSelect={() => setForm((f) => ({ ...f, socioeconomicStratum: opt }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de vivienda</label>
-                        <div className="flex gap-4">
+                        <label className={LABEL_CLASS}>Tipo de vivienda</label>
+                        <div className="flex flex-col gap-2">
                             {[
                                 { v: "Propia", l: "Propia" },
                                 { v: "Arriendo", l: "En arriendo" },
                                 { v: "Familiar", l: "Familiar" },
                             ].map((o) => (
-                                <label key={o.v} className="flex items-center gap-1.5 text-sm">
-                                    <input type="radio" name="housing" checked={form.housingType === o.v} onChange={() => setForm((f) => ({ ...f, housingType: o.v }))} />
-                                    {o.l}
-                                </label>
+                                <RadioRow
+                                    key={o.v}
+                                    name="housing"
+                                    label={o.l}
+                                    checked={form.housingType === o.v}
+                                    onSelect={() => setForm((f) => ({ ...f, housingType: o.v }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Personas que dependen económicamente de ti</label>
-                        <input type="number" inputMode="numeric" value={form.dependentsCount} onChange={(e) => setForm((f) => ({ ...f, dependentsCount: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
+                        <label className={LABEL_CLASS}>Personas que dependen económicamente de ti</label>
+                        <input type="number" inputMode="numeric" value={form.dependentsCount} onChange={(e) => setForm((f) => ({ ...f, dependentsCount: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Lugar donde trabajas</label>
+                        <label className={LABEL_CLASS}>Lugar donde trabajas</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <select
                                 value={form.workDepartment}
@@ -227,22 +298,29 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">¿Hace cuántos años trabajas en esta empresa?</label>
-                        <label className="flex items-center gap-2 text-sm mb-2">
+                        <label className={LABEL_CLASS}>¿Hace cuántos años trabajas en esta empresa?</label>
+                        <label
+                            className={`flex items-center gap-3 min-h-[52px] px-4 py-2.5 mb-2 rounded-xl border cursor-pointer transition-colors touch-manipulation select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${
+                                form.lessThanOneYearInCompany ? "border-primary bg-teal-light" : "border-border bg-muted/40 active:bg-muted"
+                            }`}
+                        >
                             <input
                                 type="checkbox"
+                                className="h-5 w-5 shrink-0 accent-primary"
                                 checked={form.lessThanOneYearInCompany}
                                 onChange={(e) => setForm((f) => ({ ...f, lessThanOneYearInCompany: e.target.checked, yearsInCompany: e.target.checked ? "0" : "" }))}
                             />
-                            Llevo menos de un año
+                            <span className={`text-base leading-snug ${form.lessThanOneYearInCompany ? "font-semibold text-teal-dark" : "text-foreground"}`}>
+                                Llevo menos de un año
+                            </span>
                         </label>
                         {!form.lessThanOneYearInCompany && (
-                            <input type="number" inputMode="numeric" value={form.yearsInCompany} onChange={(e) => setForm((f) => ({ ...f, yearsInCompany: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} placeholder="Años" />
+                            <input type="number" inputMode="numeric" value={form.yearsInCompany} onChange={(e) => setForm((f) => ({ ...f, yearsInCompany: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} placeholder="Años" />
                         )}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de contrato</label>
+                        <label className={LABEL_CLASS}>Tipo de contrato</label>
                         <select value={form.contractType} onChange={(e) => setForm((f) => ({ ...f, contractType: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
                             <option value="Temporal_menos_1_ano">Temporal de menos de 1 año</option>
@@ -255,41 +333,48 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Horas de trabajo al día</label>
-                        <input value={form.hoursPerDay} onChange={(e) => setForm((f) => ({ ...f, hoursPerDay: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} placeholder="Ej: 8" />
+                        <label className={LABEL_CLASS}>Horas de trabajo al día</label>
+                        <input type="number" inputMode="numeric" value={form.hoursPerDay} onChange={(e) => setForm((f) => ({ ...f, hoursPerDay: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} placeholder="Ej: 8" />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de salario</label>
+                        <label className={LABEL_CLASS}>Tipo de salario</label>
                         <div className="flex flex-col gap-2">
                             {[
                                 { v: "Fijo", l: "Fijo (diario, semanal, quincenal o mensual)" },
                                 { v: "Fijo_y_variable", l: "Una parte fija y otra variable" },
                                 { v: "Todo_variable", l: "Todo variable (comisión, producción)" },
                             ].map((o) => (
-                                <label key={o.v} className="flex items-center gap-2 text-sm">
-                                    <input type="radio" name="payment" checked={form.paymentModality === o.v} onChange={() => setForm((f) => ({ ...f, paymentModality: o.v }))} />
-                                    {o.l}
-                                </label>
+                                <RadioRow
+                                    key={o.v}
+                                    name="payment"
+                                    label={o.l}
+                                    checked={form.paymentModality === o.v}
+                                    onSelect={() => setForm((f) => ({ ...f, paymentModality: o.v }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Medio de transporte principal</label>
+                        <label className={LABEL_CLASS}>Medio de transporte principal</label>
                         <input value={form.transportMeans} onChange={(e) => setForm((f) => ({ ...f, transportMeans: e.target.value }))} className={INPUT_CLASS} placeholder="Ej: Bus, moto, a pie" />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tiempo de desplazamiento al trabajo (minutos)</label>
-                        <input type="number" inputMode="numeric" value={form.displacementTime} onChange={(e) => setForm((f) => ({ ...f, displacementTime: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
+                        <label className={LABEL_CLASS}>Tiempo de desplazamiento al trabajo (minutos)</label>
+                        <input type="number" inputMode="numeric" value={form.displacementTime} onChange={(e) => setForm((f) => ({ ...f, displacementTime: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} />
                     </div>
                 </div>
 
+                {/* Deliberadamente NO va pegado abajo: el formulario no valida
+                    nada, así que un «Continuar» siempre visible invita a
+                    enviarlo vacío desde el primer campo. Al final del recorrido
+                    natural cumple su función sin ese riesgo. */}
                 <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+                    className="w-full min-h-[52px] rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 touch-manipulation select-none"
                 >
                     {isSubmitting ? "Guardando..." : "Continuar"}
                 </button>

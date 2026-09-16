@@ -668,6 +668,8 @@
   padding: 0.75rem 1.25rem;
   margin-bottom: 1.25rem;
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: space-between;
   align-items: center;
 }
@@ -697,6 +699,81 @@
   border: 1px solid #E5E7EB;
   text-align: center;
   font-size: 0.875rem;
+}
+
+/* -- RESPONSIVE (mobile / tablet) --------------------------- */
+@media (max-width: 640px) {
+  .report-view-wrapper {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+
+  .report-header {
+    padding: 1.75rem 1.25rem 1.5rem;
+  }
+
+  .report-header-meta {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .report-header-ref {
+    text-align: left;
+  }
+
+  .report-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .report-body {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    border-right: none !important;
+    border-bottom: 1px solid #E5E7EB !important;
+  }
+
+  .info-item:last-child {
+    border-bottom: none !important;
+  }
+
+  .total-result-card {
+    grid-template-columns: 1fr;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .total-result-score {
+    font-size: 1.75rem;
+    justify-self: start;
+  }
+
+  .domain-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .signature-box {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .report-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  .report-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.85rem 1rem;
+  }
 }
 
 /* -- PRINT -------------------------------------------------- */

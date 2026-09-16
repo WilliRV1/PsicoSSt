@@ -3,34 +3,96 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+  LayoutGrid,
+  Building2,
+  Users,
+  ClipboardList,
+  FileText,
+  LineChart,
+  TrendingUp,
+  Target,
+  Sparkles,
+  Coins,
+  Store,
+  UserCog,
+  ShieldCheck,
+  ShieldAlert,
+  Settings,
+  LogOut,
+  X,
+} from "lucide-react";
 
 interface SidebarProps {
-  user?: { fullName: string; email: string; creditBalance: number } | null;
-  open?: boolean;
+  user?: { fullName: string; email: string; creditBalance: number; isAdmin?: boolean } | null;
+  mobileOpen?: boolean;
   onClose?: () => void;
 }
 
+/**
+ * Antes la barra listaba 5 destinos (Centro de Control, Empresas,
+ * Evaluaciones, Reportes, Configuración) para un panel que ya tenía cerca de
+ * veinte rutas reales: trabajadores, créditos, planes, analítica,
+ * tendencias, intervenciones, el asistente y todo el módulo de
+ * administración sólo eran alcanzables escribiendo la URL a mano. Aquí se
+ * agrupa el panel entero.
+ */
 const NAV = [
   {
-    section: "Operaciones",
+    section: "Operación",
     items: [
-      { label: "Centro de Control", href: "/dashboard" },
-      { label: "Empresas",          href: "/dashboard/organizations" },
-      { label: "Evaluaciones",      href: "/dashboard/assessments" },
-      { label: "Reportes",          href: "/dashboard/reports" },
+      { label: "Centro de control", href: "/dashboard", icon: LayoutGrid },
+      { label: "Empresas", href: "/dashboard/organizations", icon: Building2 },
+      { label: "Trabajadores", href: "/dashboard/workers", icon: Users },
+      { label: "Evaluaciones", href: "/dashboard/assessments", icon: ClipboardList },
+      { label: "Informes", href: "/dashboard/reports", icon: FileText },
     ],
   },
   {
-    section: "Sistema",
+    section: "Análisis",
     items: [
-      { label: "Configuración", href: "/dashboard/settings" },
+      { label: "Analítica", href: "/dashboard/analytics", icon: LineChart },
+      { label: "Tendencias", href: "/dashboard/trends", icon: TrendingUp },
+      { label: "Intervenciones", href: "/dashboard/interventions", icon: Target },
+      { label: "Asistente IA", href: "/dashboard/ai", icon: Sparkles },
     ],
   },
-];
+  {
+    section: "Cuenta",
+    items: [
+      { label: "Créditos", href: "/dashboard/credits", icon: Coins },
+      { label: "Planes", href: "/dashboard/plan", icon: Store },
+      { label: "Equipo", href: "/dashboard/users", icon: UserCog },
+      { label: "Roles y permisos", href: "/dashboard/roles", icon: ShieldCheck },
+      { label: "Configuración", href: "/dashboard/settings", icon: Settings },
+    ],
+  },
+] as const;
 
-export function Sidebar({ user, open = false, onClose }: SidebarProps) {
+const ADMIN_ITEM = { label: "Panel admin", href: "/dashboard/admin", icon: ShieldAlert };
+
+export function Sidebar({ user, mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
+
+  // Cierra el drawer móvil al cambiar de ruta — el mismo patrón de ajustar
+  // estado durante el render que documenta React, para no arrastrar el
+  // menú abierto a la siguiente pantalla.
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    if (mobileOpen) onClose?.();
+  }
+
+  // Bloquea el scroll del body mientras el drawer está abierto en móvil.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [mobileOpen]);
 
   const initials = (user?.fullName ?? "U")
     .split(" ")
@@ -39,146 +101,200 @@ export function Sidebar({ user, open = false, onClose }: SidebarProps) {
     .join("")
     .toUpperCase();
 
+  const isActiveHref = (href: string) =>
+    href === "/dashboard" ? pathname === "/dashboard" : pathname?.startsWith(href);
+
+  const renderItem = (item: { label: string; href: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> }) => {
+    const isActive = isActiveHref(item.href);
+    const Icon = item.icon;
+    return (
+      <li key={item.href} className="relative">
+        {isActive && (
+          <motion.span
+            layoutId="sidebar-active-pill"
+            className="absolute inset-0 rounded-lg"
+            style={{ background: "var(--color-surface-muted)" }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+          />
+        )}
+        <Link
+          href={item.href}
+          prefetch={false}
+          className="relative z-10 flex items-center gap-2.5 h-8 px-3 text-[13px] rounded-lg outline-none transition-colors duration-150"
+          style={{
+            color: isActive ? "var(--color-foreground)" : "var(--color-text-secondary)",
+            fontWeight: isActive ? 600 : 400,
+          }}
+        >
+          <Icon className="h-[15px] w-[15px] shrink-0" style={{ color: isActive ? "var(--color-primary)" : "var(--color-text-muted)" }} />
+          <span className="truncate">{item.label}</span>
+        </Link>
+      </li>
+    );
+  };
+
+  const logoBlock = (
+    <div className="px-6 pt-7 pb-6 shrink-0">
+      <Link href="/dashboard" className="block">
+        <span
+          className="font-brand"
+          style={{
+            fontWeight: 700,
+            fontSize: "1.15rem",
+            letterSpacing: "-0.01em",
+            color: "var(--color-foreground)",
+            lineHeight: 1,
+          }}
+        >
+          Psico<span style={{ color: "var(--color-primary)" }}>SST</span>
+        </span>
+        <span
+          className="font-brand"
+          style={{
+            display: "block",
+            fontSize: "0.62rem",
+            letterSpacing: "0.13em",
+            textTransform: "uppercase",
+            color: "var(--color-text-muted)",
+            marginTop: "3px",
+          }}
+        >
+          Riesgo Psicosocial
+        </span>
+      </Link>
+    </div>
+  );
+
+  const navBlock = (
+    <nav className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 space-y-5">
+      {NAV.map((group) => (
+        <div key={group.section}>
+          <p
+            className="px-3 mb-1 text-[10.5px] font-semibold uppercase tracking-[0.11em]"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            {group.section}
+          </p>
+          <ul className="space-y-0.5">{group.items.map(renderItem)}</ul>
+        </div>
+      ))}
+
+      {user?.isAdmin && (
+        <div>
+          <p
+            className="px-3 mb-1 text-[10.5px] font-semibold uppercase tracking-[0.11em]"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            Administración
+          </p>
+          <ul className="space-y-0.5">{renderItem(ADMIN_ITEM)}</ul>
+        </div>
+      )}
+    </nav>
+  );
+
+  const userBlock = (
+    <div
+      className="shrink-0 px-4 py-4"
+      style={{ borderTop: "1px solid var(--color-border)" }}
+    >
+      <div className="flex items-center gap-2.5">
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+          style={{
+            background: "var(--color-teal-light)",
+            color: "var(--color-teal-dark)",
+          }}
+        >
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <Link
+            href="/dashboard/profile"
+            className="text-[12.5px] font-semibold truncate block transition-colors hover:text-foreground"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {user?.fullName || "Usuario"}
+          </Link>
+        </div>
+        <button
+          type="button"
+          title="Cerrar sesión"
+          className="press-feedback p-1 rounded transition-colors duration-150 outline-none"
+          style={{ color: "var(--color-text-muted)" }}
+          onMouseEnter={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
+          }
+          onMouseLeave={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
+          }
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
+          <LogOut className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Desktop — columna estática siempre visible */}
       <aside
-        className={`sidebar no-scrollbar w-[220px] h-screen flex-shrink-0 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:static md:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className="sidebar no-scrollbar hidden lg:flex w-[224px] h-screen flex-shrink-0 flex-col"
         style={{
           background: "var(--color-surface)",
           borderRight: "1px solid var(--color-border)",
         }}
       >
-      {/* Logo */}
-      <div className="px-6 pt-7 pb-6 shrink-0">
-        <Link href="/dashboard" className="block">
-          <span
-            style={{
-              fontFamily: "var(--font-barlow)",
-              fontWeight: 700,
-              fontSize: "1.15rem",
-              letterSpacing: "-0.01em",
-              color: "var(--color-foreground)",
-              lineHeight: 1,
-            }}
-          >
-            Psico<span style={{ color: "var(--color-primary)" }}>SST</span>
-          </span>
-          <span
-            style={{
-              display: "block",
-              fontSize: "0.6rem",
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "var(--color-text-muted)",
-              marginTop: "2px",
-            }}
-          >
-            Riesgo Psicosocial
-          </span>
-        </Link>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 space-y-6">
-        {NAV.map((group) => (
-          <div key={group.section}>
-            <p
-              className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
-              style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-barlow)" }}
-            >
-              {group.section}
-            </p>
-
-            <ul>
-              {group.items.map((item) => {
-                const isActive =
-                  item.href === "/dashboard"
-                    ? pathname === "/dashboard"
-                    : pathname?.startsWith(item.href);
-
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      prefetch={false}
-                      onClick={onClose}
-                      className="flex items-center h-8 px-3 text-[13px] transition-colors duration-100 outline-none rounded-md"
-                      style={{
-                        color: isActive ? "var(--color-primary)" : "var(--color-text-secondary)",
-                        fontWeight: isActive ? 600 : 400,
-                        borderLeft: isActive
-                          ? "2px solid var(--color-primary)"
-                          : "2px solid transparent",
-                        background: isActive ? "var(--color-teal-light)" : "transparent",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isActive)
-                          (e.currentTarget as HTMLElement).style.color = "var(--color-foreground)";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive)
-                          (e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)";
-                      }}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
-
-      {/* User */}
-      <div
-        className="shrink-0 px-4 py-4"
-        style={{ borderTop: "1px solid var(--color-border)" }}
-      >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-            style={{
-              background: "var(--color-teal-light)",
-              color: "var(--color-primary)",
-            }}
-          >
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[12.5px] font-semibold truncate"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {user?.fullName || "Usuario"}
-            </p>
-          </div>
-          <button
-            type="button"
-            title="Cerrar sesión"
-            className="p-1 rounded transition-colors duration-100"
-            style={{ color: "var(--color-text-muted)" }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-            }
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
+        {logoBlock}
+        {navBlock}
+        {userBlock}
       </aside>
+
+      {/* Móvil — drawer superpuesto, fuera del flujo hasta que se abre */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+              onClick={onClose}
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.18 }}
+            />
+            <motion.aside
+              className="sidebar no-scrollbar fixed inset-y-0 left-0 z-50 w-[260px] max-w-[80vw] flex flex-col lg:hidden"
+              style={{
+                background: "var(--color-surface)",
+                borderRight: "1px solid var(--color-border)",
+              }}
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.23, 1, 0.32, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menú de navegación"
+            >
+              <div className="flex items-center justify-between shrink-0">
+                <div className="flex-1">{logoBlock}</div>
+                <button
+                  onClick={onClose}
+                  aria-label="Cerrar menú"
+                  className="press-feedback mr-4 flex h-9 w-9 items-center justify-center rounded-lg shrink-0"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              {navBlock}
+              {userBlock}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

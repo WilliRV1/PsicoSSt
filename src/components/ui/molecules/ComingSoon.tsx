@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { Icons } from "@/components/icons";
 
 interface ComingSoonProps {
@@ -8,37 +9,44 @@ interface ComingSoonProps {
     iconName?: keyof typeof Icons;
 }
 
+/**
+ * Antes: un círculo índigo con un `animate-ping` de fondo — un color que no
+ * existe en ningún otro sitio de la marca, sobre una animación que nunca
+ * termina y no informa de nada. Es el placeholder por defecto de cualquier
+ * generador de interfaces, no algo que se diseñó para PsicoSST.
+ *
+ * Ahora usa el teal de marca, entra una sola vez con el ritmo del resto del
+ * sistema (Kowalski: curva de salida fuerte, sin rebote) y no repite el
+ * gesto indefinidamente: lo que se ve cada vez que alguien visita la
+ * página no necesita moverse para siempre.
+ */
 export function ComingSoon({ title, description, iconName = "dashboard" }: ComingSoonProps) {
     const Icon = Icons[iconName] || Icons.dashboard;
-    
+    const reduceMotion = useReducedMotion();
+
     return (
-        <div className="flex-1 h-[calc(100vh-8rem)] flex flex-col items-center justify-center animate-in fade-in duration-500">
-            <div className="max-w-md w-full text-center space-y-6">
-                <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-indigo-500/10 rounded-full animate-ping duration-1000"></div>
-                    <div className="relative bg-indigo-50 border-2 border-indigo-100 w-20 h-20 rounded-full flex items-center justify-center shadow-sm">
-                        <Icon className="w-10 h-10 text-indigo-600" />
-                    </div>
+        <div className="flex-1 h-[calc(100vh-8rem)] flex flex-col items-center justify-center">
+            <motion.div
+                initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+                className="max-w-md w-full text-center space-y-6"
+            >
+                <div
+                    className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center"
+                    style={{ background: "var(--color-teal-light)" }}
+                >
+                    <Icon className="w-7 h-7" style={{ color: "var(--color-teal-dark)" }} />
                 </div>
-                
+
                 <div>
-                    <h1 className="text-3xl font-black text-foreground tracking-tight mb-2">Próximamente</h1>
-                    <p className="text-xl font-medium text-foreground mb-4">{title}</p>
-                    <p className="text-muted-foreground leading-relaxed">
-                        {description} Estamos trabajando duro para traerte esta funcionalidad muy pronto.
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">En construcción</p>
+                    <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em] text-foreground">{title}</h1>
+                    <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
+                        {description}
                     </p>
                 </div>
-                
-                <div className="pt-8">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted border border-border text-sm font-bold text-muted-foreground">
-                        <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
-                        </span>
-                        En Desarrollo
-                    </div>
-                </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

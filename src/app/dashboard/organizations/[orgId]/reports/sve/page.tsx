@@ -56,7 +56,7 @@ export default async function SVEReportPage({ params }: PageProps) {
                 </p>
                 <Link
                     href={`/dashboard/organizations/${orgId}`}
-                    className="inline-block mt-8 text-blue-600 font-semibold hover:underline"
+                    className="inline-block mt-8 text-primary font-semibold hover:underline"
                 >
                     ← Volver a la organización
                 </Link>
@@ -135,7 +135,7 @@ export default async function SVEReportPage({ params }: PageProps) {
                 </div>
 
                 <SectionTitle n={1}>Población y cobertura</SectionTitle>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <StatCard value={summary.uniqueWorkers} label="Trabajadores" />
                     <StatCard
                         value={groups.d}

@@ -27,9 +27,9 @@ interface Props {
 }
 
 const LINE_COLORS: Record<string, string> = {
-    INTRALABORAL: "#6366f1",
-    EXTRALABORAL: "#22c55e",
-    STRESS: "#f59e0b",
+    INTRALABORAL: "var(--color-primary)",
+    EXTRALABORAL: "var(--color-info)",
+    STRESS: "var(--color-warning)",
 };
 
 const LINE_DISPLAY_NAMES: Record<string, string> = {
@@ -165,23 +165,23 @@ export default function WorkerTrendChart({ assessments }: Props) {
         <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
                 {/* Risk color bands */}
-                <ReferenceArea y1={0} y2={20} fill="#f0fdf4" fillOpacity={1} ifOverflow="hidden" />
-                <ReferenceArea y1={20} y2={40} fill="#f7fee7" fillOpacity={1} ifOverflow="hidden" />
-                <ReferenceArea y1={40} y2={60} fill="#fefce8" fillOpacity={1} ifOverflow="hidden" />
-                <ReferenceArea y1={60} y2={80} fill="#fff7ed" fillOpacity={1} ifOverflow="hidden" />
-                <ReferenceArea y1={80} y2={100} fill="#fef2f2" fillOpacity={1} ifOverflow="hidden" />
+                <ReferenceArea y1={0} y2={20} fill="var(--color-risk-none-bg)" fillOpacity={1} ifOverflow="hidden" />
+                <ReferenceArea y1={20} y2={40} fill="var(--color-risk-low-bg)" fillOpacity={1} ifOverflow="hidden" />
+                <ReferenceArea y1={40} y2={60} fill="var(--color-risk-medium-bg)" fillOpacity={1} ifOverflow="hidden" />
+                <ReferenceArea y1={60} y2={80} fill="var(--color-risk-high-bg)" fillOpacity={1} ifOverflow="hidden" />
+                <ReferenceArea y1={80} y2={100} fill="var(--color-risk-veryhigh-bg)" fillOpacity={1} ifOverflow="hidden" />
 
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
 
                 <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                     tickLine={false}
-                    axisLine={{ stroke: "#e5e7eb" }}
+                    axisLine={{ stroke: "var(--color-border)" }}
                 />
                 <YAxis
                     domain={[0, 100]}
-                    tick={{ fontSize: 11, fill: "#6b7280" }}
+                    tick={{ fontSize: 11, fill: "var(--color-text-muted)" }}
                     tickLine={false}
                     axisLine={false}
                     width={32}
