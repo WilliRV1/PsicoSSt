@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
 import { EntitlementError, assertCan } from "@/lib/entitlements";
+import { dueInfo, organizationValidity } from "@/lib/compliance/cadence";
 
 /**
  * GET — List organizations for the current psychologist
@@ -31,9 +32,7 @@ export async function GET() {
             orderBy: { createdAt: "desc" }
         });
 
-        const ONE_YEAR_MS  = 365.25 * 24 * 60 * 60 * 1000;
-        const TWO_YEARS_MS = 2 * ONE_YEAR_MS;
-        const now = Date.now();
+        const now = new Date();
 
         const enrichedOrgs = organizations.map(org => {
             const signed  = org.assessments.filter(a => a.status === "SIGNED");
@@ -59,13 +58,10 @@ export async function GET() {
             if (!lastSigned) {
                 complianceStatus = "sin_evaluar";
             } else {
-                const validityMs = criticalPct > 20 ? ONE_YEAR_MS : TWO_YEARS_MS;
-                expiryDate = new Date(new Date(lastSigned).getTime() + validityMs);
-                daysLeft = Math.floor((expiryDate.getTime() - now) / (1000 * 60 * 60 * 24));
-
-                if (daysLeft < 0) complianceStatus = "vencida";
-                else if (daysLeft <= 90) complianceStatus = "por_vencer";
-                else complianceStatus = "vigente";
+                const info = dueInfo(new Date(lastSigned), organizationValidity({ criticalWorkerPercent: criticalPct }), now);
+                expiryDate = info.dueDate;
+                daysLeft = info.daysLeft;
+                complianceStatus = info.status === "VENCIDA" ? "vencida" : info.status === "POR_VENCER" ? "por_vencer" : "vigente";
             }
 
             const lastActivity = org.assessments.length > 0 ? org.assessments[0].assessmentDate : org.createdAt;

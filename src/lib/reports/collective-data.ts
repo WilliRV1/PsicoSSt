@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { buildDiagnosticData, type DiagnosticData, type DiagnosticAssets } from "./diagnostic-data";
 import { RISK_ORDER, type RiskLevel } from "./battery-content";
+import { CRITICAL_SHARE_THRESHOLD, organizationValidity } from "@/lib/compliance/cadence";
 import { MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "@/lib/ai/models";
 
 /**
@@ -165,27 +166,33 @@ export async function buildCollectiveData(
     alerts.sort((a, b) => b.difference - a.difference);
 
     // ── vigencia ──────────────────────────────────────────
-    // La Resolución 2764 de 2022 fija dos años como periodicidad ordinaria de
-    // la evaluación y la reduce a uno cuando el diagnóstico muestra condiciones
-    // críticas. Se registra el motivo para que el lector sepa por qué.
+    // La decisión (uno o dos años) la toma lib/compliance/cadence.ts, la misma
+    // regla que usan el home, las alertas y el semáforo de cumplimiento. Aquí
+    // sólo se redactan los motivos con nombre de área y dominio para el lector.
+    const saturatedArea = base.data.areas.reported.find(a => a.criticalPercent >= 100);
+    const saturatedDomain = [...base.data.domains.formA, ...base.data.domains.formB].find(
+        d => d.level === "MUY_ALTO"
+    );
+    const validity = organizationValidity({
+        criticalWorkerPercent: base.data.coverage.criticalWorkerPercent,
+        anyAreaFullyCritical: !!saturatedArea,
+        anyDomainVeryHigh: !!saturatedDomain,
+    });
+
     const reasons: string[] = [];
-    if (base.data.coverage.criticalWorkerPercent >= 20) {
+    if (base.data.coverage.criticalWorkerPercent >= CRITICAL_SHARE_THRESHOLD) {
         reasons.push(
             `el ${base.data.coverage.criticalWorkerPercent}% de los trabajadores presenta riesgo alto o muy alto`
         );
     }
-    const saturatedArea = base.data.areas.reported.find(a => a.criticalPercent >= 100);
     if (saturatedArea) {
         reasons.push(`el área de ${saturatedArea.name} está íntegramente en riesgo crítico`);
     }
-    const saturatedDomain = [...base.data.domains.formA, ...base.data.domains.formB].find(
-        d => d.level === "MUY_ALTO"
-    );
     if (saturatedDomain) {
         reasons.push(`el dominio ${saturatedDomain.name} promedia un nivel muy alto`);
     }
 
-    const years = reasons.length > 0 ? 1 : 2;
+    const years = validity.years;
     const expires = new Date();
     expires.setFullYear(expires.getFullYear() + years);
 

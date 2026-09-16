@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { dueInfo, isCriticalLevel, workerValidity } from "@/lib/compliance/cadence";
 
 interface Notification {
     id: string;
@@ -38,10 +39,9 @@ export async function GET() {
             });
         }
 
-        // 2. Expiring workers (>18 months since last signed assessment)
-        const EIGHTEEN_MONTHS_MS = 1.5 * 365.25 * 24 * 60 * 60 * 1000;
-        const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
+        // 2. Vigencia por trabajador (Res. 2764/2022 art. 3: anual con riesgo
+        //    alto o muy alto, bienal en los demás casos).
+        const now = new Date();
 
         const workersWithAssessments = await prisma.worker.findMany({
             // Avisos de "hay que reevaluar": un archivado ya no genera tarea.
@@ -49,10 +49,10 @@ export async function GET() {
             select: {
                 id: true,
                 assessments: {
-                    where: { psychologistId: psychId, status: "SIGNED" },
-                    select: { assessmentDate: true },
+                    where: { status: "SIGNED" },
+                    select: { assessmentDate: true, scoredResult: { select: { overallRiskCategory: true } } },
                     orderBy: { assessmentDate: "desc" },
-                    take: 1,
+                    take: 3,
                 },
             },
         });
@@ -60,14 +60,19 @@ export async function GET() {
         let expiredCount = 0;
         let expiringCount = 0;
         for (const w of workersWithAssessments) {
-            const lastDate = w.assessments[0]?.assessmentDate;
-            if (!lastDate) {
+            const last = w.assessments[0];
+            if (!last) {
                 expiredCount++;
-            } else {
-                const age = now - new Date(lastDate).getTime();
-                if (age >= TWO_YEARS_MS) expiredCount++;
-                else if (age >= EIGHTEEN_MONTHS_MS) expiringCount++;
+                continue;
             }
+            const critical = w.assessments.some(a => isCriticalLevel(a.scoredResult?.overallRiskCategory));
+            const info = dueInfo(
+                new Date(last.assessmentDate),
+                workerValidity(critical ? "ALTO" : last.scoredResult?.overallRiskCategory),
+                now
+            );
+            if (info.status === "VENCIDA") expiredCount++;
+            else if (info.status === "POR_VENCER") expiringCount++;
         }
 
         if (expiredCount > 0) {
@@ -75,7 +80,7 @@ export async function GET() {
                 id: "expired-workers",
                 type: "urgent",
                 title: `${expiredCount} evaluaci${expiredCount > 1 ? "ones vencidas" : "ón vencida"}`,
-                description: "Res. 2764/2022 exige reevaluación cada 2 años.",
+                description: "Res. 2764/2022 art. 3: anual con riesgo alto o muy alto, bienal en los demás casos.",
                 href: "/dashboard/workers?risk=",
             });
         }
@@ -85,7 +90,7 @@ export async function GET() {
                 id: "expiring-workers",
                 type: "warning",
                 title: `${expiringCount} evaluaci${expiringCount > 1 ? "ones" : "ón"} por vencer`,
-                description: "Trabajadores próximos a cumplir 2 años sin reevaluación.",
+                description: "Trabajadores a menos de 90 días de vencer su vigencia.",
                 href: "/dashboard/workers",
             });
         }

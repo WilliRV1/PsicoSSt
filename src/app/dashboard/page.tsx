@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { AlertTriangle, Clock, CheckCircle2, Plus, ArrowRight, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyDashboardState from "@/components/dashboard/empty-dashboard-state";
+import { dueInfo, organizationValidity } from "@/lib/compliance/cadence";
 
 type ComplianceStatus = "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
 
@@ -53,10 +54,7 @@ export default async function DashboardPage() {
     // concurrente que esta regla vigila en componentes de cliente — la hora
     // real del servidor es exactamente lo que necesita este cálculo.
     // eslint-disable-next-line react-hooks/purity
-    const now = Date.now();
-    const ONE_YEAR_MS  = 365.25 * 24 * 60 * 60 * 1000;
-    const TWO_YEARS_MS = 2 * ONE_YEAR_MS;
-    const WARN_MS      = 90 * 24 * 60 * 60 * 1000; // 90-day warning window
+    const now = new Date();
 
     const orgCards = orgsRaw.map(org => {
         const signed   = org.assessments.filter(a => a.status === "SIGNED");
@@ -83,13 +81,13 @@ export default async function DashboardPage() {
         if (!lastSigned) {
             complianceStatus = "sin_evaluar";
         } else {
-            const validityMs = criticalPct > 20 ? ONE_YEAR_MS : TWO_YEARS_MS;
-            expiryDate = new Date(new Date(lastSigned).getTime() + validityMs);
-            daysLeft = Math.floor((expiryDate.getTime() - now) / (1000 * 60 * 60 * 24));
-
-            if (daysLeft < 0) complianceStatus = "vencida";
-            else if (daysLeft * 24 * 60 * 60 * 1000 <= WARN_MS) complianceStatus = "por_vencer";
-            else complianceStatus = "vigente";
+            // Aquí sólo se conoce el % de críticos; los otros dos criterios de
+            // vigencia anual (área saturada, dominio muy alto) los aplica el
+            // informe diagnóstico, que tiene los datos.
+            const info = dueInfo(new Date(lastSigned), organizationValidity({ criticalWorkerPercent: criticalPct }), now);
+            expiryDate = info.dueDate;
+            daysLeft = info.daysLeft;
+            complianceStatus = info.status === "VENCIDA" ? "vencida" : info.status === "POR_VENCER" ? "por_vencer" : "vigente";
         }
 
         return {

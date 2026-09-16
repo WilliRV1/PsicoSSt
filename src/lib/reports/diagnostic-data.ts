@@ -11,6 +11,7 @@ import {
     type RiskLevel,
 } from "./battery-content";
 import { MIN_GROUP_SIZE } from "./anonymity";
+import { organizationValidity, type Validity } from "@/lib/compliance/cadence";
 
 /**
  * Datos del informe diagnóstico organizacional.
@@ -135,6 +136,8 @@ export interface DiagnosticData {
         byForm: CompanyRiskLevel[];
         /** La evaluación es anual si alguna forma da alto o muy alto. */
         annualRequired: boolean;
+        /** Regla única de vigencia (lib/compliance/cadence.ts) con sus motivos. */
+        validity: Validity;
     };
     groups: { sanos: number; vulnerables: number; adaptados: number; prioritarios: number };
     domains: { formA: DomainRow[]; formB: DomainRow[] };
@@ -576,6 +579,17 @@ export async function buildDiagnosticData(
 
     const glossary = glossaryFor(dimensions);
 
+    // La vigencia (uno o dos años) la decide lib/compliance/cadence.ts con
+    // los tres criterios completos; el home y las alertas sólo disponen del
+    // porcentaje de críticos y llegan a la misma regla con menos datos.
+    const domainsA = buildDomains("A");
+    const domainsB = buildDomains("B");
+    const validity = organizationValidity({
+        criticalWorkerPercent,
+        anyAreaFullyCritical: reported.some(a => a.criticalPercent >= 100),
+        anyDomainVeryHigh: [...domainsA, ...domainsB].some(d => d.level === "MUY_ALTO"),
+    });
+
     return {
         data: {
             minGroupSize: MIN_GROUP_SIZE,
@@ -622,10 +636,11 @@ export async function buildDiagnosticData(
             correlationBase,
             companyRisk: {
                 byForm: companyByForm,
-                annualRequired: companyByForm.some(f => isCritical(f.level)),
+                annualRequired: validity.years === 1,
+                validity,
             },
             groups,
-            domains: { formA: buildDomains("A"), formB: buildDomains("B") },
+            domains: { formA: domainsA, formB: domainsB },
             dimensions,
             areas: {
                 reported,
