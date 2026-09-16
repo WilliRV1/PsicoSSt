@@ -2,22 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Plus, Eye, AlertTriangle, Clock, CheckCircle2, Users, type LucideIcon } from "lucide-react";
+import { Plus, Eye } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import CreateOrganizationModal from "@/components/dashboard/create-organization-modal";
 import { TableSkeleton } from "@/components/ui/molecules/TableSkeleton";
 import { ComplianceBadge, type ComplianceStatus } from "@/components/psicosst/compliance-badge";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-
-type ComplianceStatus = "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
-
-const complianceCfg: Record<ComplianceStatus, { label: string; cls: string; icon: LucideIcon }> = {
-    vencida:    { label: "Vencida",     cls: "bg-red-100 text-red-700 border-red-200",       icon: AlertTriangle },
-    por_vencer: { label: "Por vencer",  cls: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
-    sin_evaluar:{ label: "Sin evaluar", cls: "bg-slate-100 text-slate-600 border-slate-200", icon: Users },
-    vigente:    { label: "Vigente",     cls: "bg-teal-50 text-teal-700 border-teal-200",     icon: CheckCircle2 },
-};
 
 interface Organization {
     id: string;

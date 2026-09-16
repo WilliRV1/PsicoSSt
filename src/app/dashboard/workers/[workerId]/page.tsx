@@ -38,12 +38,12 @@ interface StoredTotalScore {
     transformedScore?: number;
 }
 
-const riskColors: Record<string, string> = {
-    SIN_RIESGO: "bg-green-100 text-green-700 border-green-200",
-    BAJO:       "bg-lime-100 text-lime-700 border-lime-200",
-    MEDIO:      "bg-yellow-100 text-yellow-700 border-yellow-200",
-    ALTO:       "bg-orange-100 text-orange-700 border-orange-200",
-    MUY_ALTO:   "bg-red-100 text-red-700 border-red-200",
+const riskStyle: Record<string, { background: string; color: string; borderColor: string }> = {
+    SIN_RIESGO: { background: "var(--color-risk-none-bg)",     color: "var(--color-risk-none-text)",     borderColor: "var(--color-risk-none-border)" },
+    BAJO:       { background: "var(--color-risk-low-bg)",      color: "var(--color-risk-low-text)",      borderColor: "var(--color-risk-low-border)" },
+    MEDIO:      { background: "var(--color-risk-medium-bg)",   color: "var(--color-risk-medium-text)",   borderColor: "var(--color-risk-medium-border)" },
+    ALTO:       { background: "var(--color-risk-high-bg)",     color: "var(--color-risk-high-text)",     borderColor: "var(--color-risk-high-border)" },
+    MUY_ALTO:   { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderColor: "var(--color-risk-veryhigh-border)" },
 };
 
 const riskLabels: Record<string, string> = {
@@ -238,7 +238,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
                         const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
                         return (
-                            <div key={type} className="rounded-xl border p-4 text-center" style={riskStyle[risk]}>
+                            <div key={type} className="rounded-xl border p-4 text-center" style={{ background: riskStyle[risk].background, color: riskStyle[risk].color, borderColor: riskStyle[risk].borderColor }}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{questionnaireLabels[type]}</p>
                                 <RiskTooltip riskLevel={risk}>
                                     <span className="text-xl font-semibold">{riskLabels[risk]}</span>
@@ -261,8 +261,8 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                 >
                     <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--color-risk-veryhigh-solid)" }} />
                     <div>
-                        <p className="font-semibold text-red-800 text-sm">Evaluación vencida</p>
-                        <p className="text-red-700 text-xs mt-0.5">
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-risk-veryhigh-text)" }}>Evaluación vencida</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--color-risk-veryhigh-text)" }}>
                             La última evaluación firmada fue el {lastSignedDate!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}. Venció la vigencia de {validity.years === 1 ? "un año (riesgo alto o muy alto)" : "dos años"} — se requiere reevaluación según la Res. 2764/2022, art. 3.
                         </p>
                         <a
@@ -375,7 +375,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                                     {assessments.map(a => {
                                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
                                         const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
-                                        const status = statusConfig[a.status] || statusConfig.SCORED;
+                                        const status = statusStyle[a.status] || statusStyle.SCORED;
                                         return (
                                             <tr key={a.id} className="hover:bg-muted/30 transition-colors">
                                                 <td className="px-6 py-3 whitespace-nowrap">

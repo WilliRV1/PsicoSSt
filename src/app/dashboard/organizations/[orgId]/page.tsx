@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Plus, Upload, MapPin, Building2, Users, Loader2, XCircle, X, Pencil, Archive } from "lucide-react";
+import { Plus, Upload, MapPin, Building2, Users, XCircle, X, Pencil, Archive, ShieldCheck, FileBarChart, UserRound } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -406,23 +407,20 @@ export default function OrganizationDetailPage() {
     // Ya no se borra: la evidencia del SG-SST debe conservarse 20 años
     // (Dec. 1072/2015 art. 2.2.4.6.13). El backend archiva y, si había
     // evaluaciones calificadas, responde 409 explicando por qué.
-    const handleArchiveWorker = async (w: Worker) => {
-        if (!confirm(
-            `¿Archivar al trabajador "${w.fullName}"? Dejará de aparecer en los listados, ` +
-            "pero su historial de evaluaciones se conserva como evidencia del SG-SST."
-        )) return;
-
+    const confirmArchiveWorker = async () => {
+        if (!deletingWorker) return;
+        setDeleteError(null);
         try {
             const res = await fetch(`/api/workers/${deletingWorker.id}`, { method: "DELETE" });
             const data = await res.json();
             if (!res.ok) {
-                alert(data.error || "Error al archivar");
+                setDeleteError(data.error || "Error al archivar");
                 if (!data.archived) return;
             }
             setDeletingWorker(null);
             fetchData();
         } catch {
-            alert("Error al archivar el trabajador");
+            setDeleteError("Error al archivar el trabajador");
         }
     };
 
@@ -683,7 +681,7 @@ export default function OrganizationDetailPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleArchiveWorker(w)}
+                                                        onClick={() => { setDeleteError(null); setDeletingWorker(w); }}
                                                         title="Archivar trabajador"
                                                         className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
                                                     >
@@ -898,13 +896,14 @@ export default function OrganizationDetailPage() {
                 </div>
             )}
 
-            {/* Confirm delete worker */}
+            {/* Confirm archive worker */}
             <AlertDialog open={!!deletingWorker} onOpenChange={(open) => { if (!open) { setDeletingWorker(null); setDeleteError(null); } }}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Eliminar trabajador</AlertDialogTitle>
+                        <AlertDialogTitle>Archivar trabajador</AlertDialogTitle>
                         <AlertDialogDescription>
-                            ¿Eliminar a <strong>{deletingWorker?.fullName}</strong>? Esta acción no se puede deshacer.
+                            ¿Archivar a <strong>{deletingWorker?.fullName}</strong>? Dejará de aparecer en los listados,
+                            pero su historial de evaluaciones se conserva como evidencia del SG-SST (Dec. 1072/2015, art. 2.2.4.6.13).
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     {deleteError && (
@@ -913,10 +912,10 @@ export default function OrganizationDetailPage() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={(e) => { e.preventDefault(); confirmDeleteWorker(); }}
+                            onClick={(e) => { e.preventDefault(); confirmArchiveWorker(); }}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            Eliminar
+                            Archivar
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

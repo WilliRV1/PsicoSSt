@@ -143,7 +143,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                             <tbody className="divide-y divide-border">
                                 {logs.map((log) => {
                                     const metadata = log.metadata as Record<string, unknown> | null;
-                                    const actionColor = actionColors[log.action] || "bg-gray-100 text-gray-700";
+                                    const actionColor = actionColors[log.action] || NEUTRAL_ACTION_STYLE;
 
                                     return (
                                         <tr key={String(log.id)} className="hover:bg-muted/30 transition-colors">

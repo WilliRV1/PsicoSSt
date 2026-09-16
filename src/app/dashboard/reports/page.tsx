@@ -7,24 +7,9 @@ import FilterBar from "@/components/psicosst/filter-bar";
 import BulkExportButton from "@/components/psicosst/bulk-export-button";
 import { Suspense } from "react";
 import DeleteAssessmentButton from "../assessments/delete-assessment-button";
+import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 import type { AssessmentStatus, RiskCategory } from "@/generated/prisma";
 import type { TotalScore } from "@/types/battery";
-
-const riskColors: Record<string, string> = {
-    SIN_RIESGO: "bg-green-100 text-green-700",
-    BAJO: "bg-lime-100 text-lime-700",
-    MEDIO: "bg-yellow-100 text-yellow-700",
-    ALTO: "bg-orange-100 text-orange-700",
-    MUY_ALTO: "bg-red-100 text-red-700"
-};
-
-const riskLabels: Record<string, string> = {
-    SIN_RIESGO: "Sin Riesgo",
-    BAJO: "Bajo",
-    MEDIO: "Medio",
-    ALTO: "Alto",
-    MUY_ALTO: "Muy Alto"
-};
 
 const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",

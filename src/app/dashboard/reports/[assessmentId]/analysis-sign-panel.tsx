@@ -134,7 +134,7 @@ export default function AnalysisSignPanel({
 
     return (
         <div className="analysis-editor-box">
-            <div className="no-print" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div className="no-print" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "8px" }}>
                 <label className="analysis-editor-label" htmlFor="clinical-analysis" style={{ margin: 0 }}>
                     Interpretación Profesional
                     {!isSigned && <span className="analysis-editor-required">*</span>}

@@ -18,7 +18,7 @@ export default function ReportToolbar({
                 ← Volver a Evaluaciones
             </a>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {isSigned && (
                     <span className="flex items-center gap-1.5 text-sm font-semibold text-teal-dark">
                         <CheckCircle2 className="w-4 h-4" />

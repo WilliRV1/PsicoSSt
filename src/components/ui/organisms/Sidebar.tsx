@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
   LayoutGrid,
   Building2,
@@ -20,10 +21,13 @@ import {
   ShieldAlert,
   Settings,
   LogOut,
+  X,
 } from "lucide-react";
 
 interface SidebarProps {
   user?: { fullName: string; email: string; creditBalance: number; isAdmin?: boolean } | null;
+  mobileOpen?: boolean;
+  onClose?: () => void;
 }
 
 /**
@@ -58,7 +62,7 @@ const NAV = [
     section: "Cuenta",
     items: [
       { label: "Créditos", href: "/dashboard/credits", icon: Coins },
-      { label: "Planes", href: "/dashboard/store", icon: Store },
+      { label: "Planes", href: "/dashboard/plan", icon: Store },
       { label: "Equipo", href: "/dashboard/users", icon: UserCog },
       { label: "Roles y permisos", href: "/dashboard/roles", icon: ShieldCheck },
       { label: "Configuración", href: "/dashboard/settings", icon: Settings },
@@ -68,9 +72,26 @@ const NAV = [
 
 const ADMIN_ITEM = { label: "Panel admin", href: "/dashboard/admin", icon: ShieldAlert };
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
+
+  // Cierra el drawer móvil al cambiar de ruta — el mismo patrón de ajustar
+  // estado durante el render que documenta React, para no arrastrar el
+  // menú abierto a la siguiente pantalla.
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    if (mobileOpen) onClose?.();
+  }
+
+  // Bloquea el scroll del body mientras el drawer está abierto en móvil.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [mobileOpen]);
 
   const initials = (user?.fullName ?? "U")
     .split(" ")
@@ -111,114 +132,169 @@ export function Sidebar({ user }: SidebarProps) {
     );
   };
 
-  return (
-    <aside
-      className="sidebar no-scrollbar w-[224px] h-screen flex-shrink-0 flex flex-col"
-      style={{
-        background: "var(--color-surface)",
-        borderRight: "1px solid var(--color-border)",
-      }}
-    >
-      {/* Logo */}
-      <div className="px-6 pt-7 pb-6 shrink-0">
-        <Link href="/dashboard" className="block">
-          <span
-            className="font-brand"
-            style={{
-              fontWeight: 700,
-              fontSize: "1.15rem",
-              letterSpacing: "-0.01em",
-              color: "var(--color-foreground)",
-              lineHeight: 1,
-            }}
-          >
-            Psico<span style={{ color: "var(--color-primary)" }}>SST</span>
-          </span>
-          <span
-            className="font-brand"
-            style={{
-              display: "block",
-              fontSize: "0.62rem",
-              letterSpacing: "0.13em",
-              textTransform: "uppercase",
-              color: "var(--color-text-muted)",
-              marginTop: "3px",
-            }}
-          >
-            Riesgo Psicosocial
-          </span>
-        </Link>
-      </div>
+  const logoBlock = (
+    <div className="px-6 pt-7 pb-6 shrink-0">
+      <Link href="/dashboard" className="block">
+        <span
+          className="font-brand"
+          style={{
+            fontWeight: 700,
+            fontSize: "1.15rem",
+            letterSpacing: "-0.01em",
+            color: "var(--color-foreground)",
+            lineHeight: 1,
+          }}
+        >
+          Psico<span style={{ color: "var(--color-primary)" }}>SST</span>
+        </span>
+        <span
+          className="font-brand"
+          style={{
+            display: "block",
+            fontSize: "0.62rem",
+            letterSpacing: "0.13em",
+            textTransform: "uppercase",
+            color: "var(--color-text-muted)",
+            marginTop: "3px",
+          }}
+        >
+          Riesgo Psicosocial
+        </span>
+      </Link>
+    </div>
+  );
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 space-y-5">
-        {NAV.map((group) => (
-          <div key={group.section}>
-            <p
-              className="px-3 mb-1 text-[10.5px] font-semibold uppercase tracking-[0.11em]"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              {group.section}
-            </p>
-            <ul className="space-y-0.5">{group.items.map(renderItem)}</ul>
-          </div>
-        ))}
-
-        {user?.isAdmin && (
-          <div>
-            <p
-              className="px-3 mb-1 text-[10.5px] font-semibold uppercase tracking-[0.11em]"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Administración
-            </p>
-            <ul className="space-y-0.5">{renderItem(ADMIN_ITEM)}</ul>
-          </div>
-        )}
-      </nav>
-
-      {/* User */}
-      <div
-        className="shrink-0 px-4 py-4"
-        style={{ borderTop: "1px solid var(--color-border)" }}
-      >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-            style={{
-              background: "var(--color-teal-light)",
-              color: "var(--color-teal-dark)",
-            }}
+  const navBlock = (
+    <nav className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 space-y-5">
+      {NAV.map((group) => (
+        <div key={group.section}>
+          <p
+            className="px-3 mb-1 text-[10.5px] font-semibold uppercase tracking-[0.11em]"
+            style={{ color: "var(--color-text-muted)" }}
           >
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <Link
-              href="/dashboard/profile"
-              className="text-[12.5px] font-semibold truncate block transition-colors hover:text-foreground"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {user?.fullName || "Usuario"}
-            </Link>
-          </div>
-          <form action="/api/auth/signout" method="POST">
-            <button
-              type="submit"
-              title="Cerrar sesión"
-              className="press-feedback p-1 rounded transition-colors duration-150 outline-none"
-              style={{ color: "var(--color-text-muted)" }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-              }
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </form>
+            {group.section}
+          </p>
+          <ul className="space-y-0.5">{group.items.map(renderItem)}</ul>
         </div>
+      ))}
+
+      {user?.isAdmin && (
+        <div>
+          <p
+            className="px-3 mb-1 text-[10.5px] font-semibold uppercase tracking-[0.11em]"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            Administración
+          </p>
+          <ul className="space-y-0.5">{renderItem(ADMIN_ITEM)}</ul>
+        </div>
+      )}
+    </nav>
+  );
+
+  const userBlock = (
+    <div
+      className="shrink-0 px-4 py-4"
+      style={{ borderTop: "1px solid var(--color-border)" }}
+    >
+      <div className="flex items-center gap-2.5">
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+          style={{
+            background: "var(--color-teal-light)",
+            color: "var(--color-teal-dark)",
+          }}
+        >
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <Link
+            href="/dashboard/profile"
+            className="text-[12.5px] font-semibold truncate block transition-colors hover:text-foreground"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {user?.fullName || "Usuario"}
+          </Link>
+        </div>
+        <form action="/api/auth/signout" method="POST">
+          <button
+            type="submit"
+            title="Cerrar sesión"
+            className="press-feedback p-1 rounded transition-colors duration-150 outline-none"
+            style={{ color: "var(--color-text-muted)" }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
+            }
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+        </form>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop — columna estática siempre visible */}
+      <aside
+        className="sidebar no-scrollbar hidden lg:flex w-[224px] h-screen flex-shrink-0 flex-col"
+        style={{
+          background: "var(--color-surface)",
+          borderRight: "1px solid var(--color-border)",
+        }}
+      >
+        {logoBlock}
+        {navBlock}
+        {userBlock}
+      </aside>
+
+      {/* Móvil — drawer superpuesto, fuera del flujo hasta que se abre */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+              onClick={onClose}
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.18 }}
+            />
+            <motion.aside
+              className="sidebar no-scrollbar fixed inset-y-0 left-0 z-50 w-[260px] max-w-[80vw] flex flex-col lg:hidden"
+              style={{
+                background: "var(--color-surface)",
+                borderRight: "1px solid var(--color-border)",
+              }}
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.23, 1, 0.32, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menú de navegación"
+            >
+              <div className="flex items-center justify-between shrink-0">
+                <div className="flex-1">{logoBlock}</div>
+                <button
+                  onClick={onClose}
+                  aria-label="Cerrar menú"
+                  className="press-feedback mr-4 flex h-9 w-9 items-center justify-center rounded-lg shrink-0"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              {navBlock}
+              {userBlock}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

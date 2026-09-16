@@ -57,7 +57,7 @@ export default function AddWorkerGlobalButton({ organizations }: Props) {
         <>
             <button
                 onClick={() => setShowModal(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
             >
                 <Plus className="h-4 w-4" />
                 Añadir Trabajador
@@ -78,13 +78,13 @@ export default function AddWorkerGlobalButton({ organizations }: Props) {
 
                         <div className="overflow-y-auto p-4 flex-1">
                             {error && (
-                                <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+                                <div className="mb-4 rounded-lg bg-danger/8 p-3 text-sm text-danger border border-danger/25">
                                     {error}
                                 </div>
                             )}
 
-                            <div className="mb-6 p-4 border border-indigo-100 bg-indigo-50/50 rounded-lg">
-                                <label className="block text-sm font-semibold text-indigo-900 mb-2">
+                            <div className="mb-6 p-4 border border-info/20 bg-info/5 rounded-lg">
+                                <label className="block text-sm font-semibold text-info mb-2">
                                     Empresa a la que pertenece *
                                 </label>
                                 <select
@@ -116,7 +116,7 @@ export default function AddWorkerGlobalButton({ organizations }: Props) {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                             >
                                 {saving ? "Guardando..." : "Guardar Trabajador"}
                             </button>

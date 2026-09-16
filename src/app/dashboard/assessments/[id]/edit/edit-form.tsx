@@ -158,9 +158,9 @@ export default function EditAssessmentForm({
     ).length;
 
     return (
-        <div className="flex h-[calc(100vh-120px)] overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+        <div className="flex flex-col md:flex-row h-auto md:h-[calc(100vh-120px)] overflow-hidden rounded-xl border border-border bg-card shadow-xl">
             {/* ===== LEFT SIDEBAR: Dimension Navigator ===== */}
-            <aside className="w-64 flex-shrink-0 border-r border-border bg-muted/40 overflow-y-auto">
+            <aside className="w-full md:w-64 flex-shrink-0 max-h-56 md:max-h-none border-b md:border-b-0 md:border-r border-border bg-muted/40 overflow-y-auto">
                 <div className="p-4 border-b border-border">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dimensiones</p>
                 </div>
@@ -184,7 +184,7 @@ export default function EditAssessmentForm({
                                     <span className="text-xs font-semibold leading-tight line-clamp-2">{dim.name}</span>
                                     {dimScore && (
                                         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                            isActive ? "bg-white/70" : dimScore.riskCategory ? RISK_DOT[dimScore.riskCategory] : "bg-slate-300"
+                                            isActive ? "bg-white/70" : dimScore.riskCategory ? RISK_DOT[dimScore.riskCategory] : "bg-risk-none-solid"
                                         }`} />
                                     )}
                                 </div>
@@ -200,7 +200,7 @@ export default function EditAssessmentForm({
             </aside>
 
             {/* ===== CENTER: Item Table ===== */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden min-h-[50vh] md:min-h-0">
                 {missingItems.length > 0 && (
                     <div className="mx-5 mt-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-risk-medium-text">
                         <span className="font-bold">Resultado no calculable:</span>{" "}
@@ -209,7 +209,7 @@ export default function EditAssessmentForm({
                     </div>
                 )}
                 {/* Toolbar */}
-                <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-card/80 backdrop-blur">
+                <div className="flex flex-wrap items-center gap-3 px-5 py-3 border-b border-border bg-card/80 backdrop-blur">
                     <div className="flex-1">
                         <p className="font-bold text-sm text-foreground">{currentDim?.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -240,7 +240,7 @@ export default function EditAssessmentForm({
                         return (
                             <div
                                 key={itemNum}
-                                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border transition-all ${
+                                className={`flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-lg border transition-all ${
                                     changed
                                         ? "border-warning/40 bg-warning/10"
                                         : currentVal === undefined
@@ -257,7 +257,7 @@ export default function EditAssessmentForm({
 
                                 {/* Enunciado del cuadernillo, para poder
                                     corregir sin tener el impreso al lado. */}
-                                <div className="flex-1 text-sm text-foreground">
+                                <div className="flex-1 min-w-[140px] text-sm text-foreground">
                                     {getItemText(initialQType, initialFormType, itemNum) ?? `Ítem ${itemNum}`}
                                     {changed && (
                                         <span className="ml-2 text-[10px] font-semibold text-risk-medium-text bg-risk-medium-bg px-1.5 py-0.5 rounded">
@@ -299,7 +299,7 @@ export default function EditAssessmentForm({
             </main>
 
             {/* ===== RIGHT PANEL: Live Score ===== */}
-            <aside className="w-56 flex-shrink-0 border-l border-border bg-muted/40 overflow-y-auto flex flex-col">
+            <aside className="w-full md:w-56 flex-shrink-0 max-h-72 md:max-h-none border-t md:border-t-0 md:border-l border-border bg-muted/40 overflow-y-auto flex flex-col">
                 <div className="p-4 border-b border-border">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Puntaje Guardado</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">Se actualiza al guardar</p>
@@ -326,13 +326,13 @@ export default function EditAssessmentForm({
                                     <div key={dim.dimensionKey} className="space-y-1">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[10px] text-muted-foreground font-medium truncate pr-1">{dim.dimensionName}</span>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${dim.riskCategory ? RISK_COLORS[dim.riskCategory] : "bg-slate-100 text-slate-600"}`}>
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${dim.riskCategory ? RISK_COLORS[dim.riskCategory] : "bg-risk-none-bg text-risk-none-text"}`}>
                                                 {dim.riskCategory ? RISK_LABELS[dim.riskCategory] : "Sin baremo"}
                                             </span>
                                         </div>
                                         <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
                                             <div
-                                                className={`h-full transition-all duration-300 ${dim.riskCategory ? RISK_DOT[dim.riskCategory] : "bg-slate-300"}`}
+                                                className={`h-full transition-all duration-300 ${dim.riskCategory ? RISK_DOT[dim.riskCategory] : "bg-risk-none-solid"}`}
                                                 style={{ width: `${dim.transformedScore}%` }}
                                             />
                                         </div>

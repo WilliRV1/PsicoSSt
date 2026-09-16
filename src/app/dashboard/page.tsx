@@ -2,19 +2,13 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { AlertTriangle, Clock, CheckCircle2, Plus, ArrowRight, Users, type LucideIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyDashboardState from "@/components/dashboard/empty-dashboard-state";
+import { StatCard } from "@/components/dashboard/StatCard";
+import type { ComplianceStatus } from "@/components/psicosst/compliance-badge";
+import { OrgCardGrid, type OrgCard } from "@/components/dashboard/org-card-grid";
 import { dueInfo, organizationValidity } from "@/lib/compliance/cadence";
-
-type ComplianceStatus = "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
-
-const complianceCfg: Record<ComplianceStatus, { label: string; bar: string; badge: string; icon: LucideIcon }> = {
-    vencida:    { label: "Vencida",     bar: "bg-red-500",    badge: "bg-red-100 text-red-700 border-red-200",      icon: AlertTriangle },
-    por_vencer: { label: "Por vencer",  bar: "bg-amber-400",  badge: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
-    sin_evaluar:{ label: "Sin evaluar", bar: "bg-slate-300",  badge: "bg-slate-100 text-slate-600 border-slate-200", icon: Users },
-    vigente:    { label: "Vigente",     bar: "bg-teal-500",   badge: "bg-teal-50 text-teal-700 border-teal-200",     icon: CheckCircle2 },
-};
 
 const statusOrder: ComplianceStatus[] = ["vencida", "por_vencer", "sin_evaluar", "vigente"];
 
