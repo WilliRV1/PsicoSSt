@@ -18,7 +18,8 @@ export async function GET(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const workers = await prisma.worker.findMany({
-        where: { organizationId: orgId },
+        // Lista de a quién hay que reevaluar: un archivado ya no se reevalúa.
+        where: { organizationId: orgId, archivedAt: null },
         select: {
             id: true,
             fullName: true,

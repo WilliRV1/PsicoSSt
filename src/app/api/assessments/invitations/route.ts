@@ -21,8 +21,13 @@ export async function POST(request: NextRequest) {
 
         // El trabajador debe pertenecer a una organización de este psicólogo
         // — mismo alcance que ya aplica el resto del dashboard.
+        // Un trabajador archivado conserva su evidencia pero ya no se evalúa.
         const worker = await prisma.worker.findFirst({
-            where: { id: workerId, organization: { createdByPsychologist: session.user.id } },
+            where: {
+                id: workerId,
+                archivedAt: null,
+                organization: { createdByPsychologist: session.user.id },
+            },
             select: { id: true, fullName: true, organizationId: true },
         });
 

@@ -115,6 +115,7 @@
     "action": "Observación sistemática y acciones de intervención preventiva, para evitar que la condición progrese a niveles superiores.",
     "isValid": true
   },
+  "generalTotal": null,
   "domains": [],
   "dimensions": [
     {

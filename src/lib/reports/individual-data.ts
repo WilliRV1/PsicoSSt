@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos, getFormConfig } from "@/config/battery";
+import { scoreGeneralTotal } from "@/lib/scoring";
+import type { ScoredResultData, TotalScore } from "@/types/battery";
 import { loadImage, type ReportImage } from "./images";
 import {
     DIMENSION_ACTION,
@@ -79,6 +81,17 @@ export interface IndividualData {
         meaning: string;
         action: string;
     };
+    /**
+     * Puntaje total general (intralaboral + extralaboral). Sólo se arma en el
+     * informe intralaboral y sólo cuando existe el extralaboral pareado; `null`
+     * en cualquier otro caso.
+     */
+    generalTotal: {
+        score: number;
+        level: RiskLevel;
+        levelLabel: string;
+        bounds: number[];
+    } | null;
     /** Vacío en extralaboral y estrés, que no se agrupan en dominios. */
     domains: DomainResult[];
     /** Dimensiones sueltas, usadas cuando no hay dominios. */
@@ -110,7 +123,8 @@ interface StoredScore {
     dimensionName?: string;
     domainName?: string;
     transformedScore?: number;
-    riskCategory?: string;
+    riskCategory?: string | null;
+    isUnscored?: boolean;
 }
 
 /**
@@ -120,7 +134,7 @@ interface StoredScore {
  * evaluación a la que le faltan ítems se imprimía como un trabajador sin
  * riesgo. Es justo lo que el manual prohíbe afirmar.
  */
-function asLevel(v: string | undefined): RiskLevel | null {
+function asLevel(v: string | undefined | null): RiskLevel | null {
     return (["SIN_RIESGO", "BAJO", "MEDIO", "ALTO", "MUY_ALTO"] as const).includes(v as RiskLevel)
         ? (v as RiskLevel)
         : null;
@@ -163,8 +177,7 @@ interface BaremoTables {
 function resolveBaremos(
     questionnaireType: string,
     formType: string,
-    jobLevel: string | null,
-    gender: string | null
+    jobLevel: string | null
 ): BaremoTables {
     const all = getBaremos() as unknown as Record<string, Record<string, unknown>>;
     const group =
@@ -181,10 +194,12 @@ function resolveBaremos(
     }
 
     if (questionnaireType === "STRESS") {
-        const stress = all.stress as Record<string, Record<string, BaremoEntry>> | undefined;
-        const g = gender === "M" ? "M" : "F";
-        const total = stress?.[g]?.[group] ?? stress?.["F"]?.["jefes_profesionales_tecnicos"] ?? null;
-        return { dimensions: {}, domains: {}, total };
+        // M4 Tabla 6 estratifica el baremo del estrés únicamente por nivel
+        // ocupacional. El lookup buscaba antes un nivel por sexo que el archivo
+        // de baremos no tiene, así que siempre caía en null y el informe se
+        // imprimía sin su escala.
+        const stress = all.stress as Record<string, BaremoEntry> | undefined;
+        return { dimensions: {}, domains: {}, total: stress?.[group] ?? null };
     }
 
     const t = (all[formType === "A" ? "intralaboral_a" : "intralaboral_b"] ?? {}) as {
@@ -197,6 +212,76 @@ function resolveBaremos(
 
 /** Sólo se sugiere acción cuando el nivel obliga a intervenir. */
 const needsAction = (level: RiskLevel) => level === "ALTO" || level === "MUY_ALTO";
+
+/** Ventana dentro de la cual dos cuestionarios se consideran de la misma medición. */
+const PAIRING_WINDOW_DAYS = 90;
+
+/**
+ * Puntaje total general (intralaboral + extralaboral) del mismo trabajador.
+ *
+ * Se calcula al armar el informe en vez de almacenarse: cruza dos `Assessment`
+ * distintos, así que ninguna de las dos filas es su dueña natural, y una copia
+ * guardada quedaría desactualizada en cuanto cualquiera de los dos se
+ * recalifique.
+ *
+ * El par sale de la invitación cuando ambos cuestionarios se respondieron en la
+ * misma sesión; si se digitaron manualmente no hay invitación, y se toma el
+ * extralaboral más cercano en fecha dentro de la ventana de medición.
+ */
+async function buildGeneralTotal(
+    intraAssessmentId: string,
+    workerId: string,
+    formType: string,
+    assessmentDate: Date,
+    intraScored: ScoredResultData
+): Promise<TotalScore | null> {
+    const invitation = await prisma.assessmentInvitation.findFirst({
+        where: { intralaboralAssessmentId: intraAssessmentId },
+        select: { extralaboralAssessmentId: true },
+    });
+
+    let extraId = invitation?.extralaboralAssessmentId ?? null;
+
+    if (!extraId) {
+        const windowMs = PAIRING_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+        const candidates = await prisma.assessment.findMany({
+            where: {
+                workerId,
+                formType: formType as never,
+                questionnaireType: "EXTRALABORAL",
+                assessmentDate: {
+                    gte: new Date(assessmentDate.getTime() - windowMs),
+                    lte: new Date(assessmentDate.getTime() + windowMs),
+                },
+            },
+            select: { id: true, assessmentDate: true },
+        });
+        const nearest = candidates.sort(
+            (a, b) =>
+                Math.abs(a.assessmentDate.getTime() - assessmentDate.getTime()) -
+                Math.abs(b.assessmentDate.getTime() - assessmentDate.getTime())
+        )[0];
+        extraId = nearest?.id ?? null;
+    }
+
+    if (!extraId) return null;
+
+    const extra = await prisma.scoredResult.findUnique({
+        where: { assessmentId: extraId },
+        select: { dimensionScores: true, domainScores: true, totalScores: true },
+    });
+    if (!extra) return null;
+
+    const extraScored = {
+        formType,
+        questionnaireType: "EXTRALABORAL",
+        dimensions: extra.dimensionScores,
+        domains: extra.domainScores,
+        total: extra.totalScores,
+    } as unknown as ScoredResultData;
+
+    return scoreGeneralTotal(intraScored, extraScored);
+}
 
 function buildFicha(w: {
     documentType: string;
@@ -262,7 +347,7 @@ export async function buildIndividualData(
     psychologistId: string,
     isAdmin: boolean,
     isAnonymous: boolean
-): Promise<{ data: IndividualData; assets: IndividualAssets } | null> {
+): Promise<{ data: IndividualData; assets: IndividualAssets; viaAdmin: boolean } | null> {
     const assessment = await prisma.assessment.findFirst({
         where: {
             id: assessmentId,
@@ -284,6 +369,13 @@ export async function buildIndividualData(
 
     if (!assessment?.scoredResult) return null;
 
+    // El resultado individual está bajo reserva profesional: sólo el psicólogo
+    // tratante puede verlo con nombre (Res. 2646/2008 art. 11, Ley 1090/2006).
+    // El administrador conserva acceso para operar la plataforma, pero siempre
+    // anonimizado; que lo pida con nombre no cambia nada.
+    const viaAdmin = assessment.psychologistId !== psychologistId;
+    const anonymous = isAnonymous || viaAdmin;
+
     const { worker, organization, psychologist, scoredResult } = assessment;
     const settings = psychologist.settings;
     const report = assessment.generatedReports[0];
@@ -295,8 +387,7 @@ export async function buildIndividualData(
     const table = resolveBaremos(
         assessment.questionnaireType,
         assessment.formType,
-        worker.jobLevel,
-        worker.gender
+        worker.jobLevel
     );
 
     // ── puntajes almacenados ──────────────────────────────
@@ -310,13 +401,20 @@ export async function buildIndividualData(
         const nivel = asLevel(s.riskCategory);
         const level: RiskLevel = nivel ?? "SIN_RIESGO";
         const valida = nivel !== null;
+        // Sin nivel hay dos causas distintas que el informe no debe confundir:
+        // el manual no publica baremo para esa subescala (el puntaje es válido
+        // y se muestra), o el resultado no pudo calcularse por faltantes.
         return {
             key,
             name: s.dimensionName ?? key,
             definition: DIMENSION_DEFINITION[key] ?? null,
             score: Number((s.transformedScore ?? 0).toFixed(1)),
             level,
-            levelLabel: valida ? levelLabel(level) : "No calculable",
+            levelLabel: valida
+                ? levelLabel(level)
+                : s.isUnscored
+                  ? "Puntaje descriptivo (sin baremo)"
+                  : "No calculable",
             bounds: valida ? toBounds(table.dimensions[key]) : [],
             action: valida && needsAction(level) ? DIMENSION_ACTION[key] ?? null : null,
         };
@@ -402,6 +500,37 @@ export async function buildIndividualData(
     const rawOverall = asLevel(scoredResult.overallRiskCategory);
     const overallValid = rawOverall !== null;
     const overallLevel: RiskLevel = rawOverall ?? "SIN_RIESGO";
+    const generalTotalScore =
+        assessment.questionnaireType === "INTRALABORAL"
+            ? await buildGeneralTotal(
+                  assessment.id,
+                  assessment.workerId,
+                  assessment.formType,
+                  new Date(assessment.assessmentDate),
+                  {
+                      formType: assessment.formType,
+                      questionnaireType: assessment.questionnaireType,
+                      dimensions: scoredResult.dimensionScores,
+                      domains: scoredResult.domainScores,
+                      total: scoredResult.totalScores,
+                  } as unknown as ScoredResultData
+              )
+            : null;
+
+    const generalLevel = asLevel(generalTotalScore?.riskCategory);
+    const generalTotal =
+        generalTotalScore && generalLevel
+            ? {
+                  score: Number(generalTotalScore.transformedScore.toFixed(1)),
+                  level: generalLevel,
+                  levelLabel: RISK_LABEL[generalLevel],
+                  bounds: toBounds(
+                      (getBaremos() as unknown as Record<string, Record<string, never>>)
+                          .total_general?.[assessment.formType === "A" ? "forma_a" : "forma_b"]
+                  ),
+              }
+            : null;
+
     const questionnaireLabel = isStress
         ? "Cuestionario de evaluación del estrés"
         : assessment.questionnaireType === "EXTRALABORAL"
@@ -417,7 +546,7 @@ export async function buildIndividualData(
                         ? `Forma ${assessment.formType}`
                         : null,
                 isStress,
-                isAnonymous,
+                isAnonymous: anonymous,
                 licenseMissing: !psychologist.sstLicenseDate,
             },
             brand: {
@@ -432,9 +561,9 @@ export async function buildIndividualData(
                 economicSector: organization.economicSector,
             },
             worker: {
-                name: isAnonymous ? "Trabajador anónimo" : worker.fullName,
-                document: isAnonymous ? "Reservado" : `${worker.documentType} ${worker.documentId}`,
-                ficha: buildFicha(worker as never, isAnonymous),
+                name: anonymous ? "Trabajador anónimo" : worker.fullName,
+                document: anonymous ? "Reservado" : `${worker.documentType} ${worker.documentId}`,
+                ficha: buildFicha(worker as never, anonymous),
             },
             assessment: {
                 date: fmtDate(new Date(assessment.assessmentDate)),
@@ -457,6 +586,7 @@ export async function buildIndividualData(
                     ? RISK_INTERPRETATION[overallLevel].action
                     : "Completar los ítems faltantes o repetir la aplicación del cuestionario. Este informe no puede sustentar decisiones ni presentarse ante la autoridad mientras el resultado no sea calculable.",
             },
+            generalTotal,
             domains,
             dimensions: flat,
             critical,
@@ -480,5 +610,6 @@ export async function buildIndividualData(
             glossary,
         },
         assets: { logo, signature },
+        viaAdmin,
     };
 }

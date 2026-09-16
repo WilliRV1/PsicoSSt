@@ -10,6 +10,7 @@ import {
     RISK_ORDER,
     type RiskLevel,
 } from "./battery-content";
+import { MIN_GROUP_SIZE } from "./anonymity";
 
 /**
  * Datos del informe diagnóstico organizacional.
@@ -20,19 +21,16 @@ import {
  */
 
 /**
- * Número mínimo de TRABAJADORES para reportar un grupo por separado.
+ * Umbral de anonimato. Vive en `./anonymity` para que el informe diagnóstico, el
+ * sociodemográfico y el diagnóstico por IA no puedan volver a divergir; se
+ * reexporta aquí porque este módulo lo publica en el propio informe.
  *
  * El informe siempre declaró que garantizaba el anonimato en grupos menores a
  * diez personas, pero el cálculo incluía toda área con al menos una evaluación:
  * un área de un solo trabajador aparecía con su nombre y su distribución de
  * riesgo, que es exactamente el resultado individual de esa persona.
- *
- * El umbral se cuenta sobre trabajadores distintos, no sobre evaluaciones. A
- * cada persona se le aplican hasta tres cuestionarios, de modo que contar
- * evaluaciones dejaría pasar un área de cuatro personas —doce evaluaciones— y
- * el piso quedaría desfasado por un factor de tres.
  */
-export const MIN_GROUP_SIZE = 10;
+export { MIN_GROUP_SIZE };
 
 export type Distribution = Record<RiskLevel, number>;
 
@@ -231,7 +229,7 @@ export async function buildDiagnosticData(
     orgId: string,
     psychologistId: string,
     isAdmin: boolean
-): Promise<{ data: DiagnosticData; assets: DiagnosticAssets } | null> {
+): Promise<{ data: DiagnosticData; assets: DiagnosticAssets; viaAdmin: boolean } | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: {
@@ -246,6 +244,9 @@ export async function buildDiagnosticData(
 
     if (!org) return null;
     if (org.createdByPsychologist !== psychologistId && !isAdmin) return null;
+    // Acceso por la vía administrativa: el lector no es el psicólogo tratante,
+    // así que la ruta debe dejarlo registrado en la auditoría.
+    const viaAdmin = org.createdByPsychologist !== psychologistId;
 
     const assessments = await prisma.assessment.findMany({
         where: {
@@ -637,6 +638,7 @@ export async function buildDiagnosticData(
             areaDimensionMatrix,
         },
         assets: { logo, signature },
+        viaAdmin,
     };
 }
 

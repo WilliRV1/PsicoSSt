@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateOrganizationalDiagnosis } from "@/lib/ai/openrouter-client";
+import {
+    MIN_GROUP_SIZE,
+    belowThresholdPayload,
+    meetsMinGroupSize,
+    suppressSmallCounts,
+    toSuppressedPercentages,
+} from "@/lib/reports/anonymity";
 
 export async function POST(
     request: NextRequest,
@@ -34,6 +41,10 @@ export async function POST(
         },
     });
 
+    // No se filtran los archivados: el diagnóstico cruza estos
+    // sociodemográficos con las evaluaciones firmadas de arriba, y excluir a
+    // quien fue evaluado y luego se archivó describiría una población distinta
+    // de la que produjo los resultados de riesgo.
     const workers = await (prisma.worker as any).findMany({
         where: { organizationId: orgId },
         select: {
@@ -47,6 +58,13 @@ export async function POST(
     });
 
     const totalWorkers = workers.length;
+
+    // Una organización entera por debajo del umbral no puede agregarse: el
+    // prompt saldría con porcentajes que son resultados individuales, y además
+    // viajarían a un tercero (Res. 2646/2008 art. 11, Ley 1581/2012).
+    if (!meetsMinGroupSize(totalWorkers)) {
+        return NextResponse.json(belowThresholdPayload(totalWorkers), { status: 409 });
+    }
 
     // Risk distribution helpers
     const emptyDist = () => ({ SIN_RIESGO: 0, BAJO: 0, MEDIO: 0, ALTO: 0, MUY_ALTO: 0 });
@@ -75,9 +93,7 @@ export async function POST(
     const extraTotal = Object.values(extra).reduce((a, b) => a + b, 0);
     const stressTotal = Object.values(stress).reduce((a, b) => a + b, 0);
 
-    // Segmentation by area and job title (only groups with >= 5 for privacy)
-    const segByArea: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
-    const segByCargo: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
+    // Segmentation by area and job title (sólo grupos que alcanzan MIN_GROUP_SIZE)
     const areaGroups: Record<string, any[]> = {};
     const cargoGroups: Record<string, any[]> = {};
 
@@ -90,24 +106,31 @@ export async function POST(
         cargoGroups[cargo].push(a);
     });
 
+    /**
+     * El umbral se mide sobre trabajadores distintos, no sobre evaluaciones: un
+     * área de cuatro personas con tres cuestionarios cada una suma doce ítems y
+     * pasaría cualquier piso contado sobre evaluaciones.
+     *
+     * Los grupos por debajo del umbral se suprimen y NO se reagrupan en "otros
+     * grupos" como antes: si el residual también quedaba bajo umbral, restarlo
+     * del total de la organización devolvía exactamente el grupo que se quiso
+     * ocultar. Se informa cuántos grupos y cuántos trabajadores se omitieron.
+     */
     const buildSeg = (groups: Record<string, any[]>) => {
-        const result: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
-        const others: any[] = [];
+        const workerCounts: Record<string, number> = {};
         for (const [key, items] of Object.entries(groups)) {
-            if (items.length >= 5) {
-                const d = emptyDist();
-                items.forEach(a => { const c = a.scoredResult?.overallRiskCategory as keyof typeof d | undefined; if (c && c in d) d[c]++; });
-                result[key] = { count: items.length, riskDistribution: toPercent(d, items.length) };
-            } else {
-                others.push(...items);
-            }
+            workerCounts[key] = new Set(items.map(a => a.workerId)).size;
         }
-        if (others.length >= 5) {
+        const { counts: kept, suppressedGroups, suppressedCount } = suppressSmallCounts(workerCounts);
+
+        const result: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
+        for (const key of Object.keys(kept)) {
+            const items = groups[key];
             const d = emptyDist();
-            others.forEach(a => { const c = a.scoredResult?.overallRiskCategory as keyof typeof d | undefined; if (c && c in d) d[c]++; });
-            result["Otros grupos"] = { count: others.length, riskDistribution: toPercent(d, others.length) };
+            items.forEach(a => { const c = a.scoredResult?.overallRiskCategory as keyof typeof d | undefined; if (c && c in d) d[c]++; });
+            result[key] = { count: kept[key], riskDistribution: toPercent(d, items.length) };
         }
-        return result;
+        return { segments: result, suppressedGroups, suppressedWorkers: suppressedCount };
     };
 
     // Stress-Intra correlation matrix
@@ -164,7 +187,30 @@ export async function POST(
         }
     });
 
-    const toPercentWorkers = (dist: Record<string, number>) => toPercent(dist, totalWorkers);
+    // Las distribuciones sociodemográficas también se suprimen antes de salir
+    // hacia el modelo: "una persona de estrato 1" identifica igual venga de
+    // donde venga.
+    const suppressedDists = {
+        gender: toSuppressedPercentages(genderDist, totalWorkers),
+        age: toSuppressedPercentages(ageDist, totalWorkers),
+        jobLevel: toSuppressedPercentages(jobLevelDist, totalWorkers),
+        tenure: toSuppressedPercentages(tenureDist, totalWorkers),
+    };
+
+    const byArea = buildSeg(areaGroups);
+    const byJobTitle = buildSeg(cargoGroups);
+
+    const suppression = {
+        minGroupSize: MIN_GROUP_SIZE,
+        byArea: { groups: byArea.suppressedGroups, workers: byArea.suppressedWorkers },
+        byJobTitle: { groups: byJobTitle.suppressedGroups, workers: byJobTitle.suppressedWorkers },
+        sociodemographic: Object.fromEntries(
+            Object.entries(suppressedDists).map(([k, v]) => [
+                k,
+                { suppressed: v.suppressed, groups: v.suppressedGroups, workers: v.suppressedCount },
+            ])
+        ),
+    };
 
     try {
         const report = await generateOrganizationalDiagnosis({
@@ -178,20 +224,20 @@ export async function POST(
                 extralaboralDistribution: toPercent(extra, extraTotal),
                 stressDistribution: toPercent(stress, stressTotal),
                 segmentation: {
-                    byArea: buildSeg(areaGroups),
-                    byJobTitle: buildSeg(cargoGroups),
+                    byArea: byArea.segments,
+                    byJobTitle: byJobTitle.segments,
                 },
                 correlation,
             },
             sociodemographic: {
-                genderDistribution: toPercentWorkers(genderDist),
-                ageDistribution: toPercentWorkers(ageDist),
-                jobLevelDistribution: toPercentWorkers(jobLevelDist),
-                tenureDistribution: toPercentWorkers(tenureDist),
+                genderDistribution: suppressedDists.gender.distribution,
+                ageDistribution: suppressedDists.age.distribution,
+                jobLevelDistribution: suppressedDists.jobLevel.distribution,
+                tenureDistribution: suppressedDists.tenure.distribution,
             },
         });
 
-        return NextResponse.json({ report, generatedAt: new Date().toISOString() });
+        return NextResponse.json({ report, suppression, generatedAt: new Date().toISOString() });
     } catch (err: any) {
         console.error("[AI DIAGNOSTIC] Error:", err);
         if (err.message?.includes("OPENROUTER_API_KEY")) {

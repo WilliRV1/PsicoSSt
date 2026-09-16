@@ -42,19 +42,22 @@ export function validateDimensionNullity(
 
     if (missingCount === 0) return true;
 
-    if (questionnaireType === "INTRALABORAL") {
-        const tolerantDimensions = [
+    // Únicas dimensiones que admiten un ítem sin respuesta: M2 p. 80 para el
+    // intralaboral y M3 p. 148 para el extralaboral. En el resto, un solo
+    // faltante invalida la dimensión, su dominio y el total.
+    const tolerantDimensions: Record<string, string[]> = {
+        INTRALABORAL: [
             "liderazgo_caracteristicas",
             "relaciones_sociales",
             "relacion_colaboradores",
             "demandas_ambientales"
-        ];
-        if (tolerantDimensions.includes(dimensionKey) && missingCount === 1) {
-            return true;
-        }
-    }
-    
-    return false;
+        ],
+        EXTRALABORAL: ["caracteristicas_vivienda"],
+        STRESS: []
+    };
+
+    return missingCount === 1 &&
+        (tolerantDimensions[questionnaireType] ?? []).includes(dimensionKey);
 }
 
 /**
@@ -112,22 +115,16 @@ export function calculateDimensionScore(
     const isValid = validateDimensionNullity(responses, config.items, config.key, questionnaireType);
     
     let rawScore = 0;
-    let answeredCount = 0;
-    
+
     if (isValid) {
+        // M2 p. 76: el ítem sin responder "se tomará como un dato perdido, sin
+        // calificación alguna". El bruto es la suma de lo respondido y se
+        // divide por el factor completo; imputar la media lo inflaba.
         for (const item of config.items) {
             const val = responses[String(item)];
             if (val !== undefined && val !== null) {
                 rawScore += val;
-                answeredCount++;
             }
-        }
-        
-        // Imputación por media si hay faltantes permitidos
-        if (answeredCount < config.items.length && answeredCount > 0) {
-            const avg = rawScore / answeredCount;
-            const missing = config.items.length - answeredCount;
-            rawScore += (avg * missing);
         }
     }
 
@@ -211,6 +208,54 @@ function occupationalGroup(metadata?: { jobLevel?: string; occupationalGroup?: s
     return "jefes_profesionales_tecnicos";
 }
 
+/**
+ * Puntaje total general de la evaluación de factores de riesgo psicosocial:
+ * la suma de los brutos totales del intralaboral y del extralaboral aplicados
+ * al mismo trabajador.
+ *
+ * Es una salida que el manual exige cuando se aplican ambos cuestionarios
+ * (M2 p. 80, literal d). El factor sale de la Tabla 28 (M2 p. 84): 616 en la
+ * forma A y 512 en la forma B. Los baremos, de la Tabla 34 (M2 p. 86), son los
+ * mismos que reproduce la Tabla 34 del manual extralaboral (M3 p. 153).
+ *
+ * Si cualquiera de los dos cuestionarios es inválido tampoco puede calcularse
+ * el total general (M2 p. 80).
+ */
+export function scoreGeneralTotal(
+    intralaboral: ScoredResultData,
+    extralaboral: ScoredResultData
+): TotalScore {
+    const formType = intralaboral.formType;
+    const config = formType === "A" ? formAConfig : formBConfig;
+    const transformationFactor = config.generalTransformationFactor;
+    const thresholds = (baremos as any).total_general[
+        formType === "A" ? "forma_a" : "forma_b"
+    ] as BaremoThreshold;
+
+    const isValid =
+        intralaboral.questionnaireType === "INTRALABORAL" &&
+        extralaboral.questionnaireType === "EXTRALABORAL" &&
+        intralaboral.total.isValid !== false &&
+        extralaboral.total.isValid !== false;
+
+    const rawScore = isValid
+        ? round1(intralaboral.total.rawScore + extralaboral.total.rawScore)
+        : 0;
+    const transformedScore = isValid ? round1((rawScore / transformationFactor) * 100) : 0;
+    const riskCategory: RiskCategory = isValid
+        ? lookupRiskCategory(transformedScore, thresholds)
+        : "INVALIDO";
+
+    return {
+        rawScore,
+        maxPossible: transformationFactor,
+        transformedScore,
+        riskCategory,
+        riskLevel: isValid ? getRiskLevel(riskCategory) : 0,
+        isValid
+    };
+}
+
 /** Los 31 ítems del cuestionario de estrés, tercera versión. */
 const STRESS_ITEMS = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -284,15 +329,11 @@ export function scoreQuestionnaire(
         baremoTable = baremoTable[occupationalGroup(metadata)];
     }
 
-    // El manual de estrés (M4) sólo publica baremo para el puntaje TOTAL —
-    // Tabla 6 clasifica por nivel ocupacional, nada más. No hay baremo propio
-    // para los 4 grupos de síntomas. A falta de uno publicado por subescala,
-    // se reutilizan aquí esas mismas cinco bandas para clasificar el puntaje
-    // ponderado de cada grupo (Tabla 4): es una lectura derivada, no un
-    // baremo oficial de subescala, pero preferible a que el desglose por
-    // síntoma caiga siempre en "Sin Riesgo" sin importar la gravedad real —
-    // que es lo que impedía que la alerta de salud mental (ver
-    // DIMENSION_ACTION.sintomas_psicoemocionales) se disparara alguna vez.
+    // M4 Tabla 6 (p. 382) baremiza ÚNICAMENTE el puntaje total, estratificado
+    // por nivel ocupacional. No existe baremo publicado para los cuatro grupos
+    // de síntomas, así que sus puntajes se reportan como descriptivos y sin
+    // nivel: reutilizar aquí las bandas del total fabricaba una clasificación
+    // que el instrumento no respalda.
     const stressTotalThresholds: BaremoThreshold | null =
         questionnaireType === "STRESS" ? baremoTable[occupationalGroup(metadata)] : null;
 
@@ -359,9 +400,6 @@ export function scoreQuestionnaire(
                 ? (rawScore / maxPossible) * 100
                 : 0;
             const roundedTransformed = round1(transformedScore);
-            const riskCategory: RiskCategory = (stressComplete && stressTotalThresholds)
-                ? lookupRiskCategory(roundedTransformed, stressTotalThresholds)
-                : "INVALIDO";
 
             dimensionResults[dim.key] = {
                 dimensionKey: dim.key,
@@ -370,11 +408,12 @@ export function scoreQuestionnaire(
                 maxPossible,
                 transformedScore: stressComplete ? roundedTransformed : 0,
                 transformationFactor: maxPossible,
-                riskCategory: stressComplete ? riskCategory : "INVALIDO",
-                riskLevel: stressComplete ? getRiskLevel(riskCategory) : 0,
+                riskCategory: stressComplete ? null : "INVALIDO",
+                riskLevel: 0,
                 itemCount: dim.items.length,
                 invertedItems: dim.invertedItems,
-                isValid: stressComplete
+                isValid: stressComplete,
+                isUnscored: stressComplete
             };
             if (!stressComplete) {
                 allDimensionsValid = false;

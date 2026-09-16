@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { loadImage, type ReportImage } from "./images";
+import { MIN_GROUP_SIZE, meetsMinGroupSize } from "./anonymity";
 
 /**
  * Perfil sociodemográfico y ocupacional de la población evaluada.
@@ -28,6 +29,10 @@ export interface ProfileBlock {
     rows: ProfileRow[];
     /** Trabajadores sin dato registrado en esta variable. */
     missing: number;
+    /** Categorías omitidas por no alcanzar el umbral de anonimato. */
+    suppressedGroups: number;
+    /** Trabajadores que quedaron fuera de las filas publicadas. */
+    suppressed: number;
 }
 
 export interface SociodemographicData {
@@ -48,6 +53,13 @@ export interface SociodemographicData {
         /** Trabajadores registrados en la organización. */
         registered: number;
         assessments: number;
+        /** Umbral de anonimato aplicado a cada casilla del informe. */
+        minGroupSize: number;
+        /**
+         * La población evaluada entera no alcanza el umbral, así que no hay
+         * distribución alguna que publicar.
+         */
+        belowThreshold: boolean;
     };
     /** Variables personales y familiares. */
     personal: ProfileBlock[];
@@ -74,7 +86,7 @@ const fmtDate = (t: number) =>
 function tally(
     values: (string | null | undefined)[],
     order?: string[]
-): { rows: ProfileRow[]; missing: number } {
+): { rows: ProfileRow[]; missing: number; suppressedGroups: number; suppressed: number } {
     const counts = new Map<string, number>();
     let missing = 0;
 
@@ -88,6 +100,23 @@ function tally(
     }
 
     const total = [...counts.values()].reduce((s, v) => s + v, 0);
+
+    // Una casilla con menos de MIN_GROUP_SIZE personas es un resultado
+    // individual disfrazado de estadística: "estrato 1: 1 trabajador (2,4%)"
+    // señala a alguien. Se omite la fila y se declara cuánta gente se omitió,
+    // sin reagruparla en un "otros" cuyo residual permitiría restarla.
+    let suppressedGroups = 0;
+    let suppressed = 0;
+    for (const [label, n] of counts) {
+        if (!meetsMinGroupSize(n)) {
+            counts.delete(label);
+            suppressedGroups++;
+            suppressed += n;
+        }
+    }
+
+    // El denominador sigue siendo el total con dato, no el publicado: con el
+    // denominador recortado los porcentajes sumarían 100 y negarían la omisión.
     let rows = [...counts.entries()].map(([label, count]) => ({
         label,
         count,
@@ -106,7 +135,7 @@ function tally(
         rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "es"));
     }
 
-    return { rows, missing };
+    return { rows, missing, suppressedGroups, suppressed };
 }
 
 function block(
@@ -114,8 +143,8 @@ function block(
     values: (string | null | undefined)[],
     opts: { note?: string; order?: string[] } = {}
 ): ProfileBlock {
-    const { rows, missing } = tally(values, opts.order);
-    return { title, note: opts.note ?? null, rows, missing };
+    const { rows, missing, suppressedGroups, suppressed } = tally(values, opts.order);
+    return { title, note: opts.note ?? null, rows, missing, suppressedGroups, suppressed };
 }
 
 const AGE_ORDER = [
@@ -196,7 +225,11 @@ export async function buildSociodemographicData(
     orgId: string,
     psychologistId: string,
     isAdmin: boolean
-): Promise<{ data: SociodemographicData; assets: SociodemographicAssets } | null> {
+): Promise<{
+    data: SociodemographicData;
+    assets: SociodemographicAssets;
+    viaAdmin: boolean;
+} | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: {
@@ -208,12 +241,20 @@ export async function buildSociodemographicData(
 
     if (!org) return null;
     if (org.createdByPsychologist !== psychologistId && !isAdmin) return null;
+    // Acceso por la vía administrativa: queda para la auditoría de la ruta.
+    const viaAdmin = org.createdByPsychologist !== psychologistId;
 
     const scored: Prisma.AssessmentWhereInput = {
         status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] },
         scoredResult: { isNot: null },
     };
 
+    // Ninguna de las dos consultas excluye a los trabajadores archivados. La
+    // primera describe a la población que produjo los resultados: quien fue
+    // evaluado y después se archivó sigue siendo parte de esa población, y
+    // sacarlo cambiaría el perfil que acompaña a resultados ya emitidos. La
+    // segunda es el denominador de cobertura y debe seguir siendo ≥ evaluados,
+    // invariante del que depende la nota de "cobertura parcial" del documento.
     const [workers, registered] = await Promise.all([
         prisma.worker.findMany({
             where: { organizationId: orgId, assessments: { some: scored } },
@@ -283,7 +324,9 @@ export async function buildSociodemographicData(
             workers.map(w => tenureBucket(w.lessThanOneYearInPosition, w.yearsInPosition)),
             { order: TENURE_ORDER }
         ),
-    ].filter(b => b.rows.length > 0);
+        // Un bloque enteramente suprimido se conserva: el informe debe decir
+        // "omitido por confidencialidad" y no dejar un hueco sin explicación.
+    ].filter(b => b.rows.length > 0 || b.suppressed > 0);
 
     const settings = org.psychologist.settings;
     const sig =
@@ -318,10 +361,17 @@ export async function buildSociodemographicData(
                 license: org.psychologist.licenseNumber,
                 signaturePath: signature ? `/assets/signature.${signature.ext}` : null,
             },
-            coverage: { evaluated: workers.length, registered, assessments },
-            personal: personal.filter(b => b.rows.length > 0),
+            coverage: {
+                evaluated: workers.length,
+                registered,
+                assessments,
+                minGroupSize: MIN_GROUP_SIZE,
+                belowThreshold: !meetsMinGroupSize(workers.length),
+            },
+            personal: personal.filter(b => b.rows.length > 0 || b.suppressed > 0),
             occupational,
         },
         assets: { logo, signature },
+        viaAdmin,
     };
 }

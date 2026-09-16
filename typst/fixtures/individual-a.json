@@ -115,6 +115,18 @@
     "action": "Intervención inmediata en el marco de un sistema de vigilancia epidemiológica. Requiere seguimiento individual documentado.",
     "isValid": true
   },
+  "generalTotal": {
+    "score": 26.8,
+    "level": "MEDIO",
+    "levelLabel": "Riesgo medio",
+    "bounds": [
+      18.8,
+      24.4,
+      29.5,
+      35.4,
+      100
+    ]
+  },
   "domains": [
     {
       "key": "liderazgo_relaciones",

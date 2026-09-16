@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
 import { buildCollectiveData, type CollectiveVariant } from "@/lib/reports/collective-data";
 import { compileTypstPdf } from "@/lib/reports/typst";
 
@@ -28,6 +29,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orgI
     try {
         const pdf = await compileTypstPdf("collective.typ", built.data, built.assets);
         const slug = built.data.org.name.replace(/[^a-zA-Z0-9]+/g, "_").slice(0, 40);
+
+        const { ipAddress, userAgent } = extractRequestMeta(req);
+        await logAudit({
+            userId: session.user.id,
+            action: "READ",
+            resourceType: "collective_report",
+            resourceId: orgId,
+            // El informe colectivo es agregado y nunca nombra trabajadores.
+            metadata: { viaAdmin: built.viaAdmin, anonymized: true, variant },
+            ipAddress,
+            userAgent,
+        });
 
         return new NextResponse(new Uint8Array(pdf), {
             status: 200,

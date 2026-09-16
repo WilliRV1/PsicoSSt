@@ -74,7 +74,7 @@ export async function buildInterventionData(
     orgId: string,
     psychologistId: string,
     isAdmin: boolean
-): Promise<{ data: InterventionData; assets: InterventionAssets } | null> {
+): Promise<{ data: InterventionData; assets: InterventionAssets; viaAdmin: boolean } | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: {
@@ -86,6 +86,8 @@ export async function buildInterventionData(
 
     if (!org) return null;
     if (org.createdByPsychologist !== psychologistId && !isAdmin) return null;
+    // Acceso por la vía administrativa: queda para la auditoría de la ruta.
+    const viaAdmin = org.createdByPsychologist !== psychologistId;
 
     const plan = await prisma.interventionPlan.findFirst({
         where: { organizationId: orgId },
@@ -208,5 +210,6 @@ export async function buildInterventionData(
             areas,
         },
         assets: { logo, signature },
+        viaAdmin,
     };
 }

@@ -183,6 +183,10 @@ model Worker {
   /// enlace de autoservicio (después de firmar consentimiento, antes del
   /// primer cuestionario). Nula = pendiente o cargado manual por psicólogo.
   sociodemographicsCompletedAt DateTime? @map("sociodemographics_completed_at")
+  /// Archivado lógico. El Dec. 1072/2015 art. 2.2.4.6.13 obliga a conservar la
+  /// evidencia 20 años desde el cese laboral, así que un trabajador con
+  /// evaluaciones calificadas nunca se borra: se archiva y deja de listarse.
+  archivedAt             DateTime?         @map("archived_at")
   createdAt              DateTime          @default(now()) @map("created_at")
   updatedAt              DateTime          @updatedAt @map("updated_at")
   assessments            Assessment[]
@@ -279,6 +283,12 @@ model InformedConsent {
   /// Firma dibujada por el trabajador (dedo/mouse) como PNG base64. Nula en
   /// consentimientos tomados en persona por el psicólogo (VERBAL/WRITTEN).
   consentSignature String?     @map("consent_signature") @db.Text
+  /// Identificador de la versión exacta del texto que se le mostró al
+  /// trabajador. Sin esto no puede reconstruirse qué fue lo que autorizó,
+  /// porque el texto cambia con cada despliegue (Ley 1581/2012 art. 6 y 12).
+  consentVersion String?       @map("consent_version")
+  ipAddress      String?       @map("ip_address")
+  userAgent      String?       @map("user_agent") @db.Text
   consentedAt    DateTime      @default(now()) @map("consented_at")
   assessment     Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   worker         Worker        @relation(fields: [workerId], references: [id])
@@ -302,6 +312,10 @@ model GeneratedReport {
   // Immutability and Verification
   contentHash       String?      @map("content_hash")
   versionHash       String?      @map("version_hash")
+  /// URL del PDF archivado al firmar. El informe entregado debe poder
+  /// recuperarse tal cual se entregó: recompilarlo con los datos del día
+  /// impide probar qué documento se firmó (Dec. 1072/2015 art. 2.2.4.6.13).
+  pdfUrl            String?      @map("pdf_url")
   pdfSize           Int?         @map("pdf_size")
   pages             Int?
   generatedBy       String?      @map("generated_by")

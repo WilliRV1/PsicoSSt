@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractRequestMeta } from "@/lib/auth/audit";
+import { enforcePublicRateLimit } from "@/lib/security/public-guard";
 import { OrganizationInvitationLinkService } from "@/lib/services/organization-invitation-link-service";
 
 const ERROR_STATUS: Record<string, number> = {
@@ -19,6 +21,11 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ token: string }> }
 ) {
+    const { ipAddress, userAgent } = extractRequestMeta(request);
+
+    const limited = enforcePublicRateLimit("identify", ipAddress);
+    if (limited) return limited;
+
     try {
         const { token } = await params;
         const body = await request.json();
@@ -28,8 +35,25 @@ export async function POST(
             return NextResponse.json({ error: "Ingresa tu número de cédula." }, { status: 400 });
         }
 
-        const { invitationToken } = await OrganizationInvitationLinkService.identifyWorker(token, documentId);
-        return NextResponse.json({ invitationToken });
+        const result = await OrganizationInvitationLinkService.identifyWorker(token, documentId, {
+            ipAddress,
+            userAgent,
+            // Ver api/assessments/invitations/route.ts: APP_URL no existe en Vercel.
+            origin: request.nextUrl.origin,
+        });
+
+        if (result.outcome === "RESENT_TO_CONTACT") {
+            return NextResponse.json({
+                outcome: "RESENT_TO_CONTACT",
+                // Sin el correo ni una versión enmascarada: quien digitó la
+                // cédula no tiene por qué saber a qué buzón quedó asociada.
+                message:
+                    "Ya tienes una evaluación en curso. Te reenviamos el enlace al correo registrado; " +
+                    "revisa tu bandeja de entrada y la carpeta de spam. Si no lo recibes, contacta a tu psicólogo(a).",
+            });
+        }
+
+        return NextResponse.json({ outcome: "RESOLVED", invitationToken: result.invitationToken });
     } catch (error: any) {
         const code = error?.message as string;
         const status = ERROR_STATUS[code] ?? 500;

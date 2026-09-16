@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
 import { buildInterventionData } from "@/lib/reports/intervention-data";
 import { compileTypstPdf } from "@/lib/reports/typst";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ orgId: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ orgId: string }> }) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -24,6 +25,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ org
     try {
         const pdf = await compileTypstPdf("intervention.typ", built.data, built.assets);
         const slug = built.data.org.name.replace(/[^a-zA-Z0-9]+/g, "_").slice(0, 40);
+
+        const { ipAddress, userAgent } = extractRequestMeta(req);
+        await logAudit({
+            userId: session.user.id,
+            action: "READ",
+            resourceType: "intervention_plan_report",
+            resourceId: orgId,
+            metadata: { viaAdmin: built.viaAdmin, anonymized: true },
+            ipAddress,
+            userAgent,
+        });
 
         return new NextResponse(new Uint8Array(pdf), {
             status: 200,

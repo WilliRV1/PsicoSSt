@@ -1,17 +1,39 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
+import { MIN_GROUP_SIZE } from "@/lib/reports/anonymity";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
     const department = searchParams.get("department");
 
+    // El proxy sólo comprueba que exista una cookie de sesión, no que sea
+    // válida: la autorización real la hace cada ruta. Sin este bloque bastaba
+    // una cookie cualquiera y un organizationId para extraer la distribución de
+    // riesgo psicosocial de cualquier empresa.
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!organizationId) {
         return NextResponse.json({ error: "Organization ID is required" }, { status: 400 });
     }
 
     try {
+        const org = await prisma.organization.findFirst({
+            where: { id: organizationId, createdByPsychologist: session.user.id },
+            select: { id: true },
+        });
+        if (!org && !session.user.isAdmin) {
+            return NextResponse.json(
+                { error: "Organization not found or access denied" },
+                { status: 404 }
+            );
+        }
+
         const whereClause: any = {
             assessment: {
                 organizationId
@@ -39,10 +61,10 @@ export async function GET(request: Request) {
         const uniqueWorkers = new Set(results.map(r => r.assessment.workerId));
         const workerCount = uniqueWorkers.size;
         
-        if (workerCount < 5 && workerCount > 0 && department !== "ALL") {
-            return NextResponse.json({ 
-                privacyWarning: true, 
-                message: "Reserva Legal por Muestra Insuficiente" 
+        if (workerCount > 0 && workerCount < MIN_GROUP_SIZE) {
+            return NextResponse.json({
+                privacyWarning: true,
+                message: `Reserva legal por muestra insuficiente: se requieren al menos ${MIN_GROUP_SIZE} trabajadores evaluados para publicar distribuciones de riesgo.`
             }, { status: 403 });
         }
 

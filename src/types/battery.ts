@@ -40,12 +40,19 @@ export interface DimensionScore {
     transformedScore: number;
     transformationFactor: number;
     baremoPercentile?: number;
-    riskCategory: RiskCategory;
+    /**
+     * `null` cuando el manual no publica baremo para esa subescala y por tanto
+     * no existe nivel que asignarle — distinto de `INVALIDO`, que marca un
+     * resultado que no puede calcularse. Ocurre en los cuatro grupos de
+     * síntomas del cuestionario de estrés (M4 sólo baremiza el total).
+     */
+    riskCategory: RiskCategory | null;
     riskLevel: number; // 1-5 numeric
     itemCount: number;
     invertedItems: number[];
     isValid: boolean;          // False if nullified by missing items
     isFiltered?: boolean;      // True if zeroed by filter questions
+    isUnscored?: boolean;      // True if calculable but without a published baremo
 }
 
 /** Score result for a domain (aggregation of dimensions) */

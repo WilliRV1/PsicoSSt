@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
 import { buildDiagnosticData } from "@/lib/reports/diagnostic-data";
 import { compileTypstPdf, TypstCompileError } from "@/lib/reports/typst";
 
@@ -16,7 +17,7 @@ function safeSlug(value: string): string {
 }
 
 export async function GET(
-    _req: Request,
+    req: Request,
     { params }: { params: Promise<{ orgId: string }> }
 ) {
     const { orgId } = await params;
@@ -40,6 +41,18 @@ export async function GET(
     try {
         const pdf = await compileTypstPdf("diagnostic.typ", data, assets);
         const filename = `Diagnostico_Organizacional_${safeSlug(data.org.nit)}.pdf`;
+
+        const { ipAddress, userAgent } = extractRequestMeta(req);
+        await logAudit({
+            userId: session.user.id,
+            action: "READ",
+            resourceType: "diagnostic_report",
+            resourceId: orgId,
+            // Informe agregado: las áreas bajo el umbral ya salen suprimidas.
+            metadata: { viaAdmin: built.viaAdmin, anonymized: true },
+            ipAddress,
+            userAgent,
+        });
 
         return new NextResponse(new Uint8Array(pdf), {
             headers: {

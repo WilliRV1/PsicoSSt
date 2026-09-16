@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
 
     const workers = await (prisma.worker as any).findMany({
         where: {
+            // Exportación operativa de la planta vigente; los archivados
+            // conservan su evidencia en la base pero no se listan.
+            archivedAt: null,
             organization: {
                 createdByPsychologist: session.user.id,
                 ...(orgId && { id: orgId }),

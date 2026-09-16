@@ -115,6 +115,7 @@
     "action": "Mantener y reforzar la condición. No requiere intervención.",
     "isValid": true
   },
+  "generalTotal": null,
   "domains": [],
   "dimensions": [
     {

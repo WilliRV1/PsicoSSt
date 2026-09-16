@@ -103,10 +103,10 @@ const RISK_CLINICAL: Record<string, { description: string; action: string; urgen
 };
 
 /* ─── Helpers ────────────────────────────────────────────────── */
-function getRiskClass(cat: string) {
-    return ({ SIN_RIESGO: "risk-none", BAJO: "risk-low", MEDIO: "risk-medium", ALTO: "risk-high", MUY_ALTO: "risk-very-high" } as Record<string, string>)[cat] || "risk-none";
+function getRiskClass(cat: string | null) {
+    return ({ SIN_RIESGO: "risk-none", BAJO: "risk-low", MEDIO: "risk-medium", ALTO: "risk-high", MUY_ALTO: "risk-very-high" } as Record<string, string>)[cat ?? ""] || "risk-none";
 }
-function isHighRisk(cat: string) { return cat === "ALTO" || cat === "MUY_ALTO"; }
+function isHighRisk(cat: string | null) { return cat === "ALTO" || cat === "MUY_ALTO"; }
 function isCritical(cat: string) { return cat === "MUY_ALTO"; }
 
 interface PageProps { params: Promise<{ assessmentId: string }> }
@@ -195,7 +195,7 @@ export default async function ReportPage({ params }: PageProps) {
         if (isHighRisk(dim.riskCategory)) {
             highRiskDimensions.push({
                 name: dim.dimensionName,
-                risk: dim.riskCategory,
+                risk: dim.riskCategory ?? "",
                 score: dim.transformedScore,
                 recommendation: RECOMMENDED_ACTIONS[dim.dimensionName] || "Consultar con el psicólogo especialista para intervención personalizada."
             });
@@ -208,6 +208,10 @@ export default async function ReportPage({ params }: PageProps) {
 
     const savedRecommendations = report?.recommendationsAI ?? (report?.reportData as any)?.recommendations ?? null;
     const savedAnalysis = (report?.reportData as any)?.analysis ?? null;
+    // Trazabilidad del borrador automático — ver api/ai/analysis/route.ts sobre
+    // por qué estas marcas viven dentro de reportData y no en columnas propias.
+    const aiDraft = (report?.reportData as any)?.analysisDraft ?? null;
+    const analysisReviewedAt = (report?.reportData as any)?.analysisReviewedAt ?? null;
     const shortRef = `PST-${assessmentId.slice(-8).toUpperCase()}`;
 
     const formLabel = assessment.questionnaireType === "INTRALABORAL"
@@ -429,7 +433,9 @@ export default async function ReportPage({ params }: PageProps) {
                                                     <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
                                                     <td className="center">
                                                         <span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>
-                                                            {isStress ? stressRiskLabels[dim.riskCategory] : riskLabels[dim.riskCategory] || dim.riskCategory}
+                                                            {dim.riskCategory === null
+                                                                ? "Sin baremo"
+                                                                : isStress ? stressRiskLabels[dim.riskCategory] : riskLabels[dim.riskCategory] || dim.riskCategory}
                                                         </span>
                                                     </td>
                                                     <td className="center">
@@ -697,6 +703,8 @@ export default async function ReportPage({ params }: PageProps) {
                                 initialAnalysis={savedAnalysis}
                                 savedRecommendations={savedRecommendations}
                                 hasSignature={!!assessment.psychologist?.signature}
+                                aiDraft={aiDraft}
+                                analysisReviewedAt={analysisReviewedAt}
                             />
                             <AIRecommendationsSection
                                 assessmentId={assessmentId}

@@ -3,6 +3,7 @@
   "questionnaireType": "INTRALABORAL",
   "totalItems": 97,
   "totalTransformationFactor": 388,
+  "generalTransformationFactor": 512,
   "domains": [
     {
       "key": "liderazgo_relaciones",

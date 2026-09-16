@@ -44,7 +44,8 @@ export async function GET() {
         const now = Date.now();
 
         const workersWithAssessments = await prisma.worker.findMany({
-            where: { organization: { createdByPsychologist: psychId } },
+            // Avisos de "hay que reevaluar": un archivado ya no genera tarea.
+            where: { archivedAt: null, organization: { createdByPsychologist: psychId } },
             select: {
                 id: true,
                 assessments: {
@@ -92,6 +93,9 @@ export async function GET() {
         // 3. High risk workers
         const highRiskCount = await prisma.worker.count({
             where: {
+                // Alerta accionable sobre la planta vigente; el riesgo de quien
+                // ya no está no genera intervención.
+                archivedAt: null,
                 assessments: {
                     some: {
                         psychologistId: psychId,

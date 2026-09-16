@@ -49,6 +49,21 @@ function validateResponses(
     }
 }
 
+/**
+ * La evaluación sustenta un informe ya firmado o entregado.
+ *
+ * Lleva su propio código HTTP porque la ruta la traducía toda a 500, y esto no
+ * es un fallo del servidor sino una negativa deliberada.
+ */
+export class AssessmentLockedError extends Error {
+    readonly status = 409;
+
+    constructor(message: string) {
+        super(message);
+        this.name = "AssessmentLockedError";
+    }
+}
+
 export class AssessmentService {
     /**
      * Creates a new assessment, scores it, and saves it to the database.
@@ -246,6 +261,7 @@ export class AssessmentService {
                 worker: true,
                 responseSet: true,
                 scoredResult: { select: { overallRiskCategory: true } },
+                generatedReports: { select: { isFinalized: true, status: true } },
             }
         });
 
@@ -253,6 +269,22 @@ export class AssessmentService {
         // Extra check to ensure the psychologist editing it is the owner
         if (existing.psychologistId !== psychologistId) {
             throw new Error("No tienes permisos para editar esta evaluación");
+        }
+
+        // Reescribir respuestas y puntajes bajo un informe ya firmado cambia la
+        // base del documento entregado sin dejar rastro en él. Mismo criterio
+        // que el DELETE de la evaluación.
+        const hasFinalReport = existing.generatedReports.some(
+            report =>
+                report.isFinalized ||
+                report.status === "SIGNED" ||
+                report.status === "DELIVERED"
+        );
+        if (existing.status === "SIGNED" || hasFinalReport) {
+            throw new AssessmentLockedError(
+                "No se puede editar una evaluación con informe firmado o entregado. " +
+                    "Para corregirla hay que revocar primero el informe."
+            );
         }
 
         // 0. Validate that every response belongs to this form/type and is in range

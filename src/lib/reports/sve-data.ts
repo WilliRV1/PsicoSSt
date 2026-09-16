@@ -144,13 +144,15 @@ export async function buildSVEData(
     orgId: string,
     userId: string,
     isAdmin: boolean
-): Promise<{ data: SVEData; assets: SVEAssets } | null> {
+): Promise<{ data: SVEData; assets: SVEAssets; viaAdmin: boolean } | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: { psychologist: { select: { id: true, fullName: true, licenseNumber: true } } }
     });
 
     if (!org || (org.createdByPsychologist !== userId && !isAdmin)) return null;
+    // Acceso por la vía administrativa: queda para la auditoría de la ruta.
+    const viaAdmin = org.createdByPsychologist !== userId;
 
     const [assessments, settings, signature] = await Promise.all([
         prisma.assessment.findMany({
@@ -415,5 +417,5 @@ export async function buildSVEData(
         areas,
     };
 
-    return { data, assets: { logo, signature: signatureImg } };
+    return { data, assets: { logo, signature: signatureImg }, viaAdmin };
 }

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractRequestMeta } from "@/lib/auth/audit";
+import { enforcePublicRateLimit } from "@/lib/security/public-guard";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
 import { QuestionnaireType } from "@/types/battery";
 
@@ -32,6 +34,9 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ token: string }> }
 ) {
+    const limited = enforcePublicRateLimit("write", extractRequestMeta(request).ipAddress);
+    if (limited) return limited;
+
     try {
         const { token } = await params;
         const body = await request.json();

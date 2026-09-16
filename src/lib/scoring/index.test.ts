@@ -15,20 +15,20 @@ describe('A. Motor de Cálculo (Precisión Matemática)', () => {
         expect(cargaMental.transformedScore).toBe(100.0);
     });
 
-    it('Tolerancia a Faltantes: Falta 1 ítem en Liderazgo -> Valida e imputa por la media', () => {
+    it('Tolerancia a Faltantes: Falta 1 ítem en Liderazgo -> Valida y NO imputa', () => {
         const responses: Record<string, number> = {};
-        // Liderazgo: ítems 63 al 75 (13 ítems). 
+        // Liderazgo: ítems 63 al 75 (13 ítems).
         for (let i = 63; i <= 75; i++) responses[String(i)] = 1;
         delete responses['63']; // Falta el ítem 63
-        
+
         const result = scoreQuestionnaire(responses, 'A', 'INTRALABORAL');
         const liderazgo = result.dimensions['liderazgo_caracteristicas'];
-        
+
         expect(liderazgo.isValid).toBe(true);
-        // Suma original de 12 ítems = 12. Media = 1. Faltante imputado = 1.
-        // Total crudo esperado = 13.
-        expect(liderazgo.rawScore).toBe(13);
-        expect(liderazgo.transformedScore).toBe(25.0);
+        // M2 p. 76: el faltante es un dato perdido "sin calificación alguna".
+        // Bruto = 12 ítems respondidos x 1, dividido por el factor completo 52.
+        expect(liderazgo.rawScore).toBe(12);
+        expect(liderazgo.transformedScore).toBe(23.1);
     });
 
     it('Tolerancia a Faltantes: Falta 1 ítem en Demandas Cuantitativas -> Inválido', () => {

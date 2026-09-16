@@ -564,7 +564,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                                 if (isStress) {
                                     label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "A veces" : "Nunca";
                                 } else {
-                                    label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "A veces" : val === 4 ? "Casi nunca" : "Nunca";
+                                    label = val === 1 ? "Siempre" : val === 2 ? "Casi siempre" : val === 3 ? "Algunas veces" : val === 4 ? "Casi nunca" : "Nunca";
                                 }
 
                                 return (

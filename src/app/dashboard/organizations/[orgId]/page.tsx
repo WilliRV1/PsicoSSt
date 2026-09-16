@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Plus, Upload, MapPin, Building2, Users, Loader2, XCircle, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Upload, MapPin, Building2, Users, Loader2, XCircle, X, Pencil, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -305,20 +305,26 @@ export default function OrganizationDetailPage() {
         }
     };
 
-    // --- Delete worker ---
-    const handleDeleteWorker = async (w: Worker) => {
-        if (!confirm(`¿Eliminar al trabajador "${w.fullName}"? Esta acción no se puede deshacer.`)) return;
+    // --- Archive worker ---
+    // Ya no se borra: la evidencia del SG-SST debe conservarse 20 años
+    // (Dec. 1072/2015 art. 2.2.4.6.13). El backend archiva y, si había
+    // evaluaciones calificadas, responde 409 explicando por qué.
+    const handleArchiveWorker = async (w: Worker) => {
+        if (!confirm(
+            `¿Archivar al trabajador "${w.fullName}"? Dejará de aparecer en los listados, ` +
+            "pero su historial de evaluaciones se conserva como evidencia del SG-SST."
+        )) return;
 
         try {
             const res = await fetch(`/api/workers/${w.id}`, { method: "DELETE" });
             const data = await res.json();
             if (!res.ok) {
-                alert(data.error || "Error al eliminar");
-                return;
+                alert(data.error || "Error al archivar");
+                if (!data.archived) return;
             }
             fetchData();
         } catch {
-            alert("Error al eliminar el trabajador");
+            alert("Error al archivar el trabajador");
         }
     };
 
@@ -542,11 +548,11 @@ export default function OrganizationDetailPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleDeleteWorker(w)}
-                                                        title="Eliminar trabajador"
+                                                        onClick={() => handleArchiveWorker(w)}
+                                                        title="Archivar trabajador"
                                                         className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <Archive className="w-3.5 h-3.5" />
                                                     </Button>
                                                 </div>
                                             </td>

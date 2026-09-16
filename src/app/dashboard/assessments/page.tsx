@@ -149,6 +149,9 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
     const [workers, organizations] = await Promise.all([
         prisma.worker.findMany({
             where: {
+                // Selector de trabajador para una evaluación nueva: los
+                // archivados no pueden recibir una.
+                archivedAt: null,
                 organization: { createdByPsychologist: psychId },
                 ...(orgFilter && { organizationId: orgFilter }),
                 ...(q && {

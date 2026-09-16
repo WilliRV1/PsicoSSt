@@ -97,7 +97,26 @@ export async function DELETE(
                 id: true,
                 name: true,
                 createdByPsychologist: true,
-                _count: { select: { assessments: true } }
+                _count: {
+                    select: {
+                        assessments: true,
+                        // InterventionPlan y AssessmentReport declaran
+                        // onDelete: Cascade contra Organization, y
+                        // InterventionAction hace lo propio contra el plan. Con
+                        // la guarda anterior —sólo evaluaciones— bastaba con
+                        // que una empresa no tuviera ninguna evaluación
+                        // registrada para que el borrado arrastrara en silencio
+                        // su plan de intervención completo, sus acciones y su
+                        // informe de triangulación, todos evidencia del SG-SST
+                        // con retención de 20 años (Dec. 1072/2015 art.
+                        // 2.2.4.6.13). Un plan de intervención se formula a
+                        // partir de resultados que pueden haberse cargado en
+                        // otra empresa o migrado, así que "cero evaluaciones"
+                        // nunca implicó "cero evidencia".
+                        interventionPlans: true,
+                        assessmentReports: true,
+                    }
+                }
             }
         });
 
@@ -109,14 +128,34 @@ export async function DELETE(
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
 
-        if (organization._count.assessments > 0) {
+        // Un trabajador archivado se archivó justamente porque su evidencia no
+        // podía destruirse; borrar la empresa lo borraría a él. Es el segundo
+        // camino que quedaba abierto hacia el mismo daño.
+        const archivedWorkers = await prisma.worker.count({
+            where: { organizationId: orgId, archivedAt: { not: null } }
+        });
+
+        const blockers: string[] = [];
+        if (organization._count.assessments > 0) blockers.push("evaluaciones");
+        if (organization._count.interventionPlans > 0) blockers.push("planes de intervención");
+        if (organization._count.assessmentReports > 0) blockers.push("informes de triangulación");
+        if (archivedWorkers > 0) blockers.push("trabajadores archivados");
+
+        if (blockers.length > 0) {
             return NextResponse.json(
-                { error: "No se puede eliminar: la empresa tiene evaluaciones registradas" },
+                {
+                    error:
+                        `No se puede eliminar: la empresa tiene ${blockers.join(", ")} y esa ` +
+                        "evidencia debe conservarse 20 años (Decreto 1072 de 2015, art. 2.2.4.6.13).",
+                    blockers,
+                },
                 { status: 409 }
             );
         }
 
-        // Delete workers first (no cascade configured in schema)
+        // Delete workers first (no cascade configured in schema). Llegados aquí
+        // no hay evaluaciones, ni consentimientos —cuelgan de una evaluación—,
+        // ni trabajadores archivados: no se destruye evidencia.
         await prisma.worker.deleteMany({ where: { organizationId: orgId } });
         await prisma.organization.delete({ where: { id: orgId } });
 

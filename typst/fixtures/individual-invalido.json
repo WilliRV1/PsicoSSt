@@ -109,6 +109,7 @@
     "action": "Completar los ítems faltantes o repetir la aplicación del cuestionario.",
     "isValid": false
   },
+  "generalTotal": null,
   "domains": [
     {
       "key": "liderazgo_relaciones",

@@ -80,7 +80,7 @@ export async function buildCollectiveData(
     psychologistId: string,
     isAdmin: boolean,
     variant: CollectiveVariant
-): Promise<{ data: CollectiveData; assets: DiagnosticAssets } | null> {
+): Promise<{ data: CollectiveData; assets: DiagnosticAssets; viaAdmin: boolean } | null> {
     const base = await buildDiagnosticData(orgId, psychologistId, isAdmin);
     if (!base) return null;
 
@@ -213,6 +213,7 @@ export async function buildCollectiveData(
             actionPlan: ai.actionPlan,
         },
         assets: base.assets,
+        viaAdmin: base.viaAdmin,
     };
 }
 

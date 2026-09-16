@@ -18,7 +18,9 @@ export async function GET(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const [workerCount, assessmentStats, consentCount, plan] = await Promise.all([
-        prisma.worker.count({ where: { organizationId: orgId } }),
+        // Denominador de cobertura: un archivado que ya no está en la planta
+        // dejaría la cobertura por debajo del 100% para siempre.
+        prisma.worker.count({ where: { organizationId: orgId, archivedAt: null } }),
 
         prisma.assessment.groupBy({
             by: ["status"],
