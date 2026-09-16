@@ -20,12 +20,12 @@ export const PUBLIC_RATE_LIMITS = {
  * Aplica el límite por IP y devuelve una respuesta 429 lista para retornar, o
  * `null` si la petición puede continuar.
  */
-export function enforcePublicRateLimit(
+export async function enforcePublicRateLimit(
     bucket: keyof typeof PUBLIC_RATE_LIMITS,
     ipAddress: string
-): NextResponse | null {
+): Promise<NextResponse | null> {
     const { limit, windowMs } = PUBLIC_RATE_LIMITS[bucket];
-    const result = checkRateLimit(`public:${bucket}`, ipAddress, limit, windowMs);
+    const result = await checkRateLimit(`public:${bucket}`, ipAddress, limit, windowMs);
     if (result.allowed) return null;
 
     return NextResponse.json(

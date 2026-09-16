@@ -24,7 +24,7 @@ export async function POST(
 ) {
     const { ipAddress, userAgent } = extractRequestMeta(request);
 
-    const limited = enforcePublicRateLimit("identify", ipAddress);
+    const limited = await enforcePublicRateLimit("identify", ipAddress);
     if (limited) return limited;
 
     try {

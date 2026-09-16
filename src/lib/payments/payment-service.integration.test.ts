@@ -80,6 +80,10 @@ pruebaDeIntegracion("PaymentService · acreditación idempotente", () => {
 
     beforeEach(async () => {
         vi.clearAllMocks();
+        // Antes que nada: Subscription apunta al psicólogo y a la orden, así
+        // que borrarla de última viola la foránea. Se añadió con el pivote a
+        // suscripción, posterior a esta prueba.
+        await m.prisma.subscription.deleteMany();
         await m.prisma.paymentOrder.deleteMany();
         await m.prisma.creditTransaction.deleteMany();
         await m.prisma.auditLog.deleteMany();

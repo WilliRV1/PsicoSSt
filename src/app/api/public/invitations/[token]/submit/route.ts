@@ -42,7 +42,7 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ token: string }> }
 ) {
-    const limited = enforcePublicRateLimit("write", extractRequestMeta(request).ipAddress);
+    const limited = await enforcePublicRateLimit("write", extractRequestMeta(request).ipAddress);
     if (limited) return limited;
 
     try {

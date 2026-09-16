@@ -12,7 +12,7 @@ export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ token: string }> }
 ) {
-    const limited = enforcePublicRateLimit("view", extractRequestMeta(request).ipAddress);
+    const limited = await enforcePublicRateLimit("view", extractRequestMeta(request).ipAddress);
     if (limited) return limited;
 
     try {

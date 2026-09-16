@@ -177,7 +177,7 @@ export class OrganizationInvitationLinkService {
         // modo que un atacante no puede castigar a la empresa entera ni saltar
         // entre enlaces reutilizando el mismo cupo.
         const failureKey = `${meta.ipAddress}|${link.id}`;
-        if (getLockoutSeconds(IDENTIFY_FAILURE_BUCKET, failureKey) > 0) {
+        if ((await getLockoutSeconds(IDENTIFY_FAILURE_BUCKET, failureKey)) > 0) {
             throw new Error("TOO_MANY_ATTEMPTS");
         }
 
@@ -190,7 +190,7 @@ export class OrganizationInvitationLinkService {
         });
 
         if (!worker) {
-            const lockedOut = registerFailure(
+            const lockedOut = await registerFailure(
                 IDENTIFY_FAILURE_BUCKET,
                 failureKey,
                 MAX_FAILED_IDENTIFY_ATTEMPTS,
@@ -211,7 +211,7 @@ export class OrganizationInvitationLinkService {
             throw new Error(lockedOut ? "TOO_MANY_ATTEMPTS" : "WORKER_NOT_FOUND");
         }
 
-        clearFailures(IDENTIFY_FAILURE_BUCKET, failureKey);
+        await clearFailures(IDENTIFY_FAILURE_BUCKET, failureKey);
 
         await logAudit({
             ...auditBase,
