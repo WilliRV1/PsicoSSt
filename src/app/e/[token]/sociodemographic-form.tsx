@@ -32,10 +32,72 @@ const EMPTY_FORM = {
     displacementTime: "",
 };
 
+// `text-base` (16px) y no `text-sm`: por debajo de 16px Safari en iOS hace
+// zoom automático al enfocar el campo y el formulario queda desplazado a la
+// derecha. La altura sube a 52px para que el objetivo táctil sea cómodo.
 const SELECT_CLASS =
-    "flex h-11 w-full rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-ring";
+    "flex h-13 w-full rounded-xl border border-input bg-muted/50 px-4 text-base font-medium outline-none focus:ring-2 focus:ring-ring";
 const INPUT_CLASS =
-    "w-full h-11 rounded-xl border border-input bg-muted/50 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-ring";
+    "w-full h-13 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium outline-none focus:ring-2 focus:ring-ring";
+
+/** La etiqueta es la pregunta que lee el trabajador: caja alta a 12px con
+ *  tracking ancho es lo que peor se lee a un brazo de distancia. */
+const LABEL_CLASS = "block text-[15px] font-semibold text-foreground mb-2";
+
+/**
+ * Opción en fila completa: el objetivo del dedo es toda la fila, no el
+ * círculo de 16px del radio nativo — que se conserva por accesibilidad y
+ * porque un `<label>` que lo envuelve ya lo activa al tocar cualquier punto.
+ */
+function RadioRow({
+    name,
+    label,
+    checked,
+    onSelect,
+}: {
+    name: string;
+    label: string;
+    checked: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <label
+            className={`flex items-center gap-3 min-h-[52px] px-4 py-2.5 rounded-xl border cursor-pointer transition-colors touch-manipulation select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${
+                checked ? "border-primary bg-teal-light" : "border-border bg-muted/40 active:bg-muted"
+            }`}
+        >
+            <input type="radio" name={name} checked={checked} onChange={onSelect} className="h-5 w-5 shrink-0 accent-primary" />
+            <span className={`text-base leading-snug ${checked ? "font-semibold text-teal-dark" : "text-foreground"}`}>
+                {label}
+            </span>
+        </label>
+    );
+}
+
+/** Variante compacta para listas de opciones muy cortas (estrato), donde
+ *  ocho filas completas serían una pantalla entera de scroll. */
+function RadioChip({
+    name,
+    label,
+    checked,
+    onSelect,
+}: {
+    name: string;
+    label: string;
+    checked: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <label
+            className={`flex items-center justify-center min-h-[48px] px-2 rounded-xl border text-[15px] font-semibold cursor-pointer transition-colors touch-manipulation select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${
+                checked ? "border-primary bg-teal-light text-teal-dark" : "border-border bg-muted/40 text-foreground active:bg-muted"
+            }`}
+        >
+            <input type="radio" name={name} checked={checked} onChange={onSelect} className="sr-only" />
+            {label}
+        </label>
+    );
+}
 
 /**
  * Sociodemográficos que hoy diligencia el psicólogo manualmente al crear el

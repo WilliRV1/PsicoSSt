@@ -66,7 +66,7 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] p-4 gap-4 max-w-[1600px] mx-auto">
             {/* Header */}
-            <div className="flex items-start justify-between flex-shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 flex-shrink-0">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <span
@@ -87,7 +87,7 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
                     </p>
                 </div>
                 <p
-                    className="text-xs text-muted-foreground rounded-lg px-3 py-2 max-w-xs text-right leading-relaxed border"
+                    className="text-xs text-muted-foreground rounded-lg px-3 py-2 w-full sm:max-w-xs sm:text-right leading-relaxed border"
                     style={{ background: "var(--color-risk-medium-bg)", borderColor: "var(--color-risk-medium-border)" }}
                 >
                     Solo se guardan las respuestas. El motor de calificación recalculará los riesgos automáticamente en el servidor.

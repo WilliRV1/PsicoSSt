@@ -51,7 +51,7 @@ export default function InvitationActions({ id }: { id: string }) {
             <button
                 onClick={handleResend}
                 disabled={isBusy}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium border border-border bg-surface hover:bg-surface-muted transition-colors text-foreground disabled:opacity-50"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded text-[11px] font-medium border border-border bg-surface hover:bg-surface-muted transition-colors text-foreground disabled:opacity-50"
                 title="Reenviar enlace (genera uno nuevo y copia al portapapeles)"
             >
                 {copiedUrl ? <Check className="w-3 h-3" style={{ color: "var(--color-success)" }} /> : <Copy className="w-3 h-3" />}
@@ -60,7 +60,7 @@ export default function InvitationActions({ id }: { id: string }) {
             <button
                 onClick={handleCancel}
                 disabled={isBusy}
-                className="inline-flex items-center justify-center rounded text-[11px] font-medium px-2 py-1 transition-colors disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded text-[11px] font-medium px-2.5 py-1.5 transition-colors disabled:opacity-50"
                 style={{ border: "1px solid var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" }}
                 title="Cancelar invitación"
             >

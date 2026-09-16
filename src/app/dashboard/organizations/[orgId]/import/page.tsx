@@ -66,7 +66,7 @@ export default function ImportWorkersPage() {
     return (
         <div className="space-y-6 animate-in max-w-4xl">
             {/* Breadcrumbs */}
-            <nav className="flex text-sm font-medium text-muted-foreground gap-2">
+            <nav className="flex flex-wrap items-center text-sm font-medium text-muted-foreground gap-2">
                 <Link href="/dashboard/organizations" className="hover:text-primary transition-colors">Mis Empresas</Link>
                 <span className="text-border">&rsaquo;</span>
                 <Link href={`/dashboard/organizations/${orgId}`} className="hover:text-primary transition-colors">Detalle</Link>
@@ -168,7 +168,7 @@ export default function ImportWorkersPage() {
             ) : (
                 /* Results */
                 <div className="space-y-6">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="bg-card border border-border rounded-xl p-6 text-center">
                             <div className="text-3xl font-bold text-foreground">{result.totalRows}</div>
                             <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">Total Filas</div>
