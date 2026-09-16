@@ -80,7 +80,7 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </p>
                 </div>
 
-                <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+                <div className="space-y-4">
                     <div>
                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Sexo</label>
                         <div className="flex gap-4">
@@ -140,7 +140,7 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
 
                     <div>
                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Lugar de residencia</label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <select
                                 value={form.residenceDepartment}
                                 onChange={(e) => setForm((f) => ({ ...f, residenceDepartment: e.target.value, residenceCity: "" }))}
@@ -195,12 +195,12 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
 
                     <div>
                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Personas que dependen económicamente de ti</label>
-                        <input type="number" value={form.dependentsCount} onChange={(e) => setForm((f) => ({ ...f, dependentsCount: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
+                        <input type="number" inputMode="numeric" value={form.dependentsCount} onChange={(e) => setForm((f) => ({ ...f, dependentsCount: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Lugar donde trabajas</label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <select
                                 value={form.workDepartment}
                                 onChange={(e) => setForm((f) => ({ ...f, workDepartment: e.target.value, workCity: "" }))}
@@ -236,7 +236,7 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                             Llevo menos de un año
                         </label>
                         {!form.lessThanOneYearInCompany && (
-                            <input type="number" value={form.yearsInCompany} onChange={(e) => setForm((f) => ({ ...f, yearsInCompany: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} placeholder="Años" />
+                            <input type="number" inputMode="numeric" value={form.yearsInCompany} onChange={(e) => setForm((f) => ({ ...f, yearsInCompany: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} placeholder="Años" />
                         )}
                     </div>
 
@@ -281,14 +281,14 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
 
                     <div>
                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tiempo de desplazamiento al trabajo (minutos)</label>
-                        <input type="number" value={form.displacementTime} onChange={(e) => setForm((f) => ({ ...f, displacementTime: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
+                        <input type="number" inputMode="numeric" value={form.displacementTime} onChange={(e) => setForm((f) => ({ ...f, displacementTime: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
                     </div>
                 </div>
 
                 <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors disabled:opacity-60"
+                    className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
                 >
                     {isSubmitting ? "Guardando..." : "Continuar"}
                 </button>

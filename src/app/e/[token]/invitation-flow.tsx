@@ -140,7 +140,7 @@ export default function InvitationFlow({ token }: { token: string }) {
                             en {view.organizationName}.
                         </p>
                     </div>
-                    <div className="text-xs text-muted-foreground leading-relaxed bg-muted/40 border border-border rounded-xl p-4 space-y-2 max-h-64 overflow-y-auto">
+                    <div className="text-xs text-muted-foreground leading-relaxed bg-muted/40 border border-border rounded-xl p-4 space-y-2">
                         <p>
                             Esta evaluación hace parte del Sistema de Gestión de Seguridad y Salud en el Trabajo,
                             conforme a la Resolución 2764 de 2022 del Ministerio del Trabajo.
@@ -168,7 +168,7 @@ export default function InvitationFlow({ token }: { token: string }) {
                     <button
                         disabled={!signature}
                         onClick={() => setScreen(view.sociodemographicsCompleted ? "QUESTIONNAIRE" : "SOCIODEMOGRAPHICS")}
-                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors disabled:opacity-50"
+                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
                     >
                         Acepto y firmo
                     </button>

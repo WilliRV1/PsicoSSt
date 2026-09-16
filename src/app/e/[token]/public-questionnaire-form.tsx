@@ -17,6 +17,20 @@ interface PublicQuestionnaireFormProps {
 type Mode = "QUESTIONNAIRE" | "CONTROL_CLIENTS" | "CONTROL_BOSS" | "SAVING";
 
 /**
+ * Registro de una pregunta de control ya resuelta, para poder deshacerla.
+ * `landingIndex` es la posición en QUESTIONNAIRE a la que se llegó tras
+ * resolverla — `null` cuando la resolución encadenó directo a otra pregunta
+ * de control sin pasar por QUESTIONNAIRE (Forma A, cliente=No → jefatura).
+ */
+interface ControlCheckpoint {
+    control: "CLIENTS" | "BOSS";
+    boundaryIndex: number;
+    prevCustomer: boolean | null;
+    prevBoss: boolean | null;
+    landingIndex: number | null;
+}
+
+/**
  * Versión adaptada (copia deliberada, no refactor) de la lógica de
  * secuenciación de ítems de dashboard/assessments/new/manual/manual-form.tsx.
  * Se copia en vez de extraerse a un hook compartido para no arriesgar el
@@ -46,6 +60,7 @@ export default function PublicQuestionnaireForm({
     const currentIndexRef = useRef(0);
     const hasCustomerInteractionRef = useRef<boolean | null>(null);
     const isBossRef = useRef<boolean | null>(null);
+    const checkpointsRef = useRef<ControlCheckpoint[]>([]);
 
     const setCurrentIndex = (updater: number | ((prev: number) => number)) => {
         const next = typeof updater === "function" ? (updater as (prev: number) => number)(currentIndexRef.current) : updater;
@@ -81,6 +96,20 @@ export default function PublicQuestionnaireForm({
         return items;
     };
 
+    // Si el trabajador corrige una pregunta de control, los ítems que ya
+    // había respondido bajo la rama anterior (ej. 106-114 con cliente=Sí)
+    // pueden dejar de aplicar — se descartan para no guardar respuestas de
+    // una rama que ya no es la vigente.
+    const pruneResponses = (validItems: number[]) => {
+        const validSet = new Set(validItems);
+        const pruned: ItemResponses = {};
+        for (const [key, value] of Object.entries(responsesRef.current)) {
+            if (validSet.has(Number(key))) pruned[key] = value;
+        }
+        responsesRef.current = pruned;
+        setResponses(pruned);
+    };
+
     const items = computeItems(hasCustomerInteraction, isBoss);
     const currentItem = items[currentIndex];
     const isStress = qType === "STRESS";
@@ -88,14 +117,14 @@ export default function PublicQuestionnaireForm({
 
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
-            if (mode === "CONTROL_CLIENTS") {
-                if (e.key === "1") handleControlAnswer("CLIENTS", true);
-                if (e.key === "2") handleControlAnswer("CLIENTS", false);
-                return;
-            }
-            if (mode === "CONTROL_BOSS") {
-                if (e.key === "1") handleControlAnswer("BOSS", true);
-                if (e.key === "2") handleControlAnswer("BOSS", false);
+            if (mode === "CONTROL_CLIENTS" || mode === "CONTROL_BOSS") {
+                const isClient = mode === "CONTROL_CLIENTS";
+                if (e.key === "1") handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true);
+                if (e.key === "2") handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false);
+                if (e.key === "Backspace") {
+                    e.preventDefault();
+                    goBackFromControl();
+                }
                 return;
             }
             if (mode !== "QUESTIONNAIRE") return;
@@ -116,7 +145,8 @@ export default function PublicQuestionnaireForm({
     const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
         const oldCustomer = hasCustomerInteractionRef.current;
         const oldBoss = isBossRef.current;
-        const boundaryItem = computeItems(oldCustomer, oldBoss)[currentIndexRef.current];
+        const boundaryIndex = currentIndexRef.current;
+        const boundaryItem = computeItems(oldCustomer, oldBoss)[boundaryIndex];
 
         const newCustomer = type === "CLIENTS" ? value : oldCustomer;
         const newBoss = type === "BOSS" ? value : oldBoss;
@@ -128,6 +158,7 @@ export default function PublicQuestionnaireForm({
         // la pregunta de jefatura (115-123). Si no se formula aquí, advanceNext
         // ya pasó ese límite y nunca aparece.
         if (type === "CLIENTS" && formType === "A" && newCustomer === false && newBoss === null) {
+            checkpointsRef.current.push({ control: "CLIENTS", boundaryIndex, prevCustomer: oldCustomer, prevBoss: oldBoss, landingIndex: null });
             setMode("CONTROL_BOSS");
             return;
         }
@@ -135,17 +166,47 @@ export default function PublicQuestionnaireForm({
         setMode("QUESTIONNAIRE");
 
         const newItems = computeItems(newCustomer, newBoss);
+        pruneResponses(newItems);
         const idx = newItems.indexOf(boundaryItem);
 
         if (idx === -1) {
+            checkpointsRef.current.push({ control: type, boundaryIndex, prevCustomer: oldCustomer, prevBoss: oldBoss, landingIndex: 0 });
             setCurrentIndex(0);
             return;
         }
         if (idx < newItems.length - 1) {
+            checkpointsRef.current.push({ control: type, boundaryIndex, prevCustomer: oldCustomer, prevBoss: oldBoss, landingIndex: idx + 1 });
             setCurrentIndex(idx + 1);
         } else {
             submitSection(newCustomer, newBoss);
         }
+    };
+
+    /** Reabre la pregunta de control que llevó al ítem actual, si el
+     * trabajador no ha avanzado más allá de ella todavía. */
+    const goBackToControlCheckpoint = (): boolean => {
+        const last = checkpointsRef.current[checkpointsRef.current.length - 1];
+        if (!last || last.landingIndex !== currentIndexRef.current) return false;
+        checkpointsRef.current.pop();
+        setHasCustomerInteraction(last.prevCustomer);
+        setIsBoss(last.prevBoss);
+        setCurrentIndex(last.boundaryIndex);
+        setMode(last.control === "CLIENTS" ? "CONTROL_CLIENTS" : "CONTROL_BOSS");
+        return true;
+    };
+
+    /** Deshace una pregunta de control encadenada (cliente=No → jefatura),
+     * volviendo a la pregunta anterior en la cadena sin pasar por
+     * QUESTIONNAIRE. Solo aplica si esta pantalla de control se abrió por
+     * encadenamiento directo, no por avance normal del cuestionario. */
+    const goBackFromControl = () => {
+        const last = checkpointsRef.current[checkpointsRef.current.length - 1];
+        if (!last || last.landingIndex !== null) return;
+        checkpointsRef.current.pop();
+        setHasCustomerInteraction(last.prevCustomer);
+        setIsBoss(last.prevBoss);
+        setCurrentIndex(last.boundaryIndex);
+        setMode(last.control === "CLIENTS" ? "CONTROL_CLIENTS" : "CONTROL_BOSS");
     };
 
     const handleAnswer = (val: number) => {
@@ -193,6 +254,7 @@ export default function PublicQuestionnaireForm({
     };
 
     const goBack = () => {
+        if (goBackToControlCheckpoint()) return;
         if (currentIndexRef.current > 0) setCurrentIndex((prev) => prev - 1);
     };
 
@@ -227,6 +289,8 @@ export default function PublicQuestionnaireForm({
 
     if (mode === "CONTROL_CLIENTS" || mode === "CONTROL_BOSS") {
         const isClient = mode === "CONTROL_CLIENTS";
+        const topCheckpoint = checkpointsRef.current[checkpointsRef.current.length - 1];
+        const canGoBack = !!topCheckpoint && topCheckpoint.landingIndex === null;
         return (
             <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-4 py-12 animate-in fade-in zoom-in-95 duration-200">
                 <div className="w-full text-center space-y-8">
@@ -247,6 +311,11 @@ export default function PublicQuestionnaireForm({
                             <span className="text-xl font-bold text-foreground">NO</span>
                         </button>
                     </div>
+                    {canGoBack && (
+                        <button onClick={goBackFromControl} className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
+                            Volver a la pregunta anterior
+                        </button>
+                    )}
                 </div>
             </div>
         );

@@ -4,11 +4,15 @@ import { OrganizationInvitationLinkService } from "@/lib/services/organization-i
 const ERROR_STATUS: Record<string, number> = {
     LINK_NOT_FOUND: 404,
     WORKER_NOT_FOUND: 404,
+    ALREADY_COMPLETED: 409,
+    TOO_MANY_ATTEMPTS: 429,
 };
 
 const ERROR_MESSAGE: Record<string, string> = {
     LINK_NOT_FOUND: "Este enlace no es válido.",
     WORKER_NOT_FOUND: "Este documento no está registrado en la empresa. Contacta a tu psicólogo(a).",
+    ALREADY_COMPLETED: "Ya completaste esta evaluación. Tu psicólogo(a) te avisará cuándo debas repetirla.",
+    TOO_MANY_ATTEMPTS: "Demasiados intentos con documentos incorrectos. Espera unos minutos e intenta de nuevo.",
 };
 
 export async function POST(

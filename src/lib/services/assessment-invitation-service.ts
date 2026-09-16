@@ -20,7 +20,7 @@ function hashToken(token: string) {
     return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-function assessmentIdField(type: QuestionnaireType): "intralaboralAssessmentId" | "extralaboralAssessmentId" | "stressAssessmentId" {
+export function assessmentIdField(type: QuestionnaireType): "intralaboralAssessmentId" | "extralaboralAssessmentId" | "stressAssessmentId" {
     if (type === "INTRALABORAL") return "intralaboralAssessmentId";
     if (type === "EXTRALABORAL") return "extralaboralAssessmentId";
     return "stressAssessmentId";
@@ -175,6 +175,17 @@ export class AssessmentInvitationService {
 
         if (!payload.consentGranted) throw new Error("CONSENT_REQUIRED");
 
+        // La UI nunca deja avanzar sin firma dibujada — si esto llega vacío
+        // o con forma inválida, es una llamada directa a la API saltándose
+        // la pantalla de consentimiento, no un trabajador real firmando.
+        if (
+            !payload.consentSignature ||
+            !payload.consentSignature.startsWith("data:image/png;base64,") ||
+            payload.consentSignature.length < 100
+        ) {
+            throw new Error("SIGNATURE_REQUIRED");
+        }
+
         const { consumed: creditConsumed } = await CreditService.consumeCreditForAssessment(
             invitation.psychologistId,
             invitation.workerId
@@ -214,24 +225,32 @@ export class AssessmentInvitationService {
             throw err;
         }
 
-        const allDone = invitation.plannedTypes.every(
-            (t) => t === questionnaireType || !!invitation[assessmentIdField(t as QuestionnaireType)]
-        );
-
         // `data` se construye con un índice dinámico (any) a propósito: `field`
         // es siempre una de las 3 columnas *AssessmentId reales, pero el tipo
         // generado por Prisma no acepta bien una clave computada en un
         // literal de objeto tipado.
-        const updateData: Record<string, unknown> = { [field]: assessmentId };
-        if (allDone) {
-            updateData.status = "COMPLETED";
-            updateData.completedAt = new Date();
-        }
-
         await prisma.assessmentInvitation.update({
             where: { id: invitation.id },
-            data: updateData as any,
+            data: { [field]: assessmentId } as any,
         });
+
+        // Se recalcula `allDone` releyendo la fila DESPUÉS de escribir, no
+        // con el `invitation` cargado al inicio de la función: si dos
+        // secciones distintas se envían casi al mismo tiempo, ambas parten
+        // de una foto vieja donde la otra todavía aparece pendiente y
+        // ninguna de las dos marcaría status=COMPLETED aunque las tres ya
+        // hayan quedado guardadas. Releer cierra esa ventana de carrera.
+        const fresh = await prisma.assessmentInvitation.findUnique({ where: { id: invitation.id } });
+        const allDone = !!fresh && invitation.plannedTypes.every(
+            (t) => !!fresh[assessmentIdField(t as QuestionnaireType)]
+        );
+
+        if (allDone && fresh!.status === "PENDING") {
+            await prisma.assessmentInvitation.update({
+                where: { id: invitation.id },
+                data: { status: "COMPLETED", completedAt: new Date() },
+            });
+        }
 
         return { allDone };
     }
