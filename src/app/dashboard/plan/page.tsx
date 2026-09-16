@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, ArrowDown, ArrowUp, Check, Clock, Gift, ShieldCheck, Users } from "lucide-react";
-import { PLANS, PURCHASABLE_SKUS, formatCOP, type PlanId } from "@/config/plans";
+import { AlertTriangle, ArrowDown, ArrowUp, Clock, Gift, Users } from "lucide-react";
+import { PURCHASABLE_SKUS, formatCOP, type PlanId } from "@/config/plans";
 import { BuyPackageButton } from "@/components/payments/buy-package-button";
+import { PricingTable } from "@/components/payments/pricing-table";
 
 interface PlanState {
     plan: PlanId | null;
@@ -17,6 +18,8 @@ interface PlanState {
     orgLimit?: number | null;
     orgCount?: number;
     draftReports?: boolean;
+    canImport?: boolean;
+    canUseClima?: boolean;
     features?: Record<string, string>;
 }
 
@@ -62,11 +65,9 @@ export default function PlanPage() {
         refresh();
     }, [refresh]);
 
-    const profesional = PLANS.PROFESIONAL;
-    const planSku = PURCHASABLE_SKUS.find((s) => s.kind === "plan" && s.plan === "PROFESIONAL");
     const addons = PURCHASABLE_SKUS.filter((s) => s.kind !== "plan");
 
-    const isProfesional = state?.plan === "PROFESIONAL";
+    const isPaidPlan = !!state?.plan && state.plan !== "RESIDENTE";
     const expired = state?.status === "EXPIRED" || state?.status === "PAST_DUE";
     const units = state?.unitsAvailable ?? null;
     const lowUnits = units !== null && units <= 5;
@@ -152,40 +153,17 @@ export default function PlanPage() {
                 </div>
             </div>
 
-            {/* Plan Profesional */}
-            {planSku && (
-                <div className={`rounded-2xl border-2 p-6 shadow-sm ${isProfesional && !expired ? "border-border bg-card" : "border-primary ring-1 ring-primary bg-card"}`}>
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                        <div className="max-w-xl">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 text-primary" />
-                                <h3 className="text-lg font-semibold text-foreground">Plan {profesional.name}</h3>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">{profesional.tagline}</p>
-                            <ul className="mt-4 space-y-2">
-                                {profesional.features.map((f) => (
-                                    <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                                        <Check className="h-4 w-4 text-green-600 shrink-0" /> {f}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className="md:text-right shrink-0">
-                            <p className="text-3xl font-bold text-foreground">{formatCOP(profesional.priceCOP)}</p>
-                            <p className="text-xs text-muted-foreground mb-4">por año · IVA incluido</p>
-                            <BuyPackageButton
-                                packageId={planSku.id}
-                                label={isProfesional && !expired ? "Renovar un año más" : "Pasar a Profesional"}
-                            />
-                            {isProfesional && !expired && (
-                                <p className="text-[11px] text-muted-foreground mt-2">
-                                    La renovación se suma al periodo vigente: no pierdes días.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Planes pagados */}
+            <div>
+                <h3 className="font-semibold text-foreground mb-1">
+                    {isPaidPlan ? "Cambiar de plan" : "Pasar a un plan pagado"}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                    Anual o mensual. Renovar el mismo plan y la misma cadencia suma el cupo nuevo al periodo
+                    vigente: no pierdes días.
+                </p>
+                <PricingTable mode="buy" currentPlan={state?.plan} />
+            </div>
 
             {/* Complementos */}
             <div>
@@ -195,32 +173,37 @@ export default function PlanPage() {
                     restricción legal de aplicación.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {addons.map((sku) => (
-                        <div key={sku.id} className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col">
-                            <h4 className="font-semibold text-foreground">{sku.name}</h4>
-                            <p className="mt-2 text-xl font-bold text-foreground">{formatCOP(sku.priceCOP)}</p>
-                            {sku.kind === "credits" && (
-                                <p className="text-xs text-muted-foreground">{formatCOP(sku.pricePerCredit)} por trabajador</p>
-                            )}
-                            {sku.kind === "feature" && sku.featureDays && (
-                                <p className="text-xs text-muted-foreground">vigencia {sku.featureDays} días</p>
-                            )}
-                            <div className="mt-4">
-                                <BuyPackageButton
-                                    packageId={sku.id}
-                                    label="Comprar"
-                                    className={
-                                        !isProfesional
-                                            ? "w-full py-2.5 px-4 rounded-lg border border-border text-muted-foreground font-medium text-sm flex items-center justify-center gap-2 cursor-not-allowed"
-                                            : undefined
-                                    }
-                                />
-                                {!isProfesional && (
-                                    <p className="text-[11px] text-muted-foreground mt-2">Disponible en el plan Profesional.</p>
+                    {addons.map((sku) => {
+                        const needsClima = sku.id.startsWith("CLIMA");
+                        const available = needsClima ? !!state?.canUseClima : isPaidPlan;
+                        const requirement = needsClima ? "Disponible en Profesional y Avanzado." : "Disponible en un plan pagado.";
+                        return (
+                            <div key={sku.id} className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col">
+                                <h4 className="font-semibold text-foreground">{sku.name}</h4>
+                                <p className="mt-2 text-xl font-bold text-foreground">{formatCOP(sku.priceCOP)}</p>
+                                {sku.kind === "credits" && (
+                                    <p className="text-xs text-muted-foreground">{formatCOP(sku.pricePerCredit)} por trabajador</p>
                                 )}
+                                {sku.kind === "feature" && sku.featureDays && (
+                                    <p className="text-xs text-muted-foreground">vigencia {sku.featureDays} días</p>
+                                )}
+                                <div className="mt-4">
+                                    <BuyPackageButton
+                                        packageId={sku.id}
+                                        label="Comprar"
+                                        className={
+                                            !available
+                                                ? "w-full py-2.5 px-4 rounded-lg border border-border text-muted-foreground font-medium text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                                                : undefined
+                                        }
+                                    />
+                                    {!available && (
+                                        <p className="text-[11px] text-muted-foreground mt-2">{requirement}</p>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

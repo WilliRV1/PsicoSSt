@@ -46,6 +46,7 @@ export class EntitlementError extends Error {
 
 export interface Entitlements {
     plan: PlanId;
+    billingPeriod: Subscription["billingPeriod"];
     status: Subscription["status"];
     periodEnd: Date;
     /** Escritura permitida: suscripción vigente. La lectura nunca se bloquea (custodia legal). */
@@ -55,6 +56,8 @@ export interface Entitlements {
     orgCount: number;
     canCreateOrg: boolean;
     draftReports: boolean;
+    canImport: boolean;
+    canUseClima: boolean;
     features: SubscriptionFeatures;
 }
 
@@ -73,6 +76,7 @@ export async function getEntitlements(psychologistId: string): Promise<Entitleme
 
     return {
         plan: sub.plan,
+        billingPeriod: sub.billingPeriod,
         status: sub.status,
         periodEnd: sub.periodEnd,
         writable,
@@ -81,6 +85,8 @@ export async function getEntitlements(psychologistId: string): Promise<Entitleme
         orgCount,
         canCreateOrg: writable && (plan.orgLimit === null || orgCount < plan.orgLimit),
         draftReports: plan.draftReports,
+        canImport: plan.canImport,
+        canUseClima: plan.canUseClima,
         features,
     };
 }
@@ -116,9 +122,19 @@ export async function assertCan(psychologistId: string, action: EntitlementActio
             }
             break;
         case "IMPORT":
+            if (!e.canImport) {
+                throw new EntitlementError(
+                    "PLAN_REQUIRED",
+                    "Importar resultados requiere el plan Starter o superior."
+                );
+            }
+            break;
         case "USE_CLIMA":
-            if (e.plan !== "PROFESIONAL") {
-                throw new EntitlementError("PLAN_REQUIRED", "Esta función está disponible en el plan Profesional.");
+            if (!e.canUseClima) {
+                throw new EntitlementError(
+                    "PLAN_REQUIRED",
+                    "Clima organizacional requiere el plan Profesional o superior."
+                );
             }
             break;
         case "SIGN_REPORT":

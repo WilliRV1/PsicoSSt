@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { PLANS, PURCHASABLE_SKUS, formatCOP } from "@/config/plans";
+import { PricingTable } from "@/components/payments/pricing-table";
 
 export const metadata: Metadata = {
     title: "Precios — PsicoSST",
-    description: "Suscripción anual del psicólogo especialista en SST, con complementos por uso.",
+    description: "Suscripción del psicólogo especialista en SST, anual o mensual, con complementos por uso.",
 };
 
 export default function PricingPage() {
-    const plans = [PLANS.RESIDENTE, PLANS.PROFESIONAL];
+    const residente = PLANS.RESIDENTE;
     const addons = PURCHASABLE_SKUS.filter((s) => s.kind !== "plan");
 
     return (
@@ -35,43 +36,21 @@ export default function PricingPage() {
                     cuentan como uno.
                 </p>
 
-                <div className="mt-10 grid gap-6 md:grid-cols-2">
-                    {plans.map((plan) => (
-                        <div
-                            key={plan.id}
-                            className={`rounded-2xl border p-7 ${plan.id === "PROFESIONAL" ? "border-primary ring-1 ring-primary bg-card" : "border-border bg-card"}`}
-                        >
-                            <h2 className="text-lg font-semibold text-foreground">{plan.name}</h2>
-                            <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
-                            <p className="mt-5 text-3xl font-bold text-foreground">
-                                {plan.priceCOP === 0 ? "Gratis" : formatCOP(plan.priceCOP)}
-                                {plan.priceCOP > 0 && <span className="ml-1.5 text-sm font-normal text-muted-foreground">/ año</span>}
-                            </p>
-                            <ul className="mt-6 space-y-2.5">
-                                {plan.features.map((f) => (
-                                    <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
-                                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" /> {f}
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link
-                                href="/register"
-                                className={`mt-7 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                                    plan.id === "PROFESIONAL"
-                                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                        : "border border-border text-foreground hover:bg-muted"
-                                }`}
-                            >
-                                {plan.id === "PROFESIONAL" ? "Empezar" : "Probar gratis"}
-                            </Link>
-                        </div>
-                    ))}
+                <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                    Empieza gratis con el plan <strong className="text-foreground">Residente</strong>:
+                    {" "}{residente.annualQuota} trabajadores, {residente.orgLimit} empresa, {30} días — informes
+                    en borrador, sin marca de firma. <Link href="/register" className="underline hover:text-foreground">Crear cuenta</Link>.
+                </div>
+
+                <div className="mt-10">
+                    <PricingTable mode="register" />
                 </div>
 
                 <h2 className="mt-16 text-2xl font-semibold tracking-tight text-foreground">Complementos</h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                    Se compran sobre el plan Profesional. El clima organizacional no es un instrumento
-                    normativo y no tiene restricción legal de aplicación.
+                    Se compran sobre cualquiera de los tres planes pagados. Clima organizacional requiere
+                    Profesional o Avanzado; no es un instrumento normativo y no tiene restricción legal de
+                    aplicación.
                 </p>
                 <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
                     <table className="w-full text-sm">

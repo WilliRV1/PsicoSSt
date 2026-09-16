@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Check, FileText, ShieldCheck, Upload, Users } from "lucide-react";
-import { PLANS, formatCOP } from "@/config/plans";
+import { ArrowRight, FileText, ShieldCheck, Upload, Users } from "lucide-react";
+import { PLANS } from "@/config/plans";
+import { PricingTable } from "@/components/payments/pricing-table";
 
 /**
  * Página pública del producto.
@@ -36,7 +37,6 @@ const CAPABILITIES = [
 
 export default function Landing() {
     const residente = PLANS.RESIDENTE;
-    const profesional = PLANS.PROFESIONAL;
 
     return (
         <main className="min-h-screen bg-background">
@@ -75,7 +75,7 @@ export default function Landing() {
                     </Link>
                 </div>
                 <p className="mt-4 text-xs text-muted-foreground">
-                    {residente.quota} trabajadores y una empresa durante {residente.periodDays} días. Sin tarjeta.
+                    {residente.annualQuota} trabajadores y una empresa gratis. Sin tarjeta.
                 </p>
             </section>
 
@@ -99,37 +99,12 @@ export default function Landing() {
             {/* Planes */}
             <section className="mx-auto max-w-6xl px-6 py-20">
                 <h2 className="text-2xl font-semibold tracking-tight text-foreground">Planes</h2>
-                <div className="mt-8 grid gap-6 md:grid-cols-2">
-                    {[residente, profesional].map((plan) => (
-                        <div
-                            key={plan.id}
-                            className={`rounded-2xl border p-7 ${plan.id === "PROFESIONAL" ? "border-primary ring-1 ring-primary bg-card" : "border-border bg-card"}`}
-                        >
-                            <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
-                            <p className="mt-5 text-3xl font-bold text-foreground">
-                                {plan.priceCOP === 0 ? "Gratis" : formatCOP(plan.priceCOP)}
-                                {plan.priceCOP > 0 && <span className="ml-1.5 text-sm font-normal text-muted-foreground">/ año</span>}
-                            </p>
-                            <ul className="mt-6 space-y-2.5">
-                                {plan.features.map((f) => (
-                                    <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
-                                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" /> {f}
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link
-                                href="/register"
-                                className={`mt-7 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                                    plan.id === "PROFESIONAL"
-                                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                        : "border border-border text-foreground hover:bg-muted"
-                                }`}
-                            >
-                                {plan.id === "PROFESIONAL" ? "Empezar" : "Probar gratis"}
-                            </Link>
-                        </div>
-                    ))}
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                    Empieza gratis con el plan Residente ({residente.annualQuota} trabajadores, {residente.orgLimit} empresa).
+                    Cuando quieras firmar informes, pasa a uno de estos tres.
+                </p>
+                <div className="mt-8">
+                    <PricingTable mode="register" />
                 </div>
                 <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
                     La unidad de uso es el trabajador gestionado por instrumento y periodo: los demás

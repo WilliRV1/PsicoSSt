@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma, Subscription } from "@/generated/prisma/client";
-import { PLANS, TRIAL_DAYS, type PlanId, type Sku } from "@/config/plans";
+import { PLANS, TRIAL_DAYS, type BillingPeriod, type PlanId, type Sku } from "@/config/plans";
 
 /**
  * Suscripción del psicólogo.
@@ -49,17 +49,18 @@ export class SubscriptionService {
                 data: {
                     psychologistId,
                     plan: "RESIDENTE",
+                    billingPeriod: null,
                     status: "TRIAL",
                     periodStart: now,
                     periodEnd,
-                    quotaGranted: plan.quota,
+                    quotaGranted: plan.annualQuota,
                     features: {},
                 },
             });
 
             const psych = await tx.psychologist.update({
                 where: { id: psychologistId },
-                data: { creditBalance: { increment: plan.quota } },
+                data: { creditBalance: { increment: plan.annualQuota } },
                 select: { creditBalance: true },
             });
 
@@ -67,10 +68,10 @@ export class SubscriptionService {
                 data: {
                     psychologistId,
                     type: "TRIAL_GRANT",
-                    amount: plan.quota,
+                    amount: plan.annualQuota,
                     balanceAfter: psych.creditBalance,
                     expiresAt: periodEnd,
-                    description: `Plan Residente: ${plan.quota} trabajadores gestionados durante ${TRIAL_DAYS} días`,
+                    description: `Plan Residente: ${plan.annualQuota} trabajadores gestionados durante ${TRIAL_DAYS} días`,
                 },
             });
 
@@ -81,49 +82,61 @@ export class SubscriptionService {
     /**
      * Activa o renueva un plan dentro de la transacción del cobro.
      *
-     * Devuelve la suscripción resultante; quien llama otorga el cupo como
-     * créditos con `expiresAt = subscription.periodEnd` en la MISMA
-     * transacción (ver `PaymentService.applyPayment`). Renovar antes de vencer
-     * extiende desde el vencimiento vigente, no desde hoy: el psicólogo no
-     * pierde los días que ya pagó.
+     * El cupo y la duración salen del SKU comprado, no del tier: el mismo
+     * Profesional puede comprarse anual o mensual, y cada SKU carga su propio
+     * `periodDays` y `credits`.
+     *
+     * Sólo se trata como RENOVACIÓN —extiende desde el vencimiento vigente,
+     * sin perder días ya pagados— cuando el SKU comprado es el MISMO tier Y
+     * la MISMA cadencia que la suscripción activa. Comprar un tier distinto o
+     * cambiar de mensual a anual (o al revés) se trata como un CAMBIO DE
+     * PLAN: el periodo nuevo empieza hoy, sin prorratear lo que quedaba del
+     * anterior. No hay upgrade/downgrade con prorrateo en esta entrega —
+     * dicho explícitamente porque es la simplificación más visible: si un
+     * psicólogo paga Profesional mensual y a mitad de mes compra Avanzado
+     * anual, pierde los días que le quedaban del mes en curso.
      */
     static async activateInTx(
         tx: Prisma.TransactionClient,
         params: { psychologistId: string; sku: Sku; paymentOrderId: string | null }
     ): Promise<Subscription> {
-        if (params.sku.kind !== "plan" || !params.sku.plan) {
-            throw new Error(`El SKU ${params.sku.id} no es un plan`);
+        if (params.sku.kind !== "plan" || !params.sku.plan || !params.sku.billingPeriod || !params.sku.periodDays) {
+            throw new Error(`El SKU ${params.sku.id} no es un plan vendible`);
         }
         const plan = PLANS[params.sku.plan];
+        const billingPeriod: BillingPeriod = params.sku.billingPeriod;
         const now = new Date();
         const existing = await tx.subscription.findUnique({ where: { psychologistId: params.psychologistId } });
 
-        const stillActive =
+        const isRenewal =
             existing &&
             (existing.status === "ACTIVE" || existing.status === "TRIAL") &&
             existing.plan === plan.id &&
+            existing.billingPeriod === billingPeriod &&
             existing.periodEnd > now;
-        const periodStart = stillActive ? existing.periodStart : now;
-        const periodEnd = addDays(stillActive ? existing.periodEnd : now, plan.periodDays);
+        const periodStart = isRenewal ? existing.periodStart : now;
+        const periodEnd = addDays(isRenewal ? existing.periodEnd : now, params.sku.periodDays);
 
         return tx.subscription.upsert({
             where: { psychologistId: params.psychologistId },
             create: {
                 psychologistId: params.psychologistId,
                 plan: plan.id,
+                billingPeriod,
                 status: "ACTIVE",
                 periodStart,
                 periodEnd,
-                quotaGranted: plan.quota,
+                quotaGranted: params.sku.credits,
                 paymentOrderId: params.paymentOrderId,
                 features: {},
             },
             update: {
                 plan: plan.id,
+                billingPeriod,
                 status: "ACTIVE",
                 periodStart,
                 periodEnd,
-                quotaGranted: stillActive ? { increment: plan.quota } : plan.quota,
+                quotaGranted: isRenewal ? { increment: params.sku.credits } : params.sku.credits,
                 paymentOrderId: params.paymentOrderId,
             },
         });
@@ -156,16 +169,22 @@ export class SubscriptionService {
     }
 
     /**
-     * Asignación manual por un administrador (transferencia, cortesía).
-     * Escribe el cupo como ADMIN_GRANT con vencimiento.
+     * Asignación manual por un administrador: transferencia, cortesía, piloto
+     * con un evaluador externo. No está atada a ningún SKU —por eso
+     * `billingPeriod` queda `null`, igual que en el trial— y por eso el cupo
+     * es un parámetro explícito en vez de leerse de un SKU: una cortesía de
+     * 15 días no debe regalar el cupo ANUAL completo del tier. Si no se
+     * especifica, se usa `annualQuota` como valor de referencia.
      */
     static async adminAssign(params: {
         psychologistId: string;
         plan: PlanId;
         days: number;
+        quota?: number;
         actorEmail: string;
     }): Promise<Subscription> {
         const plan = PLANS[params.plan];
+        const quota = params.quota ?? plan.annualQuota;
         return prisma.$transaction(async (tx) => {
             const now = new Date();
             const periodEnd = addDays(now, params.days);
@@ -174,25 +193,27 @@ export class SubscriptionService {
                 create: {
                     psychologistId: params.psychologistId,
                     plan: plan.id,
+                    billingPeriod: null,
                     status: "ACTIVE",
                     periodStart: now,
                     periodEnd,
-                    quotaGranted: plan.quota,
+                    quotaGranted: quota,
                     features: {},
                 },
                 update: {
                     plan: plan.id,
+                    billingPeriod: null,
                     status: "ACTIVE",
                     periodStart: now,
                     periodEnd,
-                    quotaGranted: plan.quota,
+                    quotaGranted: quota,
                     paymentOrderId: null,
                 },
             });
 
             const psych = await tx.psychologist.update({
                 where: { id: params.psychologistId },
-                data: { creditBalance: { increment: plan.quota } },
+                data: { creditBalance: { increment: quota } },
                 select: { creditBalance: true },
             });
 
@@ -200,10 +221,10 @@ export class SubscriptionService {
                 data: {
                     psychologistId: params.psychologistId,
                     type: "ADMIN_GRANT",
-                    amount: plan.quota,
+                    amount: quota,
                     balanceAfter: psych.creditBalance,
                     expiresAt: periodEnd,
-                    description: `Plan ${plan.name} asignado por ${params.actorEmail} por ${params.days} días`,
+                    description: `Plan ${plan.name} asignado por ${params.actorEmail} por ${params.days} días (${quota} trabajadores)`,
                 },
             });
 
