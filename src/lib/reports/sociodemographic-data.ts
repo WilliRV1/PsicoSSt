@@ -88,7 +88,7 @@ function tally(
     }
 
     const total = [...counts.values()].reduce((s, v) => s + v, 0);
-    let rows = [...counts.entries()].map(([label, count]) => ({
+    const rows = [...counts.entries()].map(([label, count]) => ({
         label,
         count,
         pct: total ? Math.round((count / total) * 1000) / 10 : 0,

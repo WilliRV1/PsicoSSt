@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import { getErrorMessage } from "@/lib/utils";
+import type { DocumentType, JobLevel } from "@/generated/prisma";
 
 const VALID_DOC_TYPES = ["CC", "CE", "TI", "PA", "OTHER"];
 const VALID_JOB_LEVELS = ["JEFATURA", "PROFESIONAL", "TECNICO", "AUXILIAR", "OPERATIVO"];
@@ -11,11 +13,11 @@ const VALID_EDUCATION_LEVELS = [
 ];
 
 interface ParsedWorker {
-    documentType: string;
+    documentType: DocumentType;
     documentId: string;
     fullName: string;
     jobTitle: string;
-    jobLevel: string;
+    jobLevel: JobLevel;
     educationLevel: string;
     departmentArea: string;
 }
@@ -111,11 +113,11 @@ export async function POST(request: NextRequest) {
             }
 
             validWorkers.push({
-                documentType: docType,
+                documentType: docType as DocumentType,
                 documentId,
                 fullName,
                 jobTitle: jobTitle || "",
-                jobLevel: jl,
+                jobLevel: jl as JobLevel,
                 educationLevel: el,
                 departmentArea: departmentArea || ""
             });
@@ -128,7 +130,7 @@ export async function POST(request: NextRequest) {
                 await prisma.worker.upsert({
                     where: {
                         documentType_documentId_organizationId: {
-                            documentType: w.documentType as any,
+                            documentType: w.documentType,
                             documentId: w.documentId,
                             organizationId: organizationId
                         }
@@ -136,27 +138,27 @@ export async function POST(request: NextRequest) {
                     update: {
                         fullName: w.fullName,
                         jobTitle: w.jobTitle || undefined,
-                        jobLevel: w.jobLevel as any,
-                        educationLevel: w.educationLevel as any,
+                        jobLevel: w.jobLevel,
+                        educationLevel: w.educationLevel,
                         departmentArea: w.departmentArea || undefined
                     },
                     create: {
-                        documentType: w.documentType as any,
+                        documentType: w.documentType,
                         documentId: w.documentId,
                         fullName: w.fullName,
                         jobTitle: w.jobTitle || undefined,
-                        jobLevel: w.jobLevel as any,
-                        educationLevel: w.educationLevel as any,
+                        jobLevel: w.jobLevel,
+                        educationLevel: w.educationLevel,
                         departmentArea: w.departmentArea || undefined,
                         organizationId
                     }
                 });
                 successCount++;
-            } catch (dbErr: any) {
+            } catch (dbErr: unknown) {
                 errors.push({
                     row: validWorkers.indexOf(w) + 2,
                     column: "database",
-                    message: dbErr.message?.slice(0, 100) || "Error de base de datos"
+                    message: getErrorMessage(dbErr)?.slice(0, 100) || "Error de base de datos"
                 });
             }
         }

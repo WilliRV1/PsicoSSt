@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import InvitationFlow from "../../e/[token]/invitation-flow";
+import { getErrorMessage } from "@/lib/utils";
 
 interface PublicCompanyLinkView {
     organizationName: string;
@@ -63,8 +64,8 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
             if (!res.ok) throw new Error(data.error || "Error al validar tu documento.");
             setInvitationToken(data.invitationToken);
             setScreen("RESOLVED");
-        } catch (err: any) {
-            setErrorMessage(err.message);
+        } catch (err: unknown) {
+            setErrorMessage(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
         }

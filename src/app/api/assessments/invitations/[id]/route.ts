@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function PATCH(
     request: NextRequest,
@@ -21,8 +22,8 @@ export async function PATCH(
 
         await AssessmentInvitationService.cancel(id, session.user.id);
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        if (error.message === "NOT_FOUND") {
+    } catch (error: unknown) {
+        if (getErrorMessage(error) === "NOT_FOUND") {
             return NextResponse.json({ error: "Invitación no encontrada" }, { status: 404 });
         }
         console.error("[INVITATIONS] PATCH error:", error);

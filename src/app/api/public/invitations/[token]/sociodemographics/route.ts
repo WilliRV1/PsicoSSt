@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
+import { getErrorMessage } from "@/lib/utils";
 
 const ERROR_STATUS: Record<string, number> = {
     INVITATION_NOT_FOUND: 404,
@@ -68,8 +69,8 @@ export async function POST(
         });
 
         return NextResponse.json({ ok: true });
-    } catch (error: any) {
-        const code = error?.message as string;
+    } catch (error: unknown) {
+        const code = getErrorMessage(error);
         const status = ERROR_STATUS[code] ?? 500;
         const message = ERROR_MESSAGE[code] ?? "Error técnico al guardar tus datos.";
         if (status === 500) console.error("[PUBLIC_INVITATIONS] sociodemographics error:", error);

@@ -6,6 +6,7 @@ import { getFormConfig } from "@/config/battery";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
 import { toast } from "sonner";
 import { getItemText } from "@/config/battery";
+import { getErrorMessage } from "@/lib/utils";
 
 interface DimensionScore {
     dimensionKey: string;
@@ -73,8 +74,6 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 export default function EditAssessmentForm({
-    workerId,
-    organizationId,
     hasCustomerInteraction,
     initialAssessmentId,
     initialFormType,
@@ -140,8 +139,8 @@ export default function EditAssessmentForm({
             }
             toast.success("Evaluación actualizada correctamente");
             router.push("/dashboard/assessments");
-        } catch (err: any) {
-            toast.error(err.message || "Error al guardar");
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err) || "Error al guardar");
         } finally {
             setIsSaving(false);
         }
@@ -236,7 +235,6 @@ export default function EditAssessmentForm({
                         const currentVal = responses[String(itemNum)];
                         const originalVal = initialResponses[String(itemNum)];
                         const changed = currentVal !== originalVal;
-                        const label = currentVal !== undefined ? responseLabels[currentVal] : null;
 
                         return (
                             <div

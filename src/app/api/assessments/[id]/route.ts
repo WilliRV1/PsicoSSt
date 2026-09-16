@@ -80,13 +80,14 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true, message: "Evaluación eliminada correctamente" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting assessment:", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
 
 import { AssessmentService } from "@/lib/services/assessment-service";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function PUT(
   request: NextRequest,
@@ -112,11 +113,11 @@ export async function PUT(
     );
 
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error actualizando evaluación:", error);
     return NextResponse.json({ 
-      error: `Error al actualizar: ${error.message}`, 
-      details: error.message 
+      error: `Error al actualizar: ${getErrorMessage(error)}`, 
+      details: getErrorMessage(error) 
     }, { status: 500 });
   }
 }

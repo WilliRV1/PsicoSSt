@@ -83,7 +83,7 @@ export function CommandPalette() {
             <div className="max-h-[300px] overflow-y-auto p-2 hide-scrollbar">
               {filteredCommands.length === 0 ? (
                 <div className="py-14 text-center text-sm text-text-muted">
-                  No se encontraron resultados para "{query}".
+                  No se encontraron resultados para &quot;{query}&quot;.
                 </div>
               ) : (
                 <div className="space-y-1">

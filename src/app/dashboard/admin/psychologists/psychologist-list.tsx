@@ -39,7 +39,7 @@ export function PsychologistList() {
             } else {
                 setError(data.message || "Error al cargar psicologos");
             }
-        } catch (err) {
+        } catch {
             setError("Error de conexion");
         } finally {
             setLoading(false);
@@ -67,7 +67,7 @@ export function PsychologistList() {
             } else {
                 alert(data.message || "Error al actualizar estado");
             }
-        } catch (err) {
+        } catch {
             alert("Error de conexion");
         } finally {
             setUpdatingId(null);
@@ -98,7 +98,7 @@ export function PsychologistList() {
             } else {
                 alert(data.error || data.message || "Error al asignar tokens");
             }
-        } catch (err) {
+        } catch {
             alert("Error de conexión");
         } finally {
             setUpdatingId(null);

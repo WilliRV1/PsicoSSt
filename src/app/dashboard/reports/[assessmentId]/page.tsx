@@ -159,22 +159,26 @@ export default async function ReportPage({ params }: PageProps) {
     const w = assessment.worker;
     const org = assessment.organization;
 
-    const dimensionScores = ((assessment.scoredResult as any)?.dimensionScores ?? {}) as Record<string, DimensionScore>;
-    const domainScores = ((assessment.scoredResult as any)?.domainScores ?? {}) as Record<string, DomainScore>;
-    const totalScores = ((assessment.scoredResult as any)?.totalScores ?? { rawScore: 0, transformedScore: 0, riskCategory: "SIN_RIESGO" }) as TotalScore;
+    // scoredResult.*Scores son campos JSON: los escribimos nosotros mismos
+    // desde el motor de puntuación (ver lib/scoring), así que basta con
+    // afirmar el tipo que ya se importa de @/types/battery — mismo patrón
+    // que en lib/reports/individual-data.ts.
+    const dimensionScores = (assessment.scoredResult.dimensionScores ?? {}) as unknown as Record<string, DimensionScore>;
+    const domainScores = (assessment.scoredResult.domainScores ?? {}) as unknown as Record<string, DomainScore>;
+    const totalScores = (assessment.scoredResult.totalScores ?? { rawScore: 0, transformedScore: 0, riskCategory: "SIN_RIESGO" }) as unknown as TotalScore;
     const overallRisk = assessment.scoredResult.overallRiskCategory;
 
     const assessmentDate = new Date(assessment.assessmentDate).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
     const generationDate = new Date().toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
 
-    const otherAssessments = ((w as any)?.assessments ?? []).filter((a: any) => a.id !== assessment.id);
+    const otherAssessments = (w?.assessments ?? []).filter((a) => a.id !== assessment.id);
     const isIntra = assessment.questionnaireType === "INTRALABORAL";
     const isExtra = assessment.questionnaireType === "EXTRALABORAL";
     const isStress = assessment.questionnaireType === "STRESS";
 
-    const intralaboralResults = isIntra ? null : otherAssessments.find((a: any) => a.questionnaireType === "INTRALABORAL")?.scoredResult;
-    const extralaboralResults = isExtra ? null : otherAssessments.find((a: any) => a.questionnaireType === "EXTRALABORAL")?.scoredResult;
-    const stressResults = isStress ? null : otherAssessments.find((a: any) => a.questionnaireType === "STRESS")?.scoredResult;
+    const intralaboralResults = isIntra ? null : otherAssessments.find((a) => a.questionnaireType === "INTRALABORAL")?.scoredResult;
+    const extralaboralResults = isExtra ? null : otherAssessments.find((a) => a.questionnaireType === "EXTRALABORAL")?.scoredResult;
+    const stressResults = isStress ? null : otherAssessments.find((a) => a.questionnaireType === "STRESS")?.scoredResult;
 
     const calculateAge = (birthYear: number | null) => birthYear ? new Date().getFullYear() - birthYear : null;
 
@@ -206,8 +210,12 @@ export default async function ReportPage({ params }: PageProps) {
 
     const highRiskDomains = Object.values(domainScores).filter(d => isHighRisk(d.riskCategory));
 
-    const savedRecommendations = report?.recommendationsAI ?? (report?.reportData as any)?.recommendations ?? null;
-    const savedAnalysis = (report?.reportData as any)?.analysis ?? null;
+    // `reportData` es JSON que escribimos nosotros; `recommendations` es el
+    // nombre bajo el que informes antiguos guardaban esto antes de que
+    // existiera el campo dedicado `recommendationsAI`.
+    const storedReportData = report?.reportData as { analysis?: string; recommendations?: string } | null;
+    const savedRecommendations = report?.recommendationsAI ?? storedReportData?.recommendations ?? null;
+    const savedAnalysis = storedReportData?.analysis ?? null;
     const shortRef = `PST-${assessmentId.slice(-8).toUpperCase()}`;
 
     const formLabel = assessment.questionnaireType === "INTRALABORAL"
@@ -453,15 +461,15 @@ export default async function ReportPage({ params }: PageProps) {
                             <section className="report-section">
                                 <h3>4. Factores Intralaborales</h3>
                                 {intralaboralResults ? (
-                                    <div className={`total-result-card ${getRiskClass((intralaboralResults as any).overallRiskCategory)}`}>
+                                    <div className={`total-result-card ${getRiskClass(intralaboralResults.overallRiskCategory)}`}>
                                         <div>
                                             <div className="total-result-label">Riesgo Intralaboral Total</div>
-                                            <div className="total-result-value">{riskLabels[(intralaboralResults as any).overallRiskCategory]}</div>
+                                            <div className="total-result-value">{riskLabels[intralaboralResults.overallRiskCategory]}</div>
                                             <div style={{ fontSize: "0.78rem", marginTop: "0.5rem", opacity: 0.8 }}>
-                                                {RISK_CLINICAL[(intralaboralResults as any).overallRiskCategory]?.description}
+                                                {RISK_CLINICAL[intralaboralResults.overallRiskCategory]?.description}
                                             </div>
                                         </div>
-                                        <div className="total-result-score">{((intralaboralResults as any).totalScores?.transformedScore || 0).toFixed(0)}</div>
+                                        <div className="total-result-score">{((intralaboralResults.totalScores as TotalScore | null)?.transformedScore || 0).toFixed(0)}</div>
                                     </div>
                                 ) : (
                                     <p className="no-data">No se registran valoraciones intralaborales en el ciclo actual.</p>
@@ -474,20 +482,20 @@ export default async function ReportPage({ params }: PageProps) {
                                 <h3>{isIntra ? "4." : "5."} Factores Extralaborales</h3>
                                 {extralaboralResults ? (
                                     <>
-                                        <div className={`total-result-card ${getRiskClass((extralaboralResults as any).overallRiskCategory)}`}>
+                                        <div className={`total-result-card ${getRiskClass(extralaboralResults.overallRiskCategory)}`}>
                                             <div>
                                                 <div className="total-result-label">Riesgo Extralaboral Total</div>
-                                                <div className="total-result-value">{riskLabels[(extralaboralResults as any).overallRiskCategory]}</div>
+                                                <div className="total-result-value">{riskLabels[extralaboralResults.overallRiskCategory]}</div>
                                                 <div style={{ fontSize: "0.78rem", marginTop: "0.5rem", opacity: 0.8 }}>
-                                                    {RISK_CLINICAL[(extralaboralResults as any).overallRiskCategory]?.description}
+                                                    {RISK_CLINICAL[extralaboralResults.overallRiskCategory]?.description}
                                                 </div>
                                             </div>
-                                            <div className="total-result-score">{((extralaboralResults as any).totalScores?.transformedScore || 0).toFixed(0)}</div>
+                                            <div className="total-result-score">{((extralaboralResults.totalScores as TotalScore | null)?.transformedScore || 0).toFixed(0)}</div>
                                         </div>
                                         <table className="results-table">
                                             <thead><tr><th>Dimensión</th><th className="center">Nivel</th><th className="center">Puntaje</th></tr></thead>
                                             <tbody>
-                                                {Object.values((extralaboralResults as any).dimensionScores).map((dim: any) => (
+                                                {Object.values((extralaboralResults.dimensionScores as unknown as Record<string, DimensionScore>)).map((dim) => (
                                                     <tr key={dim.dimensionKey}>
                                                         <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
                                                         <td className="center"><span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>{riskLabels[dim.riskCategory]}</span></td>
@@ -513,20 +521,20 @@ export default async function ReportPage({ params }: PageProps) {
                                 <h3>{isIntra && isExtra ? "6." : isIntra || isExtra ? "5." : "4."} Evaluación del Estrés</h3>
                                 {stressResults ? (
                                     <>
-                                        <div className={`total-result-card ${getRiskClass((stressResults as any).overallRiskCategory)}`}>
+                                        <div className={`total-result-card ${getRiskClass(stressResults.overallRiskCategory)}`}>
                                             <div>
                                                 <div className="total-result-label">Nivel de Síntomas de Estrés</div>
-                                                <div className="total-result-value">{stressRiskLabels[(stressResults as any).overallRiskCategory]}</div>
+                                                <div className="total-result-value">{stressRiskLabels[stressResults.overallRiskCategory]}</div>
                                                 <div style={{ fontSize: "0.78rem", marginTop: "0.5rem", opacity: 0.8 }}>
-                                                    {RISK_CLINICAL[(stressResults as any).overallRiskCategory]?.description}
+                                                    {RISK_CLINICAL[stressResults.overallRiskCategory]?.description}
                                                 </div>
                                             </div>
-                                            <div className="total-result-score">{((stressResults as any).totalScores?.transformedScore || 0).toFixed(0)}</div>
+                                            <div className="total-result-score">{((stressResults.totalScores as TotalScore | null)?.transformedScore || 0).toFixed(0)}</div>
                                         </div>
                                         <table className="results-table">
                                             <thead><tr><th>Categoría de síntomas</th><th className="center">Nivel</th><th className="center">Puntaje</th></tr></thead>
                                             <tbody>
-                                                {Object.values((stressResults as any).dimensionScores).map((dim: any) => (
+                                                {Object.values((stressResults.dimensionScores as unknown as Record<string, DimensionScore>)).map((dim) => (
                                                     <tr key={dim.dimensionKey}>
                                                         <td style={{ fontWeight: 500 }}>{dim.dimensionName}</td>
                                                         <td className="center"><span className={`risk-badge ${getRiskClass(dim.riskCategory)}`}>{stressRiskLabels[dim.riskCategory]}</span></td>
@@ -675,13 +683,13 @@ export default async function ReportPage({ params }: PageProps) {
                                     <div style={{ marginTop: "0.875rem", padding: "0.875rem 1.125rem", background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 4 }}>
                                         <p style={{ fontWeight: 700, fontSize: "0.78rem", color: "#374151", marginBottom: "0.5rem" }}>Análisis integrador del ciclo</p>
                                         {intralaboralResults && (
-                                            <p style={{ fontSize: "0.83rem" }}>• <strong>Intralaboral:</strong> {riskLabels[(intralaboralResults as any).overallRiskCategory]} — {RISK_CLINICAL[(intralaboralResults as any).overallRiskCategory]?.description}</p>
+                                            <p style={{ fontSize: "0.83rem" }}>• <strong>Intralaboral:</strong> {riskLabels[intralaboralResults.overallRiskCategory]} — {RISK_CLINICAL[intralaboralResults.overallRiskCategory]?.description}</p>
                                         )}
                                         {extralaboralResults && (
-                                            <p style={{ fontSize: "0.83rem", marginTop: "0.25rem" }}>• <strong>Extralaboral:</strong> {riskLabels[(extralaboralResults as any).overallRiskCategory]} — {RISK_CLINICAL[(extralaboralResults as any).overallRiskCategory]?.description}</p>
+                                            <p style={{ fontSize: "0.83rem", marginTop: "0.25rem" }}>• <strong>Extralaboral:</strong> {riskLabels[extralaboralResults.overallRiskCategory]} — {RISK_CLINICAL[extralaboralResults.overallRiskCategory]?.description}</p>
                                         )}
                                         {stressResults && (
-                                            <p style={{ fontSize: "0.83rem", marginTop: "0.25rem" }}>• <strong>Estrés:</strong> {stressRiskLabels[(stressResults as any).overallRiskCategory]} — {RISK_CLINICAL[(stressResults as any).overallRiskCategory]?.description}</p>
+                                            <p style={{ fontSize: "0.83rem", marginTop: "0.25rem" }}>• <strong>Estrés:</strong> {stressRiskLabels[stressResults.overallRiskCategory]} — {RISK_CLINICAL[stressResults.overallRiskCategory]?.description}</p>
                                         )}
                                     </div>
                                 )}
@@ -724,6 +732,9 @@ export default async function ReportPage({ params }: PageProps) {
                             <div className="signature-box">
                                 <div className="signature-img-wrap">
                                     {isSigned && (report?.signatureImage || assessment.psychologist?.signature) && (
+                                        // Firma legal del informe: mismo motivo que en
+                                        // signature-section.tsx — data URI sin proporción fija.
+                                        // eslint-disable-next-line @next/next/no-img-element
                                         <img
                                             src={(report?.signatureImage || assessment.psychologist?.signature) as string}
                                             alt="Firma Digital"

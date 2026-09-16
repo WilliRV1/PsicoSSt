@@ -72,7 +72,7 @@ describe("Protected API Endpoints (Unauthenticated)", () => {
                 expect([200, 401]).to.include(res.status);
                 if (res.status === 200) {
                     // If 200, it's a redirect response body
-                    expect(res.redirects || []).to.satisfy((redirects) => {
+                    expect(res.redirects || []).to.satisfy(() => {
                         return true; // NextAuth may handle differently
                     });
                 }

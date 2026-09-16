@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OrganizationInvitationLinkService } from "@/lib/services/organization-invitation-link-service";
+import { getErrorMessage } from "@/lib/utils";
 
 const ERROR_STATUS: Record<string, number> = {
     LINK_NOT_FOUND: 404,
@@ -30,8 +31,8 @@ export async function POST(
 
         const { invitationToken } = await OrganizationInvitationLinkService.identifyWorker(token, documentId);
         return NextResponse.json({ invitationToken });
-    } catch (error: any) {
-        const code = error?.message as string;
+    } catch (error: unknown) {
+        const code = getErrorMessage(error);
         const status = ERROR_STATUS[code] ?? 500;
         const message = ERROR_MESSAGE[code] ?? "Error técnico al validar tu documento.";
         if (status === 500) console.error("[PUBLIC_COMPANY_INVITATIONS] identify error:", error);

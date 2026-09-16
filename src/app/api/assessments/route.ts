@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AssessmentService } from "@/lib/services/assessment-service";
 import { CreditService } from "@/lib/services/credit-service";
-import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
     const session = await auth();
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
                 data.workerId
             );
             creditConsumed = consumed;
-        } catch (creditError: any) {
-            if (creditError.message === "INSUFFICIENT_CREDITS") {
+        } catch (creditError: unknown) {
+            if (getErrorMessage(creditError) === "INSUFFICIENT_CREDITS") {
                 return NextResponse.json(
                     { error: "No tienes créditos suficientes. Adquiere un paquete de créditos para continuar.", code: "INSUFFICIENT_CREDITS" },
                     { status: 402 }
@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("DETALLE ERROR API ASSESSMENTS:", error);
         return NextResponse.json({ 
-            error: `Error técnico: ${error.message}`, 
-            details: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            error: `Error técnico: ${getErrorMessage(error)}`, 
+            details: getErrorMessage(error),
+            stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
         }, { status: 500 });
     }
 }

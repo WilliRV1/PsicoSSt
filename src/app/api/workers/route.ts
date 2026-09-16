@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import type { Prisma } from "@/generated/prisma";
 
 /**
  * GET — List workers, optionally filtered by organization
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const orgId = searchParams.get("organizationId");
 
-        const where: any = {};
+        const where: Prisma.WorkerWhereInput = {};
         if (orgId) {
             where.organizationId = orgId;
         }
@@ -68,20 +69,20 @@ export async function GET(request: NextRequest) {
                 id: worker.id,
                 fullName: worker.fullName,
                 documentId: worker.documentId,
-                documentType: (worker as any).documentType,
+                documentType: worker.documentType,
                 jobTitle: worker.jobTitle,
                 jobLevel: worker.jobLevel,
-                educationLevel: (worker as any).educationLevel,
-                departmentArea: (worker as any).departmentArea,
-                gender: (worker as any).gender,
-                birthDate: (worker as any).birthDate,
-                maritalStatus: (worker as any).maritalStatus,
-                yearsInCompany: (worker as any).yearsInCompany,
-                yearsInPosition: (worker as any).yearsInPosition,
-                contractType: (worker as any).contractType,
-                workSchedule: (worker as any).workSchedule,
-                hoursPerWeek: (worker as any).hoursPerWeek,
-                residenceCity: (worker as any).residenceCity,
+                educationLevel: worker.educationLevel,
+                departmentArea: worker.departmentArea,
+                gender: worker.gender,
+                birthDate: worker.birthDate,
+                maritalStatus: worker.maritalStatus,
+                yearsInCompany: worker.yearsInCompany,
+                yearsInPosition: worker.yearsInPosition,
+                contractType: worker.contractType,
+                workSchedule: worker.workSchedule,
+                hoursPerWeek: worker.hoursPerWeek,
+                residenceCity: worker.residenceCity,
                 createdAt: worker.createdAt,
                 organization: worker.organization,
                 lastRisk,
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const worker = await (prisma.worker as any).create({
+        const worker = await prisma.worker.create({
             data: {
                 documentType: documentType || "CC",
                 documentId,

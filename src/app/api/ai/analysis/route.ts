@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateClinicalAnalysis } from '@/lib/ai/openrouter-client';
+import type { DimensionScore } from '@/types/battery';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (overrideText !== undefined) {
       const report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
       if (report) {
-        const existing = (report.reportData as any) || {};
+        const existing = (report.reportData as unknown as Record<string, unknown>) || {};
         await prisma.generatedReport.update({
           where: { id: report.id },
           data: { reportData: { ...existing, analysis: overrideText } },
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
     const analysis = await generateClinicalAnalysis({
       overallRiskCategory: scoredResult.overallRiskCategory,
       totalScores: scoredResult.totalScores,
-      dimensionScores: scoredResult.dimensionScores,
+      dimensionScores: scoredResult.dimensionScores as unknown as Record<string, DimensionScore>,
       workerProfile: {
         jobTitle: assessment.worker.jobTitle ?? undefined,
         jobLevel: assessment.worker.jobLevel,
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     // Save to reportData.analysis
     const report = await prisma.generatedReport.findFirst({ where: { assessmentId } });
     if (report) {
-      const existing = (report.reportData as any) || {};
+      const existing = (report.reportData as unknown as Record<string, unknown>) || {};
       await prisma.generatedReport.update({
         where: { id: report.id },
         data: { reportData: { ...existing, analysis } },

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
 import { sendEmail } from "@/lib/email/resend";
 import { assessmentInvitationEmail } from "@/lib/email/templates";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function POST(
     request: NextRequest,
@@ -40,11 +41,11 @@ export async function POST(
         );
 
         return NextResponse.json({ url, expiresAt });
-    } catch (error: any) {
-        if (error.message === "NOT_FOUND") {
+    } catch (error: unknown) {
+        if (getErrorMessage(error) === "NOT_FOUND") {
             return NextResponse.json({ error: "Invitación no encontrada" }, { status: 404 });
         }
-        if (error.message === "NOT_PENDING") {
+        if (getErrorMessage(error) === "NOT_PENDING") {
             return NextResponse.json({ error: "Esta invitación ya no está pendiente" }, { status: 400 });
         }
         console.error("[INVITATIONS] Resend error:", error);

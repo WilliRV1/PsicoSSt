@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AssessmentService } from "@/lib/services/assessment-service";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
+import { getErrorMessage } from "@/lib/utils";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -112,11 +113,11 @@ export async function POST(request: NextRequest) {
                 });
 
                 results.successRows++;
-            } catch (err: any) {
+            } catch (err: unknown) {
                 results.failedRows++;
                 results.errors.push({
                     row: rowIndex,
-                    message: err.message
+                    message: getErrorMessage(err)
                 });
             }
         }

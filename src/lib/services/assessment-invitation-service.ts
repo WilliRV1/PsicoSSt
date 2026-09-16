@@ -225,13 +225,9 @@ export class AssessmentInvitationService {
             throw err;
         }
 
-        // `data` se construye con un índice dinámico (any) a propósito: `field`
-        // es siempre una de las 3 columnas *AssessmentId reales, pero el tipo
-        // generado por Prisma no acepta bien una clave computada en un
-        // literal de objeto tipado.
         await prisma.assessmentInvitation.update({
             where: { id: invitation.id },
-            data: { [field]: assessmentId } as any,
+            data: { [field]: assessmentId },
         });
 
         // Se recalcula `allDone` releyendo la fila DESPUÉS de escribir, no

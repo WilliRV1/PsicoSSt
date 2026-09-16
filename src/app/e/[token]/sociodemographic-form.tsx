@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import colombiaData from "@/config/colombia.json";
+import { getErrorMessage } from "@/lib/utils";
 
 interface SociodemographicFormProps {
     token: string;
@@ -62,8 +63,8 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Error al guardar tus datos");
             onDone();
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSubmitting(false);
         }

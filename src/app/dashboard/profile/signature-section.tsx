@@ -5,6 +5,7 @@ import SignaturePad from "signature_pad";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 interface SignatureSectionProps {
     initialSignature?: string | null;
@@ -69,9 +70,9 @@ export default function SignatureSection({ initialSignature }: SignatureSectionP
             
             setSignature(dataUrl);
             toast.success("Firma actualizada exitosamente");
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            toast.error(err.message || "No se pudo guardar la firma");
+            toast.error(getErrorMessage(err) || "No se pudo guardar la firma");
         } finally {
             setSaving(false);
         }
@@ -112,6 +113,11 @@ export default function SignatureSection({ initialSignature }: SignatureSectionP
                         <p className="text-sm text-muted-foreground font-medium">Vista previa de tu firma:</p>
                         <div className="border-2 border-dashed border-border rounded-xl p-4 h-48 flex items-center justify-center bg-muted overflow-hidden">
                             {signature ? (
+                                // Firma dibujada a mano: data URI Base64 sin proporción fija.
+                                // next/image exige ancho/alto conocidos; forzarlos arriesga
+                                // deformar la firma, y al ser local no hay ancho de banda que
+                                // optimizar.
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={signature} alt="Tu firma" className="max-h-full max-w-full object-contain" />
                             ) : (
                                 <div className="text-center">

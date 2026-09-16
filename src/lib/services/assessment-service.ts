@@ -1,12 +1,30 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma";
 import { scoreQuestionnaire } from "@/lib/scoring";
 import { getFormConfig } from "@/config/battery";
+import { getErrorMessage } from "@/lib/utils";
 import {
     FormType,
     QuestionnaireType,
     ItemResponses,
-    ScoredResultData
+    ScoredResultData,
+    DomainScore,
+    TotalScore
 } from "@/types/battery";
+
+/** Banda de riesgo de baremos.json: [límite inferior, límite superior] por categoría. */
+interface BaremoBand {
+    sinRiesgo: [number, number];
+    bajo: [number, number];
+    medio: [number, number];
+    alto: [number, number];
+    muyAlto: [number, number];
+}
+
+interface BaremoFormBlock {
+    total: BaremoBand;
+    domains: Record<string, BaremoBand>;
+}
 
 /**
  * Valida que cada respuesta pertenezca realmente a la Forma/tipo de
@@ -102,12 +120,12 @@ export class AssessmentService {
             worker.hasPeopleInCharge = data.hasPeopleInCharge;
         }
 
-        if (data.hasCustomerInteraction !== undefined && (worker as any).hasCustomerInteraction !== data.hasCustomerInteraction) {
+        if (data.hasCustomerInteraction !== undefined && worker.hasCustomerInteraction !== data.hasCustomerInteraction) {
             await prisma.worker.update({
                 where: { id: data.workerId },
                 data: { hasCustomerInteraction: data.hasCustomerInteraction }
             });
-            (worker as any).hasCustomerInteraction = data.hasCustomerInteraction;
+            worker.hasCustomerInteraction = data.hasCustomerInteraction;
         }
 
         // 1. Calculate scores using the pure scoring engine
@@ -118,9 +136,9 @@ export class AssessmentService {
             data.questionnaireType,
             {
                 occupationalGroup: data.occupationalGroup,
-                gender: (worker as any).gender || "F",
-                jobLevel: (worker as any).jobLevel,
-                hasCustomerInteraction: (worker as any).hasCustomerInteraction,
+                gender: worker.gender || "F",
+                jobLevel: worker.jobLevel,
+                hasCustomerInteraction: worker.hasCustomerInteraction,
                 hasPeopleInCharge: worker.hasPeopleInCharge ?? undefined
             }
         );
@@ -145,12 +163,12 @@ export class AssessmentService {
                         // este momento: workers.* es mutable y una evaluación
                         // posterior puede cambiarlo, pero el criterio con el
                         // que SE CALIFICÓ esta evaluación no debe moverse.
-                        hasCustomerInteraction: (worker as any).hasCustomerInteraction ?? null,
+                        hasCustomerInteraction: worker.hasCustomerInteraction ?? null,
                         hasPeopleInCharge: worker.hasPeopleInCharge ?? null,
                         // Create related response set
                         responseSet: {
                             create: {
-                                responses: data.responses as any,
+                                responses: data.responses,
                                 totalItems: Object.keys(data.responses).length,
                                 isComplete: true,
                                 submittedAt: new Date()
@@ -159,9 +177,13 @@ export class AssessmentService {
                         // Create related scored result
                         scoredResult: {
                             create: {
-                                dimensionScores: scoredResult.dimensions as any,
-                                domainScores: scoredResult.domains as any,
-                                totalScores: scoredResult.total as any,
+                                // Los campos opcionales de estos tipos (p. ej.
+                                // baremoPercentile) hacen que TS no los vea
+                                // directamente asignables a JSON — se afirma
+                                // el tipo que ya escribimos, no cualquier cosa.
+                                dimensionScores: scoredResult.dimensions as unknown as Prisma.InputJsonValue,
+                                domainScores: scoredResult.domains as unknown as Prisma.InputJsonValue,
+                                totalScores: scoredResult.total as unknown as Prisma.InputJsonValue,
                                 overallRiskCategory: scoredResult.total.riskCategory,
                                 scoredAt: new Date()
                             }
@@ -176,7 +198,7 @@ export class AssessmentService {
                             assessmentId: assessment.id,
                             workerId: data.workerId,
                             consentGranted: data.informedConsent.consentGranted,
-                            consentMethod: data.informedConsent.consentMethod as any,
+                            consentMethod: data.informedConsent.consentMethod,
                             consentText: data.informedConsent.consentText || "Confirmación de consentimiento físico firmado.",
                             consentSignature: data.informedConsent.consentSignature,
                             consentedAt: new Date()
@@ -206,9 +228,9 @@ export class AssessmentService {
                     result: scoredResult
                 };
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error DETALLADO en la transacción de Assessment:", error);
-            throw new Error(`Error en base de datos: ${error.message}`);
+            throw new Error(`Error en base de datos: ${getErrorMessage(error)}`);
         }
     }
 
@@ -266,14 +288,14 @@ export class AssessmentService {
             existing.questionnaireType as QuestionnaireType,
             {
                 occupationalGroup: existing.worker.jobLevel === "AUXILIAR" || existing.worker.jobLevel === "OPERATIVO" ? "auxiliares_operativos" : "jefes_profesionales_tecnicos",
-                gender: (existing.worker as any).gender || "F",
-                jobLevel: (existing.worker as any).jobLevel,
+                gender: existing.worker.gender || "F",
+                jobLevel: existing.worker.jobLevel,
                 // El criterio de control es el vigente CUANDO SE HIZO esta
                 // evaluación (columna propia de Assessment), no el actual del
                 // trabajador — que pudo cambiar con una evaluación posterior.
                 // Las filas anteriores a este campo no tienen snapshot propio
                 // y usan el valor del trabajador como mejor aproximación.
-                hasCustomerInteraction: existing.hasCustomerInteraction ?? (existing.worker as any).hasCustomerInteraction,
+                hasCustomerInteraction: existing.hasCustomerInteraction ?? existing.worker.hasCustomerInteraction,
                 hasPeopleInCharge: existing.hasPeopleInCharge ?? existing.worker.hasPeopleInCharge ?? undefined
             }
         );
@@ -285,7 +307,7 @@ export class AssessmentService {
                 await tx.responseSet.update({
                     where: { assessmentId: assessmentId },
                     data: {
-                        responses: newResponses as any,
+                        responses: newResponses,
                         totalItems: Object.keys(newResponses).length,
                         updatedAt: new Date()
                     }
@@ -295,9 +317,9 @@ export class AssessmentService {
                 await tx.scoredResult.update({
                     where: { assessmentId: assessmentId },
                     data: {
-                        dimensionScores: scoredResult.dimensions as any,
-                        domainScores: scoredResult.domains as any,
-                        totalScores: scoredResult.total as any,
+                        dimensionScores: scoredResult.dimensions as unknown as Prisma.InputJsonValue,
+                        domainScores: scoredResult.domains as unknown as Prisma.InputJsonValue,
+                        totalScores: scoredResult.total as unknown as Prisma.InputJsonValue,
                         overallRiskCategory: scoredResult.total.riskCategory,
                         scoredAt: new Date()
                     }
@@ -334,9 +356,9 @@ export class AssessmentService {
                     result: scoredResult
                 };
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error DETALLADO al editar Assessment:", error);
-            throw new Error(`Error en base de datos: ${error.message}`);
+            throw new Error(`Error en base de datos: ${getErrorMessage(error)}`);
         }
     }
 
@@ -352,7 +374,7 @@ export class AssessmentService {
         
         if (!orgInfo) throw new Error("Organización no encontrada");
 
-        const whereClause: any = { organizationId, status: { in: ["COMPLETED", "SCORED", "SIGNED"] } };
+        const whereClause: Prisma.AssessmentWhereInput = { organizationId, status: { in: ["COMPLETED", "SCORED", "SIGNED"] } };
         if (departmentArea && departmentArea !== "ALL") {
             whereClause.worker = { departmentArea };
         }
@@ -419,12 +441,12 @@ export class AssessmentService {
                 if (risk === "MUY_ALTO") areaRisks[area].muyAlto++;
 
                 // Promedios por Forma (Usando Puntaje Transformado Directo)
-                const totalScore = (res.totalScores as any)?.transformedScore || 0;
+                const totalScore = (res.totalScores as unknown as TotalScore | null)?.transformedScore || 0;
                 if (form === "A") {
                     totalScoreA += totalScore;
                     countA++;
                     if (res.domainScores) {
-                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                        Object.values(res.domainScores as unknown as Record<string, DomainScore>).forEach((dom) => {
                             if (!dom.domainKey) return;
                             if (!domainSumsA[dom.domainKey]) domainSumsA[dom.domainKey] = { sum: 0, count: 0 };
                             domainSumsA[dom.domainKey].sum += dom.transformedScore || 0;
@@ -435,7 +457,7 @@ export class AssessmentService {
                     totalScoreB += totalScore;
                     countB++;
                     if (res.domainScores) {
-                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                        Object.values(res.domainScores as unknown as Record<string, DomainScore>).forEach((dom) => {
                             if (!dom.domainKey) return;
                             if (!domainSumsB[dom.domainKey]) domainSumsB[dom.domainKey] = { sum: 0, count: 0 };
                             domainSumsB[dom.domainKey].sum += dom.transformedScore || 0;
@@ -472,7 +494,7 @@ export class AssessmentService {
         const round1 = (val: number) => Math.round(val * 10) / 10;
         
         // Helper para extraer umbrales (Gauges) de baremos.json
-        const getThresholds = (obj: any) => {
+        const getThresholds = (obj: BaremoBand | undefined) => {
             if (!obj) return [20, 40, 60, 80, 100];
             return [
                 obj.sinRiesgo[1],
@@ -483,7 +505,10 @@ export class AssessmentService {
             ];
         };
 
-        const bData: any = baremos;
+        const bData = baremos as unknown as {
+            intralaboral_a: BaremoFormBlock;
+            intralaboral_b: BaremoFormBlock;
+        };
 
         // Construir dominios Forma A con umbrales
         const domainsFormaA = [];
@@ -558,7 +583,7 @@ export class AssessmentService {
             domainsFormaA,
             domainsFormaB,
             areaPyramid,
-            recommendations: [] // Will be populated by AI or DB
+            recommendations: [] as string | string[] // Will be populated by AI or DB
         };
     }
 }

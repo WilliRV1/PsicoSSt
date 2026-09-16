@@ -6,7 +6,6 @@ import {
     baremos
 } from "@/config/battery";
 import {
-    FormConfig,
     RiskCategory,
     DimensionScore,
     DomainScore,
@@ -16,8 +15,17 @@ import {
     QuestionnaireType,
     BaremoThreshold,
     ItemResponses,
-    JobLevel
+    FormConfig,
+    DimensionConfig,
+    DomainConfig,
 } from "@/types/battery";
+
+/** Forma de una tabla de baremos (M2/M3): bandas por dimensión, por dominio y del total. */
+interface BaremoFormTable {
+    dimensions: Record<string, BaremoThreshold>;
+    domains: Record<string, BaremoThreshold>;
+    total: BaremoThreshold;
+}
 
 /**
  * Redondeo estricto a 1 decimal por aproximación
@@ -105,7 +113,7 @@ export function getRiskLevel(category: RiskCategory): number {
 
 export function calculateDimensionScore(
     responses: ItemResponses,
-    config: any,
+    config: DimensionConfig,
     baremoTable: Record<string, BaremoThreshold>,
     questionnaireType: QuestionnaireType
 ): DimensionScore {
@@ -158,7 +166,7 @@ export function calculateDimensionScore(
 }
 
 export function calculateDomainScore(
-    domainConfig: any,
+    domainConfig: DomainConfig,
     dimensionScores: Record<string, DimensionScore>,
     baremoTable: Record<string, BaremoThreshold>
 ): DomainScore {
@@ -262,26 +270,26 @@ export function scoreQuestionnaire(
         hasPeopleInCharge?: boolean
     }
 ): ScoredResultData {
-    let config: any;
+    let config: FormConfig;
     let baremoKey: string;
 
     if (questionnaireType === "INTRALABORAL") {
-        config = formType === "A" ? formAConfig : formBConfig;
+        config = formType === "A" ? (formAConfig as FormConfig) : (formBConfig as FormConfig);
         baremoKey = formType === "A" ? "intralaboral_a" : "intralaboral_b";
     } else if (questionnaireType === "EXTRALABORAL") {
-        config = extralaboralConfig;
+        config = extralaboralConfig as unknown as FormConfig;
         baremoKey = "extralaboral";
     } else {
-        config = stressConfig;
+        config = stressConfig as unknown as FormConfig;
         baremoKey = "stress";
     }
 
-    let baremoTable = (baremos as any)[baremoKey];
+    let baremoTable = (baremos as unknown as Record<string, BaremoFormTable>)[baremoKey];
 
     // Los baremos de extralaboral y de estrés están estratificados por nivel
     // ocupacional (M3 Tabla 17, M4 Tabla 5).
     if (questionnaireType === "EXTRALABORAL") {
-        baremoTable = baremoTable[occupationalGroup(metadata)];
+        baremoTable = (baremoTable as unknown as Record<string, BaremoFormTable>)[occupationalGroup(metadata)];
     }
 
     // El manual de estrés (M4) sólo publica baremo para el puntaje TOTAL —
@@ -294,7 +302,9 @@ export function scoreQuestionnaire(
     // que es lo que impedía que la alerta de salud mental (ver
     // DIMENSION_ACTION.sintomas_psicoemocionales) se disparara alguna vez.
     const stressTotalThresholds: BaremoThreshold | null =
-        questionnaireType === "STRESS" ? baremoTable[occupationalGroup(metadata)] : null;
+        questionnaireType === "STRESS"
+            ? (baremoTable as unknown as Record<string, BaremoThreshold>)[occupationalGroup(metadata)]
+            : null;
 
     // El manual no admite ítems faltantes en Estrés; se necesita saber esto
     // antes de calificar cada grupo de síntomas, no sólo el total.

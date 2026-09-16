@@ -1,9 +1,12 @@
+// Archivo CommonJS (sin "type": "module" en package.json) — convertir a
+// `import` real rompería la carga de este config en tiempo de ejecución.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
   e2e: {
     baseUrl: "http://localhost:3000",
-    setupNodeEvents(on, config) {
+    setupNodeEvents() {
       // implement node event listeners here
     },
     viewportWidth: 1280,

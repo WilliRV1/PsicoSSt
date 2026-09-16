@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { TotalScore } from "@/types/battery";
 
 const riskLabels: Record<string, string> = {
     SIN_RIESGO: "Sin Riesgo", BAJO: "Bajo", MEDIO: "Medio", ALTO: "Alto", MUY_ALTO: "Muy Alto",
@@ -12,7 +13,7 @@ const statusLabels: Record<string, string> = {
     SCORED: "Calificado", REVIEWED: "Revisado", SIGNED: "Firmado", COMPLETED: "Completado",
 };
 
-function escapeCSV(val: any): string {
+function escapeCSV(val: unknown): string {
     if (val === null || val === undefined) return "";
     const str = String(val);
     if (str.includes(",") || str.includes('"') || str.includes("\n")) {
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
     ];
 
     const rows = assessments.map(a => {
-        const score = (a.scoredResult?.totalScores as any)?.transformedScore;
+        const score = (a.scoredResult?.totalScores as unknown as TotalScore | undefined)?.transformedScore;
         return [
             a.worker.fullName,
             `${a.worker.documentType} ${a.worker.documentId}`,

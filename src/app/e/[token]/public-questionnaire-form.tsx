@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
 import { getItemText } from "@/config/battery";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 interface PublicQuestionnaireFormProps {
     token: string;
@@ -281,8 +282,8 @@ export default function PublicQuestionnaireForm({
             if (!res.ok) throw new Error(data.error || "Error al guardar tus respuestas");
 
             onSectionComplete(data.allDone);
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error));
             setMode("QUESTIONNAIRE");
         }
     };

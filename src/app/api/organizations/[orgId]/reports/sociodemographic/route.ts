@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { Worker } from "@/generated/prisma";
+
+type StringDistributionField = "gender" | "educationLevel" | "jobLevel" | "housingType" | "socioeconomicStratum";
 
 export async function GET(
     request: NextRequest,
@@ -58,7 +61,7 @@ export async function GET(
     }
 }
 
-function calculateAgeDistribution(workers: any[]) {
+function calculateAgeDistribution(workers: Worker[]) {
     const groups: Record<string, number> = {
         "18-25": 0,
         "26-35": 0,
@@ -86,7 +89,7 @@ function calculateAgeDistribution(workers: any[]) {
     return convertToPercentages(groups, workers.length);
 }
 
-function calculateTenureDistribution(workers: any[]) {
+function calculateTenureDistribution(workers: Worker[]) {
     const groups: Record<string, number> = {
         "Menos de 1 año": 0,
         "1-3 años": 0,
@@ -113,7 +116,7 @@ function calculateTenureDistribution(workers: any[]) {
     return convertToPercentages(groups, workers.length);
 }
 
-function calculateGenericDistribution(workers: any[], field: string) {
+function calculateGenericDistribution(workers: Worker[], field: StringDistributionField) {
     const groups: Record<string, number> = {};
 
     workers.forEach(w => {
@@ -124,7 +127,7 @@ function calculateGenericDistribution(workers: any[], field: string) {
     return convertToPercentages(groups, workers.length);
 }
 
-function calculateFreeTimeDistribution(workers: any[]) {
+function calculateFreeTimeDistribution(workers: Worker[]) {
     const counts: Record<string, number> = {};
     let totalInterests = 0;
 

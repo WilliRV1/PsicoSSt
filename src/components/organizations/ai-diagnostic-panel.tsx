@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sparkles, Loader2, Copy, CheckCheck, RefreshCw, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/lib/utils";
 
 interface AIDiagnosticPanelProps {
     orgId: string;
@@ -157,8 +158,8 @@ export default function AIDiagnosticPanel({ orgId, orgName }: AIDiagnosticPanelP
 
             setReport(data.report);
             setGeneratedAt(data.generatedAt);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(false);
         }

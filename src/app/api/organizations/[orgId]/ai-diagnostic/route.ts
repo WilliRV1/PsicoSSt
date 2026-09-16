@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateOrganizationalDiagnosis } from "@/lib/ai/openrouter-client";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function POST(
     request: NextRequest,
@@ -34,7 +35,7 @@ export async function POST(
         },
     });
 
-    const workers = await (prisma.worker as any).findMany({
+    const workers = await prisma.worker.findMany({
         where: { organizationId: orgId },
         select: {
             gender: true,
@@ -76,10 +77,9 @@ export async function POST(
     const stressTotal = Object.values(stress).reduce((a, b) => a + b, 0);
 
     // Segmentation by area and job title (only groups with >= 5 for privacy)
-    const segByArea: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
-    const segByCargo: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
-    const areaGroups: Record<string, any[]> = {};
-    const cargoGroups: Record<string, any[]> = {};
+    type ScoredAssessment = (typeof assessments)[number];
+    const areaGroups: Record<string, ScoredAssessment[]> = {};
+    const cargoGroups: Record<string, ScoredAssessment[]> = {};
 
     assessments.filter(a => a.questionnaireType === "INTRALABORAL").forEach(a => {
         const area = a.worker.departmentArea || "Sin área";
@@ -90,9 +90,9 @@ export async function POST(
         cargoGroups[cargo].push(a);
     });
 
-    const buildSeg = (groups: Record<string, any[]>) => {
+    const buildSeg = (groups: Record<string, ScoredAssessment[]>) => {
         const result: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
-        const others: any[] = [];
+        const others: ScoredAssessment[] = [];
         for (const [key, items] of Object.entries(groups)) {
             if (items.length >= 5) {
                 const d = emptyDist();
@@ -130,7 +130,7 @@ export async function POST(
     const jobLevelDist: Record<string, number> = {};
     const tenureDist: Record<string, number> = { "< 1 año": 0, "1-3 años": 0, "4-7 años": 0, "8-12 años": 0, "> 12 años": 0, "Sin datos": 0 };
 
-    workers.forEach((w: any) => {
+    workers.forEach((w) => {
         // Gender
         const g = w.gender === "M" ? "Masculino" : w.gender === "F" ? "Femenino" : "Otro/Sin datos";
         genderDist[g] = (genderDist[g] || 0) + 1;
@@ -192,9 +192,9 @@ export async function POST(
         });
 
         return NextResponse.json({ report, generatedAt: new Date().toISOString() });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[AI DIAGNOSTIC] Error:", err);
-        if (err.message?.includes("OPENROUTER_API_KEY")) {
+        if (getErrorMessage(err)?.includes("OPENROUTER_API_KEY")) {
             return NextResponse.json({ error: "IA no configurada" }, { status: 503 });
         }
         return NextResponse.json({ error: "Error al generar el diagnóstico" }, { status: 500 });

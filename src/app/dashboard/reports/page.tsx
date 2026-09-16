@@ -7,6 +7,8 @@ import FilterBar from "@/components/psicosst/filter-bar";
 import BulkExportButton from "@/components/psicosst/bulk-export-button";
 import { Suspense } from "react";
 import DeleteAssessmentButton from "../assessments/delete-assessment-button";
+import type { AssessmentStatus, RiskCategory } from "@/generated/prisma";
+import type { TotalScore } from "@/types/battery";
 
 const riskColors: Record<string, string> = {
     SIN_RIESGO: "bg-green-100 text-green-700",
@@ -55,10 +57,10 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             where: {
                 psychologistId: session.user.id,
                 status: statusFilter
-                    ? { equals: statusFilter as any }
+                    ? { equals: statusFilter as AssessmentStatus }
                     : { in: ["SCORED", "REVIEWED", "SIGNED"] },
                 ...(orgFilter && { organizationId: orgFilter }),
-                ...(riskFilter && { scoredResult: { overallRiskCategory: riskFilter as any } }),
+                ...(riskFilter && { scoredResult: { overallRiskCategory: riskFilter as RiskCategory } }),
                 ...(q && {
                     worker: {
                         OR: [
@@ -186,7 +188,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                             <tbody className="divide-y divide-border">
                                 {assessments.map((assessment) => {
                                     const risk = assessment.scoredResult?.overallRiskCategory || "SIN_RIESGO";
-                                    const totalScores = assessment.scoredResult?.totalScores as any;
+                                    const totalScores = assessment.scoredResult?.totalScores as unknown as TotalScore | undefined;
                                     const transformedScore = totalScores?.transformedScore;
                                     const status = statusConfig[assessment.status] || statusConfig.SCORED;
 

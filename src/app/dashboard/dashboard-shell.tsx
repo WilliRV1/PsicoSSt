@@ -58,21 +58,26 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([])
-    const [notifLoaded, setNotifLoaded] = useState(false)
     const [creditBalance, setCreditBalance] = useState<number | null>(null)
     const pathname = usePathname()
 
-    // Close mobile menu on route change
-    useEffect(() => {
+    // Cierra el menú móvil al cambiar de ruta. Se ajusta el estado DURANTE
+    // el render (patrón que React documenta explícitamente) en vez de en un
+    // efecto: evita el render extra que produciría un `setState` síncrono
+    // dentro de `useEffect`, y React ya sabe descartar el render a medias
+    // cuando el estado cambia así.
+    const [lastPathname, setLastPathname] = useState(pathname)
+    if (pathname !== lastPathname) {
+        setLastPathname(pathname)
         setMobileOpen(false)
-    }, [pathname])
+    }
 
     // Fetch notifications
     useEffect(() => {
         fetch("/api/notifications")
             .then((r) => r.ok ? r.json() : { data: [] })
-            .then((d) => { setNotifications(d.data || []); setNotifLoaded(true) })
-            .catch(() => setNotifLoaded(true))
+            .then((d) => setNotifications(d.data || []))
+            .catch(() => {})
     }, [])
 
     // Fetch credit balance

@@ -2,13 +2,13 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Building2, AlertTriangle, Clock, CheckCircle2, Plus, ArrowRight, Users } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle2, Plus, ArrowRight, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyDashboardState from "@/components/dashboard/empty-dashboard-state";
 
 type ComplianceStatus = "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
 
-const complianceCfg: Record<ComplianceStatus, { label: string; bar: string; badge: string; icon: React.FC<any> }> = {
+const complianceCfg: Record<ComplianceStatus, { label: string; bar: string; badge: string; icon: LucideIcon }> = {
     vencida:    { label: "Vencida",     bar: "bg-red-500",    badge: "bg-red-100 text-red-700 border-red-200",      icon: AlertTriangle },
     por_vencer: { label: "Por vencer",  bar: "bg-amber-400",  badge: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
     sin_evaluar:{ label: "Sin evaluar", bar: "bg-slate-300",  badge: "bg-slate-100 text-slate-600 border-slate-200", icon: Users },
@@ -49,6 +49,10 @@ export default async function DashboardPage() {
         return <EmptyDashboardState firstName={firstName} />;
     }
 
+    // Server Component: se ejecuta una vez por petición, sin el re-render
+    // concurrente que esta regla vigila en componentes de cliente — la hora
+    // real del servidor es exactamente lo que necesita este cálculo.
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const ONE_YEAR_MS  = 365.25 * 24 * 60 * 60 * 1000;
     const TWO_YEARS_MS = 2 * ONE_YEAR_MS;
@@ -84,7 +88,7 @@ export default async function DashboardPage() {
             daysLeft = Math.floor((expiryDate.getTime() - now) / (1000 * 60 * 60 * 24));
 
             if (daysLeft < 0) complianceStatus = "vencida";
-            else if (daysLeft <= 90) complianceStatus = "por_vencer";
+            else if (daysLeft * 24 * 60 * 60 * 1000 <= WARN_MS) complianceStatus = "por_vencer";
             else complianceStatus = "vigente";
         }
 

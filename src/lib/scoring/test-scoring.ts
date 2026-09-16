@@ -6,7 +6,7 @@ async function testScoring() {
     let passed = 0;
     let failed = 0;
 
-    function assertEq(name: string, actual: any, expected: any) {
+    function assertEq<T>(name: string, actual: T, expected: T) {
         if (actual === expected) {
             console.log(`✅ ${name}: ${actual}`);
             passed++;

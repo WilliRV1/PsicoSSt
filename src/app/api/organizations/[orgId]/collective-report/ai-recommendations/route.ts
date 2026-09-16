@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "@/lib/ai/models";
+import { MODEL_DRAFTING, OPENROUTER_URL } from "@/lib/ai/models";
 
 export async function POST(
     req: NextRequest,

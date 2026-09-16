@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RiskCategory } from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
+
+type DiagnosticAssessment = Prisma.AssessmentGetPayload<{
+    include: {
+        worker: { select: { departmentArea: true; jobTitle: true; jobLevel: true } };
+        scoredResult: true;
+    };
+}>;
 
 export async function GET(
     request: NextRequest,
@@ -73,7 +81,7 @@ export async function GET(
     }
 }
 
-function calculateDistribution(assessments: any[], type: "total" | "intralaboral" | "extralaboral" | "stress") {
+function calculateDistribution(assessments: DiagnosticAssessment[], type: "total" | "intralaboral" | "extralaboral" | "stress") {
     const distribution: Record<string, number> = {
         SIN_RIESGO: 0,
         BAJO: 0,
@@ -114,8 +122,8 @@ function calculateDistribution(assessments: any[], type: "total" | "intralaboral
     return percentages;
 }
 
-function segmentByField(assessments: any[], field: string) {
-    const groups: Record<string, any[]> = {};
+function segmentByField(assessments: DiagnosticAssessment[], field: "departmentArea" | "jobTitle") {
+    const groups: Record<string, DiagnosticAssessment[]> = {};
 
     assessments.forEach(a => {
         const val = a.worker[field] || "No especificado";
@@ -123,8 +131,8 @@ function segmentByField(assessments: any[], field: string) {
         groups[val].push(a);
     });
 
-    const result: Record<string, any> = {};
-    const others: any[] = [];
+    const result: Record<string, { count: number; riskDistribution: Record<string, number> }> = {};
+    const others: DiagnosticAssessment[] = [];
 
     for (const groupName in groups) {
         if (groups[groupName].length >= 10) {
@@ -147,7 +155,7 @@ function segmentByField(assessments: any[], field: string) {
     return result;
 }
 
-function calculateStressCorrelation(assessments: any[]) {
+function calculateStressCorrelation(assessments: DiagnosticAssessment[]) {
     // Stress vs Intralaboral Risk
     const correlation: Record<string, Record<string, number>> = {
         SIN_RIESGO: { SIN_RIESGO: 0, BAJO: 0, MEDIO: 0, ALTO: 0, MUY_ALTO: 0 },

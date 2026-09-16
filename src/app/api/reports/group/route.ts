@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
+import { getErrorMessage } from "@/lib/utils";
+import type { Prisma } from "@/generated/prisma";
+import type { DimensionScore, DomainScore } from "@/types/battery";
+
+interface AverageAccumulator {
+    sum: number;
+    count: number;
+    risks: Record<string, number>;
+}
+
+interface DomainAverageAccumulator {
+    sum: number;
+    count: number;
+}
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -12,14 +26,14 @@ export async function GET(request: Request) {
     }
 
     try {
-        const whereClause: any = {
+        const whereClause: Prisma.ScoredResultWhereInput = {
             assessment: {
                 organizationId
             }
         };
 
         if (department && department !== "ALL") {
-            whereClause.assessment.worker = {
+            whereClause.assessment!.worker = {
                 departmentArea: department
             };
         }
@@ -68,7 +82,7 @@ export async function GET(request: Request) {
             const type = res.assessment?.questionnaireType;
             const form = res.assessment?.formType;
             const workerId = res.assessment.workerId;
-            const dimensions = res.dimensionScores as Record<string, any>;
+            const dimensions = res.dimensionScores as unknown as Record<string, DimensionScore> | null;
 
             if (!workerMatrix.has(workerId)) {
                 workerMatrix.set(workerId, { intra: null, stress: null });
@@ -81,7 +95,7 @@ export async function GET(request: Request) {
                 if (form === "A") {
                     intralaboralFormaARisk[risk as keyof typeof intralaboralFormaARisk]++;
                     if (res.domainScores) {
-                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                        Object.values(res.domainScores as unknown as Record<string, DomainScore>).forEach((dom) => {
                             if (!dom.domainName) return;
                             if (!domainAveragesA[dom.domainName]) domainAveragesA[dom.domainName] = { sum: 0, count: 0 };
                             domainAveragesA[dom.domainName].sum += dom.transformedScore || 0;
@@ -89,7 +103,7 @@ export async function GET(request: Request) {
                         });
                     }
                     if (dimensions) {
-                        Object.values(dimensions).forEach((dim: any) => {
+                        Object.values(dimensions).forEach((dim) => {
                             if (!dim.dimensionName) return;
                             if (!dimensionAveragesA[dim.dimensionName]) {
                                 dimensionAveragesA[dim.dimensionName] = { sum: 0, count: 0, risks: { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 } };
@@ -104,7 +118,7 @@ export async function GET(request: Request) {
                 } else {
                     intralaboralFormaBRisk[risk as keyof typeof intralaboralFormaBRisk]++;
                     if (res.domainScores) {
-                        Object.values(res.domainScores as Record<string, any>).forEach((dom: any) => {
+                        Object.values(res.domainScores as unknown as Record<string, DomainScore>).forEach((dom) => {
                             if (!dom.domainName) return;
                             if (!domainAveragesB[dom.domainName]) domainAveragesB[dom.domainName] = { sum: 0, count: 0 };
                             domainAveragesB[dom.domainName].sum += dom.transformedScore || 0;
@@ -112,7 +126,7 @@ export async function GET(request: Request) {
                         });
                     }
                     if (dimensions) {
-                        Object.values(dimensions).forEach((dim: any) => {
+                        Object.values(dimensions).forEach((dim) => {
                             if (!dim.dimensionName) return;
                             if (!dimensionAveragesB[dim.dimensionName]) {
                                 dimensionAveragesB[dim.dimensionName] = { sum: 0, count: 0, risks: { "SIN_RIESGO": 0, "BAJO": 0, "MEDIO": 0, "ALTO": 0, "MUY_ALTO": 0 } };
@@ -155,16 +169,16 @@ export async function GET(request: Request) {
         });
 
         // Formatear promedios de dominios/dimensiones para el frontend
-        const formatAverages = (avgMap: Record<string, any>) => {
-            return Object.entries(avgMap).map(([name, stats]: [string, any]) => ({
+        const formatAverages = (avgMap: Record<string, AverageAccumulator>) => {
+            return Object.entries(avgMap).map(([name, stats]) => ({
                 name,
                 average: parseFloat((stats.sum / stats.count).toFixed(1)),
                 risks: stats.risks
             }));
         };
 
-        const formatDomainAverages = (avgMap: Record<string, any>) => {
-            return Object.entries(avgMap).map(([name, stats]: [string, any]) => ({
+        const formatDomainAverages = (avgMap: Record<string, DomainAverageAccumulator>) => {
+            return Object.entries(avgMap).map(([name, stats]) => ({
                 name,
                 average: parseFloat((stats.sum / stats.count).toFixed(1))
             }));
@@ -196,7 +210,7 @@ export async function GET(request: Request) {
                 groupSanos
             }
         });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

@@ -53,7 +53,7 @@ export async function PUT(
     try {
         const { id } = await params;
 
-        const worker = await (prisma.worker as any).findUnique({
+        const worker = await prisma.worker.findUnique({
             where: { id },
             include: {
                 organization: {
@@ -89,7 +89,7 @@ export async function PUT(
             );
         }
 
-        const updated = await (prisma.worker as any).update({
+        const updated = await prisma.worker.update({
             where: { id },
             data: {
                 fullName,
@@ -160,7 +160,7 @@ export async function DELETE(
     try {
         const { id } = await params;
 
-        const worker = await (prisma.worker as any).findUnique({
+        const worker = await prisma.worker.findUnique({
             where: { id },
             include: {
                 organization: {
@@ -178,11 +178,11 @@ export async function DELETE(
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
 
-        const assessments = await (prisma.assessment as any).findMany({
+        const assessments = await prisma.assessment.findMany({
             where: { workerId: id },
             select: { id: true }
         });
-        const assessmentIds = assessments.map((a: any) => a.id);
+        const assessmentIds = assessments.map((a) => a.id);
 
         // Todo en una sola transacción: si el borrado del worker falla al
         // final (por ejemplo por otra FK que no contemplamos aquí), Postgres
@@ -192,18 +192,18 @@ export async function DELETE(
         await prisma.$transaction([
             ...(assessmentIds.length > 0
                 ? [
-                      (prisma.informedConsent as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.generatedReport as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.responseSet as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.scoredResult as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.assessment as any).deleteMany({ where: { workerId: id } }),
+                      prisma.informedConsent.deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      prisma.generatedReport.deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      prisma.responseSet.deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      prisma.scoredResult.deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      prisma.assessment.deleteMany({ where: { workerId: id } }),
                   ]
                 : []),
             // assessment_invitations.worker_id es ON DELETE RESTRICT — sin
             // borrar esto primero, el delete del worker siempre falla si
             // alguna vez se identificó por el enlace de autoservicio.
-            (prisma.assessmentInvitation as any).deleteMany({ where: { workerId: id } }),
-            (prisma.worker as any).delete({ where: { id } }),
+            prisma.assessmentInvitation.deleteMany({ where: { workerId: id } }),
+            prisma.worker.delete({ where: { id } }),
         ]);
 
         const { ipAddress, userAgent } = extractRequestMeta(request);

@@ -46,6 +46,50 @@ interface Worker {
     };
 }
 
+/**
+ * Shape of GET /api/workers/:id — el registro completo del trabajador. La
+ * lista de /api/workers?organizationId= sólo trae el subconjunto de arriba
+ * (Worker), así que abrir "editar" desde esa lista necesita esta llamada
+ * adicional; usar los datos truncados de la lista vaciaría en el formulario
+ * (y luego, al guardar, borraría en la BD) los ~15 campos que esa lista no
+ * incluye.
+ */
+interface FullWorkerRecord {
+    id: string;
+    documentType: string;
+    documentId: string;
+    fullName: string;
+    gender: string | null;
+    birthYear: number | null;
+    birthDate: string | null;
+    maritalStatus: string | null;
+    educationLevel: string | null;
+    profession: string | null;
+    jobTitle: string | null;
+    jobLevel: string;
+    residenceCity: string | null;
+    residenceDepartment: string | null;
+    socioeconomicStratum: string | null;
+    housingType: string | null;
+    dependentsCount: number | null;
+    freeTimeUsage: string[];
+    departmentArea: string | null;
+    lessThanOneYearInCompany: boolean;
+    yearsInCompany: number | null;
+    lessThanOneYearInPosition: boolean;
+    yearsInPosition: number | null;
+    contractType: string | null;
+    workSchedule: string | null;
+    hoursPerDay: string | null;
+    hoursPerWeek: string | null;
+    paymentModality: string | null;
+    workCity: string | null;
+    workDepartment: string | null;
+    transportMeans: string | null;
+    displacementTime: number | null;
+    hasCustomerInteraction: boolean;
+}
+
 interface Organization {
     id: string;
     name: string;
@@ -113,20 +157,10 @@ const JOB_LEVEL_LABELS: Record<string, string> = {
     OPERATIVO: "Operativo"
 };
 
-const EDUCATION_LABELS: Record<string, string> = {
-    PRIMARIA: "Primaria",
-    BACHILLERATO: "Bachillerato",
-    TECNICO: "T\u00e9cnico",
-    TECNOLOGO: "Tecn\u00f3logo",
-    PROFESIONAL: "Profesional",
-    ESPECIALIZACION: "Especializaci\u00f3n",
-    MAESTRIA: "Maestr\u00eda",
-    DOCTORADO: "Doctorado"
-};
-
 import { EMPTY_WORKER_FORM, WorkerFormFields } from "@/components/workers/WorkerFormFields";
 
 
+import { getErrorMessage } from "@/lib/utils";
 
 export default function OrganizationDetailPage() {
     const params = useParams();
@@ -213,8 +247,8 @@ export default function OrganizationDetailPage() {
             setForm({ ...EMPTY_WORKER_FORM });
             setIntraFormType("A");
             fetchData();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setSaving(false);
         }
@@ -254,15 +288,61 @@ export default function OrganizationDetailPage() {
 
             setShowEditOrgModal(false);
             fetchData();
-        } catch (err: any) {
-            setOrgError(err.message);
+        } catch (err: unknown) {
+            setOrgError(getErrorMessage(err));
         } finally {
             setSavingOrg(false);
         }
     };
 
     // --- Edit worker ---
-    const openEditWorker = useCallback((w: any) => { setEditingWorker(w); setEditWorkerForm({ documentType: w.documentType || "CC", documentId: w.documentId || "", fullName: w.fullName || "", gender: w.gender || "", birthYear: w.birthYear != null ? String(w.birthYear) : "", birthDate: w.birthDate ? w.birthDate.substring(0, 10) : "", maritalStatus: w.maritalStatus || "", educationLevel: w.educationLevel || "", profession: w.profession || "", jobTitle: w.jobTitle || "", jobLevel: w.jobLevel || "", residenceCity: w.residenceCity || "", residenceDepartment: w.residenceDepartment || "", socioeconomicStratum: w.socioeconomicStratum || "", housingType: w.housingType || "", dependentsCount: w.dependentsCount != null ? String(w.dependentsCount) : "", freeTimeUsage: w.freeTimeUsage || [], departmentArea: w.departmentArea || "", lessThanOneYearInCompany: w.lessThanOneYearInCompany || false, yearsInCompany: w.yearsInCompany != null ? String(w.yearsInCompany) : "", lessThanOneYearInPosition: w.lessThanOneYearInPosition || false, yearsInPosition: w.yearsInPosition != null ? String(w.yearsInPosition) : "", contractType: w.contractType || "", workSchedule: w.workSchedule || "", hoursPerDay: w.hoursPerDay != null ? String(w.hoursPerDay) : "", hoursPerWeek: w.hoursPerWeek != null ? String(w.hoursPerWeek) : "", paymentModality: w.paymentModality || "", workCity: w.workCity || "", workDepartment: w.workDepartment || "", transportMeans: w.transportMeans || "", displacementTime: w.displacementTime != null ? String(w.displacementTime) : "", hasCustomerInteraction: w.hasCustomerInteraction ?? true }); setWorkerError(null); setShowEditWorkerModal(true); }, []);
+    const openEditWorker = useCallback(async (w: Worker) => {
+        setWorkerError(null);
+        try {
+            const res = await fetch(`/api/workers/${w.id}`);
+            const full: FullWorkerRecord = await res.json();
+            if (!res.ok) throw new Error("Error al cargar el trabajador");
+
+            setEditingWorker(w);
+            setEditWorkerForm({
+                documentType: full.documentType || "CC",
+                documentId: full.documentId || "",
+                fullName: full.fullName || "",
+                gender: full.gender || "",
+                birthYear: full.birthYear != null ? String(full.birthYear) : "",
+                birthDate: full.birthDate ? full.birthDate.substring(0, 10) : "",
+                maritalStatus: full.maritalStatus || "",
+                educationLevel: full.educationLevel || "",
+                profession: full.profession || "",
+                jobTitle: full.jobTitle || "",
+                jobLevel: full.jobLevel || "",
+                residenceCity: full.residenceCity || "",
+                residenceDepartment: full.residenceDepartment || "",
+                socioeconomicStratum: full.socioeconomicStratum || "",
+                housingType: full.housingType || "",
+                dependentsCount: full.dependentsCount != null ? String(full.dependentsCount) : "",
+                freeTimeUsage: full.freeTimeUsage || [],
+                departmentArea: full.departmentArea || "",
+                lessThanOneYearInCompany: full.lessThanOneYearInCompany || false,
+                yearsInCompany: full.yearsInCompany != null ? String(full.yearsInCompany) : "",
+                lessThanOneYearInPosition: full.lessThanOneYearInPosition || false,
+                yearsInPosition: full.yearsInPosition != null ? String(full.yearsInPosition) : "",
+                contractType: full.contractType || "",
+                workSchedule: full.workSchedule || "",
+                hoursPerDay: full.hoursPerDay != null ? String(full.hoursPerDay) : "",
+                hoursPerWeek: full.hoursPerWeek != null ? String(full.hoursPerWeek) : "",
+                paymentModality: full.paymentModality || "",
+                workCity: full.workCity || "",
+                workDepartment: full.workDepartment || "",
+                transportMeans: full.transportMeans || "",
+                displacementTime: full.displacementTime != null ? String(full.displacementTime) : "",
+                hasCustomerInteraction: full.hasCustomerInteraction ?? true,
+            });
+            setShowEditWorkerModal(true);
+        } catch (err: unknown) {
+            setWorkerError(getErrorMessage(err));
+        }
+    }, []);
 
     useEffect(() => {
         if (typeof window !== "undefined" && workers.length > 0 && !showEditWorkerModal) {
@@ -298,8 +378,8 @@ export default function OrganizationDetailPage() {
             setShowEditWorkerModal(false);
             setEditingWorker(null);
             fetchData();
-        } catch (err: any) {
-            setWorkerError(err.message);
+        } catch (err: unknown) {
+            setWorkerError(getErrorMessage(err));
         } finally {
             setSavingWorker(false);
         }

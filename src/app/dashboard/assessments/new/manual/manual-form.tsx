@@ -6,6 +6,7 @@ import { scoreQuestionnaire } from "@/lib/scoring";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getItemText } from "@/config/battery";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ManualFormProps {
     workerId: string;
@@ -37,7 +38,6 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     const [startTime, setStartTime] = useState<number>(0);
     const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-    const inputRef = useRef<HTMLDivElement>(null);
     // Espejo síncrono de `responses`: el setTimeout de handleAnswer agenda
     // advanceNext/submitAssessment con el closure de ese render, que puede
     // quedar desactualizado antes de que el timeout dispare (sobre todo en el
@@ -163,6 +163,12 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
         window.addEventListener("keydown", handleGlobalKeyDown);
         return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+        // computeItems/goBack/handleAnswer/handleControlAnswer se omiten a
+        // propósito: como explica el comentario sobre getItems() más arriba,
+        // leen su estado vía *Ref.current para evitar el closure obsoleto sin
+        // depender de funciones que se recrean en cada render. Añadirlas aquí
+        // desmontaría y remontaría el listener en cada pulsación de tecla.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, maxVal]);
 
     const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
@@ -331,8 +337,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
 
             setScoreResult(score);
             setMode("SUCCESS");
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSubmitting(false);
         }

@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Activity, ArrowLeft, User, Globe, Monitor } from "lucide-react";
+import { Activity, ArrowLeft } from "lucide-react";
 import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
+import type { AuditAction, Prisma } from "@/generated/prisma";
 
 const actionLabels: Record<string, string> = {
     LOGIN: "Inicio de sesión",
@@ -56,9 +57,9 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
     const page = Math.max(1, parseInt(params.page || "1"));
     const pageSize = 50;
 
-    const where: any = {};
+    const where: Prisma.AuditLogWhereInput = {};
     if (actionFilter) {
-        where.action = actionFilter;
+        where.action = actionFilter as AuditAction;
     }
     if (q) {
         where.OR = [
@@ -140,7 +141,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                             </thead>
                             <tbody className="divide-y divide-border">
                                 {logs.map((log) => {
-                                    const metadata = log.metadata as Record<string, any> | null;
+                                    const metadata = log.metadata as Record<string, unknown> | null;
                                     const actionColor = actionColors[log.action] || "bg-gray-100 text-gray-700";
 
                                     return (

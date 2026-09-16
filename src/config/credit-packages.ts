@@ -8,8 +8,6 @@ export interface CreditPackage {
     popular?: boolean;
 }
 
-const BASE_PRICE = 3000; // base price per credit in COP (starter tier)
-
 export const CREDIT_PACKAGES: CreditPackage[] = [
     {
         id: "starter",

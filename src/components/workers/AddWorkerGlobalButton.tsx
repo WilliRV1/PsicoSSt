@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { WorkerFormFields, EMPTY_WORKER_FORM } from "@/components/workers/WorkerFormFields";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 interface Organization {
     id: string;
@@ -44,9 +45,9 @@ export default function AddWorkerGlobalButton({ organizations }: Props) {
             setForm({ ...EMPTY_WORKER_FORM });
             setSelectedOrgId("");
             window.location.reload();
-        } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message || "Error al guardar");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
+            toast.error(getErrorMessage(err) || "Error al guardar");
         } finally {
             setSaving(false);
         }

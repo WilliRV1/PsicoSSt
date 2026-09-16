@@ -97,6 +97,7 @@ export interface FormConfig {
     formType: FormType;
     questionnaireType: QuestionnaireType;
     totalItems: number;
+    totalTransformationFactor: number;
     dimensions: DimensionConfig[];
     domains: DomainConfig[];
 }
@@ -106,6 +107,7 @@ export interface DomainConfig {
     key: string;
     name: string;
     dimensionKeys: string[];
+    transformationFactor: number;
 }
 
 /** Baremo threshold entry: transformed score → risk category */
