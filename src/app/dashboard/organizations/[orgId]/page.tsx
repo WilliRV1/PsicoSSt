@@ -3,10 +3,24 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Plus, Upload, MapPin, Building2, Users, Loader2, XCircle, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Upload, MapPin, Building2, Users, XCircle, X, Pencil, Trash2, ShieldCheck, FileBarChart, UserRound, Download } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/ui/molecules/TableSkeleton";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 import OrgMetricsDashboard from "@/components/organizations/org-metrics-dashboard";
 import InterventionPlanPanel from "@/components/organizations/intervention-plan-panel";
 import CollectiveReportButton from "@/components/organizations/collective-report-button";
@@ -58,19 +72,19 @@ interface Organization {
     contactEmail: string | null;
 }
 
-const RISK_DOT: Record<string, string> = {
-    SIN_RIESGO: "bg-green-500",
-    BAJO:       "bg-lime-500",
-    MEDIO:      "bg-yellow-400",
-    ALTO:       "bg-orange-500",
-    MUY_ALTO:   "bg-red-600",
+const STATUS_STYLE: Record<string, { bg: string; text: string; border: string }> = {
+    SIGNED:    { bg: "var(--color-teal-light)",       text: "var(--color-teal-dark)",       border: "var(--color-teal)" },
+    REVIEWED:  { bg: "color-mix(in srgb, var(--color-info) 14%, transparent)", text: "var(--color-info)", border: "var(--color-info)" },
+    SCORED:    { bg: "var(--color-risk-medium-bg)",   text: "var(--color-risk-medium-text)", border: "var(--color-risk-medium-border)" },
+    COMPLETED: { bg: "var(--color-surface-muted)",    text: "var(--color-text-secondary)",  border: "var(--color-border)" },
 };
 
-const STATUS_RING: Record<string, string> = {
-    SIGNED:   "ring-green-400 bg-green-50 text-green-700",
-    REVIEWED: "ring-blue-400 bg-blue-50 text-blue-700",
-    SCORED:   "ring-yellow-400 bg-yellow-50 text-yellow-700",
-    COMPLETED:"ring-slate-300 bg-slate-50 text-slate-600",
+const RISK_DOT_VAR: Record<string, string> = {
+    SIN_RIESGO: "var(--color-risk-none-solid)",
+    BAJO:       "var(--color-risk-low-solid)",
+    MEDIO:      "var(--color-risk-medium-solid)",
+    ALTO:       "var(--color-risk-high-solid)",
+    MUY_ALTO:   "var(--color-risk-veryhigh-solid)",
 };
 
 function BatteryBadge({ label, slot, workerId, orgId, type }: {
@@ -91,15 +105,16 @@ function BatteryBadge({ label, slot, workerId, orgId, type }: {
             </a>
         );
     }
-    const ringCls = STATUS_RING[slot.status] ?? STATUS_RING.COMPLETED;
-    const dotCls  = slot.risk ? RISK_DOT[slot.risk] : "bg-slate-400";
+    const style = STATUS_STYLE[slot.status] ?? STATUS_STYLE.COMPLETED;
+    const dotColor = slot.risk ? RISK_DOT_VAR[slot.risk] : "var(--color-text-muted)";
     return (
         <Link
             href={`/dashboard/reports/${slot.id}`}
-            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ring-1 ${ringCls} transition-opacity hover:opacity-80`}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold transition-opacity hover:opacity-80"
+            style={{ background: style.bg, color: style.text, boxShadow: `inset 0 0 0 1px ${style.border}` }}
             title={`${label}: ${slot.status}`}
         >
-            <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: dotColor }} />
             {label}
         </Link>
     );
@@ -131,10 +146,13 @@ import { EMPTY_WORKER_FORM, WorkerFormFields } from "@/components/workers/Worker
 export default function OrganizationDetailPage() {
     const params = useParams();
     const orgId = params.orgId as string;
+    const reduceMotion = useReducedMotion();
 
     const [org, setOrg] = useState<Organization | null>(null);
     const [workers, setWorkers] = useState<Worker[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deletingWorker, setDeletingWorker] = useState<Worker | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     // Create worker modal
     const [showModal, setShowModal] = useState(false);
@@ -306,48 +324,65 @@ export default function OrganizationDetailPage() {
     };
 
     // --- Delete worker ---
-    const handleDeleteWorker = async (w: Worker) => {
-        if (!confirm(`¿Eliminar al trabajador "${w.fullName}"? Esta acción no se puede deshacer.`)) return;
-
+    const confirmDeleteWorker = async () => {
+        if (!deletingWorker) return;
+        setDeleteError(null);
         try {
-            const res = await fetch(`/api/workers/${w.id}`, { method: "DELETE" });
+            const res = await fetch(`/api/workers/${deletingWorker.id}`, { method: "DELETE" });
             const data = await res.json();
             if (!res.ok) {
-                alert(data.error || "Error al eliminar");
+                setDeleteError(data.error || "Error al eliminar");
                 return;
             }
+            setDeletingWorker(null);
             fetchData();
         } catch {
-            alert("Error al eliminar el trabajador");
+            setDeleteError("Error al eliminar el trabajador");
         }
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center p-20">
-                <Loader2 className="animate-spin h-10 w-10 text-primary" />
+            <div className="space-y-8">
+                <Skeleton className="h-4 w-48" />
+                <div className="rounded-xl border border-border bg-card p-6 flex items-center gap-6">
+                    <Skeleton className="h-16 w-16 rounded-2xl shrink-0" />
+                    <div className="flex-1 space-y-2.5">
+                        <Skeleton className="h-6 w-64" />
+                        <Skeleton className="h-4 w-96" />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[0, 1, 2].map(i => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+                </div>
+                <TableSkeleton columns={4} rows={5} />
             </div>
         );
     }
 
     if (!org) {
         return (
-            <div className="text-center py-20 animate-in">
-                <h2 className="text-2xl font-bold text-foreground">Organizaci&oacute;n no encontrada</h2>
-                <Link href="/dashboard/organizations" className="text-primary font-bold hover:underline mt-4 inline-block">
-                    &larr; Volver a Mis Empresas
+            <div className="text-center py-20">
+                <h2 className="text-xl font-semibold text-foreground">Organización no encontrada</h2>
+                <Link href="/dashboard/organizations" className="text-primary font-semibold hover:underline mt-4 inline-block">
+                    ← Volver a Mis Empresas
                 </Link>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8 animate-in">
+        <motion.div
+            className="space-y-8"
+            initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
+        >
             {/* Breadcrumbs */}
             <nav className="flex text-sm font-medium text-muted-foreground gap-2">
                 <Link href="/dashboard/organizations" className="hover:text-primary transition-colors">Mis Empresas</Link>
                 <span className="text-border">/</span>
-                <span className="text-foreground font-bold">{org.name}</span>
+                <span className="text-foreground font-semibold">{org.name}</span>
             </nav>
 
             {/* Org Header Card */}
@@ -358,8 +393,8 @@ export default function OrganizationDetailPage() {
                     </div>
                     <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-3xl font-black text-foreground tracking-tight">{org.name}</h1>
-                            <span className="px-2.5 py-1 bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-widest rounded-md border border-border">
+                            <h1 className="text-[26px] font-semibold text-foreground tracking-[-0.02em]">{org.name}</h1>
+                            <span className="px-2.5 py-1 bg-muted text-muted-foreground text-[10px] font-semibold uppercase tracking-widest rounded-md border border-border">
                                 NIT: {org.nit}
                             </span>
                         </div>
@@ -393,37 +428,58 @@ export default function OrganizationDetailPage() {
             </div>
 
             {/* Reports Access Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Link href={`/dashboard/organizations/${orgId}/reports/sve`} className="group p-6 bg-card border border-border rounded-2xl hover:border-purple-500 hover:ring-1 hover:ring-purple-500 transition-all shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Link
+                    href={`/dashboard/organizations/${orgId}/reports/sve`}
+                    className="group p-5 bg-card border border-border rounded-xl transition-colors shadow-sm"
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--color-info)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                >
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors dark:bg-purple-950 dark:text-purple-400">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" }}
+                        >
+                            <ShieldCheck className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-foreground group-hover:text-purple-600 transition-colors">Programa SVE</h3>
-                            <p className="text-sm text-muted-foreground font-medium">Vigilancia Epidemiol&oacute;gica · Res. 2764/2022</p>
+                            <h3 className="text-[14px] font-semibold text-foreground">Programa SVE</h3>
+                            <p className="text-[12.5px] text-text-secondary">Vigilancia Epidemiológica · Res. 2764/2022</p>
                         </div>
                     </div>
                 </Link>
-                <Link href={`/dashboard/organizations/${orgId}/reports/diagnostic`} className="group p-6 bg-card border border-border rounded-2xl hover:border-primary hover:ring-1 hover:ring-primary transition-all shadow-sm">
+                <Link
+                    href={`/dashboard/organizations/${orgId}/reports/diagnostic`}
+                    className="group p-5 bg-card border border-border rounded-xl transition-colors shadow-sm"
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--color-primary)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                >
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors dark:bg-blue-950 dark:text-blue-400">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}>
+                            <FileBarChart className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Informe Diagn&oacute;stico</h3>
-                            <p className="text-sm text-muted-foreground font-medium">Resultados consolidados de riesgo organizacional.</p>
+                            <h3 className="text-[14px] font-semibold text-foreground">Informe Diagnóstico</h3>
+                            <p className="text-[12.5px] text-text-secondary">Resultados consolidados de riesgo organizacional.</p>
                         </div>
                     </div>
                 </Link>
-                <Link href={`/dashboard/organizations/${orgId}/reports/sociodemographic`} className="group p-6 bg-card border border-border rounded-2xl hover:border-emerald-500 hover:ring-1 hover:ring-emerald-500 transition-all shadow-sm">
+                <Link
+                    href={`/dashboard/organizations/${orgId}/reports/sociodemographic`}
+                    className="group p-5 bg-card border border-border rounded-xl transition-colors shadow-sm"
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--color-success)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                >
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors dark:bg-emerald-950 dark:text-emerald-400">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ background: "color-mix(in srgb, var(--color-success) 14%, transparent)", color: "var(--color-success)" }}
+                        >
+                            <UserRound className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-foreground group-hover:text-emerald-600 transition-colors">Perfil Sociodemogr&aacute;fico</h3>
-                            <p className="text-sm text-muted-foreground font-medium">An&aacute;lisis de la poblaci&oacute;n evaluada.</p>
+                            <h3 className="text-[14px] font-semibold text-foreground">Perfil Sociodemográfico</h3>
+                            <p className="text-[12.5px] text-text-secondary">Análisis de la población evaluada.</p>
                         </div>
                     </div>
                 </Link>
@@ -462,9 +518,9 @@ export default function OrganizationDetailPage() {
             {/* Workers Section */}
             <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                         Trabajadores Registrados
-                        <span className="bg-primary/10 text-primary text-xs font-black px-2 py-0.5 rounded-full">{workers.length}</span>
+                        <span className="bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">{workers.length}</span>
                     </h2>
                     <div className="flex gap-2">
                         <a
@@ -542,7 +598,7 @@ export default function OrganizationDetailPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleDeleteWorker(w)}
+                                                        onClick={() => { setDeleteError(null); setDeletingWorker(w); }}
                                                         title="Eliminar trabajador"
                                                         className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
                                                     >
@@ -561,11 +617,16 @@ export default function OrganizationDetailPage() {
 
             {/* Modal - Worker Creation */}
             {showModal && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
-                    <div className="bg-card rounded-2xl w-full max-w-3xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <motion.div
+                        initial={reduceMotion ? undefined : { opacity: 0, scale: 0.97, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                        className="bg-card rounded-xl w-full max-w-3xl shadow-elevated border border-border overflow-hidden flex flex-col max-h-[90vh]"
+                    >
                         <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50">
                             <div>
-                                <h2 className="text-xl font-black text-foreground tracking-tight">Agregar Nuevo Trabajador</h2>
+                                <h2 className="text-xl font-semibold text-foreground tracking-tight">Agregar Nuevo Trabajador</h2>
                                 <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">Formulario de registro socio-demogr&aacute;fico</p>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setShowModal(false)}>
@@ -576,7 +637,7 @@ export default function OrganizationDetailPage() {
                         <form onSubmit={handleCreate} className="overflow-hidden flex flex-col">
                             <div className="p-8 overflow-y-auto space-y-8 scroll-smooth">
                                 {error && (
-                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2 animate-in">
+                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2">
                                         <XCircle className="w-5 h-5" />
                                         {error}
                                     </div>
@@ -632,16 +693,21 @@ export default function OrganizationDetailPage() {
                                 </Button>
                             </div>
                         </form>
-                    </div>
+                    </motion.div>
                 </div>
             )}
 
             {/* Modal - Edit Organization */}
             {showEditOrgModal && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
-                    <div className="bg-card rounded-2xl w-full max-w-lg shadow-2xl border border-border overflow-hidden">
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <motion.div
+                        initial={reduceMotion ? undefined : { opacity: 0, scale: 0.97, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                        className="bg-card rounded-xl w-full max-w-lg shadow-elevated border border-border overflow-hidden"
+                    >
                         <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50">
-                            <h2 className="text-xl font-black text-foreground tracking-tight">Editar Empresa</h2>
+                            <h2 className="text-xl font-semibold text-foreground tracking-tight">Editar Empresa</h2>
                             <Button variant="ghost" size="icon" onClick={() => setShowEditOrgModal(false)}>
                                 <X className="w-5 h-5" />
                             </Button>
@@ -701,17 +767,22 @@ export default function OrganizationDetailPage() {
                                 </Button>
                             </div>
                         </form>
-                    </div>
+                    </motion.div>
                 </div>
             )}
 
             {/* Modal - Edit Worker */}
             {showEditWorkerModal && editingWorker && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in">
-                    <div className="bg-card rounded-2xl w-full max-w-3xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <motion.div
+                        initial={reduceMotion ? undefined : { opacity: 0, scale: 0.97, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                        className="bg-card rounded-xl w-full max-w-3xl shadow-elevated border border-border overflow-hidden flex flex-col max-h-[90vh]"
+                    >
                         <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50">
                             <div>
-                                <h2 className="text-xl font-black text-foreground tracking-tight">Editar Trabajador</h2>
+                                <h2 className="text-xl font-semibold text-foreground tracking-tight">Editar Trabajador</h2>
                                 <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">{editingWorker.fullName}</p>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setShowEditWorkerModal(false)}>
@@ -722,7 +793,7 @@ export default function OrganizationDetailPage() {
                         <form onSubmit={handleEditWorker} className="overflow-hidden flex flex-col">
                             <div className="p-8 overflow-y-auto space-y-8 scroll-smooth">
                                 {workerError && (
-                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2 animate-in">
+                                    <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-sm font-bold flex items-center gap-2">
                                         <XCircle className="w-5 h-5" />
                                         {workerError}
                                     </div>
@@ -738,10 +809,34 @@ export default function OrganizationDetailPage() {
                                 </Button>
                             </div>
                         </form>
-                    </div>
+                    </motion.div>
                 </div>
             )}
-        </div>
+
+            {/* Confirm delete worker */}
+            <AlertDialog open={!!deletingWorker} onOpenChange={(open) => { if (!open) { setDeletingWorker(null); setDeleteError(null); } }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Eliminar trabajador</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            ¿Eliminar a <strong>{deletingWorker?.fullName}</strong>? Esta acción no se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    {deleteError && (
+                        <p className="text-sm text-destructive">{deleteError}</p>
+                    )}
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => { e.preventDefault(); confirmDeleteWorker(); }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </motion.div>
     );
 }
 

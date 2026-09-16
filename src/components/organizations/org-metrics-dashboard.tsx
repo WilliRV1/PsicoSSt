@@ -7,13 +7,14 @@ import {
     ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import { AlertTriangle, CheckCircle2, Clock, ClipboardList, TrendingUp } from "lucide-react";
+import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 
 const RISK_COLORS: Record<string, string> = {
-    SIN_RIESGO: "#22c55e",
-    BAJO: "#84cc16",
-    MEDIO: "#eab308",
-    ALTO: "#f97316",
-    MUY_ALTO: "#ef4444",
+    SIN_RIESGO: "var(--color-risk-none-solid)",
+    BAJO: "var(--color-risk-low-solid)",
+    MEDIO: "var(--color-risk-medium-solid)",
+    ALTO: "var(--color-risk-high-solid)",
+    MUY_ALTO: "var(--color-risk-veryhigh-solid)",
 };
 
 const RISK_LABELS: Record<string, string> = {
@@ -22,14 +23,6 @@ const RISK_LABELS: Record<string, string> = {
     MEDIO: "Medio",
     ALTO: "Alto",
     MUY_ALTO: "Muy Alto",
-};
-
-const RISK_BG: Record<string, string> = {
-    SIN_RIESGO: "bg-green-100 text-green-800",
-    BAJO: "bg-lime-100 text-lime-800",
-    MEDIO: "bg-yellow-100 text-yellow-800",
-    ALTO: "bg-orange-100 text-orange-800",
-    MUY_ALTO: "bg-red-100 text-red-800",
 };
 
 interface MetricsData {
@@ -98,31 +91,36 @@ export default function OrgMetricsDashboard({ orgId }: { orgId: string }) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-1">
-                        <ClipboardList className="h-4 w-4 text-indigo-500" />
+                        <ClipboardList className="h-4 w-4" style={{ color: "var(--color-primary)" }} />
                         <span className="text-xs text-muted-foreground font-medium">Evaluaciones</span>
                     </div>
                     <p className="text-2xl font-bold text-foreground">{summary.total}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-1">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <CheckCircle2 className="h-4 w-4" style={{ color: "var(--color-success)" }} />
                         <span className="text-xs text-muted-foreground font-medium">Firmados</span>
                     </div>
-                    <p className="text-2xl font-bold text-emerald-600">{summary.signed}</p>
+                    <p className="text-2xl font-bold" style={{ color: "var(--color-teal-dark)" }}>{summary.signed}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-1">
-                        <Clock className="h-4 w-4 text-amber-500" />
+                        <Clock className="h-4 w-4" style={{ color: "var(--color-warning)" }} />
                         <span className="text-xs text-muted-foreground font-medium">Pendientes</span>
                     </div>
-                    <p className="text-2xl font-bold text-amber-600">{summary.pending}</p>
+                    <p className="text-2xl font-bold" style={{ color: "var(--color-risk-medium-text)" }}>{summary.pending}</p>
                 </div>
-                <div className={`rounded-xl border p-4 shadow-sm ${summary.criticalCount > 0 ? "border-red-200 bg-red-50" : "border-border bg-card"}`}>
+                <div
+                    className="rounded-xl border p-4 shadow-sm"
+                    style={summary.criticalCount > 0
+                        ? { borderColor: "var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)" }
+                        : { borderColor: "var(--color-border)", background: "var(--color-card)" }}
+                >
                     <div className="flex items-center gap-2 mb-1">
-                        <AlertTriangle className={`h-4 w-4 ${summary.criticalCount > 0 ? "text-red-500" : "text-muted-foreground"}`} />
+                        <AlertTriangle className="h-4 w-4" style={{ color: summary.criticalCount > 0 ? "var(--color-risk-veryhigh-solid)" : "var(--color-text-muted)" }} />
                         <span className="text-xs text-muted-foreground font-medium">Riesgo Crítico</span>
                     </div>
-                    <p className={`text-2xl font-bold ${summary.criticalCount > 0 ? "text-red-600" : "text-muted-foreground"}`}>
+                    <p className="text-2xl font-bold" style={{ color: summary.criticalCount > 0 ? "var(--color-risk-veryhigh-text)" : "var(--color-text-muted)" }}>
                         {summary.criticalCount}
                     </p>
                 </div>
@@ -135,8 +133,9 @@ export default function OrgMetricsDashboard({ orgId }: { orgId: string }) {
                     <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold text-foreground">Distribución de Riesgo</h4>
                         {predominantRisk && (
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${RISK_BG[predominantRisk] ?? "bg-muted text-muted-foreground"}`}>
-                                Predominante: {RISK_LABELS[predominantRisk]}
+                            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                Predominante:
+                                <RiskBadge level={predominantRisk as RiskLevel} size="sm" />
                             </span>
                         )}
                     </div>
@@ -179,9 +178,9 @@ export default function OrgMetricsDashboard({ orgId }: { orgId: string }) {
                                 <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} allowDecimals={false} />
                                 <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid var(--border)", background: "var(--card)" }} />
                                 <Legend wrapperStyle={{ fontSize: 10 }} />
-                                <Bar dataKey="intralaboral" name="Intralaboral" fill="#6366f1" radius={[3, 3, 0, 0]} />
-                                <Bar dataKey="extralaboral" name="Extralaboral" fill="#22c55e" radius={[3, 3, 0, 0]} />
-                                <Bar dataKey="stress" name="Estrés" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+                                <Bar dataKey="intralaboral" name="Intralaboral" fill="var(--color-primary)" radius={[3, 3, 0, 0]} />
+                                <Bar dataKey="extralaboral" name="Extralaboral" fill="var(--color-info)" radius={[3, 3, 0, 0]} />
+                                <Bar dataKey="stress" name="Estrés" fill="var(--color-warning)" radius={[3, 3, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
@@ -224,10 +223,8 @@ export default function OrgMetricsDashboard({ orgId }: { orgId: string }) {
                                         const risk = a.scoredResult?.overallRiskCategory ?? "SIN_RIESGO";
                                         return (
                                             <td className="px-5 py-3 text-center">
-                                                <Link href={`/dashboard/reports/${a.id}`}>
-                                                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${RISK_BG[risk] ?? "bg-muted text-muted-foreground"}`}>
-                                                        {RISK_LABELS[risk]}
-                                                    </span>
+                                                <Link href={`/dashboard/reports/${a.id}`} className="inline-flex">
+                                                    <RiskBadge level={risk as RiskLevel} size="sm" />
                                                 </Link>
                                             </td>
                                         );
@@ -242,11 +239,17 @@ export default function OrgMetricsDashboard({ orgId }: { orgId: string }) {
                                             <RiskCell a={stress} />
                                             <td className="px-5 py-3 text-center">
                                                 {anyPending ? (
-                                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                                    <span
+                                                        className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                                                        style={{ background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" }}
+                                                    >
                                                         <Clock className="h-3 w-3" /> Pendiente
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                                                    <span
+                                                        className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                                                        style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+                                                    >
                                                         <CheckCircle2 className="h-3 w-3" /> Firmado
                                                     </span>
                                                 )}

@@ -26,7 +26,10 @@ function formatDate(iso: string | null): string {
 function StatusBadge({ worker }: { worker: ExpiringWorker }) {
     if (worker.status === "EXPIRED") {
         return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+            <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                style={{ background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" }}
+            >
                 <AlertTriangle className="h-3 w-3" />
                 Vencida
             </span>
@@ -34,14 +37,20 @@ function StatusBadge({ worker }: { worker: ExpiringWorker }) {
     }
     if (worker.status === "EXPIRING_SOON") {
         return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+            <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                style={{ background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" }}
+            >
                 <AlertTriangle className="h-3 w-3" />
                 Por vencer
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+        <span
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+            style={{ background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" }}
+        >
             Sin evaluaciones
         </span>
     );
@@ -53,12 +62,12 @@ function SkeletonRows() {
             {[0, 1].map(i => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 animate-pulse">
                     <div className="flex flex-col gap-1.5">
-                        <div className="h-3.5 w-40 rounded bg-gray-200" />
-                        <div className="h-3 w-28 rounded bg-gray-100" />
+                        <div className="h-3.5 w-40 rounded bg-muted" />
+                        <div className="h-3 w-28 rounded bg-muted/60" />
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="h-5 w-20 rounded-full bg-gray-200" />
-                        <div className="h-4 w-4 rounded bg-gray-200" />
+                        <div className="h-5 w-20 rounded-full bg-muted" />
+                        <div className="h-4 w-4 rounded bg-muted" />
                     </div>
                 </div>
             ))}
@@ -84,15 +93,15 @@ export function ExpiringWorkersPanel({ orgId }: { orgId: string }) {
 
     const hasExpired = workers.some(w => w.status === "EXPIRED");
     const hasExpiringSoon = workers.some(w => w.status === "EXPIRING_SOON");
-    const badgeColor = hasExpired
-        ? "bg-red-100 text-red-700"
+    const badgeStyle = hasExpired
+        ? { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" }
         : hasExpiringSoon
-        ? "bg-amber-100 text-amber-700"
-        : "bg-gray-100 text-gray-600";
+        ? { background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" }
+        : { background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" };
 
     if (error) {
         return (
-            <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3 text-sm text-red-600">
+            <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3 text-sm" style={{ color: "var(--color-risk-veryhigh-text)" }}>
                 {error}
             </div>
         );
@@ -100,7 +109,7 @@ export function ExpiringWorkersPanel({ orgId }: { orgId: string }) {
 
     if (!loading && workers.length === 0) {
         return (
-            <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3 flex items-center gap-2 text-sm text-green-700">
+            <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3 flex items-center gap-2 text-sm" style={{ color: "var(--color-risk-low-text)" }}>
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 <span>Todos los trabajadores tienen sus evaluaciones vigentes ✓</span>
             </div>
@@ -114,7 +123,7 @@ export function ExpiringWorkersPanel({ orgId }: { orgId: string }) {
                 <Bell className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-semibold text-foreground">Reevaluaciones Pendientes</span>
                 {!loading && (
-                    <span className={`ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}>
+                    <span className="ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" style={badgeStyle}>
                         {workers.length}
                     </span>
                 )}
@@ -144,7 +153,7 @@ export function ExpiringWorkersPanel({ orgId }: { orgId: string }) {
                                     <span>Vence: {formatDate(worker.expiresAt)}</span>
                                 )}
                                 {worker.status === "EXPIRING_SOON" && worker.daysUntilExpiry !== null && (
-                                    <span className="text-amber-600 font-medium">
+                                    <span className="font-medium" style={{ color: "var(--color-risk-medium-text)" }}>
                                         Vence en {worker.daysUntilExpiry} días
                                     </span>
                                 )}
