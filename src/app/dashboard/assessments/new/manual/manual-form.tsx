@@ -359,7 +359,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                             <select
                                 value={qType}
                                 onChange={(e) => setQType(e.target.value as QuestionnaireType)}
-                                className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-ring outline-none"
                             >
                                 <option value="INTRALABORAL">Intralaboral</option>
                                 <option value="EXTRALABORAL">Extralaboral</option>
@@ -373,7 +373,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                                 <select
                                     value={formType}
                                     onChange={(e) => setFormType(e.target.value as FormType)}
-                                    className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-ring outline-none"
                                 >
                                     <option value="A">Forma A (Jefaturas / Profesionales / Técnicos)</option>
                                     <option value="B">Forma B (Auxiliares / Operativos)</option>
@@ -387,7 +387,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                                 type="date"
                                 value={assessmentDate}
                                 onChange={(e) => setAssessmentDate(e.target.value)}
-                                className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full h-12 rounded-xl border border-input bg-muted/50 px-4 text-base font-medium focus:ring-2 focus:ring-ring outline-none"
                             />
                         </div>
 
@@ -398,7 +398,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                                     setStartTime(Date.now());
                                     setMode("QUESTIONNAIRE");
                                 }} 
-                                className="h-12 flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base shadow-md"
+                                className="h-12 flex-1 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base shadow-md"
                             >
                                 Iniciar Digitación
                             </Button>
@@ -414,7 +414,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
         return (
             <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 animate-in fade-in zoom-in-95 duration-200">
                 <div className="w-full text-center space-y-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-100 text-amber-600 mb-4 shadow-sm border border-amber-200">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-risk-medium-bg text-risk-medium-solid mb-4 shadow-sm border border-risk-medium-border">
                         <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -427,13 +427,13 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                     </div>
 
                     <div className="flex flex-col gap-4 mt-8 max-w-sm mx-auto">
-                        <button onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true)} className="flex items-center justify-between p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all hover:scale-[1.02] active:scale-95 shadow-sm group">
-                            <span className="text-xl font-bold text-indigo-900">SÍ</span>
-                            <kbd className="px-3 py-1 bg-white border border-indigo-200 rounded-lg shadow-sm font-mono font-black text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">1</kbd>
+                        <button onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true)} className="flex items-center justify-between p-5 rounded-2xl border-2 border-primary bg-teal-light hover:bg-teal-light/70 transition-all hover:scale-[1.02] active:scale-95 shadow-sm group">
+                            <span className="text-xl font-bold text-teal-dark">SÍ</span>
+                            <kbd className="px-3 py-1 bg-card border border-primary/25 rounded-lg shadow-sm font-mono font-black text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">1</kbd>
                         </button>
-                        <button onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false)} className="flex items-center justify-between p-5 rounded-2xl border-2 border-border bg-card hover:border-indigo-300 hover:bg-muted/50 transition-all hover:scale-[1.02] active:scale-95 group">
+                        <button onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false)} className="flex items-center justify-between p-5 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all hover:scale-[1.02] active:scale-95 group">
                             <span className="text-xl font-bold text-foreground">NO</span>
-                            <kbd className="px-3 py-1 bg-muted rounded-lg font-mono font-black text-muted-foreground border border-border group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">2</kbd>
+                            <kbd className="px-3 py-1 bg-muted rounded-lg font-mono font-black text-muted-foreground border border-border group-hover:border-primary/40 group-hover:text-primary transition-colors">2</kbd>
                         </button>
                     </div>
                 </div>
@@ -445,9 +445,9 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
         return (
             <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 animate-in fade-in slide-in-from-bottom-4">
                 <div className="w-full bg-card border border-border shadow-xl rounded-3xl p-10 text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                    
-                    <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-emerald-100">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal to-teal-dark"></div>
+
+                    <div className="w-20 h-20 bg-teal-light text-teal-dark rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-primary/20">
                         <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                     </div>
                     <h2 className="text-3xl font-black text-foreground mb-2 tracking-tight">¡Evaluación Registrada!</h2>
@@ -456,11 +456,11 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                         <div className="text-center">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Nivel</span>
                             <span className={`inline-block px-4 py-1.5 rounded-lg text-lg font-black ${
-                                scoreResult.total.riskCategory === "MUY_ALTO" ? "bg-red-100 text-red-700" :
-                                scoreResult.total.riskCategory === "ALTO" ? "bg-orange-100 text-orange-700" :
-                                scoreResult.total.riskCategory === "MEDIO" ? "bg-yellow-100 text-yellow-700" :
-                                scoreResult.total.riskCategory === "BAJO" ? "bg-emerald-100 text-emerald-700" :
-                                "bg-teal-100 text-teal-700"
+                                scoreResult.total.riskCategory === "MUY_ALTO" ? "bg-risk-veryhigh-bg text-risk-veryhigh-text" :
+                                scoreResult.total.riskCategory === "ALTO" ? "bg-risk-high-bg text-risk-high-text" :
+                                scoreResult.total.riskCategory === "MEDIO" ? "bg-risk-medium-bg text-risk-medium-text" :
+                                scoreResult.total.riskCategory === "BAJO" ? "bg-risk-low-bg text-risk-low-text" :
+                                "bg-risk-none-bg text-risk-none-text"
                             }`}>
                                 {scoreResult.total.riskCategory.replace("_", " ")}
                             </span>
@@ -477,7 +477,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                         </div>
                     </div>
 
-                    <Button onClick={onReset} className="w-full h-14 text-lg font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200/50">
+                    <Button onClick={onReset} className="w-full h-14 text-lg font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg">
                         Siguiente Trabajador
                     </Button>
                 </div>
@@ -506,8 +506,8 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                         <span className="text-[10px] font-bold text-muted-foreground font-mono">{currentIndex + 1} / {items.length}</span>
                     </div>
                     <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div 
-                            className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                        <div
+                            className="h-full bg-primary transition-all duration-300 ease-out"
                             style={{ width: `${((currentIndex) / items.length) * 100}%` }}
                         ></div>
                     </div>
@@ -524,7 +524,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
             <div className="flex-1 flex flex-col items-center justify-center px-4 relative">
                 {isSubmitting ? (
                     <div className="flex flex-col items-center animate-pulse">
-                        <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-6 shadow-lg"></div>
+                        <div className="w-16 h-16 border-4 border-teal-light border-t-primary rounded-full animate-spin mb-6 shadow-lg"></div>
                         <h2 className="text-xl font-bold text-foreground">Procesando resultados...</h2>
                         <p className="text-muted-foreground mt-2 text-sm">Calculando niveles de riesgo y consumiendo crédito</p>
                     </div>
@@ -532,7 +532,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                     <div className="w-full max-w-4xl text-center space-y-12 relative animate-in slide-in-from-right-8 duration-300">
                         
                         {/* Número de ítem */}
-                        <div className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black text-lg shadow-sm tracking-tight">
+                        <div className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-teal-light border border-primary/15 text-teal-dark font-black text-lg shadow-sm tracking-tight">
                             Pregunta {currentItem} de {items.length}
                         </div>
 
@@ -572,18 +572,18 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                                         key={val}
                                         onClick={() => handleAnswer(val - 1)}
                                         className={`flex flex-col items-center justify-center w-full sm:w-[130px] h-[130px] rounded-3xl border-2 transition-all duration-150 group relative ${
-                                            isSelected 
-                                            ? "border-indigo-600 bg-indigo-50 shadow-[0_8px_24px_-8px_rgba(79,70,229,0.4)] scale-105 z-10" 
-                                            : "border-border bg-card hover:border-indigo-300 hover:bg-muted/50 hover:-translate-y-1 hover:shadow-md"
+                                            isSelected
+                                            ? "border-primary bg-teal-light shadow-[0_8px_24px_-8px_rgba(0,154,128,0.4)] scale-105 z-10"
+                                            : "border-border bg-card hover:border-primary/40 hover:bg-muted/50 hover:-translate-y-1 hover:shadow-md"
                                         }`}
                                     >
                                         <kbd className={`absolute top-3 left-1/2 -translate-x-1/2 font-mono text-sm font-black px-2.5 py-0.5 rounded-lg border transition-colors ${
-                                            isSelected ? "bg-indigo-600 border-indigo-600 text-white" : "bg-muted border-border text-muted-foreground group-hover:bg-indigo-100 group-hover:border-indigo-200 group-hover:text-indigo-600"
+                                            isSelected ? "bg-primary border-primary text-primary-foreground" : "bg-muted border-border text-muted-foreground group-hover:bg-teal-light group-hover:border-primary/25 group-hover:text-primary"
                                         }`}>
                                             {val}
                                         </kbd>
                                         <span className={`mt-7 text-sm font-black text-center leading-tight px-3 ${
-                                            isSelected ? "text-indigo-900" : "text-muted-foreground group-hover:text-foreground"
+                                            isSelected ? "text-teal-dark" : "text-muted-foreground group-hover:text-foreground"
                                         }`}>
                                             {label}
                                         </span>

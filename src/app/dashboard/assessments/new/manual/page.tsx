@@ -140,16 +140,22 @@ export default function ManualEntryPage() {
                                             key={w.id}
                                             onClick={() => setSelectedWorker(w)}
                                             onMouseEnter={() => setSelectedIndex(idx)}
-                                            className={`px-6 py-4 cursor-pointer flex justify-between items-center transition-colors ${selectedIndex === idx ? 'bg-indigo-50 dark:bg-indigo-950/30 border-l-4 border-indigo-600' : 'border-l-4 border-transparent hover:bg-muted'}`}
+                                            className={`px-6 py-4 cursor-pointer flex justify-between items-center transition-colors border-l-4 ${selectedIndex === idx ? "" : "hover:bg-muted"}`}
+                                            style={selectedIndex === idx
+                                                ? { background: "var(--color-teal-light)", borderLeftColor: "var(--color-teal)" }
+                                                : { borderLeftColor: "transparent" }}
                                         >
                                             <div>
-                                                <p className={`font-medium ${selectedIndex === idx ? 'text-indigo-900 dark:text-indigo-100' : 'text-foreground'}`}>{w.fullName}</p>
+                                                <p className="font-medium" style={{ color: selectedIndex === idx ? "var(--color-teal-dark)" : "var(--color-foreground)" }}>{w.fullName}</p>
                                                 <p className="text-sm text-muted-foreground mt-0.5">
                                                     CC: {w.documentId} <span className="mx-2">•</span> {w.organization.name}
                                                 </p>
                                             </div>
                                             {selectedIndex === idx && (
-                                                <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-indigo-600 bg-indigo-100 rounded">
+                                                <kbd
+                                                    className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[10px] font-mono rounded"
+                                                    style={{ color: "var(--color-teal-dark)", background: "var(--color-teal-light)" }}
+                                                >
                                                     Enter ↵
                                                 </kbd>
                                             )}

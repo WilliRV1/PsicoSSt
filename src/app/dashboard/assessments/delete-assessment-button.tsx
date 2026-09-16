@@ -35,7 +35,8 @@ export default function DeleteAssessmentButton({ id }: { id: string }) {
         <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm hover:bg-red-100 hover:text-red-700 transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium shadow-sm transition-colors disabled:opacity-50"
+            style={{ border: "1px solid var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" }}
             title="Eliminar evaluación"
         >
             <Trash2 className="h-3.5 w-3.5" />

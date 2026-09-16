@@ -114,13 +114,13 @@ export default function BulkUploadPage() {
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Total Filas</span>
                             <span className="text-3xl font-bold text-foreground">{results.totalRows}</span>
                         </div>
-                        <div className="bg-green-50 p-6 rounded-xl border border-green-200">
-                            <span className="text-xs font-semibold text-green-600 uppercase tracking-wider block mb-1">Exito</span>
-                            <span className="text-3xl font-bold text-green-700">{results.successRows}</span>
+                        <div className="p-6 rounded-xl border" style={{ background: "var(--color-risk-low-bg)", borderColor: "var(--color-risk-low-border)" }}>
+                            <span className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: "var(--color-risk-low-solid)" }}>Exito</span>
+                            <span className="text-3xl font-bold" style={{ color: "var(--color-risk-low-text)" }}>{results.successRows}</span>
                         </div>
-                        <div className="bg-red-50 p-6 rounded-xl border border-red-200">
-                            <span className="text-xs font-semibold text-red-600 uppercase tracking-wider block mb-1">Errores</span>
-                            <span className="text-3xl font-bold text-red-700">{results.failedRows}</span>
+                        <div className="p-6 rounded-xl border" style={{ background: "var(--color-risk-veryhigh-bg)", borderColor: "var(--color-risk-veryhigh-border)" }}>
+                            <span className="text-xs font-semibold uppercase tracking-wider block mb-1" style={{ color: "var(--color-risk-veryhigh-solid)" }}>Errores</span>
+                            <span className="text-3xl font-bold" style={{ color: "var(--color-risk-veryhigh-text)" }}>{results.failedRows}</span>
                         </div>
                     </div>
 

@@ -8,20 +8,13 @@ import FilterBar from "@/components/psicosst/filter-bar";
 import { Suspense } from "react";
 import DeleteAssessmentButton from "./delete-assessment-button";
 import InvitationActions from "./invitation-actions";
+import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 
-const riskCfg: Record<string, { label: string; cls: string }> = {
-    SIN_RIESGO: { label: "Sin Riesgo", cls: "bg-green-100 text-green-700 border-green-200" },
-    BAJO:       { label: "Bajo",       cls: "bg-lime-100 text-lime-700 border-lime-200" },
-    MEDIO:      { label: "Medio",      cls: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-    ALTO:       { label: "Alto",       cls: "bg-orange-100 text-orange-700 border-orange-200" },
-    MUY_ALTO:   { label: "Muy Alto",   cls: "bg-red-100 text-red-700 border-red-200" },
-};
-
-const statusCfg: Record<string, { label: string; cls: string }> = {
-    SCORED:    { label: "Calificado", cls: "bg-yellow-100 text-yellow-700" },
-    REVIEWED:  { label: "Revisado",   cls: "bg-blue-100 text-blue-700" },
-    SIGNED:    { label: "Firmado",    cls: "bg-green-100 text-green-700" },
-    COMPLETED: { label: "Completado", cls: "bg-slate-100 text-slate-600" },
+const statusCfg: Record<string, { label: string; background: string; color: string }> = {
+    SCORED:    { label: "Calificado", background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+    REVIEWED:  { label: "Revisado",   background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+    SIGNED:    { label: "Firmado",    background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+    COMPLETED: { label: "Completado", background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" },
 };
 
 interface PageProps {
@@ -63,7 +56,12 @@ function AssessmentSlot({
             <td className="px-3 py-4 align-middle">
                 <div className="flex flex-col items-start gap-1.5">
                     <span className="text-[11px] text-text-muted font-medium uppercase tracking-wider">{label}</span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${isExpired ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"}`}>
+                    <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
+                        style={isExpired
+                            ? { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" }
+                            : { background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" }}
+                    >
                         <Send className="w-3 h-3" />
                         {isExpired ? "Enlace vencido" : "Invitación enviada"}
                     </span>
@@ -94,7 +92,6 @@ function AssessmentSlot({
     }
 
     const risk = assessment.overallRiskCategory;
-    const rc = risk ? riskCfg[risk] : null;
     const sc = statusCfg[assessment.status] || statusCfg.SCORED;
     const isSigned = assessment.status === "SIGNED";
 
@@ -102,12 +99,8 @@ function AssessmentSlot({
         <td className="px-3 py-4 align-middle">
             <div className="flex flex-col items-start gap-1.5">
                 <span className="text-[11px] text-text-muted font-medium uppercase tracking-wider">{label}</span>
-                {rc && (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${rc.cls}`}>
-                        {rc.label}
-                    </span>
-                )}
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${sc.cls}`}>
+                {risk && <RiskBadge level={risk as RiskLevel} size="sm" />}
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: sc.background, color: sc.color }}>
                     {isSigned ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                     {sc.label}
                 </span>
@@ -240,13 +233,13 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border pb-4">
                 <div>
-                    <h1 className="text-[24px] font-bold text-foreground font-heading tracking-tight">Evaluaciones</h1>
+                    <h1 className="text-[24px] font-semibold text-foreground font-heading tracking-tight">Evaluaciones</h1>
                     <div className="flex items-center gap-3 mt-1.5 text-[13px] font-medium text-text-secondary">
                         <span><strong className="text-foreground">{workers.length}</strong> trabajadores</span>
                         <span className="w-1 h-1 rounded-full bg-border" />
-                        <span><strong className="text-teal-700">{completeCount}</strong> batería completa</span>
+                        <span><strong style={{ color: "var(--color-teal-dark)" }}>{completeCount}</strong> batería completa</span>
                         <span className="w-1 h-1 rounded-full bg-border" />
-                        <span><strong className="text-amber-600">{pendingCount}</strong> incompletos</span>
+                        <span><strong style={{ color: "var(--color-risk-medium-text)" }}>{pendingCount}</strong> incompletos</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -348,12 +341,18 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                                     {/* Completion status */}
                                     <td className="px-3 py-4 align-middle text-right">
                                         {worker.complete ? (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                                            <span
+                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                                                style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+                                            >
                                                 <CheckCircle2 className="w-3 h-3" />
                                                 Completa
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            <span
+                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                                                style={{ background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" }}
+                                            >
                                                 <AlertCircle className="w-3 h-3" />
                                                 Incompleta
                                             </span>
