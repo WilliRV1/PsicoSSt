@@ -31,7 +31,8 @@ import { getErrorMessage } from "@/lib/utils";
  *
  * Los colores del resultado salen de la escala de riesgo del sistema
  * (`--color-risk-low-*` para lo importado, `--color-risk-veryhigh-*` para lo
- * fallido) en vez de `bg-green-50`/`bg-red-50`, que no existen en esta paleta.
+ * fallido) en vez de los verdes y rojos de la paleta por defecto de Tailwind,
+ * que este tema no define.
  */
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;

@@ -33,8 +33,9 @@ import { formatCOP } from "@/config/plans";
  * encima del formulario, que sigue montado para reintentar).
  *
  * Presentación: un aviso es una ficha del sistema (tokens `--color-risk-*` /
- * `--color-info`), no un `bg-green-50`/`bg-red-50` sueltos, y la columna
- * mantiene un solo bloque por ancho de pantalla en móvil.
+ * `--color-info`), no verdes y rojos sueltos de la paleta por defecto de
+ * Tailwind, y la columna mantiene un solo bloque por ancho de pantalla en
+ * móvil.
  */
 
 interface EstadoOrden {

@@ -245,14 +245,14 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
                         <span><strong style={{ color: "var(--color-risk-medium-text)" }}>{pendingCount}</strong> incompletos</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button asChild size="sm" variant="outline">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
                         <Link href="/dashboard/assessments/new/invite">
                             <Send className="w-4 h-4 mr-2" />
                             Enviar enlace al trabajador
                         </Link>
                     </Button>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="w-full sm:w-auto">
                         <Link href="/dashboard/assessments/new/manual">
                             <Plus className="w-4 h-4 mr-2" />
                             Digitalizar evaluación

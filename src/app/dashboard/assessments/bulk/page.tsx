@@ -121,7 +121,7 @@ export default function BulkUploadPage() {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
                         <div className="bg-muted/50 p-6 rounded-xl border border-border">
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Total Filas</span>
                             <span className="text-3xl font-bold text-foreground">{results.totalRows}</span>

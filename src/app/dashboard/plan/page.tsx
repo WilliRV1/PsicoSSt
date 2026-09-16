@@ -24,10 +24,10 @@ import { BuyPackageButton } from "@/components/payments/buy-package-button";
  * «Mi plan»: suscripción, cupo de unidades y movimientos del saldo.
  *
  * La pantalla se construye sobre los tokens del sistema (`--color-risk-*`,
- * `--color-teal-*`, `--color-info`) en vez de clases sueltas de Tailwind:
- * antes el aviso de vencimiento era `bg-red-50`/`text-red-800` y los
- * movimientos usaban `text-green-600`/`text-indigo-600`, que no existen en
- * esta paleta y no se adaptan al modo oscuro.
+ * `--color-teal-*`, `--color-info`) en vez de clases sueltas de la paleta por
+ * defecto de Tailwind: antes el aviso de vencimiento y los tonos de cada
+ * movimiento usaban rojos, verdes e índigos de esa paleta, que este tema no
+ * define y que no se adaptan al modo oscuro.
  */
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;

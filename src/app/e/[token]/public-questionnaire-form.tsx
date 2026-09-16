@@ -142,6 +142,13 @@ export default function PublicQuestionnaireForm({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, maxVal]);
 
+    // En móvil una pregunta larga puede dejar la pantalla desplazada; la
+    // siguiente debe empezar desde arriba y no a media altura. Sin
+    // `behavior: smooth`: el salto instantáneo se lee como pantalla nueva.
+    useEffect(() => {
+        if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "auto" });
+    }, [currentIndex, mode]);
+
     const handleControlAnswer = (type: "CLIENTS" | "BOSS", value: boolean) => {
         const oldCustomer = hasCustomerInteractionRef.current;
         const oldBoss = isBossRef.current;
@@ -292,27 +299,33 @@ export default function PublicQuestionnaireForm({
         const topCheckpoint = checkpointsRef.current[checkpointsRef.current.length - 1];
         const canGoBack = !!topCheckpoint && topCheckpoint.landingIndex === null;
         return (
-            <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-4 py-12 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full px-4 py-10 sm:py-12 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200">
                 <div className="w-full text-center space-y-8">
-                    <h2 className="text-2xl font-black text-foreground mb-2">
+                    <h2 className="text-2xl sm:text-3xl font-black text-foreground leading-[1.2] tracking-tight mb-2">
                         {isClient ? "¿Atiendes clientes o usuarios en tu trabajo?" : "¿Eres jefe de otras personas en tu trabajo?"}
                     </h2>
-                    <div className="flex flex-col gap-4 mt-6 max-w-sm mx-auto">
+                    <div className="flex flex-col gap-3 mt-6 max-w-sm mx-auto">
                         <button
+                            type="button"
                             onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", true)}
-                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-primary bg-teal-light hover:bg-teal-light/70 transition-all active:scale-95 shadow-sm"
+                            className="flex items-center justify-center min-h-[68px] px-5 rounded-2xl border-2 border-primary bg-teal-light hover:bg-teal-light/70 transition-all active:scale-[0.98] shadow-sm touch-manipulation select-none"
                         >
                             <span className="text-xl font-bold text-teal-dark">SÍ</span>
                         </button>
                         <button
+                            type="button"
                             onClick={() => handleControlAnswer(isClient ? "CLIENTS" : "BOSS", false)}
-                            className="flex items-center justify-center p-5 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all active:scale-95"
+                            className="flex items-center justify-center min-h-[68px] px-5 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all active:scale-[0.98] touch-manipulation select-none"
                         >
                             <span className="text-xl font-bold text-foreground">NO</span>
                         </button>
                     </div>
                     {canGoBack && (
-                        <button onClick={goBackFromControl} className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
+                        <button
+                            type="button"
+                            onClick={goBackFromControl}
+                            className="inline-flex items-center justify-center min-h-[44px] px-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground underline underline-offset-4 touch-manipulation"
+                        >
                             Volver a la pregunta anterior
                         </button>
                     )}
@@ -325,7 +338,7 @@ export default function PublicQuestionnaireForm({
         return (
             <div className="flex-1 flex flex-col items-center justify-center px-4 py-24">
                 <div className="w-12 h-12 border-4 border-teal-light border-t-primary rounded-full animate-spin mb-6"></div>
-                <p className="text-muted-foreground text-sm">Guardando tus respuestas...</p>
+                <p className="text-muted-foreground text-[15px]">Guardando tus respuestas...</p>
             </div>
         );
     }

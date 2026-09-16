@@ -79,7 +79,7 @@ export default async function SettingsPage() {
                     <h3 className="font-semibold text-foreground">Información de la cuenta</h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Nombre</p>
                         <p className="font-medium text-foreground">{psychologist.fullName}</p>
@@ -123,7 +123,7 @@ export default async function SettingsPage() {
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm text-center">
                     <Building2 className="h-4 w-4 text-info mx-auto mb-1" />
                     <p className="text-2xl font-bold text-foreground">{orgCount}</p>

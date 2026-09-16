@@ -449,18 +449,18 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     if (mode === "SUCCESS" && scoreResult) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full px-4 animate-in fade-in slide-in-from-bottom-4">
-                <div className="w-full bg-card border border-border shadow-xl rounded-3xl p-10 text-center relative overflow-hidden">
+                <div className="w-full bg-card border border-border shadow-xl rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal to-teal-dark"></div>
 
                     <div className="w-20 h-20 bg-teal-light text-teal-dark rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-primary/20">
                         <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                     </div>
-                    <h2 className="text-3xl font-black text-foreground mb-2 tracking-tight">¡Evaluación Registrada!</h2>
-                    
-                    <div className="flex items-center justify-center gap-8 mt-10 mb-12">
+                    <h2 className="text-2xl sm:text-3xl font-black text-foreground mb-2 tracking-tight">¡Evaluación Registrada!</h2>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8 mt-10 mb-12">
                         <div className="text-center">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Nivel</span>
-                            <span className={`inline-block px-4 py-1.5 rounded-lg text-lg font-black ${
+                            <span className={`inline-block px-4 py-1.5 rounded-lg text-base sm:text-lg font-black ${
                                 scoreResult.total.riskCategory === "MUY_ALTO" ? "bg-risk-veryhigh-bg text-risk-veryhigh-text" :
                                 scoreResult.total.riskCategory === "ALTO" ? "bg-risk-high-bg text-risk-high-text" :
                                 scoreResult.total.riskCategory === "MEDIO" ? "bg-risk-medium-bg text-risk-medium-text" :
@@ -470,15 +470,15 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                                 {scoreResult.total.riskCategory.replace("_", " ")}
                             </span>
                         </div>
-                        <div className="h-14 w-px bg-border"></div>
+                        <div className="hidden sm:block h-14 w-px bg-border"></div>
                         <div className="text-center">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Puntaje</span>
-                            <span className="text-3xl font-black text-foreground">{scoreResult.total.transformedScore.toFixed(1)}</span>
+                            <span className="text-2xl sm:text-3xl font-black text-foreground">{scoreResult.total.transformedScore.toFixed(1)}</span>
                         </div>
-                        <div className="h-14 w-px bg-border"></div>
+                        <div className="hidden sm:block h-14 w-px bg-border"></div>
                         <div className="text-center">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-2">Tiempo</span>
-                            <span className="text-2xl font-bold text-muted-foreground font-mono">{formatTime(elapsedSeconds)}</span>
+                            <span className="text-xl sm:text-2xl font-bold text-muted-foreground font-mono">{formatTime(elapsedSeconds)}</span>
                         </div>
                     </div>
 
@@ -497,11 +497,11 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
     return (
         <div className="flex-1 flex flex-col h-full bg-background animate-in fade-in">
             {/* Top Navigation Bar */}
-            <div className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold text-foreground leading-tight">{workerName}</span>
-                        <span className="text-xs text-muted-foreground font-medium">{qType} {qType === "INTRALABORAL" && `· Forma ${formType}`}</span>
+            <div className="h-16 border-b border-border bg-card flex items-center justify-between gap-3 px-4 sm:px-6 shrink-0 shadow-sm">
+                <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-foreground leading-tight truncate">{workerName}</span>
+                        <span className="text-xs text-muted-foreground font-medium truncate">{qType} {qType === "INTRALABORAL" && `· Forma ${formType}`}</span>
                     </div>
                 </div>
 
@@ -518,7 +518,7 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
                     <span className="text-sm font-mono font-bold text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-lg shadow-sm">
                         ⏱ {formatTime(elapsedSeconds)}
                     </span>
@@ -596,8 +596,9 @@ export default function ManualForm({ workerId, organizationId, workerName, organ
                 )}
             </div>
 
-            {/* Bottom Keyboard Hints */}
-            <div className="h-14 flex items-center justify-center gap-8 text-xs font-bold text-muted-foreground bg-card border-t border-border shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+            {/* Bottom Keyboard Hints: sólo tienen sentido con teclado físico, se
+                ocultan en móvil para no forzar overflow horizontal en 375px. */}
+            <div className="hidden sm:flex h-14 items-center justify-center gap-4 md:gap-8 text-xs font-bold text-muted-foreground bg-card border-t border-border shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
                 <span className="flex items-center gap-2"><kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">1</kbd> a <kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">{maxVal}</kbd> para Responder</span>
                 <span className="flex items-center gap-2"><kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">⌫</kbd> Anterior</span>
                 <span className="flex items-center gap-2"><kbd className="px-2 py-1 bg-muted border border-border rounded shadow-sm font-mono text-[11px] text-foreground">↓</kbd> Siguiente</span>
