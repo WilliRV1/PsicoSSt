@@ -15,11 +15,18 @@ import { cn } from "@/lib/utils";
  */
 export type RiskLevel =
   | "NONE" | "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH"
-  | "SIN_RIESGO" | "BAJO" | "MEDIO" | "ALTO" | "MUY_ALTO";
+  | "SIN_RIESGO" | "BAJO" | "MEDIO" | "ALTO" | "MUY_ALTO"
+  | "INVALIDO";
 
 type RiskToken = "none" | "low" | "medium" | "high" | "veryhigh";
 
-const RISK_CONFIG: Record<RiskLevel, { label: string; token: RiskToken }> = {
+/**
+ * `token: null` = no es un nivel de la escala. `INVALIDO` existe en el enum
+ * `RiskCategory` de Prisma (cuestionario descartado por preguntas de control
+ * o por faltantes) y no tiene posición ordinal ni color de riesgo: pintarlo
+ * como "sin riesgo" diría lo contrario de lo que pasó.
+ */
+const RISK_CONFIG: Record<RiskLevel, { label: string; token: RiskToken | null }> = {
   NONE: { label: "Sin riesgo", token: "none" },
   SIN_RIESGO: { label: "Sin riesgo", token: "none" },
   LOW: { label: "Bajo", token: "low" },
@@ -30,7 +37,25 @@ const RISK_CONFIG: Record<RiskLevel, { label: string; token: RiskToken }> = {
   ALTO: { label: "Alto", token: "high" },
   VERY_HIGH: { label: "Muy alto", token: "veryhigh" },
   MUY_ALTO: { label: "Muy alto", token: "veryhigh" },
+  INVALIDO: { label: "No válido", token: null },
 };
+
+const NEUTRAL_VARS = {
+  bg: "var(--color-surface-muted)",
+  text: "var(--color-text-muted)",
+  border: "var(--color-border)",
+  solid: "var(--color-text-muted)",
+};
+
+/**
+ * Nunca lanza: una insignia recibiendo una categoría que no conoce no puede
+ * tumbar la página que la contiene. Antes `RISK_CONFIG[level]` devolvía
+ * `undefined` con `INVALIDO` y el `.token` siguiente reventaba el render
+ * completo de /dashboard/assessments y /dashboard/reports con un 500.
+ */
+function resolve(level: RiskLevel | null | undefined) {
+  return RISK_CONFIG[level as RiskLevel] ?? { label: String(level ?? "—"), token: null };
+}
 
 // Orden ordinal fijo, de menor a mayor. Es lo que hace posible el indicador
 // de pasos: la posición dice el nivel antes que el color, así que sobrevive
@@ -63,8 +88,8 @@ interface RiskBadgeProps {
 }
 
 export function RiskBadge({ level, className, showDot = true, showSteps = false, size = "md" }: RiskBadgeProps) {
-  const config = RISK_CONFIG[level];
-  const vars = tokenVars(config.token);
+  const config = resolve(level);
+  const vars = config.token ? tokenVars(config.token) : NEUTRAL_VARS;
 
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
@@ -96,16 +121,19 @@ export function RiskBadge({ level, className, showDot = true, showSteps = false,
  * una tabla densa.
  */
 export function RiskSteps({ level, className }: { level: RiskLevel; className?: string }) {
-  const activeIdx = STEP_ORDER.indexOf(RISK_CONFIG[level].token);
+  // Un nivel sin posición ordinal (INVALIDO) deja la pista entera apagada:
+  // `indexOf(null)` es -1, así que ningún paso se enciende.
+  const activeToken = resolve(level).token;
+  const activeIdx = activeToken ? STEP_ORDER.indexOf(activeToken) : -1;
   return (
     <span className={cn("inline-flex items-center gap-[3px]", className)} aria-hidden="true">
       {STEP_ORDER.map((token, i) => {
-        const on = i <= activeIdx;
+        const on = activeToken !== null && i <= activeIdx;
         return (
           <span
             key={token}
             className="h-1.5 w-3.5 rounded-full"
-            style={{ background: on ? tokenVars(RISK_CONFIG[level].token).solid : "var(--color-surface-muted)" }}
+            style={{ background: on ? tokenVars(activeToken!).solid : "var(--color-surface-muted)" }}
           />
         );
       })}
@@ -128,8 +156,9 @@ export function RiskSemaphore({
   label?: string;
   className?: string;
 }) {
-  const activeToken = RISK_CONFIG[level].token;
-  const activeIdx = STEP_ORDER.indexOf(activeToken);
+  const config = resolve(level);
+  const activeToken = config.token;
+  const activeIdx = activeToken ? STEP_ORDER.indexOf(activeToken) : -1;
 
   return (
     <div className={cn("flex flex-col items-center gap-3", className)}>
@@ -150,8 +179,11 @@ export function RiskSemaphore({
         })}
       </div>
       <div className="text-center">
-        <p className="text-lg font-semibold" style={{ color: tokenVars(activeToken).text }}>
-          {RISK_CONFIG[level].label}
+        <p
+          className="text-lg font-semibold"
+          style={{ color: activeToken ? tokenVars(activeToken).text : NEUTRAL_VARS.text }}
+        >
+          {config.label}
         </p>
         {score !== undefined && (
           <p className="text-sm text-text-muted font-mono tabular-nums">{score.toFixed(1)} puntos</p>

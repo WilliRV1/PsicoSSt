@@ -44,6 +44,10 @@ const riskStyle: Record<string, { background: string; color: string; borderColor
     MEDIO:      { background: "var(--color-risk-medium-bg)",   color: "var(--color-risk-medium-text)",   borderColor: "var(--color-risk-medium-border)" },
     ALTO:       { background: "var(--color-risk-high-bg)",     color: "var(--color-risk-high-text)",     borderColor: "var(--color-risk-high-border)" },
     MUY_ALTO:   { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderColor: "var(--color-risk-veryhigh-border)" },
+    // INVALIDO existe en el enum RiskCategory (cuestionario descartado por
+    // preguntas de control o faltantes). Sin esta entrada, indexar el mapa
+    // devolvía undefined y el `.background` siguiente tumbaba la ficha entera.
+    INVALIDO:   { background: "var(--color-surface-muted)",    color: "var(--color-text-muted)",         borderColor: "var(--color-border)" },
 };
 
 const riskLabels: Record<string, string> = {
@@ -52,7 +56,13 @@ const riskLabels: Record<string, string> = {
     MEDIO: "Medio",
     ALTO: "Alto",
     MUY_ALTO: "Muy Alto",
+    INVALIDO: "No válido",
 };
+
+/** Nunca devuelve undefined: una categoría desconocida se pinta neutra en vez
+ *  de reventar el render de la ficha. */
+const styleFor = (risk: string) => riskStyle[risk] ?? riskStyle.INVALIDO;
+const labelFor = (risk: string) => riskLabels[risk] ?? risk;
 
 const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
@@ -238,7 +248,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
                         const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
                         return (
-                            <div key={type} className="rounded-xl border p-4 text-center" style={{ background: riskStyle[risk].background, color: riskStyle[risk].color, borderColor: riskStyle[risk].borderColor }}>
+                            <div key={type} className="rounded-xl border p-4 text-center" style={{ background: styleFor(risk).background, color: styleFor(risk).color, borderColor: styleFor(risk).borderColor }}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{questionnaireLabels[type]}</p>
                                 <RiskTooltip riskLevel={risk}>
                                     <span className="text-xl font-semibold">{riskLabels[risk]}</span>
@@ -392,9 +402,9 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                                                 <td className="px-6 py-3 whitespace-nowrap">
                                                     <span
                                                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
-                                                        style={{ background: riskStyle[risk].background, color: riskStyle[risk].color, boxShadow: `inset 0 0 0 1px ${riskStyle[risk].borderColor}` }}
+                                                        style={{ background: styleFor(risk).background, color: styleFor(risk).color, boxShadow: `inset 0 0 0 1px ${styleFor(risk).borderColor}` }}
                                                     >
-                                                        {riskLabels[risk]}
+                                                        {labelFor(risk)}
                                                         {score !== undefined && <span className="opacity-70">({score.toFixed(1)})</span>}
                                                     </span>
                                                 </td>
