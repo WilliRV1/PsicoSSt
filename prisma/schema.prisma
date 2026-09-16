@@ -696,6 +696,22 @@ enum SubscriptionStatus {
   EXPIRED
 }
 
+/// Estado de la autorización de cobro recurrente en Mercado Pago.
+///
+/// Es el estado de la AUTORIZACIÓN, no el de la suscripción: se puede tener
+/// una suscripción vigente sin autorización (renovación manual) y una
+/// autorización vigente sobre una suscripción ya vencida (si un cobro falló).
+enum AutoRenewStatus {
+  /// Creada en Mercado Pago, esperando que el psicólogo la apruebe.
+  PENDING
+  /// Aprobada: Mercado Pago cobrará al vencer cada periodo.
+  AUTHORIZED
+  /// Mercado Pago la suspendió, típicamente tras cobros fallidos.
+  PAUSED
+  /// Cancelada por el psicólogo o desde Mercado Pago. Estado terminal.
+  CANCELLED
+}
+
 /// Suscripción del psicólogo. Una por cuenta en esta entrega.
 ///
 /// El cupo del periodo se otorga como créditos con vencimiento (ver
@@ -718,6 +734,17 @@ model Subscription {
   features       Json               @default("{}")
   /// Orden que activó o renovó el periodo vigente. Nula en trial y asignación manual.
   paymentOrderId String?            @unique @map("payment_order_id") @db.Uuid
+  /// Preapproval de Mercado Pago que recobra este plan al vencer. Nulo =
+  /// renovación manual, que es el comportamiento por defecto: activar el
+  /// cobro recurrente es una decisión explícita del psicólogo.
+  preapprovalId  String?            @unique @map("preapproval_id")
+  /// SKU que se recobra en cada periodo. Se guarda aparte de `plan` porque la
+  /// autorización se firma sobre un precio y una cadencia concretos: si el
+  /// psicólogo cambia de plan, la autorización vieja deja de corresponder y
+  /// hay que rehacerla en vez de cobrar un importe que nadie autorizó.
+  autoRenewSku   String?            @map("auto_renew_sku")
+  autoRenewStatus AutoRenewStatus?  @map("auto_renew_status")
+  autoRenewUpdatedAt DateTime?      @map("auto_renew_updated_at")
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")
 
@@ -963,4 +990,33 @@ enum FeedbackStatus {
   NEW
   READ
   RESOLVED
+}
+
+/// Contador de límite de peticiones y de intentos fallidos, compartido entre
+/// instancias.
+///
+/// Sustituye al Map en memoria que tenía cada lambda: en serverless ese Map
+/// daba un límite efectivo de `limit × instancias` y se reiniciaba en cada
+/// arranque en frío, justo lo que un barrido de cédulas necesita para pasar.
+/// Aquí la cuenta es una sola para todo el despliegue.
+///
+/// `id` es `bucket:clave` (por ejemplo `public:identify:190.0.0.1`), así que
+/// una misma tabla sirve a espacios de nombres distintos sin que se pisen.
+/// Las filas caducadas las barre `sweepRateLimitEntries`, no un cron.
+model RateLimitEntry {
+  id          String    @id
+  /// Peticiones dentro de la ventana vigente.
+  count       Int       @default(0)
+  /// Fin de la ventana: al pasar, la siguiente petición reinicia `count`.
+  resetAt     DateTime  @map("reset_at")
+  /// Fallos consecutivos acumulados (vía distinta a `count`: la usa el
+  /// bloqueo por intentos, no el cupo por minuto).
+  failures    Int       @default(0)
+  /// Hasta cuándo está bloqueada la clave. Nulo si nunca alcanzó el umbral.
+  lockedUntil DateTime? @map("locked_until")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([resetAt])
+  @@index([lockedUntil])
+  @@map("rate_limit_entries")
 }
