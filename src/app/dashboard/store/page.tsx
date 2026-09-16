@@ -1,5 +1,4 @@
-import { CREDIT_PACKAGES } from "@/config/credit-packages";
-import { Icons } from "@/components/icons";
+import { CREDIT_PACKAGES, type CreditPackage } from "@/config/credit-packages";
 import {
   Check,
   Star,
@@ -8,11 +7,11 @@ import {
   HeadphonesIcon,
   RefreshCw,
   ShoppingCart,
-  Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { BuyPackageButton } from "@/components/payments/buy-package-button";
 
-function getFeaturesForPackage(pkg: any) {
+function getFeaturesForPackage(pkg: CreditPackage) {
   const base = [`Equivale a ${pkg.credits} evaluaciones completas (Intralaboral, Extralaboral, Estrés)`];
   
   if (pkg.id === "starter") {
@@ -82,15 +81,6 @@ export default function StorePage() {
         </div>
       </div>
 
-      {/* Próximamente banner */}
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl p-4 flex gap-3 text-amber-800 dark:text-amber-400">
-        <Clock className="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <div>
-          <h3 className="font-semibold">Pagos en línea próximamente</h3>
-          <p className="text-sm mt-1">La pasarela de pago está en configuración. Para adquirir créditos contáctanos directamente.</p>
-        </div>
-      </div>
-
       {/* Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {CREDIT_PACKAGES.slice(0, 3).map((pkg) => (
@@ -143,10 +133,7 @@ export default function StorePage() {
                   </div>
                 </div>
                 
-                <div className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>Próximamente</span>
-                </div>
+                <BuyPackageButton packageId={pkg.id} label="Comprar créditos" />
               </div>
             </div>
           </div>
@@ -195,10 +182,7 @@ export default function StorePage() {
                    </div>
                  </div>
                  
-                 <div className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                   <Clock className="w-4 h-4" />
-                   <span>Próximamente</span>
-                 </div>
+                 <BuyPackageButton packageId={pkg.id} label="Comprar créditos" />
                </div>
              </div>
            </div>

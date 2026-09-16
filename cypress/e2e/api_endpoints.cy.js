@@ -168,36 +168,48 @@ describe("Admin API Endpoints", () => {
     });
 });
 
-describe("Webhook Endpoint (Public)", () => {
-    it("POST /api/payments/webhook handles empty body", () => {
+describe("Webhook de Mercado Pago (publico)", () => {
+    // El webhook ya no acusa recibo de cualquier cosa: sin una firma HMAC
+    // valida, la peticion se rechaza. Es la unica defensa del endpoint, porque
+    // no hay sesion que validar.
+    it("rechaza una notificacion sin firma", () => {
         cy.request({
             method: "POST",
             url: "/api/payments/webhook",
             body: {},
             failOnStatusCode: false,
         }).then((res) => {
-            // Should return 200 (always acknowledges to Wompi)
-            expect(res.status).to.eq(200);
+            // 503 si la pasarela no esta configurada en el entorno de pruebas;
+            // 401 si lo esta y la firma falta. Nunca 200.
+            expect(res.status).to.be.oneOf([401, 503]);
+            expect(res.body).to.not.have.property("received", true);
         });
     });
 
-    it("POST /api/payments/webhook handles unknown reference", () => {
+    it("rechaza una firma falsificada", () => {
         cy.request({
             method: "POST",
-            url: "/api/payments/webhook",
-            body: {
-                data: {
-                    transaction: {
-                        id: "fake-tx-id",
-                        reference: "nonexistent-ref",
-                        status: "APPROVED",
-                    },
-                },
+            url: "/api/payments/webhook?data.id=123456789&type=payment",
+            headers: {
+                "x-signature": "ts=1758000000,v1=" + "0".repeat(64),
+                "x-request-id": "cypress-request",
             },
+            body: { type: "payment", data: { id: "123456789" } },
+            failOnStatusCode: false,
+        }).then((res) => {
+            expect(res.status).to.be.oneOf([401, 503]);
+        });
+    });
+
+    it("responde al GET de verificacion del panel de Mercado Pago", () => {
+        // Mercado Pago comprueba la URL con un GET al guardar el webhook.
+        cy.request({
+            method: "GET",
+            url: "/api/payments/webhook",
             failOnStatusCode: false,
         }).then((res) => {
             expect(res.status).to.eq(200);
-            expect(res.body).to.have.property("received", true);
+            expect(res.body).to.have.property("endpoint", "mercadopago-webhook");
         });
     });
 });

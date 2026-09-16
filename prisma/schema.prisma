@@ -592,6 +592,9 @@ enum CreditTxType {
   ADMIN_GRANT
   CONSUMPTION
   REFUND
+  /// Reversión por reembolso o contracargo en la pasarela: monto NEGATIVO.
+  /// No confundir con REFUND, que devuelve un crédito al psicólogo.
+  REVERSAL
 }
 
 /// Password reset token (6-digit code)
@@ -687,31 +690,72 @@ model OrganizationInvitationLink {
   @@map("organization_invitation_links")
 }
 
-/// Payment order for Wompi integration
+/// Orden de pago de Mercado Pago (Checkout Bricks · Colombia/MCO · COP).
+///
+/// Una orden representa UN ÚNICO intento de cobro. Un pago rechazado jamás se
+/// reintenta sobre la misma orden: se crea otra. Esa regla es la que permite
+/// usar `internalRef` como X-Idempotency-Key ante Mercado Pago y deja una
+/// auditoría limpia de un intento por fila.
 model PaymentOrder {
-  id             String        @id @default(uuid()) @db.Uuid
-  psychologistId String        @map("psychologist_id") @db.Uuid
-  packageId      String        @map("package_id")
-  amountCents    Int           @map("amount_cents")
-  wompiRef       String?       @unique @map("wompi_ref")
-  internalRef    String        @unique @map("internal_ref")
-  status         PaymentStatus @default(PENDING)
-  paymentMethod  String?       @map("payment_method")
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-  completedAt    DateTime?     @map("completed_at")
+  id                   String        @id @default(uuid()) @db.Uuid
+  psychologistId       String        @map("psychologist_id") @db.Uuid
+  packageId            String        @map("package_id")
+  /// Pesos colombianos ENTEROS. El COP no maneja decimales en Mercado Pago:
+  /// 60000 significa $60.000. No convertir a centavos (el campo se llamaba
+  /// `amount_cents` del diseño anterior y era una trampa para multiplicar x100).
+  amountCOP            Int           @map("amount_cop")
+  /// Viaja a Mercado Pago como `external_reference`. Es la llave con la que el
+  /// webhook encuentra la orden cuando todavía no hay `mercadoPagoPaymentId`
+  /// guardado: la notificación puede ganarle la carrera a /api/payments/process.
+  internalRef          String        @unique @map("internal_ref")
+  /// Llave de idempotencia de la acreditación, única a nivel de base de datos.
+  mercadoPagoPaymentId String?       @unique @map("mercado_pago_payment_id")
+  status               PaymentStatus @default(CREATED)
+  /// visa · master · amex · diners · codensa · pse · nequi · efecty…
+  paymentMethodId      String?       @map("payment_method_id")
+  /// credit_card · debit_card · bank_transfer · ticket
+  paymentTypeId        String?       @map("payment_type_id")
+  /// Cupón de Efecty o URL del banco para PSE. El cliente redirige aquí.
+  externalResourceUrl  String?       @map("external_resource_url") @db.Text
+  /// `status_detail` de Mercado Pago (p. ej. cc_rejected_insufficient_amount).
+  /// Permite explicarle el rechazo al usuario sin guardar datos del pagador.
+  statusDetail         String?       @map("status_detail")
+  /// Transacción de créditos emitida al acreditar. NULL = nunca se acreditó.
+  creditTransactionId  String?       @unique @map("credit_transaction_id") @db.Uuid
+  expiresAt            DateTime      @map("expires_at")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  completedAt          DateTime?     @map("completed_at")
 
-  psychologist   Psychologist  @relation(fields: [psychologistId], references: [id])
+  psychologist         Psychologist  @relation(fields: [psychologistId], references: [id])
 
   @@index([psychologistId, createdAt(sort: Desc)])
+  /// Barrido del cron de reconciliación: órdenes no terminales por antigüedad.
+  @@index([status, createdAt])
   @@map("payment_orders")
 }
 
+/// Estados de una orden de pago, alineados con los de Mercado Pago.
+///
+/// CREATED    — orden emitida, el usuario aún no envió el formulario.
+/// PROCESSING — se llamó a POST /v1/payments y esperamos respuesta.
+/// PENDING    — MP aceptó el intento pero falta la plata (PSE, Efecty).
+/// IN_PROCESS — MP está revisando el pago (antifraude).
+/// EXPIRED    — nunca se intentó pagar dentro de la ventana de la orden.
+///
+/// APPROVED, REJECTED, CANCELLED, EXPIRED y ERROR son terminales; sólo
+/// APPROVED puede avanzar a REFUNDED o CHARGED_BACK (reversión de créditos).
 enum PaymentStatus {
+  CREATED
+  PROCESSING
   PENDING
+  IN_PROCESS
   APPROVED
-  DECLINED
-  VOIDED
+  REJECTED
+  CANCELLED
+  REFUNDED
+  CHARGED_BACK
+  EXPIRED
   ERROR
 }
 
