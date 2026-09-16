@@ -65,7 +65,7 @@ export default function PendingApprovalPage() {
 
                 <p className="text-center text-[11.5px] leading-relaxed text-text-muted">
                     La verificación es un requisito de la Resolución 2764 de 2022: sólo un
-                    profesional con licencia vigente puede aplicar e interpretar la Batería.
+                    profesional con licencia vigente puede evaluar e interpretar el riesgo psicosocial.
                 </p>
             </div>
         </div>

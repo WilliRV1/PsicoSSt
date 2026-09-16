@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { DimensionScore, DomainScore } from "@/types/battery";
 
 export async function GET(
     _req: NextRequest,
@@ -89,7 +90,10 @@ export async function GET(
     };
 
     // Helper to safely aggregate
-    const aggregateRisks = (source: Record<string, any>, targetBreakdown: any) => {
+    const aggregateRisks = (
+        source: Record<string, DimensionScore | DomainScore> | null | undefined,
+        targetBreakdown: Record<string, Record<string, number>>
+    ) => {
         if (!source || typeof source !== 'object') return;
         for (const [key, value] of Object.entries(source)) {
             const risk = value?.riskCategory;
@@ -106,8 +110,8 @@ export async function GET(
             const result = assessment.scoredResult;
             if (!result) continue;
 
-            const dimScores = result.dimensionScores as Record<string, any>;
-            const domScores = result.domainScores as Record<string, any>;
+            const dimScores = result.dimensionScores as unknown as Record<string, DimensionScore>;
+            const domScores = result.domainScores as unknown as Record<string, DomainScore>;
 
             if (assessment.questionnaireType === "INTRALABORAL") {
                 if (worker.jobLevel === "JEFATURA" || worker.jobLevel === "PROFESIONAL" || worker.jobLevel === "TECNICO") {

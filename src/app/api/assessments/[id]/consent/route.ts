@@ -62,7 +62,7 @@ export async function POST(
       consentGranted: true,
       consentText:
         consentText ??
-        "Consentimiento informado obtenido por el psicólogo antes de la aplicación de la batería.",
+        "Consentimiento informado obtenido por el psicólogo antes de la evaluación.",
     },
   });
 

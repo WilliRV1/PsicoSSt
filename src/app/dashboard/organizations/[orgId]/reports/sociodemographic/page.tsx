@@ -99,6 +99,14 @@ function Profile({ b }: { b: ProfileBlock }) {
                     sobre quienes sí tienen el dato.
                 </Micro>
             )}
+            {b.suppressed > 0 && (
+                <Micro size={10.5} color={PAPER.ink3} style={{ marginTop: 7 }}>
+                    {b.suppressedGroups === 1 ? "1 categoría omitida" : `${b.suppressedGroups} categorías omitidas`}{" "}
+                    por confidencialidad, con {b.suppressed}{" "}
+                    {b.suppressed === 1 ? "trabajador" : "trabajadores"} en total: no alcanzan el
+                    mínimo de personas para publicarse sin identificar a nadie.
+                </Micro>
+            )}
         </div>
     );
 }
@@ -228,10 +236,25 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                     )}
                 </div>
 
+                {coverage.belowThreshold && (
+                    <div style={{ marginTop: 16 }}>
+                        <NoteBlock accent={rc("ALTO")}>
+                            <strong>Sin distribuciones publicables.</strong> Se evaluó a{" "}
+                            {coverage.evaluated}{" "}
+                            {coverage.evaluated === 1 ? "trabajador" : "trabajadores"}, por debajo
+                            del mínimo de {coverage.minGroupSize} que exige la reserva del resultado
+                            individual (Resolución 2646 de 2008, art. 11, y Ley 1581 de 2012). Con
+                            una población así, cualquier porcentaje equivale a señalar a una persona
+                            concreta, de modo que este informe no presenta distribuciones.
+                        </NoteBlock>
+                    </div>
+                )}
+
                 <Micro style={{ marginTop: 14 }}>
                     A cada trabajador se le aplican hasta tres cuestionarios, de modo que el número
                     de evaluaciones supera al de personas. Todas las frecuencias de este informe se
-                    cuentan sobre trabajadores, nunca sobre evaluaciones.
+                    cuentan sobre trabajadores, nunca sobre evaluaciones. Las categorías con menos
+                    de {coverage.minGroupSize} trabajadores se omiten por confidencialidad.
                 </Micro>
 
                 <SectionTitle n={2}>Características personales y familiares</SectionTitle>

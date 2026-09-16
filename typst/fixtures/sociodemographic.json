@@ -11,7 +11,8 @@
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "professional": {
     "name": "William Reyes Valencia",
@@ -21,7 +22,9 @@
   "coverage": {
     "evaluated": 160,
     "registered": 187,
-    "assessments": 413
+    "assessments": 413,
+    "minGroupSize": 10,
+    "belowThreshold": false
   },
   "personal": [
     {
@@ -39,7 +42,9 @@
           "pct": 45
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Rango de edad",
@@ -71,7 +76,9 @@
           "pct": 6.9
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Estado civil",
@@ -103,7 +110,9 @@
           "pct": 1.9
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Nivel educativo",
@@ -130,7 +139,9 @@
           "pct": 6.9
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Personas a cargo",
@@ -162,7 +173,9 @@
           "pct": 5.6
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Estrato socioeconómico",
@@ -194,7 +207,9 @@
           "pct": 6.3
         }
       ],
-      "missing": 14
+      "missing": 14,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Tipo de vivienda",
@@ -216,7 +231,9 @@
           "pct": 10.6
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Tiempo de desplazamiento",
@@ -243,7 +260,9 @@
           "pct": 8.8
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Medio de transporte",
@@ -270,7 +289,9 @@
           "pct": 6.9
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     }
   ],
   "occupational": [
@@ -304,7 +325,9 @@
           "pct": 35.6
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Área o dependencia",
@@ -346,7 +369,9 @@
           "pct": 2.5
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Tipo de contrato",
@@ -373,7 +398,9 @@
           "pct": 3.8
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Tipo de jornada",
@@ -395,7 +422,9 @@
           "pct": 9.4
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Antigüedad en la empresa",
@@ -427,7 +456,9 @@
           "pct": 3.8
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     },
     {
       "title": "Antigüedad en el cargo actual",
@@ -459,7 +490,10 @@
           "pct": 1.9
         }
       ],
-      "missing": 0
+      "missing": 0,
+      "suppressed": 0,
+      "suppressedGroups": 0
     }
-  ]
+  ],
+  "isDraft": false
 }

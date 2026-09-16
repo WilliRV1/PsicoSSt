@@ -53,7 +53,7 @@ export async function PUT(
     try {
         const { id } = await params;
 
-        const worker = await (prisma.worker as any).findUnique({
+        const worker = await prisma.worker.findUnique({
             where: { id },
             include: {
                 organization: {
@@ -89,7 +89,7 @@ export async function PUT(
             );
         }
 
-        const updated = await (prisma.worker as any).update({
+        const updated = await prisma.worker.update({
             where: { id },
             data: {
                 fullName,
@@ -146,7 +146,24 @@ export async function PUT(
 }
 
 /**
- * DELETE — Delete a worker (only if no assessments)
+ * Estados de evaluación a partir de los cuales existe evidencia calificada.
+ *
+ * Mismo criterio que la guarda del DELETE de evaluaciones: desde que hay
+ * puntuación, el resultado ya es un dato de salud ocupacional del trabajador.
+ * AssessmentStatus no tiene DELIVERED —la entrega se marca sobre el informe,
+ * no sobre la evaluación—, así que ese caso se cubre aparte con generatedReports.
+ */
+const SCORED_STATUSES = ["SCORED", "REVIEWED", "SIGNED"] as const;
+
+/**
+ * DELETE — Archiva un trabajador. Nunca lo borra.
+ *
+ * El Dec. 1072/2015 art. 2.2.4.6.13 obliga a conservar la evidencia del SG-SST
+ * durante veinte años desde el cese de la relación laboral y a protegerla contra
+ * pérdida. Esta ruta borraba en cascada consentimientos, respuestas, resultados
+ * calificados, informes generados y la evaluación entera: un clic destruía la
+ * única prueba de que la evaluación se hizo. Ahora el trabajador se archiva
+ * (deja de listarse) y su evidencia queda intacta.
  */
 export async function DELETE(
     request: NextRequest,
@@ -160,14 +177,14 @@ export async function DELETE(
     try {
         const { id } = await params;
 
-        const worker = await (prisma.worker as any).findUnique({
+        const worker = await prisma.worker.findUnique({
             where: { id },
-            include: {
-                organization: {
-                    select: { createdByPsychologist: true }
-                },
-                _count: { select: { assessments: true } }
-            }
+            select: {
+                id: true,
+                fullName: true,
+                archivedAt: true,
+                organization: { select: { createdByPsychologist: true } },
+            },
         });
 
         if (!worker) {
@@ -178,46 +195,79 @@ export async function DELETE(
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
 
-        const assessments = await (prisma.assessment as any).findMany({
-            where: { workerId: id },
-            select: { id: true }
+        const protectedAssessments = await prisma.assessment.count({
+            where: {
+                workerId: id,
+                OR: [
+                    { status: { in: [...SCORED_STATUSES] } },
+                    {
+                        generatedReports: {
+                            some: {
+                                OR: [
+                                    { isFinalized: true },
+                                    { status: { in: ["SIGNED", "DELIVERED"] } },
+                                ],
+                            },
+                        },
+                    },
+                ],
+            },
         });
-        const assessmentIds = assessments.map((a: any) => a.id);
 
-        // Todo en una sola transacción: si el borrado del worker falla al
-        // final (por ejemplo por otra FK que no contemplamos aquí), Postgres
-        // revierte también los deleteMany anteriores — antes cada paso se
-        // confirmaba por separado y un fallo a mitad de camino borraba las
-        // evaluaciones sin lograr borrar al trabajador.
-        await prisma.$transaction([
-            ...(assessmentIds.length > 0
-                ? [
-                      (prisma.informedConsent as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.generatedReport as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.responseSet as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.scoredResult as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
-                      (prisma.assessment as any).deleteMany({ where: { workerId: id } }),
-                  ]
-                : []),
-            // assessment_invitations.worker_id es ON DELETE RESTRICT — sin
-            // borrar esto primero, el delete del worker siempre falla si
-            // alguna vez se identificó por el enlace de autoservicio.
-            (prisma.assessmentInvitation as any).deleteMany({ where: { workerId: id } }),
-            (prisma.worker as any).delete({ where: { id } }),
-        ]);
+        // Se archiva en los dos caminos. La diferencia es sólo qué se le
+        // responde a quien pidió el borrado: con evidencia calificada hay que
+        // decirle por qué no se borró, sin ella basta con confirmar el archivo.
+        const archivedAt = worker.archivedAt ?? new Date();
+        if (!worker.archivedAt) {
+            await prisma.worker.update({ where: { id }, data: { archivedAt } });
+        }
 
         const { ipAddress, userAgent } = extractRequestMeta(request);
         await logAudit({
             userId: session.user.id,
-            action: "DELETE",
+            action: "UPDATE",
             resourceType: "worker",
             resourceId: id,
-            metadata: { fullName: worker.fullName },
+            metadata: {
+                operation: "ARCHIVE",
+                fullName: worker.fullName,
+                requestedDeletion: true,
+                blocked: protectedAssessments > 0,
+                blockedReason:
+                    protectedAssessments > 0
+                        ? "Dec. 1072/2015 art. 2.2.4.6.13: evidencia del SG-SST con retención de 20 años"
+                        : null,
+                protectedAssessments,
+                alreadyArchived: !!worker.archivedAt,
+            },
             ipAddress,
-            userAgent
+            userAgent,
         });
 
-        return NextResponse.json({ success: true });
+        if (protectedAssessments > 0) {
+            return NextResponse.json(
+                {
+                    error:
+                        "No se puede eliminar a este trabajador: tiene evaluaciones calificadas y " +
+                        "la ley obliga a conservar esa evidencia durante 20 años (Decreto 1072 de " +
+                        "2015, art. 2.2.4.6.13). El trabajador fue archivado en su lugar y ya no " +
+                        "aparecerá en los listados.",
+                    archived: true,
+                    archivedAt,
+                    protectedAssessments,
+                },
+                { status: 409 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            archived: true,
+            archivedAt,
+            message:
+                "El trabajador fue archivado y ya no aparecerá en los listados. Su historial se " +
+                "conserva como evidencia del SG-SST.",
+        });
     } catch (error) {
         console.error("[WORKERS] DELETE Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

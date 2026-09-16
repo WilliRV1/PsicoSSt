@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ManualForm from "./manual-form";
-import { ScoredResultData } from "@/types/battery";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 interface Worker {

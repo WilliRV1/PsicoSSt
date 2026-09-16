@@ -8,7 +8,8 @@
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "professional": {
     "name": "William Reyes Valencia",
@@ -209,5 +210,6 @@
       "total": 1,
       "done": 0
     }
-  ]
+  ],
+  "isDraft": false
 }

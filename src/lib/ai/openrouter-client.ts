@@ -3,6 +3,7 @@
  * Provides methods to generate psychosocial recommendations and interpretations
  */
 import { MODEL_ANALYSIS, MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "./models";
+import type { DimensionScore } from "@/types/battery";
 
 interface OpenRouterMessage {
   role: 'user' | 'assistant';
@@ -78,8 +79,8 @@ async function callOpenRouter(request: OpenRouterRequest): Promise<string> {
 
 interface ScoreData {
   overallRiskCategory: string;
-  totalScores?: any;
-  dimensionScores?: any;
+  totalScores?: unknown;
+  dimensionScores?: Record<string, DimensionScore> | null;
   workerProfile?: {
     jobTitle?: string;
     jobLevel?: string;
@@ -96,10 +97,10 @@ export async function generateRecommendations(
   const highRiskDimensions =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .filter(([, val]: [string, any]) =>
+          .filter(([, val]) =>
             ['ALTO', 'MUY_ALTO'].includes(val?.riskCategory ?? '')
           )
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `- ${val?.dimensionName ?? key}: ${val?.transformedScore?.toFixed(1) ?? 'N/D'}% — Riesgo ${val?.riskCategory}`
           )
           .join('\n')
@@ -108,13 +109,13 @@ export async function generateRecommendations(
   const allDimensions =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `- ${val?.dimensionName ?? key}: ${val?.transformedScore?.toFixed(1) ?? 'N/D'}% (${val?.riskCategory ?? 'N/D'})`
           )
           .join('\n')
       : 'No disponible';
 
-  const prompt = `Eres un psicólogo organizacional senior con 15 años de experiencia aplicando la Batería para la Evaluación de Factores de Riesgo Psicosocial del Ministerio de Trabajo de Colombia (Resolución 2764 de 2022).
+  const prompt = `Eres un asistente de redacción para un psicólogo especialista en SST que califica la Batería para la Evaluación de Factores de Riesgo Psicosocial del Ministerio de Trabajo de Colombia (Resolución 2764 de 2022). Redactas un BORRADOR en tercera persona que el profesional revisará y hará suyo.
 
 Acabas de evaluar a este trabajador y debes redactar el plan de intervención individualizado. Este documento será leído por el trabajador, su jefe directo y el área de RR.HH.
 
@@ -164,7 +165,7 @@ export async function generateClinicalAnalysis(
   const dimensionDetails =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `- ${val?.dimensionName ?? key}: puntuación transformada ${val?.transformedScore ?? 'N/D'}, nivel de riesgo "${val?.riskCategory ?? 'N/D'}"`
           )
           .join('\n')
@@ -173,16 +174,24 @@ export async function generateClinicalAnalysis(
   const criticalDimensions =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .filter(([, val]: [string, any]) =>
+          .filter(([, val]) =>
             ['ALTO', 'MUY_ALTO'].includes(val?.riskCategory ?? '')
           )
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `${val?.dimensionName ?? key} (${val?.transformedScore?.toFixed(1) ?? 'N/D'}% — ${val?.riskCategory})`
           )
           .join(', ')
       : 'sin dimensiones críticas identificadas';
 
-  const prompt = `Eres un psicólogo especialista en salud ocupacional con licencia vigente en Colombia. Estás redactando la sección de "Interpretación Profesional" de un informe oficial de riesgo psicosocial que tú mismo firmarás. Este texto debe reflejar tu criterio clínico experto.
+  // La interpretación de la batería es un acto reservado al psicólogo con
+  // licencia SST (Res. 2646/2008 art. 12, Ley 1090/2006) y la responsabilidad
+  // disciplinaria recae sobre quien firma. Por eso la instrucción es de
+  // asistente de redacción en tercera persona y nunca de profesional que emite
+  // criterio propio: el modelo entrega un borrador que el psicólogo debe
+  // revisar, corregir y hacer suyo antes de firmar.
+  const prompt = `Eres una herramienta de apoyo a la redacción de informes de riesgo psicosocial en Colombia. NO eres un profesional de la psicología, no emites criterio clínico propio y el texto que produces no es un dictamen: es un BORRADOR que un psicólogo especialista en SST con licencia vigente revisará, corregirá y asumirá bajo su firma.
+
+Tu tarea es preparar un borrador de la sección "Interpretación Profesional" a partir de los puntajes que se listan abajo, redactado en tercera persona y limitado a lo que los datos soportan.
 
 DATOS DE LA EVALUACIÓN:
 - Riesgo global: ${scoreData.overallRiskCategory}
@@ -192,12 +201,13 @@ DATOS DE LA EVALUACIÓN:
 - Todos los resultados: ${dimensionDetails}
 
 INSTRUCCIONES:
-Redacta entre 250 y 350 palabras en prosa profesional continua (sin viñetas, sin títulos intermedios). El texto debe:
-1. Abrir con una valoración clínica del nivel de riesgo global en el contexto específico del cargo y la antigüedad del trabajador
-2. Analizar las dimensiones más elevadas: qué significan en términos de respuesta de estrés, salud mental y desempeño — sin repetir el nombre técnico sin interpretarlo
-3. Explicar la relación entre los factores de riesgo identificados y los posibles efectos en la salud del trabajador a mediano plazo si no se interviene
-4. Concluir señalando la urgencia clínica y los focos prioritarios de intervención de forma fundamentada
-Escribe como el psicólogo que tú eres — con criterio clínico, con datos, sin frases vacías. Responde ÚNICAMENTE con el texto de la interpretación.`;
+Redacta entre 250 y 350 palabras en prosa profesional continua (sin viñetas, sin títulos intermedios), siempre en tercera persona y sin usar la primera persona ("considero", "en mi criterio", "recomiendo"). El borrador debe:
+1. Abrir describiendo el nivel de riesgo global en el contexto del cargo y la antigüedad del trabajador
+2. Describir las dimensiones más elevadas: qué se asocia a ellas en la literatura de la batería en términos de respuesta de estrés, salud mental y desempeño
+3. Señalar la relación documentada entre los factores de riesgo identificados y los posibles efectos en la salud a mediano plazo si no se interviene
+4. Cerrar indicando los focos que los datos sugieren como prioritarios
+
+No formules diagnósticos clínicos, no atribuyas el texto a un profesional ni lo presentes como criterio firmado. Responde ÚNICAMENTE con el texto del borrador, sin encabezados ni comentarios.`;
 
   return callOpenRouter({
     model: MODEL_ANALYSIS,
@@ -251,8 +261,8 @@ export async function listAvailableModels(): Promise<Array<{ id: string; name: s
       throw new Error('Failed to fetch models');
     }
 
-    const data = await response.json();
-    return data.data.map((model: any) => ({
+    const data = (await response.json()) as { data: Array<{ id: string; name?: string }> };
+    return data.data.map((model) => ({
       id: model.id,
       name: model.name || model.id,
     }));
@@ -538,11 +548,19 @@ Genera ÚNICAMENTE el prompt final optimizado para copiar y pegar en ${data.plat
   });
 }
 
+interface OrgReportSummary {
+  executiveSummary?: {
+    criticalPercent: number;
+    totalWorkers: number;
+    predominantRisk: string;
+  };
+}
+
 /**
  * Generate Organizational Recommendations based on the Technical Guide
  */
 export async function generateOrganizationalRecommendations(
-  orgData: any
+  orgData: OrgReportSummary
 ): Promise<string> {
   const prompt = `Eres un psicólogo experto en salud ocupacional en Colombia.
 Basado estrictamente en los protocolos de intervención de la Resolución 2764 de Colombia, 

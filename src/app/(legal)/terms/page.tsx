@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isLegalIdentityComplete, legalField } from "@/lib/legal-config";
 
 export const metadata: Metadata = {
     title: "Terminos y Condiciones - PsicoSST",
@@ -7,10 +8,12 @@ export const metadata: Metadata = {
 export default function TermsPage() {
     return (
         <article className="prose prose-zinc dark:prose-invert max-w-none">
-            <div className="rounded-lg border border-risk-medium-border bg-risk-medium-bg p-4 mb-8 text-sm text-risk-medium-text">
-                <strong>Documento preliminar.</strong> Este texto es un borrador sujeto a revision legal.
-                Ultima actualizacion: marzo 2026.
-            </div>
+            {!isLegalIdentityComplete() && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 mb-8 text-sm text-amber-800">
+                    <strong>Documento preliminar.</strong> Faltan por configurar los datos del prestador
+                    del servicio; hasta entonces el registro de nuevas cuentas esta deshabilitado.
+                </div>
+            )}
 
             <h1>Terminos y Condiciones de Uso</h1>
 
@@ -18,9 +21,10 @@ export default function TermsPage() {
             <p>
                 PsicoSST es una plataforma de software como servicio (SaaS) disenada para psicologos
                 especialistas en Seguridad y Salud en el Trabajo (SST) en Colombia. La plataforma
-                facilita la aplicacion, calificacion y generacion de informes de la Bateria de Riesgo
-                Psicosocial, conforme a lo establecido en la Resolucion 2764 de 2022 del Ministerio
-                del Trabajo y la Resolucion 2646 de 2008.
+                facilita la gestion, calificacion y generacion de informes a partir de los resultados
+                de la Bateria de Riesgo Psicosocial, conforme a lo establecido en la Resolucion 2764
+                de 2022 del Ministerio del Trabajo y la Resolucion 2646 de 2008. La aplicacion de los
+                instrumentos y la interpretacion clinica corresponden al profesional usuario.
             </p>
 
             <h2>2. Requisitos del Usuario</h2>
@@ -32,25 +36,41 @@ export default function TermsPage() {
                 <li>Ejercer conforme a la Ley 1090 de 2006 (Codigo Deontologico del Psicologo).</li>
             </ul>
 
-            <h2>3. Sistema de Creditos y Pagos</h2>
+            <h2>3. Planes, Cupo y Pagos</h2>
             <p>
-                PsicoSST opera bajo un modelo de creditos prepagados. Cada credito permite realizar
-                una (1) evaluacion completa que incluye: cuestionario intralaboral, extralaboral,
-                evaluacion de estres, generacion de informe PDF y analisis con inteligencia artificial.
+                PsicoSST se contrata como una suscripcion anual del profesional. La unidad de uso es el
+                trabajador gestionado por familia de instrumento y periodo: los demas cuestionarios del
+                mismo trabajador dentro del periodo no consumen cupo adicional.
             </p>
             <ul>
-                <li>Al registrarse, cada usuario recibe 5 creditos de prueba gratuitos.</li>
-                <li>Los creditos adquiridos no tienen fecha de vencimiento.</li>
-                <li>Los creditos no son reembolsables una vez consumidos.</li>
+                <li>Al registrarse, cada usuario recibe un periodo de prueba (plan Residente) de 30 dias, con cupo limitado y una empresa activa. Los informes de ese plan se emiten como borradores sin valor probatorio y no pueden firmarse.</li>
+                <li>El plan Profesional se factura por anualidad e incluye un cupo de trabajadores gestionados. Renovar antes del vencimiento extiende el periodo vigente: no se pierden dias.</li>
+                <li>El cupo del plan vence al terminar su periodo. Las unidades adicionales adquiridas por separado no vencen.</li>
                 <li>Los precios estan expresados en pesos colombianos (COP) e incluyen IVA cuando aplique.</li>
-                <li>Los pagos se procesan a traves de la pasarela Wompi, sujeto a sus propios terminos de servicio.</li>
+                <li>Los pagos se procesan a traves de la pasarela Mercado Pago, sujeto a sus propios terminos de servicio. Se aceptan tarjetas de credito y debito, PSE, Nequi y pago en efectivo.</li>
+                <li>El cupo se acredita al confirmarse el pago. Los medios que no son inmediatos —PSE y pago en efectivo— pueden tardar desde unos minutos hasta varios dias en reflejarse; el cupon de pago en efectivo indica su propia fecha de vencimiento.</li>
+                <li>Conforme al articulo 47 de la Ley 1480 de 2011, el usuario puede ejercer el derecho de retracto dentro de los cinco (5) dias habiles siguientes a la compra, sobre el cupo no consumido.</li>
             </ul>
+
+            <h2>3.1 Cancelacion por el Usuario</h2>
+            <p>
+                El usuario puede cancelar su suscripcion en cualquier momento. La cancelacion surte
+                efecto al terminar el periodo ya pagado; no se cobran renovaciones posteriores. Durante
+                el periodo restante conserva el acceso completo.
+            </p>
+            <p>
+                Tras la cancelacion, y por el tiempo que la ley exige conservar la evidencia del SG-SST
+                (Decreto 1072 de 2015, articulo 2.2.4.6.13: veinte anos desde el cese de la relacion
+                laboral), el usuario conserva acceso de solo lectura para consultar y descargar los
+                informes y la evidencia ya producida. Los detalles de conservacion se describen en la{" "}
+                <a href="/privacy">Politica de Privacidad</a>.
+            </p>
 
             <h2>4. Responsabilidades del Usuario</h2>
             <p>El usuario se compromete a:</p>
             <ul>
                 <li>Mantener la confidencialidad de los datos de los trabajadores evaluados, conforme a la Ley 1581 de 2012.</li>
-                <li>Obtener el consentimiento informado de cada trabajador antes de aplicar la bateria.</li>
+                <li>Obtener el consentimiento informado de cada trabajador antes de la evaluacion.</li>
                 <li>Garantizar la veracidad de la informacion ingresada en la plataforma.</li>
                 <li>No compartir sus credenciales de acceso con terceros.</li>
                 <li>Utilizar la plataforma exclusivamente para fines profesionales legitimos.</li>
@@ -60,8 +80,9 @@ export default function TermsPage() {
             <h2>5. Propiedad Intelectual</h2>
             <p>
                 La plataforma PsicoSST, incluyendo su codigo fuente, diseno, algoritmos de calificacion
-                y contenido, es propiedad de sus desarrolladores. Los instrumentos de la Bateria de
-                Riesgo Psicosocial son de dominio publico conforme a la normatividad colombiana.
+                y contenido, es propiedad de sus desarrolladores. Los instrumentos de la Bateria de Riesgo Psicosocial son propiedad del Ministerio
+                del Trabajo y la Pontificia Universidad Javeriana; PsicoSST no comercializa los
+                instrumentos, sino la gestion y calificacion de sus resultados.
                 Los datos ingresados por el usuario son propiedad del usuario y de las organizaciones
                 evaluadas.
             </p>
@@ -90,6 +111,11 @@ export default function TermsPage() {
 
             <h2>8. Suspension y Cancelacion</h2>
             <p>
+                En ningun caso la suspension o cancelacion de una cuenta implica la eliminacion de la
+                evidencia del SG-SST ya producida, que se conserva conforme al Decreto 1072 de 2015 y
+                permanece disponible para consulta y descarga del profesional responsable.
+            </p>
+            <p>
                 PsicoSST se reserva el derecho de suspender o cancelar cuentas que:
             </p>
             <ul>
@@ -110,7 +136,7 @@ export default function TermsPage() {
             <p>
                 Estos terminos se rigen por las leyes de la Republica de Colombia. Cualquier
                 controversia sera resuelta ante los tribunales competentes de la ciudad de
-                [CIUDAD], Colombia.
+                {legalField("city")}, Colombia.
             </p>
         </article>
     );

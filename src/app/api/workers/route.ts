@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import type { Prisma } from "@/generated/prisma";
 
 /**
  * GET — List workers, optionally filtered by organization
@@ -16,10 +17,15 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const orgId = searchParams.get("organizationId");
 
-        const where: any = {};
+        const where: Prisma.WorkerWhereInput = {};
         if (orgId) {
             where.organizationId = orgId;
         }
+
+        // Los archivados conservan su evidencia pero salen de la operación: no
+        // se listan, no se les crea una evaluación nueva y no cuentan para la
+        // cobertura. Ver DELETE en /api/workers/[id].
+        where.archivedAt = null;
 
         // Only show workers from organizations owned by this psychologist
         where.organization = { createdByPsychologist: session.user.id };
@@ -68,20 +74,20 @@ export async function GET(request: NextRequest) {
                 id: worker.id,
                 fullName: worker.fullName,
                 documentId: worker.documentId,
-                documentType: (worker as any).documentType,
+                documentType: worker.documentType,
                 jobTitle: worker.jobTitle,
                 jobLevel: worker.jobLevel,
-                educationLevel: (worker as any).educationLevel,
-                departmentArea: (worker as any).departmentArea,
-                gender: (worker as any).gender,
-                birthDate: (worker as any).birthDate,
-                maritalStatus: (worker as any).maritalStatus,
-                yearsInCompany: (worker as any).yearsInCompany,
-                yearsInPosition: (worker as any).yearsInPosition,
-                contractType: (worker as any).contractType,
-                workSchedule: (worker as any).workSchedule,
-                hoursPerWeek: (worker as any).hoursPerWeek,
-                residenceCity: (worker as any).residenceCity,
+                educationLevel: worker.educationLevel,
+                departmentArea: worker.departmentArea,
+                gender: worker.gender,
+                birthDate: worker.birthDate,
+                maritalStatus: worker.maritalStatus,
+                yearsInCompany: worker.yearsInCompany,
+                yearsInPosition: worker.yearsInPosition,
+                contractType: worker.contractType,
+                workSchedule: worker.workSchedule,
+                hoursPerWeek: worker.hoursPerWeek,
+                residenceCity: worker.residenceCity,
                 createdAt: worker.createdAt,
                 organization: worker.organization,
                 lastRisk,
@@ -166,20 +172,28 @@ export async function POST(request: NextRequest) {
         // We removed enum validation for educationLevel and others since they are now generic Strings
         // to support the specific exact text options requested by the user.
 
-        // Check for duplicate document in the same organization
+        // Check for duplicate document in the same organization.
+        // A propósito NO se filtra por archivedAt: el índice único
+        // (documentType, documentId, organizationId) sí incluye a los
+        // archivados, así que ignorarlos aquí cambiaría este 409 explicativo
+        // por un P2002 convertido en 500.
         const existingWorker = await prisma.worker.findFirst({
             where: { documentId, organizationId },
-            select: { id: true }
+            select: { id: true, archivedAt: true }
         });
 
         if (existingWorker) {
             return NextResponse.json(
-                { error: "Ya existe un trabajador con este documento en esta organización" },
+                {
+                    error: existingWorker.archivedAt
+                        ? "Ya existe un trabajador archivado con este documento en esta organización."
+                        : "Ya existe un trabajador con este documento en esta organización"
+                },
                 { status: 409 }
             );
         }
 
-        const worker = await (prisma.worker as any).create({
+        const worker = await prisma.worker.create({
             data: {
                 documentType: documentType || "CC",
                 documentId,

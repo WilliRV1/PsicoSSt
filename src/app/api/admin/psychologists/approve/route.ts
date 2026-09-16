@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email/resend';
 import { accountApprovedEmail, accountRejectedEmail } from '@/lib/email/templates';
+import type { AccountStatus } from '@/generated/prisma';
 
 /** POST /api/admin/psychologists/approve */
 export async function POST(req: NextRequest) {
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
     const admin = await prisma.psychologist.findUnique({ where: { id: session.user.id } });
     if (!admin?.isAdmin || admin.status !== 'ACTIVE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    const statusParam = req.nextUrl.searchParams.get('status') as any;
+    const statusParam = req.nextUrl.searchParams.get('status') as AccountStatus | null;
     const psychologists = await prisma.psychologist.findMany({
       where: statusParam ? { status: statusParam } : undefined,
       select: { id: true, email: true, fullName: true, licenseNumber: true, status: true, createdAt: true },

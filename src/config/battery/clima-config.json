@@ -1,0 +1,53 @@
+{
+  "formType": "A",
+  "questionnaireType": "CLIMA",
+  "totalItems": 35,
+  "totalTransformationFactor": 140,
+  "provisional": true,
+  "_nota": "Instrumento interno de clima organizacional. Likert 1-5. Todos los ítems son afirmaciones positivas y se invierten para que el nivel ordinal mida desfavorabilidad. Estructura y cortes por validar por el psicólogo responsable; no es la Batería normativa.",
+  "dimensions": [
+    {
+      "key": "liderazgo",
+      "name": "Liderazgo",
+      "items": [1, 2, 3, 4, 5],
+      "invertedItems": [1, 2, 3, 4, 5]
+    },
+    {
+      "key": "comunicacion",
+      "name": "Comunicación",
+      "items": [6, 7, 8, 9, 10],
+      "invertedItems": [6, 7, 8, 9, 10]
+    },
+    {
+      "key": "reconocimiento",
+      "name": "Reconocimiento",
+      "items": [11, 12, 13, 14, 15],
+      "invertedItems": [11, 12, 13, 14, 15]
+    },
+    {
+      "key": "condiciones_trabajo",
+      "name": "Condiciones de trabajo",
+      "items": [16, 17, 18, 19, 20],
+      "invertedItems": [16, 17, 18, 19, 20]
+    },
+    {
+      "key": "trabajo_equipo",
+      "name": "Trabajo en equipo",
+      "items": [21, 22, 23, 24, 25],
+      "invertedItems": [21, 22, 23, 24, 25]
+    },
+    {
+      "key": "desarrollo",
+      "name": "Desarrollo profesional",
+      "items": [26, 27, 28, 29, 30],
+      "invertedItems": [26, 27, 28, 29, 30]
+    },
+    {
+      "key": "pertenencia",
+      "name": "Pertenencia",
+      "items": [31, 32, 33, 34, 35],
+      "invertedItems": [31, 32, 33, 34, 35]
+    }
+  ],
+  "domains": []
+}

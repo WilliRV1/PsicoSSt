@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { FileUp, ClipboardPaste, Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 const SAMPLE_CSV = `documentType,documentId,fullName,jobTitle,jobLevel,educationLevel,departmentArea
 CC,1023456789,Mar\u00eda Garc\u00eda L\u00f3pez,Analista de Sistemas,PROFESIONAL,PROFESIONAL,Tecnolog\u00eda
@@ -55,8 +56,8 @@ export default function ImportWorkersPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Error en la importaci\u00f3n");
             setResult(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(false);
         }
@@ -80,6 +81,12 @@ export default function ImportWorkersPage() {
                 </h1>
                 <p className="text-muted-foreground text-sm mt-1">
                     Importa trabajadores desde un archivo CSV. Los existentes se actualizar&aacute;n autom&aacute;ticamente.
+                </p>
+                <p className="text-sm mt-2">
+                    &iquest;Ya tienes resultados calificados en SIRPSI u otra herramienta?{" "}
+                    <Link href={`/dashboard/organizations/${orgId}/import/scores`} className="font-semibold text-primary hover:underline">
+                        Importar resultados calificados &rsaquo;
+                    </Link>
                 </p>
             </div>
 

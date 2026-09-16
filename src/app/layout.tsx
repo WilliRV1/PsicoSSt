@@ -47,7 +47,7 @@ const reportSans = Inter({
 
 export const metadata: Metadata = {
   title: "PsicoSST — Batería de Riesgo Psicosocial",
-  description: "Plataforma profesional para la aplicación de la Batería de Riesgo Psicosocial en Colombia",
+  description: "Gestión y calificación de riesgo psicosocial para el psicólogo especialista en SST",
 };
 
 export default function RootLayout({

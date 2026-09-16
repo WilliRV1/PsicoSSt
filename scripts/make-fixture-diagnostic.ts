@@ -26,8 +26,38 @@ import {
 const small = (process.argv[2] ?? "full").toLowerCase() === "small";
 const MIN_GROUP_SIZE = 10;
 
-type Entry = Record<string, number[]>;
-const toBounds = (e: Entry | undefined): number[] =>
+/** Banda de riesgo de baremos.json: [límite inferior, límite superior] por categoría. */
+interface BaremoBand {
+    sinRiesgo: number[];
+    bajo: number[];
+    medio: number[];
+    alto: number[];
+    muyAlto: number[];
+}
+
+interface BaremoFormBlock {
+    domains: Record<string, BaremoBand>;
+    total: BaremoBand;
+}
+
+interface BaremosData {
+    intralaboral_a: BaremoFormBlock;
+    intralaboral_b: BaremoFormBlock;
+}
+
+const baremosData = baremos as unknown as BaremosData;
+
+interface BatteryDimensionConfig {
+    key: string;
+    name: string;
+}
+
+interface BatteryDomainConfig {
+    key: string;
+    name: string;
+}
+
+const toBounds = (e: BaremoBand | undefined): number[] =>
     e?.muyAlto ? [e.sinRiesgo[1], e.bajo[1], e.medio[1], e.alto[1], e.muyAlto[1]] : [];
 
 const levelFor = (s: number, b: number[]): RiskLevel => {
@@ -49,8 +79,8 @@ const dist = (a: number[]) =>
 
 const buildDomains = (form: "A" | "B", n: number) => {
     const cfg = form === "A" ? formA : formB;
-    const table = (baremos as any)[form === "A" ? "intralaboral_a" : "intralaboral_b"];
-    return (cfg.domains as any[]).map(dc => {
+    const table = baremosData[form === "A" ? "intralaboral_a" : "intralaboral_b"];
+    return (cfg.domains as BatteryDomainConfig[]).map(dc => {
         const bounds = toBounds(table.domains[dc.key]);
         const avg = scoreFor(dc.key + form, bounds.length ? bounds[4] : 100);
         const level = levelFor(avg, bounds);
@@ -71,9 +101,9 @@ const buildDomains = (form: "A" | "B", n: number) => {
 // instrumento, no un número fijo. Con un N único para las tres pruebas, un
 // error de denominador en el informe real pasaría inadvertido en la revisión.
 const allDimensions = [
-    ...(formA.dimensions as any[]).map(d => ({ ...d, q: "Intralaboral", top: 100 })),
-    ...(extraCfg.dimensions as any[]).map(d => ({ ...d, q: "Extralaboral", top: 100 })),
-    ...(stressCfg.dimensions as any[]).map(d => ({ ...d, q: "Estrés", top: 100 })),
+    ...(formA.dimensions as BatteryDimensionConfig[]).map(d => ({ ...d, q: "Intralaboral", top: 100 })),
+    ...(extraCfg.dimensions as BatteryDimensionConfig[]).map(d => ({ ...d, q: "Extralaboral", top: 100 })),
+    ...(stressCfg.dimensions as BatteryDimensionConfig[]).map(d => ({ ...d, q: "Estrés", top: 100 })),
 ];
 
 
@@ -211,7 +241,7 @@ const companyByForm = [
     { form: "B" as const, workers: formBCount, rawAverage: 121.7, factor: 388 },
 ].map(f => {
     const transformed = Math.round((f.rawAverage / f.factor) * 1000) / 10;
-    const bounds = toBounds((baremos as any)[f.form === "A" ? "intralaboral_a" : "intralaboral_b"].total);
+    const bounds = toBounds(baremosData[f.form === "A" ? "intralaboral_a" : "intralaboral_b"].total);
     const level = levelFor(transformed, bounds);
     return {
         form: f.form,

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Public pages — accessible without a session.
  */
 const PUBLIC_PAGES = [
+  "/pricing",
   "/login",
   "/register",
   "/forgot-password",
@@ -40,6 +41,20 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Pagos: el webhook de Mercado Pago y el barrido programado NO tienen sesión
+  // que validar. El webhook se autentica con la firma HMAC de la notificación
+  // (ver lib/payments/webhook-signature.ts) y el cron con CRON_SECRET.
+  //
+  // Sin esta excepción el proxy los manda a /login y Mercado Pago recibe un
+  // 307 en lugar de la confirmación: los pagos se cobrarían pero los créditos
+  // nunca se acreditarían. El resto de /api/payments/* sí exige sesión.
+  if (
+    pathname === "/api/payments/webhook" ||
+    pathname === "/api/payments/reconcile-stale"
+  ) {
+    return NextResponse.next();
+  }
+
   // Static assets
   if (
     pathname.startsWith("/_next") ||
@@ -71,10 +86,11 @@ export async function proxy(req: NextRequest) {
   }
 
   // ── Root ──────────────────────────────────────────────────────
+  // Sin sesión se sirve la landing pública; la propia página redirige al
+  // panel cuando sí hay sesión, leyéndola de verdad y no por presencia de
+  // cookie como puede hacerse aquí.
   if (pathname === "/") {
-    return NextResponse.redirect(
-      new URL(isAuthenticated ? "/dashboard" : "/login", req.url)
-    );
+    return NextResponse.next();
   }
 
   // ── Protected pages ───────────────────────────────────────────

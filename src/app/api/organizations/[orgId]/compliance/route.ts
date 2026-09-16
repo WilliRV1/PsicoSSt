@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { dueInfo, isCriticalLevel, organizationValidity } from "@/lib/compliance/cadence";
 
 export async function GET(
     _req: NextRequest,
@@ -17,8 +18,10 @@ export async function GET(
     if (!org || org.createdByPsychologist !== session.user.id)
         return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const [workerCount, assessmentStats, consentCount, plan] = await Promise.all([
-        prisma.worker.count({ where: { organizationId: orgId } }),
+    const [workerCount, assessmentStats, consentCount, plan, signedAssessments] = await Promise.all([
+        // Denominador de cobertura: un archivado que ya no está en la planta
+        // dejaría la cobertura por debajo del 100% para siempre.
+        prisma.worker.count({ where: { organizationId: orgId, archivedAt: null } }),
 
         prisma.assessment.groupBy({
             by: ["status"],
@@ -39,7 +42,28 @@ export async function GET(
             },
             orderBy: { createdAt: "desc" },
         }),
+
+        // Vigencia de la medición: fecha de la última firma y % de trabajadores
+        // críticos, que es lo que decide si la empresa mide cada año o cada dos.
+        prisma.assessment.findMany({
+            where: { organizationId: orgId, status: "SIGNED" },
+            select: {
+                workerId: true,
+                assessmentDate: true,
+                scoredResult: { select: { overallRiskCategory: true } },
+            },
+            orderBy: { assessmentDate: "desc" },
+        }),
     ]);
+
+    const evaluatedIds = new Set(signedAssessments.map(a => a.workerId));
+    const criticalIds = new Set(
+        signedAssessments.filter(a => isCriticalLevel(a.scoredResult?.overallRiskCategory)).map(a => a.workerId)
+    );
+    const criticalPct = evaluatedIds.size > 0 ? (criticalIds.size / evaluatedIds.size) * 100 : 0;
+    const lastSigned = signedAssessments[0]?.assessmentDate ?? null;
+    const validity = organizationValidity({ criticalWorkerPercent: criticalPct });
+    const due = lastSigned ? dueInfo(new Date(lastSigned), validity) : null;
 
     const signed = assessmentStats.find(s => s.status === "SIGNED")?._count.status ?? 0;
     const pending = assessmentStats
@@ -55,6 +79,17 @@ export async function GET(
         hasInterventionPlan: { ok: !!plan, label: "Plan de intervención activo", detail: plan ? `Plan "${plan.title}" (${plan.period})` : "Sin plan de intervención — requerido por Res. 2764/2022" },
         hasPlanActions: { ok: !!(plan && plan.actions.length > 0), label: "Medidas de intervención documentadas", detail: plan && plan.actions.length > 0 ? `${plan.actions.length} medida(s) documentada(s)` : "El plan no tiene medidas registradas" },
         noPendingCritical: { ok: pending === 0 || signed > 0, label: "Sin evaluaciones críticas pendientes", detail: pending === 0 ? "Todas las evaluaciones están procesadas" : `${pending} evaluación(es) pendiente(s) de firma` },
+        withinValidity: {
+            ok: !!due && due.status !== "VENCIDA",
+            label: "Medición vigente",
+            detail: !due
+                ? "Sin medición firmada"
+                : due.status === "VENCIDA"
+                  ? `Vencida el ${due.dueDate.toLocaleDateString("es-CO")} (vigencia de ${validity.years} año${validity.years > 1 ? "s" : ""}, Res. 2764/2022 art. 3)`
+                  : due.status === "POR_VENCER"
+                    ? `Vence el ${due.dueDate.toLocaleDateString("es-CO")} · ${due.daysLeft} días`
+                    : `Vigente hasta el ${due.dueDate.toLocaleDateString("es-CO")} (vigencia de ${validity.years} año${validity.years > 1 ? "s" : ""})`,
+        },
     };
 
     const passedCount = Object.values(checks).filter(c => c.ok).length;

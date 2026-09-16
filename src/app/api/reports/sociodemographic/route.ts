@@ -1,17 +1,41 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MIN_GROUP_SIZE } from "@/lib/reports/anonymity";
+import { getErrorMessage } from "@/lib/utils";
+import type { Prisma } from "@/generated/prisma";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
     const department = searchParams.get("department");
 
+    // El proxy sólo comprueba que exista una cookie de sesión, no que sea
+    // válida: la autorización real la hace cada ruta. Sin este bloque bastaba
+    // una cookie cualquiera y un organizationId para extraer la composición
+    // sociodemográfica de cualquier empresa.
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     if (!organizationId) {
         return NextResponse.json({ error: "Organization ID is required" }, { status: 400 });
     }
 
     try {
-        const whereClause: any = {
+        const org = await prisma.organization.findFirst({
+            where: { id: organizationId, createdByPsychologist: session.user.id },
+            select: { id: true },
+        });
+        if (!org && !session.user.isAdmin) {
+            return NextResponse.json(
+                { error: "Organization not found or access denied" },
+                { status: 404 }
+            );
+        }
+
+        const whereClause: Prisma.WorkerWhereInput = {
             organizationId
         };
 
@@ -31,11 +55,13 @@ export async function GET(request: Request) {
 
         const workerCount = workers.length;
 
-        // Anonimato Legal
-        if (workerCount < 5 && workerCount > 0 && department !== "ALL") {
-            return NextResponse.json({ 
-                privacyWarning: true, 
-                message: "Reserva Legal por Muestra Insuficiente" 
+        // Anonimato legal. Antes el piso era 5, sólo aplicaba si se filtraba por
+        // área y dejaba pasar `workerCount === 0`: pedir el reporte completo
+        // (`department=ALL`) lo evitaba por entero.
+        if (workerCount > 0 && workerCount < MIN_GROUP_SIZE) {
+            return NextResponse.json({
+                privacyWarning: true,
+                message: `Reserva legal por muestra insuficiente: se requieren al menos ${MIN_GROUP_SIZE} trabajadores evaluados para publicar distribuciones.`
             }, { status: 403 });
         }
 
@@ -225,7 +251,7 @@ export async function GET(request: Request) {
 
         const formatData = (obj: Record<string, number>) => {
             return Object.entries(obj)
-                .filter(([_, v]) => v > 0)
+                .filter(([, v]) => v > 0)
                 .map(([name, value]) => ({ name: mapFriendly(name), value }))
                 .sort((a, b) => b.value - a.value);
         };
@@ -261,8 +287,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json(reportData);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error generating sociodemographic report:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

@@ -6,6 +6,8 @@ import { ArrowLeft, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { QuestionnaireType } from "@/types/battery";
+import { BATTERY_IDS, INSTRUMENTS, INSTRUMENT_IDS, sortByOrder } from "@/config/instruments";
+import { getErrorMessage } from "@/lib/utils";
 
 interface Organization {
     id: string;
@@ -13,11 +15,9 @@ interface Organization {
     nit: string;
 }
 
-const ALL_TYPES: { value: QuestionnaireType; label: string }[] = [
-    { value: "INTRALABORAL", label: "Intralaboral" },
-    { value: "EXTRALABORAL", label: "Extralaboral" },
-    { value: "STRESS", label: "Estrés" },
-];
+const ALL_TYPES: { value: QuestionnaireType; label: string; regulated: boolean }[] = sortByOrder(INSTRUMENT_IDS).map(
+    (id) => ({ value: id, label: INSTRUMENTS[id].shortLabel, regulated: INSTRUMENTS[id].regulated })
+);
 
 /**
  * Enlace único por empresa: el trabajador se identifica con su cédula al
@@ -29,7 +29,8 @@ export default function CompanyInvitationLinkPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-    const [plannedTypes, setPlannedTypes] = useState<QuestionnaireType[]>(["INTRALABORAL", "EXTRALABORAL", "STRESS"]);
+    // La Batería completa viene marcada; el clima es opcional.
+    const [plannedTypes, setPlannedTypes] = useState<QuestionnaireType[]>(BATTERY_IDS);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [result, setResult] = useState<{ url: string } | null>(null);
     const [copied, setCopied] = useState(false);
@@ -67,8 +68,8 @@ export default function CompanyInvitationLinkPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Error al crear el enlace");
             setResult({ url: data.url });
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSubmitting(false);
         }

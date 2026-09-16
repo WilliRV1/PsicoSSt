@@ -11,6 +11,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { "Diagnóstico organizacional" },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // ─── Componentes propios ────────────────────────────────────

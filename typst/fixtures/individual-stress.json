@@ -4,12 +4,25 @@
     "formLabel": null,
     "isStress": true,
     "isAnonymous": false,
-    "licenseMissing": false
+    "licenseMissing": false,
+    "instrument": {
+      "id": "STRESS",
+      "family": "BATTERY",
+      "regulated": true,
+      "provisionalBaremos": false
+    },
+    "provenance": {
+      "method": "MANUAL",
+      "source": null,
+      "importedAt": null,
+      "importJobId": null
+    }
   },
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "org": {
     "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
@@ -115,6 +128,7 @@
     "action": "Observación sistemática y acciones de intervención preventiva, para evitar que la condición progrese a niveles superiores.",
     "isValid": true
   },
+  "generalTotal": null,
   "domains": [],
   "dimensions": [
     {
@@ -188,5 +202,6 @@
       "name": "Síntomas psicoemocionales",
       "definition": "Manifestaciones afectivas de la respuesta de estrés: ansiedad, irritabilidad, tristeza y sensación de sobrecarga."
     }
-  ]
+  ],
+  "isDraft": false
 }

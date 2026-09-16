@@ -249,10 +249,16 @@
 //                     página. Para documentos cortos donde forzar un salto por
 //                     sección dejaría media página en blanco (informe
 //                     individual, sociodemográfico).
+// `draft: true`      — plan Residente: marca de agua en cada página. El
+//                      documento existe para que el profesional vea el
+//                      resultado, no para presentarlo ante un tercero.
+// `powered-by: true` — pie con "Generado con PsicoSST".
 #let report(
   brand: none,
   org-name: "",
   chapters: true,
+  draft: false,
+  powered-by: false,
   body,
 ) = {
   set page(
@@ -272,9 +278,27 @@
     },
     footer: context {
       set align(center)
-      text(font: serif, size: 9pt, fill: ink3, num(str(counter(page).get().first())))
+      stack(
+        spacing: 4pt,
+        text(font: serif, size: 9pt, fill: ink3, num(str(counter(page).get().first()))),
+        if powered-by {
+          text(font: sans, size: 6.5pt, fill: ink3, tracking: 0.06em,
+            upper("Generado con PsicoSST"))
+        },
+      )
+    },
+    background: if draft {
+      rotate(-38deg, origin: center + horizon,
+        text(font: sans, size: 62pt, weight: 700, fill: rgb(0, 0, 0, 12),
+          "BORRADOR"))
     },
   )
+
+  if draft {
+    place(top + center, dy: -14mm, float: false,
+      text(font: sans, size: 7pt, weight: 600, fill: rgb("#9A3412"), tracking: 0.08em,
+        upper("Borrador · sin valor probatorio")))
+  }
 
   set text(font: serif, size: 10pt, fill: ink, lang: "es", hyphenate: true)
   set par(justify: true, leading: 0.72em, spacing: 1.05em, first-line-indent: 0pt)

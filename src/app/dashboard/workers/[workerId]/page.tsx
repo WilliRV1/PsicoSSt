@@ -2,10 +2,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, MapPin, Calendar, AlertTriangle, RefreshCw, Info } from "lucide-react";
+import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, Calendar, AlertTriangle, RefreshCw, Info } from "lucide-react";
 import EditWorkerProfileButton from "@/components/workers/EditWorkerProfileButton";
 import WorkerTrendChart from "@/components/workers/worker-trend-chart";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { dueInfo, isCriticalLevel, workerValidity } from "@/lib/compliance/cadence";
+import { INSTRUMENT_IDS } from "@/config/instruments";
 
 const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: React.ReactNode }) => {
     const texts: Record<string, string> = {
@@ -29,12 +31,19 @@ const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: Rea
     );
 };
 
-const riskStyle: Record<string, { background: string; color: string; borderColor: string }> = {
-    SIN_RIESGO: { background: "var(--color-risk-none-bg)",     color: "var(--color-risk-none-text)",     borderColor: "var(--color-risk-none-border)" },
-    BAJO:       { background: "var(--color-risk-low-bg)",      color: "var(--color-risk-low-text)",      borderColor: "var(--color-risk-low-border)" },
-    MEDIO:      { background: "var(--color-risk-medium-bg)",   color: "var(--color-risk-medium-text)",   borderColor: "var(--color-risk-medium-border)" },
-    ALTO:       { background: "var(--color-risk-high-bg)",     color: "var(--color-risk-high-text)",     borderColor: "var(--color-risk-high-border)" },
-    MUY_ALTO:   { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderColor: "var(--color-risk-veryhigh-border)" },
+/** Forma de `ScoredResult.totalScores`: lo escribimos nosotros mismos desde
+ * el motor de puntuación (ver `TotalScore` en lib/scoring), así que basta con
+ * afirmar el campo que se lee — mismo patrón que en lib/reports/individual-data.ts. */
+interface StoredTotalScore {
+    transformedScore?: number;
+}
+
+const riskColors: Record<string, string> = {
+    SIN_RIESGO: "bg-green-100 text-green-700 border-green-200",
+    BAJO:       "bg-lime-100 text-lime-700 border-lime-200",
+    MEDIO:      "bg-yellow-100 text-yellow-700 border-yellow-200",
+    ALTO:       "bg-orange-100 text-orange-700 border-orange-200",
+    MUY_ALTO:   "bg-red-100 text-red-700 border-red-200",
 };
 
 const riskLabels: Record<string, string> = {
@@ -49,6 +58,7 @@ const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
     STRESS: "Estrés",
+    CLIMA: "Clima",
 };
 
 const statusStyle: Record<string, { label: string; background: string; color: string }> = {
@@ -107,7 +117,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
-    const worker = await (prisma.worker as any).findUnique({
+    const worker = await prisma.worker.findUnique({
         where: { id: workerId },
         include: {
             organization: {
@@ -127,26 +137,34 @@ export default async function WorkerDetailPage({ params }: PageProps) {
         return notFound();
     }
 
-    const assessments = worker.assessments as any[];
+    const assessments = worker.assessments;
     const age = worker.birthYear
         ? new Date().getFullYear() - worker.birthYear
         : null;
 
     // Latest risk per questionnaire type
-    const latestByType: Record<string, any> = {};
+    const latestByType: Record<string, (typeof assessments)[number]> = {};
     for (const a of [...assessments].reverse()) {
         latestByType[a.questionnaireType] = a;
     }
 
-    // Expiration alert (2-year rule, Res. 2764/2022)
+    // Vigencia (Res. 2764/2022 art. 3): anual si la última medición tuvo
+    // riesgo alto o muy alto en cualquiera de sus cuestionarios, bienal si no.
     const signedAssessments = assessments.filter(a => a.status === "SIGNED");
     const lastSignedDate = signedAssessments.length > 0
         ? new Date(signedAssessments[0].assessmentDate)
         : null;
-    const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
-    const expiresAt = lastSignedDate ? new Date(lastSignedDate.getTime() + TWO_YEARS_MS) : null;
-    const daysUntilExpiry = expiresAt ? Math.floor((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
-    const expirationStatus = daysUntilExpiry === null ? "NEVER" : daysUntilExpiry <= 0 ? "EXPIRED" : daysUntilExpiry <= 180 ? "EXPIRING_SOON" : "OK";
+    const lastCycleCritical = signedAssessments
+        .slice(0, 3)
+        .some(a => isCriticalLevel(a.scoredResult?.overallRiskCategory));
+    const validity = workerValidity(lastCycleCritical ? "ALTO" : signedAssessments[0]?.scoredResult?.overallRiskCategory);
+    // Server Component: sin el re-render concurrente que esta regla vigila
+    // en cliente — necesita la hora real del servidor para este cálculo.
+    // eslint-disable-next-line react-hooks/purity
+    const due = lastSignedDate ? dueInfo(lastSignedDate, validity, new Date()) : null;
+    const expiresAt = due?.dueDate ?? null;
+    const daysUntilExpiry = due?.daysLeft ?? null;
+    const expirationStatus = !due ? "NEVER" : due.status === "VENCIDA" ? "EXPIRED" : due.status === "POR_VENCER" ? "EXPIRING_SOON" : "OK";
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -209,7 +227,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
             {/* Risk summary cards */}
             {Object.keys(latestByType).length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {["INTRALABORAL", "EXTRALABORAL", "STRESS"].map(type => {
+                    {INSTRUMENT_IDS.map(type => {
                         const a = latestByType[type];
                         if (!a) return (
                             <div key={type} className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-center">
@@ -218,7 +236,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                             </div>
                         );
                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
-                        const score = (a.scoredResult?.totalScores as any)?.transformedScore;
+                        const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
                         return (
                             <div key={type} className="rounded-xl border p-4 text-center" style={riskStyle[risk]}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{questionnaireLabels[type]}</p>
@@ -243,9 +261,9 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                 >
                     <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--color-risk-veryhigh-solid)" }} />
                     <div>
-                        <p className="font-semibold text-sm" style={{ color: "var(--color-risk-veryhigh-text)" }}>Evaluación vencida</p>
-                        <p className="text-xs mt-0.5" style={{ color: "var(--color-risk-veryhigh-text)" }}>
-                            La última evaluación firmada fue el {lastSignedDate!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}. Han pasado más de 2 años — se requiere reevaluación según la Res. 2764/2022.
+                        <p className="font-semibold text-red-800 text-sm">Evaluación vencida</p>
+                        <p className="text-red-700 text-xs mt-0.5">
+                            La última evaluación firmada fue el {lastSignedDate!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}. Venció la vigencia de {validity.years === 1 ? "un año (riesgo alto o muy alto)" : "dos años"} — se requiere reevaluación según la Res. 2764/2022, art. 3.
                         </p>
                         <a
                             href={`/dashboard/assessments/new/manual?workerId=${worker.id}`}
@@ -294,16 +312,16 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                     {[
                         { label: "Género", value: worker.gender === "M" ? "Masculino" : worker.gender === "F" ? "Femenino" : null },
                         { label: "Estado civil", value: worker.maritalStatus },
-                        { label: "Escolaridad", value: educationLabels[worker.educationLevel] || worker.educationLevel?.replace(/_/g, " ") },
+                        { label: "Escolaridad", value: worker.educationLevel ? (educationLabels[worker.educationLevel] || worker.educationLevel.replace(/_/g, " ")) : null },
                         { label: "Ciudad de residencia", value: worker.residenceCity },
                         { label: "Área / Departamento", value: worker.departmentArea },
-                        { label: "Tipo de contrato", value: contractLabels[worker.contractType] || worker.contractType?.replace(/_/g, " ") },
+                        { label: "Tipo de contrato", value: worker.contractType ? (contractLabels[worker.contractType] || worker.contractType.replace(/_/g, " ")) : null },
                         { label: "Jornada laboral", value: worker.workSchedule },
                         { label: "Horas por semana", value: worker.hoursPerWeek ? `${worker.hoursPerWeek} h` : null },
                         { label: "Antigüedad en empresa", value: worker.lessThanOneYearInCompany ? "Menos de un año" : worker.yearsInCompany !== null ? `${worker.yearsInCompany} años` : null },
                         { label: "Antigüedad en cargo", value: worker.lessThanOneYearInPosition ? "Menos de un año" : worker.yearsInPosition !== null ? `${worker.yearsInPosition} años` : null },
                         { label: "Estrato socioeconómico", value: worker.socioeconomicStratum ? `Estrato ${worker.socioeconomicStratum}` : null },
-                        { label: "Tipo de vivienda", value: housingLabels[worker.housingType] || worker.housingType },
+                        { label: "Tipo de vivienda", value: worker.housingType ? (housingLabels[worker.housingType] || worker.housingType) : null },
                     ].map(({ label, value }) => value ? (
                         <div key={label}>
                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
@@ -356,8 +374,8 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                                 <tbody className="divide-y divide-border">
                                     {assessments.map(a => {
                                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
-                                        const score = (a.scoredResult?.totalScores as any)?.transformedScore;
-                                        const status = statusStyle[a.status] || statusStyle.SCORED;
+                                        const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
+                                        const status = statusConfig[a.status] || statusConfig.SCORED;
                                         return (
                                             <tr key={a.id} className="hover:bg-muted/30 transition-colors">
                                                 <td className="px-6 py-3 whitespace-nowrap">

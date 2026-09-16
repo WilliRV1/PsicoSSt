@@ -5,14 +5,13 @@ import PublicQuestionnaireForm from "./public-questionnaire-form";
 import SignaturePad from "./signature-pad";
 import SociodemographicForm from "./sociodemographic-form";
 import { QuestionnaireType } from "@/types/battery";
+import { INSTRUMENTS, INSTRUMENT_IDS, sortByOrder } from "@/config/instruments";
 
-const QUESTIONNAIRE_ORDER: QuestionnaireType[] = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
+const QUESTIONNAIRE_ORDER: QuestionnaireType[] = sortByOrder(INSTRUMENT_IDS);
 
-const SECTION_LABEL: Record<QuestionnaireType, string> = {
-    INTRALABORAL: "Cuestionario Intralaboral",
-    EXTRALABORAL: "Cuestionario Extralaboral",
-    STRESS: "Cuestionario de Estrés",
-};
+const SECTION_LABEL = Object.fromEntries(
+    INSTRUMENT_IDS.map((id) => [id, INSTRUMENTS[id].label])
+) as Record<QuestionnaireType, string>;
 
 interface PublicInvitationView {
     workerFullName: string;
@@ -38,8 +37,11 @@ export default function InvitationFlow({ token }: { token: string }) {
     const [errorMessage, setErrorMessage] = useState("");
     const [signature, setSignature] = useState<string | null>(null);
 
-    const load = () => {
-        setScreen("LOADING");
+    // Separada de `load` para que el efecto de montaje no dispare un
+    // `setState` síncrono en su propio cuerpo (el estado inicial ya es
+    // "LOADING"); `load` sigue poniéndolo cuando se llama a mano, por
+    // ejemplo al recargar tras completar una sección.
+    const fetchAndApply = () => {
         fetch(`/api/public/invitations/${token}`)
             .then((res) => res.json())
             .then((data: PublicInvitationView) => {
@@ -80,7 +82,12 @@ export default function InvitationFlow({ token }: { token: string }) {
             });
     };
 
-    useEffect(load, [token]);
+    const load = () => {
+        setScreen("LOADING");
+        fetchAndApply();
+    };
+
+    useEffect(fetchAndApply, [token]);
 
     const handleSectionComplete = (allDone: boolean) => {
         if (allDone) {

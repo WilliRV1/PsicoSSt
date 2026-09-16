@@ -11,25 +11,20 @@ import {
     ResponsiveContainer,
     ReferenceArea,
 } from "recharts";
+import type { QuestionnaireType, RiskCategory, Prisma } from "@/generated/prisma";
 
 interface Assessment {
     id: string;
-    assessmentDate: string;
-    questionnaireType: string;
-    scoredResult: { overallRiskCategory: string; totalScores: any } | null;
+    // Llega como Date real (Prisma), no string: el protocolo de RSC preserva
+    // el tipo Date al cruzar del Server Component al Client Component.
+    assessmentDate: Date;
+    questionnaireType: QuestionnaireType;
+    scoredResult: { overallRiskCategory: RiskCategory; totalScores: Prisma.JsonValue } | null;
 }
 
 interface Props {
     assessments: Assessment[];
 }
-
-const RISK_CATEGORY_LABELS: Record<string, string> = {
-    SIN_RIESGO: "Sin Riesgo",
-    BAJO: "Bajo",
-    MEDIO: "Medio",
-    ALTO: "Alto",
-    MUY_ALTO: "Muy Alto",
-};
 
 const LINE_COLORS: Record<string, string> = {
     INTRALABORAL: "var(--color-primary)",
@@ -41,19 +36,21 @@ const LINE_DISPLAY_NAMES: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
     STRESS: "Estrés",
+    CLIMA: "Clima",
 };
 
-function formatDateLabel(dateStr: string): string {
-    const date = new Date(dateStr);
+function formatDateLabel(date: Date): string {
     return date
         .toLocaleDateString("es-CO", { month: "short", year: "2-digit" })
         .replace(".", "")
         .replace(/^\w/, (c) => c.toUpperCase());
 }
 
-function getTransformedScore(scoredResult: { overallRiskCategory: string; totalScores: any }): number | undefined {
+function getTransformedScore(scoredResult: { totalScores: Prisma.JsonValue }): number | undefined {
     const ts = scoredResult.totalScores;
-    if (ts == null) return undefined;
+    // JsonValue no garantiza forma: sólo se leen los campos tras confirmar
+    // que es un objeto plano, nunca un array ni un primitivo.
+    if (ts == null || typeof ts !== "object" || Array.isArray(ts)) return undefined;
     if (typeof ts.transformedScore === "number") return ts.transformedScore;
     if (typeof ts.percentile === "number") return ts.percentile;
     if (typeof ts.score === "number") return ts.score;
@@ -111,25 +108,39 @@ export default function WorkerTrendChart({ assessments }: Props) {
         );
     }
 
-    // Build map: rawDate -> ChartDataPoint
+    // Build map: dateKey -> ChartDataPoint. La llave es el ISO string de la
+    // fecha, no el objeto Date en sí — dos instancias de Date con el mismo
+    // instante nunca son idénticas por referencia, así que usarlas
+    // directamente como llave de Map habría dejado cada evaluación en su
+    // propio punto aunque compartieran fecha exacta con otra.
     const dateMap = new Map<string, ChartDataPoint>();
 
     for (const assessment of scored) {
-        const rawDate = assessment.assessmentDate;
-        const label = formatDateLabel(rawDate);
+        const dateKey = assessment.assessmentDate.toISOString();
+        const label = formatDateLabel(assessment.assessmentDate);
         const score = getTransformedScore(assessment.scoredResult!);
         if (score === undefined) continue;
 
-        if (!dateMap.has(rawDate)) {
-            dateMap.set(rawDate, { date: label, rawDate });
+        if (!dateMap.has(dateKey)) {
+            dateMap.set(dateKey, { date: label, rawDate: dateKey });
         }
 
-        const point = dateMap.get(rawDate)!;
-        const type = assessment.questionnaireType as "INTRALABORAL" | "EXTRALABORAL" | "STRESS";
+        const point = dateMap.get(dateKey)!;
+        const category = assessment.scoredResult!.overallRiskCategory;
 
-        if (type === "INTRALABORAL" || type === "EXTRALABORAL" || type === "STRESS") {
-            point[type] = score;
-            (point as any)[`${type}_category`] = assessment.scoredResult!.overallRiskCategory;
+        switch (assessment.questionnaireType) {
+            case "INTRALABORAL":
+                point.INTRALABORAL = score;
+                point.INTRALABORAL_category = category;
+                break;
+            case "EXTRALABORAL":
+                point.EXTRALABORAL = score;
+                point.EXTRALABORAL_category = category;
+                break;
+            case "STRESS":
+                point.STRESS = score;
+                point.STRESS_category = category;
+                break;
         }
     }
 

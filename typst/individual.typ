@@ -11,6 +11,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { "Informe individual" },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // ─── Componentes propios de este informe ────────────────────
@@ -245,6 +247,65 @@ según los niveles de riesgo definidos en la Resolución 2764 de 2022.
 *Interpretación.* #D.overall.meaning
 
 *Actuación requerida.* #D.overall.action
+
+#if D.meta.provenance.method == "IMPORTED" [
+  #v(4pt)
+  #note-block[
+    *Procedencia de los resultados.* Puntajes calificados en
+    #(if D.meta.provenance.source == "SIRPSI" { "SIRPSI (Ministerio del Trabajo)" } else { "una herramienta externa" })
+    e importados a esta plataforma el #D.meta.provenance.importedAt
+    (registro de carga #D.meta.provenance.importJobId). Los niveles de riesgo se
+    derivaron aquí con los baremos vigentes del manual; no se conservan las
+    respuestas ítem por ítem.
+  ]
+] else if D.meta.provenance.method == "SELF_SERVICE" [
+  #v(4pt)
+  #note-block[
+    *Modalidad.* Cuestionario diligenciado por el trabajador mediante enlace
+    personal emitido y custodiado por el profesional responsable.
+  ]
+]
+
+#if D.meta.instrument.provisionalBaremos [
+  #v(4pt)
+  #note-block[
+    Los cortes de esta escala son de referencia interna del profesional, no
+    baremos publicados por una autoridad. Este instrumento no hace parte de la
+    Batería normativa de riesgo psicosocial y sus resultados no sustentan
+    obligaciones del SG-SST.
+  ]
+]
+
+#if D.generalTotal != none [
+  #v(10pt)
+  == Puntaje total general
+
+  Combina los factores intralaborales y extralaborales evaluados al mismo
+  trabajador, conforme al Manual General de la Batería.
+
+  #v(4pt)
+  #block(width: 100%, inset: 13pt, fill: panel, stroke: (left: 3pt + rc(D.generalTotal.level), rest: 0.35pt + rule), {
+    grid(
+      columns: (1fr, auto),
+      align: (left + horizon, right + horizon),
+      {
+        label-text("Nivel de riesgo total general")
+        v(3pt)
+        text(font: serif, size: 22pt, weight: 600, fill: rc(D.generalTotal.level), D.generalTotal.levelLabel)
+      },
+      {
+        set align(right)
+        label-text("Puntaje transformado")
+        v(3pt)
+        text(font: sans, size: 22pt, weight: 600, fill: ink, num(str(D.generalTotal.score)))
+      },
+    )
+    if D.generalTotal.bounds.len() > 0 {
+      v(9pt)
+      band-scale(D.generalTotal.bounds, D.generalTotal.score, height: 10pt)
+    }
+  })
+]
 
 #if D.meta.isStress [
   #v(4pt)

@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Plus, Upload, MapPin, Building2, Users, XCircle, X, Pencil, Trash2, ShieldCheck, FileBarChart, UserRound, Download } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { Plus, Upload, MapPin, Building2, Users, Loader2, XCircle, X, Pencil, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +59,50 @@ interface Worker {
     };
 }
 
+/**
+ * Shape of GET /api/workers/:id — el registro completo del trabajador. La
+ * lista de /api/workers?organizationId= sólo trae el subconjunto de arriba
+ * (Worker), así que abrir "editar" desde esa lista necesita esta llamada
+ * adicional; usar los datos truncados de la lista vaciaría en el formulario
+ * (y luego, al guardar, borraría en la BD) los ~15 campos que esa lista no
+ * incluye.
+ */
+interface FullWorkerRecord {
+    id: string;
+    documentType: string;
+    documentId: string;
+    fullName: string;
+    gender: string | null;
+    birthYear: number | null;
+    birthDate: string | null;
+    maritalStatus: string | null;
+    educationLevel: string | null;
+    profession: string | null;
+    jobTitle: string | null;
+    jobLevel: string;
+    residenceCity: string | null;
+    residenceDepartment: string | null;
+    socioeconomicStratum: string | null;
+    housingType: string | null;
+    dependentsCount: number | null;
+    freeTimeUsage: string[];
+    departmentArea: string | null;
+    lessThanOneYearInCompany: boolean;
+    yearsInCompany: number | null;
+    lessThanOneYearInPosition: boolean;
+    yearsInPosition: number | null;
+    contractType: string | null;
+    workSchedule: string | null;
+    hoursPerDay: string | null;
+    hoursPerWeek: string | null;
+    paymentModality: string | null;
+    workCity: string | null;
+    workDepartment: string | null;
+    transportMeans: string | null;
+    displacementTime: number | null;
+    hasCustomerInteraction: boolean;
+}
+
 interface Organization {
     id: string;
     name: string;
@@ -99,7 +142,7 @@ function BatteryBadge({ label, slot, workerId, orgId, type }: {
             <a
                 href={`/dashboard/assessments/new/manual?workerId=${workerId}&orgId=${orgId}&type=${type}`}
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-dashed border-border text-text-muted hover:border-primary hover:text-primary transition-colors"
-                title={`Aplicar ${label}`}
+                title={`Registrar ${label}`}
             >
                 <Plus className="w-2.5 h-2.5" />{label}
             </a>
@@ -128,20 +171,10 @@ const JOB_LEVEL_LABELS: Record<string, string> = {
     OPERATIVO: "Operativo"
 };
 
-const EDUCATION_LABELS: Record<string, string> = {
-    PRIMARIA: "Primaria",
-    BACHILLERATO: "Bachillerato",
-    TECNICO: "T\u00e9cnico",
-    TECNOLOGO: "Tecn\u00f3logo",
-    PROFESIONAL: "Profesional",
-    ESPECIALIZACION: "Especializaci\u00f3n",
-    MAESTRIA: "Maestr\u00eda",
-    DOCTORADO: "Doctorado"
-};
-
 import { EMPTY_WORKER_FORM, WorkerFormFields } from "@/components/workers/WorkerFormFields";
 
 
+import { getErrorMessage } from "@/lib/utils";
 
 export default function OrganizationDetailPage() {
     const params = useParams();
@@ -231,8 +264,8 @@ export default function OrganizationDetailPage() {
             setForm({ ...EMPTY_WORKER_FORM });
             setIntraFormType("A");
             fetchData();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setSaving(false);
         }
@@ -272,15 +305,61 @@ export default function OrganizationDetailPage() {
 
             setShowEditOrgModal(false);
             fetchData();
-        } catch (err: any) {
-            setOrgError(err.message);
+        } catch (err: unknown) {
+            setOrgError(getErrorMessage(err));
         } finally {
             setSavingOrg(false);
         }
     };
 
     // --- Edit worker ---
-    const openEditWorker = useCallback((w: any) => { setEditingWorker(w); setEditWorkerForm({ documentType: w.documentType || "CC", documentId: w.documentId || "", fullName: w.fullName || "", gender: w.gender || "", birthYear: w.birthYear != null ? String(w.birthYear) : "", birthDate: w.birthDate ? w.birthDate.substring(0, 10) : "", maritalStatus: w.maritalStatus || "", educationLevel: w.educationLevel || "", profession: w.profession || "", jobTitle: w.jobTitle || "", jobLevel: w.jobLevel || "", residenceCity: w.residenceCity || "", residenceDepartment: w.residenceDepartment || "", socioeconomicStratum: w.socioeconomicStratum || "", housingType: w.housingType || "", dependentsCount: w.dependentsCount != null ? String(w.dependentsCount) : "", freeTimeUsage: w.freeTimeUsage || [], departmentArea: w.departmentArea || "", lessThanOneYearInCompany: w.lessThanOneYearInCompany || false, yearsInCompany: w.yearsInCompany != null ? String(w.yearsInCompany) : "", lessThanOneYearInPosition: w.lessThanOneYearInPosition || false, yearsInPosition: w.yearsInPosition != null ? String(w.yearsInPosition) : "", contractType: w.contractType || "", workSchedule: w.workSchedule || "", hoursPerDay: w.hoursPerDay != null ? String(w.hoursPerDay) : "", hoursPerWeek: w.hoursPerWeek != null ? String(w.hoursPerWeek) : "", paymentModality: w.paymentModality || "", workCity: w.workCity || "", workDepartment: w.workDepartment || "", transportMeans: w.transportMeans || "", displacementTime: w.displacementTime != null ? String(w.displacementTime) : "", hasCustomerInteraction: w.hasCustomerInteraction ?? true }); setWorkerError(null); setShowEditWorkerModal(true); }, []);
+    const openEditWorker = useCallback(async (w: Worker) => {
+        setWorkerError(null);
+        try {
+            const res = await fetch(`/api/workers/${w.id}`);
+            const full: FullWorkerRecord = await res.json();
+            if (!res.ok) throw new Error("Error al cargar el trabajador");
+
+            setEditingWorker(w);
+            setEditWorkerForm({
+                documentType: full.documentType || "CC",
+                documentId: full.documentId || "",
+                fullName: full.fullName || "",
+                gender: full.gender || "",
+                birthYear: full.birthYear != null ? String(full.birthYear) : "",
+                birthDate: full.birthDate ? full.birthDate.substring(0, 10) : "",
+                maritalStatus: full.maritalStatus || "",
+                educationLevel: full.educationLevel || "",
+                profession: full.profession || "",
+                jobTitle: full.jobTitle || "",
+                jobLevel: full.jobLevel || "",
+                residenceCity: full.residenceCity || "",
+                residenceDepartment: full.residenceDepartment || "",
+                socioeconomicStratum: full.socioeconomicStratum || "",
+                housingType: full.housingType || "",
+                dependentsCount: full.dependentsCount != null ? String(full.dependentsCount) : "",
+                freeTimeUsage: full.freeTimeUsage || [],
+                departmentArea: full.departmentArea || "",
+                lessThanOneYearInCompany: full.lessThanOneYearInCompany || false,
+                yearsInCompany: full.yearsInCompany != null ? String(full.yearsInCompany) : "",
+                lessThanOneYearInPosition: full.lessThanOneYearInPosition || false,
+                yearsInPosition: full.yearsInPosition != null ? String(full.yearsInPosition) : "",
+                contractType: full.contractType || "",
+                workSchedule: full.workSchedule || "",
+                hoursPerDay: full.hoursPerDay != null ? String(full.hoursPerDay) : "",
+                hoursPerWeek: full.hoursPerWeek != null ? String(full.hoursPerWeek) : "",
+                paymentModality: full.paymentModality || "",
+                workCity: full.workCity || "",
+                workDepartment: full.workDepartment || "",
+                transportMeans: full.transportMeans || "",
+                displacementTime: full.displacementTime != null ? String(full.displacementTime) : "",
+                hasCustomerInteraction: full.hasCustomerInteraction ?? true,
+            });
+            setShowEditWorkerModal(true);
+        } catch (err: unknown) {
+            setWorkerError(getErrorMessage(err));
+        }
+    }, []);
 
     useEffect(() => {
         if (typeof window !== "undefined" && workers.length > 0 && !showEditWorkerModal) {
@@ -316,28 +395,34 @@ export default function OrganizationDetailPage() {
             setShowEditWorkerModal(false);
             setEditingWorker(null);
             fetchData();
-        } catch (err: any) {
-            setWorkerError(err.message);
+        } catch (err: unknown) {
+            setWorkerError(getErrorMessage(err));
         } finally {
             setSavingWorker(false);
         }
     };
 
-    // --- Delete worker ---
-    const confirmDeleteWorker = async () => {
-        if (!deletingWorker) return;
-        setDeleteError(null);
+    // --- Archive worker ---
+    // Ya no se borra: la evidencia del SG-SST debe conservarse 20 años
+    // (Dec. 1072/2015 art. 2.2.4.6.13). El backend archiva y, si había
+    // evaluaciones calificadas, responde 409 explicando por qué.
+    const handleArchiveWorker = async (w: Worker) => {
+        if (!confirm(
+            `¿Archivar al trabajador "${w.fullName}"? Dejará de aparecer en los listados, ` +
+            "pero su historial de evaluaciones se conserva como evidencia del SG-SST."
+        )) return;
+
         try {
             const res = await fetch(`/api/workers/${deletingWorker.id}`, { method: "DELETE" });
             const data = await res.json();
             if (!res.ok) {
-                setDeleteError(data.error || "Error al eliminar");
-                return;
+                alert(data.error || "Error al archivar");
+                if (!data.archived) return;
             }
             setDeletingWorker(null);
             fetchData();
         } catch {
-            setDeleteError("Error al eliminar el trabajador");
+            alert("Error al archivar el trabajador");
         }
     };
 
@@ -598,11 +683,11 @@ export default function OrganizationDetailPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => { setDeleteError(null); setDeletingWorker(w); }}
-                                                        title="Eliminar trabajador"
+                                                        onClick={() => handleArchiveWorker(w)}
+                                                        title="Archivar trabajador"
                                                         className="text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <Archive className="w-3.5 h-3.5" />
                                                     </Button>
                                                 </div>
                                             </td>

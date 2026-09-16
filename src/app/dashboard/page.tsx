@@ -2,12 +2,19 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Plus } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle2, Plus, ArrowRight, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyDashboardState from "@/components/dashboard/empty-dashboard-state";
-import { StatCard } from "@/components/dashboard/StatCard";
-import type { ComplianceStatus } from "@/components/psicosst/compliance-badge";
-import { OrgCardGrid, type OrgCard } from "@/components/dashboard/org-card-grid";
+import { dueInfo, organizationValidity } from "@/lib/compliance/cadence";
+
+type ComplianceStatus = "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
+
+const complianceCfg: Record<ComplianceStatus, { label: string; bar: string; badge: string; icon: LucideIcon }> = {
+    vencida:    { label: "Vencida",     bar: "bg-red-500",    badge: "bg-red-100 text-red-700 border-red-200",      icon: AlertTriangle },
+    por_vencer: { label: "Por vencer",  bar: "bg-amber-400",  badge: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
+    sin_evaluar:{ label: "Sin evaluar", bar: "bg-slate-300",  badge: "bg-slate-100 text-slate-600 border-slate-200", icon: Users },
+    vigente:    { label: "Vigente",     bar: "bg-teal-500",   badge: "bg-teal-50 text-teal-700 border-teal-200",     icon: CheckCircle2 },
+};
 
 const statusOrder: ComplianceStatus[] = ["vencida", "por_vencer", "sin_evaluar", "vigente"];
 
@@ -43,9 +50,11 @@ export default async function DashboardPage() {
         return <EmptyDashboardState firstName={firstName} />;
     }
 
-    const now = Date.now();
-    const ONE_YEAR_MS  = 365.25 * 24 * 60 * 60 * 1000;
-    const TWO_YEARS_MS = 2 * ONE_YEAR_MS;
+    // Server Component: se ejecuta una vez por petición, sin el re-render
+    // concurrente que esta regla vigila en componentes de cliente — la hora
+    // real del servidor es exactamente lo que necesita este cálculo.
+    // eslint-disable-next-line react-hooks/purity
+    const now = new Date();
 
     const orgCards: OrgCard[] = orgsRaw.map(org => {
         const signed   = org.assessments.filter(a => a.status === "SIGNED");
@@ -71,13 +80,13 @@ export default async function DashboardPage() {
         if (!lastSigned) {
             complianceStatus = "sin_evaluar";
         } else {
-            const validityMs = criticalPct > 20 ? ONE_YEAR_MS : TWO_YEARS_MS;
-            expiryDate = new Date(new Date(lastSigned).getTime() + validityMs);
-            daysLeft = Math.floor((expiryDate.getTime() - now) / (1000 * 60 * 60 * 24));
-
-            if (daysLeft < 0) complianceStatus = "vencida";
-            else if (daysLeft <= 90) complianceStatus = "por_vencer";
-            else complianceStatus = "vigente";
+            // Aquí sólo se conoce el % de críticos; los otros dos criterios de
+            // vigencia anual (área saturada, dominio muy alto) los aplica el
+            // informe diagnóstico, que tiene los datos.
+            const info = dueInfo(new Date(lastSigned), organizationValidity({ criticalWorkerPercent: criticalPct }), now);
+            expiryDate = info.dueDate;
+            daysLeft = info.daysLeft;
+            complianceStatus = info.status === "VENCIDA" ? "vencida" : info.status === "POR_VENCER" ? "por_vencer" : "vigente";
         }
 
         return {

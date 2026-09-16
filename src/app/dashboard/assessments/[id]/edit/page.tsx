@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import EditAssessmentForm from "./edit-form";
+import type { DimensionScore, ItemResponses, TotalScore } from "@/types/battery";
 
 export const metadata = {
     title: "Editar Evaluación | PsicoSST",
@@ -53,8 +54,8 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
 
     // Build savedScore from the DB scoredResult
     const scoredResult = assessment.scoredResult;
-    const totalScores = scoredResult?.totalScores as any;
-    const dimensionScores = scoredResult?.dimensionScores as any ?? {};
+    const totalScores = scoredResult?.totalScores as unknown as TotalScore | undefined;
+    const dimensionScores = (scoredResult?.dimensionScores as unknown as Record<string, DimensionScore>) ?? {};
 
     const savedScore = {
         overallRiskCategory: scoredResult?.overallRiskCategory ?? "SIN_RIESGO",
@@ -100,9 +101,9 @@ export default async function EditAssessmentPage({ params }: { params: Promise<{
                     organizationId={assessment.organizationId}
                     hasCustomerInteraction={assessment.worker.hasCustomerInteraction}
                     initialAssessmentId={assessment.id}
-                    initialFormType={assessment.formType as any}
-                    initialQType={assessment.questionnaireType as any}
-                    initialResponses={assessment.responseSet.responses as any}
+                    initialFormType={assessment.formType}
+                    initialQType={assessment.questionnaireType}
+                    initialResponses={assessment.responseSet.responses as unknown as ItemResponses}
                     savedScore={savedScore}
                 />
             </div>

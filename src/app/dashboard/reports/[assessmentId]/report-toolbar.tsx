@@ -9,7 +9,6 @@ interface ReportToolbarProps {
 }
 
 export default function ReportToolbar({
-    assessmentId,
     isSigned,
     pdfUrl,
 }: ReportToolbarProps) {

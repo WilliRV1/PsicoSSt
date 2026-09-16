@@ -1,4 +1,4 @@
-import { DomainDictionary, DimensionDictionary } from './types';
+import { DomainDictionary } from './types';
 import { demandsDomain } from './domains/demands';
 
 // Central Registry for Clinical Dictionaries

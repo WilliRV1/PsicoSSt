@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-    Users, Building2, ClipboardList, FileText, UserCheck, UserX,
+    Users, Building2, ClipboardList, FileText, UserCheck,
     Clock, Shield, ArrowRight, Activity,
     MessageSquare,
 } from "lucide-react";
@@ -29,7 +29,8 @@ export default async function AdminDashboardPage() {
         prisma.psychologist.count({ where: { status: "ACTIVE" } }),
         prisma.psychologist.count({ where: { status: "SUSPENDED" } }),
         prisma.organization.count(),
-        prisma.worker.count(),
+        // Métrica operativa de la plataforma: no cuenta archivados.
+        prisma.worker.count({ where: { archivedAt: null } }),
         prisma.assessment.count({ where: { status: { in: ["SCORED", "REVIEWED", "SIGNED"] } } }),
         prisma.assessment.count({ where: { status: "SIGNED" } }),
         prisma.auditLog.findMany({

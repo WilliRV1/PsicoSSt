@@ -14,6 +14,12 @@ export function Header({ user }: HeaderProps) {
   const credits = user?.creditBalance ?? 0;
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  // Guarda de hidratación de next-themes: es el patrón que la propia
+  // librería documenta para saber cuándo ya se puede leer `theme` sin
+  // desajustar el HTML del servidor. No hay "valor anterior" que comparar
+  // durante el render (a diferencia de un cambio de prop): sólo se sabe
+  // que ya se montó una vez ejecutado un efecto en el cliente.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const creditColor =
@@ -56,13 +62,19 @@ export function Header({ user }: HeaderProps) {
       <div className="flex items-center gap-4">
         {/* Credits */}
         <Link
-          href="/dashboard/store"
-          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] transition-colors duration-150"
-          style={{ color: creditColor, background: "var(--color-surface-muted)" }}
+          href="/dashboard/plan"
+          className="flex items-center gap-1.5 text-[13px] transition-colors duration-100"
+          style={{ color: creditColor }}
+          onMouseEnter={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-primary)")
+          }
+          onMouseLeave={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = creditColor)
+          }
         >
           <span className="font-mono font-semibold tabular-nums">{credits}</span>
           <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
-            créditos
+            trabajadores
           </span>
         </Link>
 

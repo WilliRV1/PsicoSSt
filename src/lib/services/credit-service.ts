@@ -1,10 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import { TRIAL_CREDITS, getPackageById } from "@/config/credit-packages";
+import type { Prisma } from "@/generated/prisma/client";
+import type { Sku } from "@/config/plans";
 
+/**
+ * Libro de unidades del psicólogo.
+ *
+ * `Psychologist.creditBalance` es un saldo ALMACENADO: cada movimiento deja un
+ * `CreditTransaction` con `balanceAfter`, de modo que el saldo nunca se
+ * recomputa sumando asientos. El consumo vive en `lib/entitlements.ts`
+ * (`consumeUnit`), no aquí: este servicio sólo otorga, revierte y lista.
+ */
 export class CreditService {
-    /**
-     * Get the current credit balance for a psychologist.
-     */
     static async getBalance(psychologistId: string): Promise<number> {
         const psych = await prisma.psychologist.findUnique({
             where: { id: psychologistId },
@@ -13,201 +19,7 @@ export class CreditService {
         return psych?.creditBalance ?? 0;
     }
 
-    /**
-     * Check if a psychologist has enough credits for an assessment.
-     */
-    static async hasCredits(psychologistId: string, amount = 1): Promise<boolean> {
-        const balance = await this.getBalance(psychologistId);
-        return balance >= amount;
-    }
-
-    /**
-     * Grant trial credits to a newly registered psychologist.
-     */
-    static async grantTrialCredits(psychologistId: string): Promise<void> {
-        await prisma.$transaction(async (tx) => {
-            const psych = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { increment: TRIAL_CREDITS } },
-                select: { creditBalance: true },
-            });
-
-            await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "TRIAL_GRANT",
-                    amount: TRIAL_CREDITS,
-                    balanceAfter: psych.creditBalance,
-                    description: `Créditos de prueba: ${TRIAL_CREDITS} baterías gratis`,
-                },
-            });
-        });
-    }
-
-    /**
-     * Purchase a credit package. Returns the new balance.
-     */
-    static async purchasePackage(
-        psychologistId: string,
-        packageId: string,
-        paymentRef?: string
-    ): Promise<{ balance: number; transactionId: string }> {
-        const pkg = getPackageById(packageId);
-        if (!pkg) throw new Error("Paquete no encontrado");
-
-        return await prisma.$transaction(async (tx) => {
-            const psych = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { increment: pkg.credits } },
-                select: { creditBalance: true },
-            });
-
-            const transaction = await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "PURCHASE",
-                    amount: pkg.credits,
-                    balanceAfter: psych.creditBalance,
-                    packageId: pkg.id,
-                    priceCOP: pkg.priceCOP,
-                    paymentRef,
-                    description: `Compra paquete ${pkg.name}: ${pkg.credits} créditos`,
-                },
-            });
-
-            return { balance: psych.creditBalance, transactionId: transaction.id };
-        });
-    }
-
-    /**
-     * Atomically checks whether a worker has had an assessment in the last
-     * 3 months and, if not, consumes 1 credit in the same DB transaction.
-     * Returns { consumed: true } when a credit was deducted, or
-     * { consumed: false } when it was not the first assessment in the cycle
-     * (no credit needed). Throws "INSUFFICIENT_CREDITS" if balance is zero.
-     *
-     * Wrapping both operations in one transaction prevents the race condition
-     * where two concurrent requests for the same worker both see count=0 and
-     * both consume a credit.
-     */
-    static async consumeCreditForAssessment(
-        psychologistId: string,
-        workerId: string
-    ): Promise<{ consumed: boolean }> {
-        return await prisma.$transaction(async (tx) => {
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-            const recentCount = await tx.assessment.count({
-                where: {
-                    workerId,
-                    createdAt: { gte: threeMonthsAgo },
-                },
-            });
-
-            if (recentCount > 0) {
-                return { consumed: false };
-            }
-
-            const psych = await tx.psychologist.findUnique({
-                where: { id: psychologistId },
-                select: { creditBalance: true },
-            });
-
-            if (!psych || psych.creditBalance < 1) {
-                throw new Error("INSUFFICIENT_CREDITS");
-            }
-
-            const updated = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { decrement: 1 } },
-                select: { creditBalance: true },
-            });
-
-            await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "CONSUMPTION",
-                    amount: -1,
-                    balanceAfter: updated.creditBalance,
-                    description: "Evaluación de batería completa",
-                },
-            });
-
-            return { consumed: true };
-        });
-    }
-
-    /**
-     * Consume 1 credit for an assessment. Throws if insufficient balance.
-     * assessmentId is optional so it can be called before the assessment is created.
-     */
-    static async consumeCredit(
-        psychologistId: string,
-        assessmentId?: string
-    ): Promise<number> {
-        return await prisma.$transaction(async (tx) => {
-            // Read and decrement in the same transaction to prevent race conditions.
-            const psych = await tx.psychologist.findUnique({
-                where: { id: psychologistId },
-                select: { creditBalance: true },
-            });
-
-            if (!psych || psych.creditBalance < 1) {
-                throw new Error("INSUFFICIENT_CREDITS");
-            }
-
-            const updated = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { decrement: 1 } },
-                select: { creditBalance: true },
-            });
-
-            await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "CONSUMPTION",
-                    amount: -1,
-                    balanceAfter: updated.creditBalance,
-                    assessmentId,
-                    description: "Evaluación de batería completa",
-                },
-            });
-
-            return updated.creditBalance;
-        });
-    }
-
-    /**
-     * Refund 1 credit. Used to compensate when assessment creation fails
-     * after a credit was already consumed.
-     */
-    static async refundCredit(
-        psychologistId: string,
-        reason: string
-    ): Promise<void> {
-        await prisma.$transaction(async (tx) => {
-            const psych = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { increment: 1 } },
-                select: { creditBalance: true },
-            });
-
-            await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "REFUND",
-                    amount: 1,
-                    balanceAfter: psych.creditBalance,
-                    description: `Reembolso automático: ${reason}`,
-                },
-            });
-        });
-    }
-
-    /**
-     * Admin grant credits to a psychologist.
-     */
+    /** Unidades sueltas asignadas por un administrador (no vencen). */
     static async adminGrant(
         psychologistId: string,
         amount: number,
@@ -226,7 +38,7 @@ export class CreditService {
                     type: "ADMIN_GRANT",
                     amount,
                     balanceAfter: psych.creditBalance,
-                    description: description || `Asignación manual: ${amount} créditos`,
+                    description: description || `Asignación manual: ${amount} unidades`,
                 },
             });
 
@@ -234,9 +46,6 @@ export class CreditService {
         });
     }
 
-    /**
-     * Get transaction history for a psychologist.
-     */
     static async getTransactions(
         psychologistId: string,
         limit = 20,
@@ -248,5 +57,90 @@ export class CreditService {
             take: limit,
             skip: offset,
         });
+    }
+
+    /**
+     * Acredita un SKU comprado DENTRO de la transacción del cobro.
+     *
+     * Comparte la transacción de `PaymentService.applyPayment` para que marcar
+     * la orden como pagada y otorgar las unidades sean el mismo hecho atómico.
+     * El asiento devuelto es el cerrojo de idempotencia de la orden
+     * (`PaymentOrder.creditTransactionId`), por eso se escribe SIEMPRE, incluso
+     * para un módulo sin unidades (amount 0).
+     *
+     * Un plan otorga su cupo con vencimiento (`expiresAt = periodEnd`, ver
+     * `SubscriptionService.activateInTx`); las unidades sueltas no vencen.
+     */
+    static async creditPurchaseInTx(
+        tx: Prisma.TransactionClient,
+        params: { psychologistId: string; pkg: Sku; paymentRef: string | null; expiresAt?: Date | null }
+    ): Promise<{ transactionId: string; balance: number }> {
+        const psych = await tx.psychologist.update({
+            where: { id: params.psychologistId },
+            data: { creditBalance: { increment: params.pkg.credits } },
+            select: { creditBalance: true },
+        });
+
+        const description =
+            params.pkg.kind === "plan"
+                ? `${params.pkg.name}: ${params.pkg.credits} trabajadores gestionados`
+                : params.pkg.kind === "feature"
+                  ? `Módulo: ${params.pkg.name}`
+                  : `Compra ${params.pkg.name}: ${params.pkg.credits} unidades`;
+
+        const transaction = await tx.creditTransaction.create({
+            data: {
+                psychologistId: params.psychologistId,
+                type: params.pkg.kind === "plan" ? "PLAN_QUOTA" : "PURCHASE",
+                amount: params.pkg.credits,
+                balanceAfter: psych.creditBalance,
+                packageId: params.pkg.id,
+                priceCOP: params.pkg.priceCOP,
+                paymentRef: params.paymentRef,
+                expiresAt: params.expiresAt ?? null,
+                description,
+            },
+            select: { id: true },
+        });
+
+        return { transactionId: transaction.id, balance: psych.creditBalance };
+    }
+
+    /**
+     * Retira unidades tras un reembolso o un contracargo en la pasarela.
+     *
+     * El saldo PUEDE quedar negativo, y es intencional: si el psicólogo ya gastó
+     * las unidades antes de que llegara el contracargo, dejarlo en cero le
+     * regalaría el consumo. En negativo, `consumeUnit` lo frena (exige saldo
+     * >= 1) hasta que regularice, y el libro conserva la historia completa.
+     */
+    static async reverseInTx(
+        tx: Prisma.TransactionClient,
+        params: {
+            psychologistId: string;
+            credits: number;
+            paymentRef: string;
+            reason: string;
+        }
+    ): Promise<{ transactionId: string; balance: number }> {
+        const psych = await tx.psychologist.update({
+            where: { id: params.psychologistId },
+            data: { creditBalance: { decrement: params.credits } },
+            select: { creditBalance: true },
+        });
+
+        const transaction = await tx.creditTransaction.create({
+            data: {
+                psychologistId: params.psychologistId,
+                type: "REVERSAL",
+                amount: -params.credits,
+                balanceAfter: psych.creditBalance,
+                paymentRef: params.paymentRef,
+                description: `Reversión de pago (${params.reason}): -${params.credits} unidades`,
+            },
+            select: { id: true },
+        });
+
+        return { transactionId: transaction.id, balance: psych.creditBalance };
     }
 }

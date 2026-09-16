@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractRequestMeta } from "@/lib/auth/audit";
+import { enforcePublicRateLimit } from "@/lib/security/public-guard";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
 
 /**
@@ -10,11 +12,14 @@ export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ token: string }> }
 ) {
+    const limited = enforcePublicRateLimit("view", extractRequestMeta(request).ipAddress);
+    if (limited) return limited;
+
     try {
         const { token } = await params;
         const view = await AssessmentInvitationService.getPublicView(token);
         return NextResponse.json(view);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[PUBLIC_INVITATIONS] GET error:", error);
         return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
     }

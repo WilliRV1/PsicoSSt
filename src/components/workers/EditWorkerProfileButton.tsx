@@ -2,23 +2,65 @@
 
 import React, { useState } from "react";
 import { PenLine, X, Loader2 } from "lucide-react";
-import { WorkerFormFields, EMPTY_WORKER_FORM } from "@/components/workers/WorkerFormFields";
+import { WorkerFormFields, EMPTY_WORKER_FORM, type WorkerFormData } from "@/components/workers/WorkerFormFields";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
-export default function EditWorkerProfileButton({ worker }: { worker: any }) {
+/** Lo que este componente lee del trabajador. Llega tal cual lo devuelve
+ * Prisma (Server Component → Client Component conserva Date real, no un
+ * string ya serializado — a diferencia de los flujos que pasan por fetch/JSON). */
+interface EditableWorker {
+    id: string;
+    organizationId: string;
+    documentType: string;
+    documentId: string;
+    fullName: string;
+    gender: string | null;
+    birthDate: Date | null;
+    birthYear: number | null;
+    maritalStatus: string | null;
+    educationLevel: string | null;
+    profession: string | null;
+    residenceCity: string | null;
+    residenceDepartment: string | null;
+    socioeconomicStratum: string | null;
+    housingType: string | null;
+    dependentsCount: number | null;
+    freeTimeUsage: string[];
+    yearsInCompany: number | null;
+    lessThanOneYearInCompany: boolean | null;
+    jobTitle: string | null;
+    jobLevel: string;
+    departmentArea: string | null;
+    contractType: string | null;
+    workSchedule: string | null;
+    hoursPerDay: string | null;
+    hoursPerWeek: string | null;
+    paymentModality: string | null;
+    yearsInPosition: number | null;
+    lessThanOneYearInPosition: boolean | null;
+    workCity: string | null;
+    workDepartment: string | null;
+    transportMeans: string | null;
+    displacementTime: number | null;
+    hasCustomerInteraction: boolean;
+}
+
+export default function EditWorkerProfileButton({ worker }: { worker: EditableWorker }) {
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [form, setForm] = useState<any>({ ...EMPTY_WORKER_FORM });
+    const [form, setForm] = useState<WorkerFormData>({ ...EMPTY_WORKER_FORM });
 
     const openModal = () => {
         setForm({
-            id: worker.id,
             documentType: worker.documentType || "CC",
             documentId: worker.documentId || "",
             fullName: worker.fullName || "",
             gender: worker.gender || "",
-            birthDate: worker.birthDate ? worker.birthDate.substring(0, 10) : "",
+            // Fecha real de Prisma: se extrae yyyy-mm-dd con toISOString(),
+            // nunca .substring() directo sobre un objeto Date.
+            birthDate: worker.birthDate ? worker.birthDate.toISOString().substring(0, 10) : "",
             birthYear: worker.birthYear ? String(worker.birthYear) : "",
             maritalStatus: worker.maritalStatus || "",
             educationLevel: worker.educationLevel || "",
@@ -35,6 +77,7 @@ export default function EditWorkerProfileButton({ worker }: { worker: any }) {
             jobLevel: worker.jobLevel || "",
             departmentArea: worker.departmentArea || "",
             contractType: worker.contractType || "",
+            workSchedule: worker.workSchedule || "",
             hoursPerDay: worker.hoursPerDay || "",
             hoursPerWeek: worker.hoursPerWeek || "",
             paymentModality: worker.paymentModality || "",
@@ -66,9 +109,9 @@ export default function EditWorkerProfileButton({ worker }: { worker: any }) {
             toast.success("Trabajador actualizado correctamente");
             setShowModal(false);
             window.location.reload();
-        } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message || "Error al guardar");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
+            toast.error(getErrorMessage(err) || "Error al guardar");
         } finally {
             setSaving(false);
         }

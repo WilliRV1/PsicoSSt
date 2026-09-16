@@ -54,6 +54,7 @@ model Psychologist {
   creditTransactions CreditTransaction[]
   resetTokens        PasswordResetToken[]
   paymentOrders      PaymentOrder[]
+  subscription       Subscription?
   settings           PsychologistSettings?
   assessmentReports  AssessmentReport[]
   assessmentInvitations AssessmentInvitation[]
@@ -183,6 +184,10 @@ model Worker {
   /// enlace de autoservicio (después de firmar consentimiento, antes del
   /// primer cuestionario). Nula = pendiente o cargado manual por psicólogo.
   sociodemographicsCompletedAt DateTime? @map("sociodemographics_completed_at")
+  /// Archivado lógico. El Dec. 1072/2015 art. 2.2.4.6.13 obliga a conservar la
+  /// evidencia 20 años desde el cese laboral, así que un trabajador con
+  /// evaluaciones calificadas nunca se borra: se archiva y deja de listarse.
+  archivedAt             DateTime?         @map("archived_at")
   createdAt              DateTime          @default(now()) @map("created_at")
   updatedAt              DateTime          @updatedAt @map("updated_at")
   assessments            Assessment[]
@@ -214,6 +219,8 @@ model Assessment {
   /// campo (se usa el valor del trabajador como mejor aproximación).
   hasCustomerInteraction Boolean?     @map("has_customer_interaction")
   hasPeopleInCharge      Boolean?     @map("has_people_in_charge")
+  /// Carga que originó esta evaluación (inputMethod BULK o IMPORTED).
+  importJobId       String?           @map("import_job_id") @db.Uuid
   notes             String?
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
@@ -228,6 +235,8 @@ model Assessment {
   invitationAsIntra AssessmentInvitation? @relation("InvitationIntra")
   invitationAsExtra AssessmentInvitation? @relation("InvitationExtra")
   invitationAsStress AssessmentInvitation? @relation("InvitationStress")
+  invitationAsClima  AssessmentInvitation? @relation("InvitationClima")
+  importJob         ImportJob?        @relation(fields: [importJobId], references: [id])
 
   @@index([psychologistId, status])
   @@index([organizationId, assessmentDate])
@@ -279,6 +288,12 @@ model InformedConsent {
   /// Firma dibujada por el trabajador (dedo/mouse) como PNG base64. Nula en
   /// consentimientos tomados en persona por el psicólogo (VERBAL/WRITTEN).
   consentSignature String?     @map("consent_signature") @db.Text
+  /// Identificador de la versión exacta del texto que se le mostró al
+  /// trabajador. Sin esto no puede reconstruirse qué fue lo que autorizó,
+  /// porque el texto cambia con cada despliegue (Ley 1581/2012 art. 6 y 12).
+  consentVersion String?       @map("consent_version")
+  ipAddress      String?       @map("ip_address")
+  userAgent      String?       @map("user_agent") @db.Text
   consentedAt    DateTime      @default(now()) @map("consented_at")
   assessment     Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   worker         Worker        @relation(fields: [workerId], references: [id])
@@ -302,6 +317,10 @@ model GeneratedReport {
   // Immutability and Verification
   contentHash       String?      @map("content_hash")
   versionHash       String?      @map("version_hash")
+  /// URL del PDF archivado al firmar. El informe entregado debe poder
+  /// recuperarse tal cual se entregó: recompilarlo con los datos del día
+  /// impide probar qué documento se firmó (Dec. 1072/2015 art. 2.2.4.6.13).
+  pdfUrl            String?      @map("pdf_url")
   pdfSize           Int?         @map("pdf_size")
   pages             Int?
   generatedBy       String?      @map("generated_by")
@@ -406,12 +425,22 @@ model InterventionAction {
   @@map("intervention_actions")
 }
 
-/// Bulk import job tracking
+/// Trazabilidad de una carga por archivo.
+///
+/// `kind` distingue respuestas crudas (RESPONSES, api/v1/import) de puntajes
+/// ya calificados (SCORES, api/imports/scores). Las evaluaciones creadas
+/// apuntan al job: es la prueba de origen que el informe imprime.
 model ImportJob {
   id             String    @id @default(uuid()) @db.Uuid
   psychologistId String    @map("psychologist_id") @db.Uuid
   organizationId String    @map("organization_id") @db.Uuid
+  /// RESPONSES | SCORES
+  kind           String    @default("RESPONSES")
+  /// SIRPSI | OTRO (sólo SCORES)
+  source         String?
   fileName       String    @map("file_name")
+  /// SHA-256 del archivo tal como se recibió.
+  fileHash       String?   @map("file_hash")
   totalRows      Int       @map("total_rows")
   successRows    Int       @default(0) @map("success_rows")
   failedRows     Int       @default(0) @map("failed_rows")
@@ -421,6 +450,8 @@ model ImportJob {
   startedAt      DateTime? @map("started_at")
   completedAt    DateTime? @map("completed_at")
   createdAt      DateTime  @default(now()) @map("created_at")
+
+  assessments    Assessment[]
 
   @@index([psychologistId])
   @@map("import_jobs")
@@ -450,6 +481,8 @@ enum QuestionnaireType {
   INTRALABORAL
   EXTRALABORAL
   STRESS
+  /// Clima organizacional: instrumento libre, fuera de la Batería normativa.
+  CLIMA
 }
 
 /// Assessment lifecycle status
@@ -472,10 +505,17 @@ enum RiskCategory {
   MUY_ALTO
 }
 
-/// Input method for responses
+/// Cómo entraron los datos de la evaluación. Es evidencia: un inspector
+/// pregunta primero cómo se aplicó y de dónde salieron los resultados.
 enum InputMethod {
+  /// Digitada por el psicólogo en sesión.
   MANUAL
+  /// Respuestas crudas cargadas por archivo (api/v1/import).
   BULK
+  /// Diligenciada por el trabajador por enlace tokenizado.
+  SELF_SERVICE
+  /// Puntajes ya calificados en otra herramienta (SIRPSI u otra): sin respuestas crudas.
+  IMPORTED
 }
 
 /// Report lifecycle status
@@ -594,12 +634,23 @@ model CreditTransaction {
   paymentRef     String?           @map("payment_ref")
   /// Related assessment ID (for consumption)
   assessmentId   String?           @map("assessment_id") @db.Uuid
+  /// Trabajador al que se cargó la unidad (CONSUMPTION). La unidad de cobro es
+  /// el trabajador gestionado por familia de instrumento y periodo: con esto
+  /// se sabe si ya se cobró en el periodo sin recorrer evaluaciones.
+  workerId       String?           @map("worker_id") @db.Uuid
+  /// BATTERY | CLIMA
+  unitFamily     String?           @map("unit_family")
+  /// Vencimiento del cupo otorgado (PLAN_QUOTA, TRIAL_GRANT, ADMIN_GRANT con
+  /// plan). Nulo en compras sueltas y en los créditos anteriores al pivote,
+  /// que no vencen.
+  expiresAt      DateTime?         @map("expires_at")
   /// Description of the transaction
   description    String?
   createdAt      DateTime          @default(now()) @map("created_at")
   psychologist   Psychologist      @relation(fields: [psychologistId], references: [id])
 
   @@index([psychologistId, createdAt(sort: Desc)])
+  @@index([psychologistId, workerId, unitFamily, createdAt])
   @@map("credit_transactions")
 }
 
@@ -610,6 +661,57 @@ enum CreditTxType {
   ADMIN_GRANT
   CONSUMPTION
   REFUND
+  /// Reversión por reembolso o contracargo en la pasarela: monto NEGATIVO.
+  /// No confundir con REFUND, que devuelve un crédito al psicólogo.
+  REVERSAL
+  /// Cupo de un periodo de suscripción, con `expiresAt = periodEnd`.
+  PLAN_QUOTA
+  /// Retiro del cupo no usado al vencer el periodo: monto NEGATIVO.
+  QUOTA_EXPIRY
+}
+
+enum PlanId {
+  RESIDENTE
+  PROFESIONAL
+}
+
+/// TRIAL y ACTIVE permiten escribir mientras periodEnd > now. EXPIRED y
+/// PAST_DUE sólo permiten leer: la evidencia del SG-SST se custodia 20 años y
+/// nunca se bloquea por impago. PAST_DUE queda reservado para el cobro
+/// recurrente, que no existe en esta entrega.
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  EXPIRED
+}
+
+/// Suscripción del psicólogo. Una por cuenta en esta entrega.
+///
+/// El cupo del periodo se otorga como créditos con vencimiento (ver
+/// CreditTransaction.expiresAt), así que la pasarela de pago único y el saldo
+/// almacenado siguen siendo la fuente de verdad del consumo.
+model Subscription {
+  id             String             @id @default(uuid()) @db.Uuid
+  psychologistId String             @unique @map("psychologist_id") @db.Uuid
+  plan           PlanId
+  status         SubscriptionStatus
+  periodStart    DateTime           @map("period_start")
+  periodEnd      DateTime           @map("period_end")
+  /// Unidades otorgadas en el periodo vigente (se acumula al renovar antes de vencer).
+  quotaGranted   Int                @map("quota_granted")
+  /// Módulos comprados y su vencimiento: { "ISO45003": "2027-09-16T…" }.
+  features       Json               @default("{}")
+  /// Orden que activó o renovó el periodo vigente. Nula en trial y asignación manual.
+  paymentOrderId String?            @unique @map("payment_order_id") @db.Uuid
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  psychologist   Psychologist       @relation(fields: [psychologistId], references: [id])
+  paymentOrder   PaymentOrder?      @relation(fields: [paymentOrderId], references: [id])
+
+  @@index([status, periodEnd])
+  @@map("subscriptions")
 }
 
 /// Password reset token (6-digit code)
@@ -656,6 +758,7 @@ model AssessmentInvitation {
   intralaboralAssessmentId String?                    @unique @map("intralaboral_assessment_id") @db.Uuid
   extralaboralAssessmentId String?                    @unique @map("extralaboral_assessment_id") @db.Uuid
   stressAssessmentId       String?                    @unique @map("stress_assessment_id") @db.Uuid
+  climaAssessmentId        String?                    @unique @map("clima_assessment_id") @db.Uuid
   completedAt              DateTime?                  @map("completed_at")
   cancelledAt              DateTime?                  @map("cancelled_at")
   createdAt                DateTime                   @default(now()) @map("created_at")
@@ -667,6 +770,7 @@ model AssessmentInvitation {
   intralaboralAssessment Assessment?  @relation("InvitationIntra", fields: [intralaboralAssessmentId], references: [id])
   extralaboralAssessment Assessment?  @relation("InvitationExtra", fields: [extralaboralAssessmentId], references: [id])
   stressAssessment       Assessment?  @relation("InvitationStress", fields: [stressAssessmentId], references: [id])
+  climaAssessment        Assessment?  @relation("InvitationClima", fields: [climaAssessmentId], references: [id])
 
   @@index([psychologistId, status])
   @@index([workerId])
@@ -711,31 +815,84 @@ model OrganizationInvitationLink {
   @@map("organization_invitation_links")
 }
 
-/// Payment order for Wompi integration
+/// Orden de pago de Mercado Pago (Checkout Bricks · Colombia/MCO · COP).
+///
+/// Una orden representa UN ÚNICO intento de cobro. Un pago rechazado jamás se
+/// reintenta sobre la misma orden: se crea otra. Esa regla es la que permite
+/// usar `internalRef` como X-Idempotency-Key ante Mercado Pago y deja una
+/// auditoría limpia de un intento por fila.
 model PaymentOrder {
-  id             String        @id @default(uuid()) @db.Uuid
-  psychologistId String        @map("psychologist_id") @db.Uuid
-  packageId      String        @map("package_id")
-  amountCents    Int           @map("amount_cents")
-  wompiRef       String?       @unique @map("wompi_ref")
-  internalRef    String        @unique @map("internal_ref")
-  status         PaymentStatus @default(PENDING)
-  paymentMethod  String?       @map("payment_method")
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-  completedAt    DateTime?     @map("completed_at")
+  id                   String        @id @default(uuid()) @db.Uuid
+  psychologistId       String        @map("psychologist_id") @db.Uuid
+  packageId            String        @map("package_id")
+  /// Pesos colombianos ENTEROS. El COP no maneja decimales en Mercado Pago:
+  /// 60000 significa $60.000. No convertir a centavos (el campo se llamaba
+  /// `amount_cents` del diseño anterior y era una trampa para multiplicar x100).
+  amountCOP            Int           @map("amount_cop")
+  /// Viaja a Mercado Pago como `external_reference`. Es la llave con la que el
+  /// webhook encuentra la orden cuando todavía no hay `mercadoPagoPaymentId`
+  /// guardado: la notificación puede ganarle la carrera a /api/payments/process.
+  internalRef          String        @unique @map("internal_ref")
+  /// Llave de idempotencia de la acreditación, única a nivel de base de datos.
+  mercadoPagoPaymentId String?       @unique @map("mercado_pago_payment_id")
+  status               PaymentStatus @default(CREATED)
+  /// visa · master · amex · diners · codensa · pse · nequi · efecty…
+  paymentMethodId      String?       @map("payment_method_id")
+  /// credit_card · debit_card · bank_transfer · ticket
+  paymentTypeId        String?       @map("payment_type_id")
+  /// Cupón de Efecty o URL del banco para PSE. El cliente redirige aquí.
+  externalResourceUrl  String?       @map("external_resource_url") @db.Text
+  /// `status_detail` de Mercado Pago (p. ej. cc_rejected_insufficient_amount).
+  /// Permite explicarle el rechazo al usuario sin guardar datos del pagador.
+  statusDetail         String?       @map("status_detail")
+  /// Transacción de créditos emitida al acreditar. NULL = nunca se acreditó.
+  creditTransactionId  String?       @unique @map("credit_transaction_id") @db.Uuid
+  /// Intentos de cobro enviados a Mercado Pago. Forma parte de la llave de
+  /// idempotencia: si un intento falla con 4xx (no se registró pago), la orden
+  /// vuelve a CREATED y el siguiente intento lleva una llave distinta.
+  attemptCount         Int           @default(0) @map("attempt_count")
+  /// Momento del último paso a PROCESSING. Sirve para detectar órdenes
+  /// huérfanas: en PROCESSING, sin pago registrado en Mercado Pago, más allá
+  /// de un plazo de gracia.
+  processingAt         DateTime?     @map("processing_at")
+  /// Última consulta a Mercado Pago sobre esta orden. Regula el enfriamiento
+  /// del sondeo y la rotación del barrido; no confundir con updatedAt.
+  lastSyncedAt         DateTime?     @map("last_synced_at")
+  expiresAt            DateTime      @map("expires_at")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  completedAt          DateTime?     @map("completed_at")
 
-  psychologist   Psychologist  @relation(fields: [psychologistId], references: [id])
+  psychologist         Psychologist  @relation(fields: [psychologistId], references: [id])
+  subscription         Subscription?
 
   @@index([psychologistId, createdAt(sort: Desc)])
+  /// Barrido del cron de reconciliación: órdenes no terminales por antigüedad.
+  @@index([status, createdAt])
   @@map("payment_orders")
 }
 
+/// Estados de una orden de pago, alineados con los de Mercado Pago.
+///
+/// CREATED    — orden emitida, el usuario aún no envió el formulario.
+/// PROCESSING — se llamó a POST /v1/payments y esperamos respuesta.
+/// PENDING    — MP aceptó el intento pero falta la plata (PSE, Efecty).
+/// IN_PROCESS — MP está revisando el pago (antifraude).
+/// EXPIRED    — nunca se intentó pagar dentro de la ventana de la orden.
+///
+/// APPROVED, REJECTED, CANCELLED, EXPIRED y ERROR son terminales; sólo
+/// APPROVED puede avanzar a REFUNDED o CHARGED_BACK (reversión de créditos).
 enum PaymentStatus {
+  CREATED
+  PROCESSING
   PENDING
+  IN_PROCESS
   APPROVED
-  DECLINED
-  VOIDED
+  REJECTED
+  CANCELLED
+  REFUNDED
+  CHARGED_BACK
+  EXPIRED
   ERROR
 }
 

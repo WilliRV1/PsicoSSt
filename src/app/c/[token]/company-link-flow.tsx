@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import InvitationFlow from "../../e/[token]/invitation-flow";
+import { getErrorMessage } from "@/lib/utils";
 
 interface PublicCompanyLinkView {
     organizationName: string;
@@ -9,7 +10,7 @@ interface PublicCompanyLinkView {
     isActive: boolean;
 }
 
-type Screen = "LOADING" | "ERROR" | "IDENTIFY" | "RESOLVED";
+type Screen = "LOADING" | "ERROR" | "IDENTIFY" | "RESOLVED" | "RESENT";
 
 /**
  * Enlace único por empresa: el trabajador se identifica con su cédula y,
@@ -24,6 +25,7 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
     const [errorMessage, setErrorMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [invitationToken, setInvitationToken] = useState<string | null>(null);
+    const [resentMessage, setResentMessage] = useState("");
 
     useEffect(() => {
         fetch(`/api/public/company-invitations/${token}`)
@@ -61,10 +63,18 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Error al validar tu documento.");
+            // Cuando ya hay una evaluación en curso, el servidor NO devuelve
+            // token: reenvía el enlace al correo registrado para que solo el
+            // trabajador dueño de ese buzón pueda continuar.
+            if (data.outcome === "RESENT_TO_CONTACT") {
+                setResentMessage(data.message);
+                setScreen("RESENT");
+                return;
+            }
             setInvitationToken(data.invitationToken);
             setScreen("RESOLVED");
-        } catch (err: any) {
-            setErrorMessage(err.message);
+        } catch (err: unknown) {
+            setErrorMessage(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
         }
@@ -84,6 +94,20 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
                 <div className="max-w-sm w-full text-center space-y-4">
                     <h1 className="text-xl font-bold text-foreground">Enlace no disponible</h1>
                     <p className="text-muted-foreground text-sm">{errorMessage}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (screen === "RESENT") {
+        return (
+            <div className="min-h-screen flex items-center justify-center px-4">
+                <div className="max-w-sm w-full bg-card border border-border rounded-2xl shadow-sm p-6 text-center space-y-3">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-2xl">
+                        ✉️
+                    </div>
+                    <h1 className="text-lg font-bold text-foreground">Revisa tu correo</h1>
+                    <p className="text-sm text-muted-foreground">{resentMessage}</p>
                 </div>
             </div>
         );

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
 import { loadImage, type ReportImage } from "./images";
+import { reportBranding } from "./branding";
 import {
     DIMENSION_ACTION,
     DIMENSION_DEFINITION,
@@ -10,6 +11,9 @@ import {
     RISK_ORDER,
     type RiskLevel,
 } from "./battery-content";
+import { MIN_GROUP_SIZE } from "./anonymity";
+import { organizationValidity, type Validity } from "@/lib/compliance/cadence";
+import { BATTERY_IDS } from "@/config/instruments";
 
 /**
  * Datos del informe diagnóstico organizacional.
@@ -20,19 +24,16 @@ import {
  */
 
 /**
- * Número mínimo de TRABAJADORES para reportar un grupo por separado.
+ * Umbral de anonimato. Vive en `./anonymity` para que el informe diagnóstico, el
+ * sociodemográfico y el diagnóstico por IA no puedan volver a divergir; se
+ * reexporta aquí porque este módulo lo publica en el propio informe.
  *
  * El informe siempre declaró que garantizaba el anonimato en grupos menores a
  * diez personas, pero el cálculo incluía toda área con al menos una evaluación:
  * un área de un solo trabajador aparecía con su nombre y su distribución de
  * riesgo, que es exactamente el resultado individual de esa persona.
- *
- * El umbral se cuenta sobre trabajadores distintos, no sobre evaluaciones. A
- * cada persona se le aplican hasta tres cuestionarios, de modo que contar
- * evaluaciones dejaría pasar un área de cuatro personas —doce evaluaciones— y
- * el piso quedaría desfasado por un factor de tres.
  */
-export const MIN_GROUP_SIZE = 10;
+export { MIN_GROUP_SIZE };
 
 export type Distribution = Record<RiskLevel, number>;
 
@@ -102,7 +103,9 @@ export interface DiagnosticData {
         dateEnd: string;
         today: string;
     };
-    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null };
+    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null; poweredBy: boolean };
+    /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+    isDraft: boolean;
     professional: { name: string; license: string; signaturePath: string | null };
     coverage: {
         uniqueWorkers: number;
@@ -137,6 +140,8 @@ export interface DiagnosticData {
         byForm: CompanyRiskLevel[];
         /** La evaluación es anual si alguna forma da alto o muy alto. */
         annualRequired: boolean;
+        /** Regla única de vigencia (lib/compliance/cadence.ts) con sus motivos. */
+        validity: Validity;
     };
     groups: { sanos: number; vulnerables: number; adaptados: number; prioritarios: number };
     domains: { formA: DomainRow[]; formB: DomainRow[] };
@@ -231,7 +236,7 @@ export async function buildDiagnosticData(
     orgId: string,
     psychologistId: string,
     isAdmin: boolean
-): Promise<{ data: DiagnosticData; assets: DiagnosticAssets } | null> {
+): Promise<{ data: DiagnosticData; assets: DiagnosticAssets; viaAdmin: boolean } | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: {
@@ -246,10 +251,18 @@ export async function buildDiagnosticData(
 
     if (!org) return null;
     if (org.createdByPsychologist !== psychologistId && !isAdmin) return null;
+    // Acceso por la vía administrativa: el lector no es el psicólogo tratante,
+    // así que la ruta debe dejarlo registrado en la auditoría.
+    const viaAdmin = org.createdByPsychologist !== psychologistId;
+    // La marca del documento sigue al dueño de la empresa, no a quien lo abre.
+    const ownerPsychologistId = org.createdByPsychologist;
 
     const assessments = await prisma.assessment.findMany({
         where: {
             organizationId: orgId,
+            // Sólo la Batería normativa: el clima es un instrumento libre y no
+            // entra en el diagnóstico de riesgo psicosocial.
+            questionnaireType: { in: BATTERY_IDS },
             status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] },
             scoredResult: { isNot: null },
         },
@@ -565,15 +578,27 @@ export async function buildDiagnosticData(
         org.psychologist.signatures.find(s => s.signatureType === "drawn") ??
         org.psychologist.signatures.find(s => s.signatureType === "uploaded");
 
-    const [logo, signature] = await Promise.all([
+    const [logo, signature, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         loadImage(sig?.dataUrl ?? sig?.imageUrl ?? org.psychologist.signature),
+        reportBranding(ownerPsychologistId),
     ]);
 
     const dates = assessments.map(a => new Date(a.assessmentDate).getTime());
     const contactBits = [settings?.email, settings?.phone, settings?.city].filter(Boolean);
 
     const glossary = glossaryFor(dimensions);
+
+    // La vigencia (uno o dos años) la decide lib/compliance/cadence.ts con
+    // los tres criterios completos; el home y las alertas sólo disponen del
+    // porcentaje de críticos y llegan a la misma regla con menos datos.
+    const domainsA = buildDomains("A");
+    const domainsB = buildDomains("B");
+    const validity = organizationValidity({
+        criticalWorkerPercent,
+        anyAreaFullyCritical: reported.some(a => a.criticalPercent >= 100),
+        anyDomainVeryHigh: [...domainsA, ...domainsB].some(d => d.level === "MUY_ALTO"),
+    });
 
     return {
         data: {
@@ -592,7 +617,9 @@ export async function buildDiagnosticData(
                 tradeName: settings?.tradeName ?? settings?.consultingRoomName ?? null,
                 contactLine: contactBits.length ? contactBits.join(" · ") : null,
                 logoPath: logo ? `/assets/logo.${logo.ext}` : null,
+                poweredBy: branding.poweredBy,
             },
+            isDraft: branding.isDraft,
             professional: {
                 name: org.psychologist.fullName,
                 license: org.psychologist.licenseNumber,
@@ -621,10 +648,11 @@ export async function buildDiagnosticData(
             correlationBase,
             companyRisk: {
                 byForm: companyByForm,
-                annualRequired: companyByForm.some(f => isCritical(f.level)),
+                annualRequired: validity.years === 1,
+                validity,
             },
             groups,
-            domains: { formA: buildDomains("A"), formB: buildDomains("B") },
+            domains: { formA: domainsA, formB: domainsB },
             dimensions,
             areas: {
                 reported,
@@ -637,6 +665,7 @@ export async function buildDiagnosticData(
             areaDimensionMatrix,
         },
         assets: { logo, signature },
+        viaAdmin,
     };
 }
 

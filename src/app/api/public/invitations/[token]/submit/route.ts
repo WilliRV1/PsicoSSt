@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractRequestMeta } from "@/lib/auth/audit";
+import { enforcePublicRateLimit } from "@/lib/security/public-guard";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
+import { EntitlementError } from "@/lib/entitlements";
 import { QuestionnaireType } from "@/types/battery";
+import { getErrorMessage } from "@/lib/utils";
 
 const ERROR_STATUS: Record<string, number> = {
     INVITATION_NOT_FOUND: 404,
@@ -9,7 +13,9 @@ const ERROR_STATUS: Record<string, number> = {
     QUESTIONNAIRE_NOT_PLANNED: 400,
     CONSENT_REQUIRED: 400,
     SIGNATURE_REQUIRED: 400,
-    INSUFFICIENT_CREDITS: 402,
+    INSUFFICIENT_UNITS: 402,
+    NO_SUBSCRIPTION: 402,
+    SUBSCRIPTION_EXPIRED: 402,
 };
 
 const ERROR_MESSAGE: Record<string, string> = {
@@ -19,7 +25,11 @@ const ERROR_MESSAGE: Record<string, string> = {
     QUESTIONNAIRE_NOT_PLANNED: "Este cuestionario no hace parte de tu invitación.",
     CONSENT_REQUIRED: "Debes aceptar el consentimiento informado para continuar.",
     SIGNATURE_REQUIRED: "Debes firmar el consentimiento antes de continuar.",
-    INSUFFICIENT_CREDITS: "Tu psicólogo(a) no tiene créditos disponibles en este momento. Contáctalo(a) directamente.",
+    // Al trabajador nunca se le explica el estado comercial de la cuenta del
+    // psicólogo: sólo que debe contactarlo.
+    INSUFFICIENT_UNITS: "Tu psicólogo(a) no puede recibir esta evaluación en este momento. Contáctalo(a) directamente.",
+    NO_SUBSCRIPTION: "Tu psicólogo(a) no puede recibir esta evaluación en este momento. Contáctalo(a) directamente.",
+    SUBSCRIPTION_EXPIRED: "Tu psicólogo(a) no puede recibir esta evaluación en este momento. Contáctalo(a) directamente.",
 };
 
 /**
@@ -32,6 +42,9 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ token: string }> }
 ) {
+    const limited = enforcePublicRateLimit("write", extractRequestMeta(request).ipAddress);
+    if (limited) return limited;
+
     try {
         const { token } = await params;
         const body = await request.json();
@@ -50,8 +63,11 @@ export async function POST(
         });
 
         return NextResponse.json({ allDone });
-    } catch (error: any) {
-        const code = error?.message as string;
+    } catch (error: unknown) {
+        // Los errores de negocio del servicio viajan como `Error(CODE)`; los de
+        // derechos de uso traen el código en una propiedad y un mensaje pensado
+        // para el psicólogo, que aquí NO se le muestra al trabajador.
+        const code = error instanceof EntitlementError ? error.code : getErrorMessage(error);
         const status = ERROR_STATUS[code] ?? 500;
         const message = ERROR_MESSAGE[code] ?? "Error técnico al guardar tus respuestas.";
         if (status === 500) console.error("[PUBLIC_INVITATIONS] submit error:", error);

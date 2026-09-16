@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isLegalIdentityComplete, legalField } from "@/lib/legal-config";
 
 export const metadata: Metadata = {
     title: "Politica de Privacidad - PsicoSST",
@@ -7,10 +8,12 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
     return (
         <article className="prose prose-zinc dark:prose-invert max-w-none">
-            <div className="rounded-lg border border-risk-medium-border bg-risk-medium-bg p-4 mb-8 text-sm text-risk-medium-text">
-                <strong>Documento preliminar.</strong> Este texto es un borrador sujeto a revision legal.
-                Ultima actualizacion: marzo 2026.
-            </div>
+            {!isLegalIdentityComplete() && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 mb-8 text-sm text-amber-800">
+                    <strong>Documento preliminar.</strong> Faltan por configurar los datos del Responsable
+                    del Tratamiento; hasta entonces el registro de nuevas cuentas esta deshabilitado.
+                </div>
+            )}
 
             <h1>Politica de Privacidad y Tratamiento de Datos Personales</h1>
 
@@ -22,11 +25,11 @@ export default function PrivacyPage() {
 
             <h2>1. Responsable del Tratamiento</h2>
             <p>
-                <strong>Razon social:</strong> [NOMBRE DE LA EMPRESA O PERSONA NATURAL]<br />
-                <strong>NIT:</strong> [NIT]<br />
-                <strong>Direccion:</strong> [DIRECCION]<br />
-                <strong>Correo electronico:</strong> [EMAIL DE CONTACTO]<br />
-                <strong>Ciudad:</strong> [CIUDAD], Colombia
+                <strong>Razon social:</strong> {legalField("legalName")}<br />
+                <strong>NIT:</strong> {legalField("nit")}<br />
+                <strong>Direccion:</strong> {legalField("address")}<br />
+                <strong>Correo electronico:</strong> {legalField("email")}<br />
+                <strong>Ciudad:</strong> {legalField("city")}, Colombia
             </p>
 
             <h2>2. Datos Personales Recopilados</h2>
@@ -62,7 +65,7 @@ export default function PrivacyPage() {
             <ul>
                 <li>Administrar las cuentas de los psicologos usuarios.</li>
                 <li>Verificar credenciales profesionales para la aprobacion de cuentas.</li>
-                <li>Procesar la aplicacion y calificacion de la Bateria de Riesgo Psicosocial conforme a la Resolucion 2764 de 2022.</li>
+                <li>Procesar la calificacion y gestion de los resultados de la Bateria de Riesgo Psicosocial conforme a la Resolucion 2764 de 2022.</li>
                 <li>Generar informes individuales y colectivos de riesgo psicosocial.</li>
                 <li>Generar analisis mediante inteligencia artificial como apoyo al profesional.</li>
                 <li>Procesar pagos y emitir recibos de compra.</li>
@@ -93,7 +96,7 @@ export default function PrivacyPage() {
             </ul>
             <p>
                 Para ejercer estos derechos, el titular o el psicologo responsable puede
-                comunicarse a traves del correo electronico [EMAIL DE CONTACTO].
+                comunicarse a traves del correo electronico {legalField("email")}.
                 La solicitud sera atendida en un plazo maximo de diez (10) dias habiles,
                 conforme al articulo 15 de la Ley 1581 de 2012.
             </p>
@@ -117,7 +120,7 @@ export default function PrivacyPage() {
             </p>
             <ul>
                 <li><strong>Proveedor de infraestructura:</strong> Para el alojamiento de la plataforma y base de datos.</li>
-                <li><strong>Wompi (Bancolombia):</strong> Para el procesamiento de pagos. Los datos financieros son manejados directamente por Wompi conforme a sus politicas de seguridad PCI-DSS.</li>
+                <li><strong>Mercado Pago:</strong> Para el procesamiento de pagos. Los datos financieros —numero de tarjeta y codigo de seguridad— son capturados y tratados directamente por Mercado Pago conforme a sus politicas de seguridad PCI-DSS. PsicoSST no recibe, no procesa y no almacena esos datos en ningun momento: unicamente conserva el identificador de la transaccion, el medio de pago utilizado y el monto, para efectos contables y de soporte.</li>
                 <li><strong>Proveedor de correo electronico:</strong> Para el envio de comunicaciones transaccionales.</li>
                 <li><strong>Proveedor de inteligencia artificial:</strong> Para la generacion de analisis orientativos. Los datos enviados son anonimizados cuando es posible.</li>
             </ul>

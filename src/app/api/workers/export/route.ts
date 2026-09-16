@@ -13,7 +13,7 @@ const educationLabels: Record<string, string> = {
     MAESTRIA: "Maestría", DOCTORADO: "Doctorado",
 };
 
-function escapeCSV(val: any): string {
+function escapeCSV(val: unknown): string {
     if (val === null || val === undefined) return "";
     const str = String(val);
     if (str.includes(",") || str.includes('"') || str.includes("\n")) {
@@ -28,8 +28,11 @@ export async function GET(req: NextRequest) {
 
     const orgId = req.nextUrl.searchParams.get("orgId") || undefined;
 
-    const workers = await (prisma.worker as any).findMany({
+    const workers = await prisma.worker.findMany({
         where: {
+            // Exportación operativa de la planta vigente; los archivados
+            // conservan su evidencia en la base pero no se listan.
+            archivedAt: null,
             organization: {
                 createdByPsychologist: session.user.id,
                 ...(orgId && { id: orgId }),
@@ -51,7 +54,7 @@ export async function GET(req: NextRequest) {
         "Organización", "NIT", "Nº Evaluaciones",
     ];
 
-    const rows = workers.map((w: any) => [
+    const rows = workers.map((w) => [
         w.fullName,
         w.documentType,
         w.documentId,
@@ -60,7 +63,7 @@ export async function GET(req: NextRequest) {
         w.maritalStatus || "",
         w.jobTitle || "",
         jobLevelLabels[w.jobLevel] || w.jobLevel,
-        educationLabels[w.educationLevel] || w.educationLevel,
+        w.educationLevel ? (educationLabels[w.educationLevel] || w.educationLevel) : "",
         w.departmentArea || "",
         w.residenceCity || "",
         w.yearsInCompany !== null ? w.yearsInCompany : "",

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { dueInfo, isCriticalLevel, workerValidity } from "@/lib/compliance/cadence";
+
+/** Cuestionarios firmados dentro de esta ventana cuentan como la misma medición. */
+const SAME_CYCLE_DAYS = 90;
 
 export async function GET(
     _req: NextRequest,
@@ -18,18 +22,20 @@ export async function GET(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const workers = await prisma.worker.findMany({
-        where: { organizationId: orgId },
+        // Lista de a quién hay que reevaluar: un archivado ya no se reevalúa.
+        where: { organizationId: orgId, archivedAt: null },
         select: {
             id: true,
             fullName: true,
             jobTitle: true,
             departmentArea: true,
             assessments: {
-                where: {
-                    psychologistId: session.user.id,
-                    status: "SIGNED",
+                where: { status: "SIGNED" },
+                select: {
+                    assessmentDate: true,
+                    questionnaireType: true,
+                    scoredResult: { select: { overallRiskCategory: true } },
                 },
-                select: { assessmentDate: true, questionnaireType: true },
                 orderBy: { assessmentDate: "desc" },
                 take: 10,
             },
@@ -38,14 +44,11 @@ export async function GET(
     });
 
     const now = new Date();
-    const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
-    const ALERT_THRESHOLD_MS = 1.5 * 365.25 * 24 * 60 * 60 * 1000; // 18 months
 
     const results = workers
         .map(worker => {
-            // Find the most recent signed assessment date (any type)
-            const lastAssessment = worker.assessments[0];
-            if (!lastAssessment) {
+            const last = worker.assessments[0];
+            if (!last) {
                 return {
                     id: worker.id,
                     fullName: worker.fullName,
@@ -54,23 +57,22 @@ export async function GET(
                     lastAssessmentDate: null,
                     expiresAt: null,
                     daysUntilExpiry: null,
+                    validityYears: null,
+                    reason: null,
                     status: "NEVER_ASSESSED" as const,
                 };
             }
 
-            const lastDate = new Date(lastAssessment.assessmentDate);
-            const expiresAt = new Date(lastDate.getTime() + TWO_YEARS_MS);
-            const msUntilExpiry = expiresAt.getTime() - now.getTime();
-            const daysUntilExpiry = Math.floor(msUntilExpiry / (1000 * 60 * 60 * 24));
-
-            let status: "EXPIRED" | "EXPIRING_SOON" | "OK";
-            if (msUntilExpiry <= 0) {
-                status = "EXPIRED";
-            } else if (now.getTime() - lastDate.getTime() >= ALERT_THRESHOLD_MS) {
-                status = "EXPIRING_SOON";
-            } else {
-                status = "OK";
-            }
+            // Res. 2764/2022 art. 3: la vigencia la define el peor resultado de
+            // la última medición, no sólo el último cuestionario firmado. Un
+            // intralaboral en riesgo alto vence al año aunque el de estrés,
+            // firmado después, haya salido bajo.
+            const lastDate = new Date(last.assessmentDate);
+            const cycleStart = lastDate.getTime() - SAME_CYCLE_DAYS * 24 * 60 * 60 * 1000;
+            const cycle = worker.assessments.filter(a => new Date(a.assessmentDate).getTime() >= cycleStart);
+            const critical = cycle.some(a => isCriticalLevel(a.scoredResult?.overallRiskCategory));
+            const validity = workerValidity(critical ? "ALTO" : last.scoredResult?.overallRiskCategory);
+            const info = dueInfo(lastDate, validity, now);
 
             return {
                 id: worker.id,
@@ -78,9 +80,16 @@ export async function GET(
                 jobTitle: worker.jobTitle,
                 departmentArea: worker.departmentArea,
                 lastAssessmentDate: lastDate.toISOString().slice(0, 10),
-                expiresAt: expiresAt.toISOString().slice(0, 10),
-                daysUntilExpiry,
-                status,
+                expiresAt: info.dueDate.toISOString().slice(0, 10),
+                daysUntilExpiry: info.daysLeft,
+                validityYears: validity.years,
+                reason: validity.reasons[0] ?? null,
+                status:
+                    info.status === "VENCIDA"
+                        ? ("EXPIRED" as const)
+                        : info.status === "POR_VENCER"
+                          ? ("EXPIRING_SOON" as const)
+                          : ("OK" as const),
             };
         })
         .filter(w => w.status !== "OK"); // Only return workers that need attention
