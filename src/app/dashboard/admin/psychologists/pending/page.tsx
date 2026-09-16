@@ -35,7 +35,7 @@ export default async function PendingPsychologistsPage() {
           <p className="text-sm text-muted-foreground mt-1">Pendientes</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-5 shadow-sm text-center">
-          <div className="text-3xl font-bold text-emerald-600">{activePsychologists}</div>
+          <div className="text-3xl font-bold text-teal-dark">{activePsychologists}</div>
           <p className="text-sm text-muted-foreground mt-1">Activos</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-5 shadow-sm text-center">
@@ -55,8 +55,8 @@ export default async function PendingPsychologistsPage() {
         )}
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
+      <div className="rounded-lg p-4 border" style={{ background: "color-mix(in srgb, var(--color-info) 10%, transparent)", borderColor: "color-mix(in srgb, var(--color-info) 30%, transparent)" }}>
+        <p className="text-sm" style={{ color: "var(--color-info)" }}>
           <strong>Nota:</strong> Los psicologos solo pueden acceder a la plataforma despues de ser aprobados. Verifica la validez de la licencia antes de aprobar.
         </p>
       </div>

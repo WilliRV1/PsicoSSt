@@ -24,22 +24,23 @@ const actionLabels: Record<string, string> = {
     PASSWORD_CHANGE: "Cambio de contraseña",
 };
 
-const actionColors: Record<string, string> = {
-    LOGIN: "bg-green-100 text-green-700",
-    LOGOUT: "bg-gray-100 text-gray-700",
-    LOGIN_FAILED: "bg-red-100 text-red-700",
-    ACCOUNT_LOCKED: "bg-red-100 text-red-700",
-    CREATE: "bg-blue-100 text-blue-700",
-    READ: "bg-gray-100 text-gray-600",
-    UPDATE: "bg-amber-100 text-amber-700",
-    DELETE: "bg-red-100 text-red-700",
-    SCORE: "bg-indigo-100 text-indigo-700",
-    SIGN_REPORT: "bg-green-100 text-green-700",
-    EXPORT: "bg-cyan-100 text-cyan-700",
-    IMPORT: "bg-cyan-100 text-cyan-700",
-    CONSENT_RECORDED: "bg-emerald-100 text-emerald-700",
-    MFA_SETUP: "bg-purple-100 text-purple-700",
-    PASSWORD_CHANGE: "bg-amber-100 text-amber-700",
+const NEUTRAL_ACTION_STYLE = { background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" };
+const actionColors: Record<string, { background: string; color: string }> = {
+    LOGIN: { background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+    LOGOUT: NEUTRAL_ACTION_STYLE,
+    LOGIN_FAILED: { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" },
+    ACCOUNT_LOCKED: { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" },
+    CREATE: { background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+    READ: NEUTRAL_ACTION_STYLE,
+    UPDATE: { background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+    DELETE: { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" },
+    SCORE: { background: "color-mix(in srgb, var(--color-primary) 14%, transparent)", color: "var(--color-primary)" },
+    SIGN_REPORT: { background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+    EXPORT: { background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+    IMPORT: { background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+    CONSENT_RECORDED: { background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+    MFA_SETUP: { background: "color-mix(in srgb, var(--color-primary) 14%, transparent)", color: "var(--color-primary)" },
+    PASSWORD_CHANGE: { background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
 };
 
 interface PageProps {
@@ -141,7 +142,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                             <tbody className="divide-y divide-border">
                                 {logs.map((log) => {
                                     const metadata = log.metadata as Record<string, any> | null;
-                                    const actionColor = actionColors[log.action] || "bg-gray-100 text-gray-700";
+                                    const actionColor = actionColors[log.action] || NEUTRAL_ACTION_STYLE;
 
                                     return (
                                         <tr key={String(log.id)} className="hover:bg-muted/30 transition-colors">
@@ -168,7 +169,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                                                 )}
                                             </td>
                                             <td className="px-5 py-3 whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${actionColor}`}>
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" style={actionColor}>
                                                     {actionLabels[log.action] || log.action}
                                                 </span>
                                             </td>

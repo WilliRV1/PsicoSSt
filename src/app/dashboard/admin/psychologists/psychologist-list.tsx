@@ -16,11 +16,11 @@ interface Psychologist {
     createdAt: string;
 }
 
-const statusConfig: Record<string, { label: string; classes: string }> = {
-    PENDING: { label: "Pendiente", classes: "bg-yellow-100 text-yellow-700 ring-1 ring-yellow-600/20" },
-    ACTIVE: { label: "Activo", classes: "bg-green-100 text-green-700 ring-1 ring-green-600/20" },
-    SUSPENDED: { label: "Suspendido", classes: "bg-red-100 text-red-700 ring-1 ring-red-600/20" },
-    INACTIVE: { label: "Inactivo", classes: "bg-muted text-muted-foreground" },
+const statusConfig: Record<string, { label: string; background: string; color: string }> = {
+    PENDING: { label: "Pendiente", background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+    ACTIVE: { label: "Activo", background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+    SUSPENDED: { label: "Suspendido", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" },
+    INACTIVE: { label: "Inactivo", background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" },
 };
 
 export function PsychologistList() {
@@ -154,7 +154,10 @@ export function PsychologistList() {
                                         <div className="text-xs text-muted-foreground mt-0.5">{p.professionalCard}</div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${status.classes}`}>
+                                        <span
+                                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                                            style={{ background: status.background, color: status.color }}
+                                        >
                                             {status.label}
                                         </span>
                                     </td>
@@ -174,7 +177,7 @@ export function PsychologistList() {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                                        className="text-info border-info/30 hover:bg-info/10"
                                                         onClick={() => handleAssignTokens(p.id)}
                                                         disabled={!!updatingId}
                                                     >
@@ -195,7 +198,7 @@ export function PsychologistList() {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                                    className="text-info border-info/30 hover:bg-info/10"
                                                     onClick={() => handleAssignTokens(p.id)}
                                                     disabled={!!updatingId}
                                                 >
@@ -206,7 +209,7 @@ export function PsychologistList() {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
+                                                    className="text-teal-dark border-primary/30 hover:bg-teal-light"
                                                     onClick={() => handleStatusChange(p.id, "ACTIVE")}
                                                     disabled={!!updatingId}
                                                 >
