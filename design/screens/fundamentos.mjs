@@ -124,16 +124,22 @@ const escalaRiesgo = `
 const comps = `
   <div style="display:flex;gap:56px;flex-wrap:wrap">
     <div>
-      <p class="rub" style="margin-bottom:14px">Botones</p>
-      <div style="display:flex;gap:10px;align-items:center">
-        <span class="btn btn-pri">${icono('mas', { size: 15, color: '#FFF' })}Primario</span>
-        <span class="btn btn-acc">Acento</span>
-        <span class="btn btn-sec">Secundario</span>
-        <span class="btn btn-ghost">Terciario</span>
+      <p class="rub" style="margin-bottom:14px">Botones · los siete estados</p>
+      <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;max-width:560px">
+        <span class="btn btn-pri">${icono('mas', { size: 15, color: '#FFF' })}Normal</span>
+        <span class="btn btn-pri" style="background:#1B2430">Sobre</span>
+        <span class="btn btn-pri btn-foco">Foco</span>
+        <span class="btn btn-pri" style="transform:scale(0.97)">Pulsado</span>
+        <span class="btn btn-off">Deshabilitado</span>
+        <span class="btn btn-pri" style="background:#1B2430">
+          <span style="width:13px;height:13px;border-radius:999px;border:2px solid rgba(255,255,255,0.3);border-top-color:#FFF;display:inline-block"></span>Guardando
+        </span>
+        <span class="btn" style="background:${T.danger};color:#FFF">${icono('alerta', { size: 14, color: '#FFF' })}No se guardó</span>
       </div>
-      <p style="font-size:11.5px;color:${T.muted};margin-top:10px;max-width:330px">
-        Al pulsar, <span class="maq">scale(0.97)</span> en 130&nbsp;ms. Un botón sin estado activo
-        se siente muerto al tacto.
+      <p style="font-size:11.5px;line-height:1.55;color:${T.muted};margin-top:11px;max-width:560px">
+        Un componente sin estos siete estados está a medio hacer. Al pulsar,
+        <span class="maq">scale(0.97)</span> en 130&nbsp;ms; el anillo de foco es de dos píxeles
+        con dos de separación, y nunca se retira con <span class="maq">outline: none</span>.
       </p>
     </div>
     <div>
@@ -173,6 +179,40 @@ const comps = `
     <div>
       <p class="rub" style="margin-bottom:14px">Marca</p>
       <div style="display:flex;gap:22px;align-items:center">${marca({ size: 30 })}${isotipo(30, 'mk2')}</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:24px;margin-top:32px;align-items:flex-start">
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:14px">Carga</p>
+      <div class="card" style="padding:18px 20px">
+        ${[1, 2, 3].map((i) => `<div style="display:flex;align-items:center;gap:14px;padding:9px 0;${i > 1 ? `border-top:1px solid ${T.borderMuted}` : ''}">
+          <span class="hueso" style="width:${[168, 132, 152][i - 1]}px;height:11px"></span>
+          <span class="hueso" style="width:${[58, 74, 44][i - 1]}px;height:11px;margin-left:auto"></span>
+          <span class="hueso" style="width:70px;height:20px;border-radius:8px"></span>
+        </div>`).join('')}
+      </div>
+      <p style="font-size:11.5px;line-height:1.55;color:${T.muted};margin-top:10px">
+        Una silueta con la forma de lo que va a llegar, no un disco girando en mitad
+        del contenido. El esqueleto dice qué se está cargando; el disco, sólo que algo pasa.
+      </p>
+    </div>
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:14px">Vacío</p>
+      <div class="card" style="padding:28px 24px;text-align:center">
+        <div style="display:flex;gap:4px;align-items:flex-end;justify-content:center;height:30px;opacity:0.35">
+          ${RISK_ORDER.map((k) => `<div style="width:16px;height:${8 + RISK_ORDER.indexOf(k) * 5}px;border-radius:3px;background:${RISK[k].bar}"></div>`).join('')}
+        </div>
+        <p style="font-size:15px;font-weight:600;letter-spacing:-0.015em;color:${T.ink};margin-top:14px">Todavía no hay evaluaciones</p>
+        <p style="font-size:12.5px;line-height:1.6;color:${T.secondary};margin-top:6px;max-width:320px;margin-left:auto;margin-right:auto">
+          Cargue los trabajadores de la empresa y envíeles la invitación. El primer resultado
+          aparece en cuanto alguien termina de responder.
+        </p>
+        <span class="btn btn-pri" style="margin-top:14px">${icono('mas', { size: 14, color: '#FFF' })}Invitar a responder</span>
+      </div>
+      <p style="font-size:11.5px;line-height:1.55;color:${T.muted};margin-top:10px">
+        Un estado vacío enseña la interfaz y ofrece la acción siguiente. «No hay datos»
+        no es un estado vacío: es una disculpa.
+      </p>
     </div>
   </div>`;
 
@@ -235,7 +275,7 @@ const motion = `
   </div>`;
 
 const reglas = `
-  <div style="display:flex;gap:18px;flex-wrap:wrap">
+  <div style="display:flex;flex-direction:column">
     ${[
       ['Una familia, tres trabajos', 'Geist hace de titular, de interfaz y de cifra. Las cuatro familias anteriores eran cuatro tonos de voz compitiendo en la misma pantalla.'],
       ['La cifra no es una máquina', 'Puntaje y porcentaje van en cifras tabulares de la misma grotesca, con tracking negativo. El monoespaciado queda para huellas y tokens.'],
@@ -243,19 +283,19 @@ const reglas = `
       ['El degradado vive en el isotipo', 'Los tres tonos teal→cian→azul son la marca. En ningún fondo, botón ni tarjeta.'],
       ['El riesgo nunca decora', 'Ámbar, naranja y rojo significan un nivel de la Resolución 2646. No se usan para botones ni acentos.'],
       ['El movimiento se gana su sitio', 'Se anima lo que ocurre pocas veces. Lo que se ve cien veces al día aparece y ya.'],
-    ].map(([t, d]) => `<div style="width:344px;padding:20px 22px;border-radius:16px;background:${T.surface};border:1px solid ${T.border};box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:${T.ink}">${esc(t)}</p>
-      <p style="font-size:12.5px;line-height:1.6;color:${T.secondary};margin-top:8px">${esc(d)}</p>
+    ].map(([t, d], i) => `<div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid ${i ? T.borderMuted : T.border};width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:${T.ink}">${esc(t)}</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:${T.secondary}">${esc(d)}</p>
     </div>`).join('')}
   </div>`;
 
 export const fundamentos = artboard({
-  w: W, h: 3700,
+  w: W, h: 4060,
   cuerpo: `<div style="padding:56px 64px 64px" class="anim">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
       <div>
-        <p class="rub">Sistema de diseño · PsicoSST</p>
-        <h1 class="display" style="font-size:66px;margin-top:14px">Moderno y fluido</h1>
+        <h1 class="display" style="font-size:66px">Moderno y fluido</h1>
+        <p style="font-size:13px;color:${T.muted};margin-top:12px">Sistema de diseño · PsicoSST</p>
         <p class="prose" style="font-size:17px;max-width:680px;margin-top:18px">
           Segunda dirección. Conserva el teal de la marca y los cinco niveles de riesgo que
           exige la norma, y cambia todo lo que hacía que el producto se leyera como un

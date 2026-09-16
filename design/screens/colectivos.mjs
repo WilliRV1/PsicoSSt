@@ -34,7 +34,7 @@ const AREAS = [
 ];
 
 export const informeDiagnostico = app({
-  w: 1440, h: 1930, activo: 'reports', migas: ['Empresas', 'Transportes Andinos', 'Diagnóstico'],
+  w: 1440, h: 1990, activo: 'reports', migas: ['Empresas', 'Transportes Andinos', 'Diagnóstico'],
   contenido: `
   ${cabeceraInforme({
     tipo: 'Informe colectivo',
@@ -124,19 +124,20 @@ export const informeDiagnostico = app({
   </div>
 
   <div style="margin-top:22px;padding:24px 28px;border-radius:12px;background:${T.surface};border:1px solid ${T.border}">
-    <p class="rub rub-ink">Medidas de intervención prioritarias</p>
-    <div style="display:flex;gap:20px;margin-top:16px">
+    <p class="rub-ink">Medidas de intervención prioritarias</p>
+    <div style="margin-top:14px">
       ${[
-        ['01', 'Rediseño de la jornada de conducción', 'Revisar la distribución de tareas, evaluar la suficiencia de personal y ajustar las jornadas garantizando periodos de descanso.', 'Inmediata', 'alerta'],
-        ['02', 'Autonomía en la programación de rutas', 'Fomentar la participación en la toma de decisiones y flexibilizar horarios donde la operación lo permita.', '3 meses', 'aviso'],
-        ['03', 'Formación de líderes de operación', 'Fortalecer habilidades blandas con énfasis en comunicación asertiva y retroalimentación constructiva.', '6 meses', 'info'],
-      ].map(([n, t, d, plazo, tono]) => `
-        <div style="flex:1;padding:18px 20px;border:1px solid ${T.border};border-radius:10px;background:${T.paper}">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="num" style="font-size:11.5px;color:${T.muted}">${n}</span>${estado(plazo, tono)}
+        ['Rediseño de la jornada de conducción', 'Demandas de la jornada', 'Revisar la distribución de tareas, evaluar la suficiencia de personal y ajustar las jornadas garantizando periodos de descanso.', 'Inmediata', 'alerta'],
+        ['Autonomía en la programación de rutas', 'Control y autonomía', 'Fomentar la participación en la toma de decisiones y flexibilizar horarios donde la operación lo permita.', '3 meses', 'aviso'],
+        ['Formación de líderes de operación', 'Características del liderazgo', 'Fortalecer habilidades blandas con énfasis en comunicación asertiva y retroalimentación constructiva.', '6 meses', 'info'],
+      ].map(([t, dim, d, plazo, tono], i) => `
+        <div style="display:flex;gap:26px;align-items:flex-start;padding:17px 0;border-top:1px solid ${i ? T.borderMuted : T.border}">
+          <div style="flex:1;min-width:0">
+            <p style="font-size:16px;font-weight:600;letter-spacing:-0.018em;color:${T.ink}">${esc(t)}</p>
+            <p style="font-size:12.5px;color:${T.muted};margin-top:3px">${esc(dim)}</p>
           </div>
-          <p style="font-family:${FONTS.head};font-size:17px;font-weight:600;color:${T.ink};margin-top:11px">${esc(t)}</p>
-          <p style="font-size:12.5px;line-height:1.6;color:${T.secondary};margin-top:8px">${esc(d)}</p>
+          <p style="flex:1.6;font-size:13px;line-height:1.6;color:${T.secondary};min-width:0">${esc(d)}</p>
+          <div style="flex-shrink:0;width:96px;text-align:right">${estado(plazo, tono)}</div>
         </div>`).join('')}
     </div>
   </div>`,

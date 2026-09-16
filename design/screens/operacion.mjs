@@ -1,12 +1,20 @@
 import { T, RISK, RISK_ORDER, FONTS, app, icono, riesgo, pasos, estado, esc, n1, mil } from '../lib.mjs';
 
-/** Cabecera de página: rúbrica, titular Barlow, bajada y acciones. */
-export function cabecera({ rubrica, titulo, bajada = '', acciones = '' }) {
+/**
+ * Cabecera de página.
+ *
+ * El titular va primero. Lo que antes era una etiqueta en versalitas encima
+ * —el «eyebrow»— baja a línea de datos debajo: la información que llevaba
+ * (NIT, folio, fecha) sigue estando, pero deja de robarle el arranque al
+ * título. Un titular se sostiene solo; si necesita una etiqueta encima para
+ * explicarse, el titular está mal escrito.
+ */
+export function cabecera({ rubrica = '', titulo, bajada = '', acciones = '' }) {
   return `<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:26px">
     <div style="min-width:0">
-      <p class="rub">${rubrica}</p>
-      <h1 class="display" style="font-size:40px;margin-top:11px">${esc(titulo)}</h1>
-      ${bajada ? `<p style="font-size:13.5px;line-height:1.6;color:${T.secondary};margin-top:9px;max-width:620px">${bajada}</p>` : ''}
+      <h1 class="display" style="font-size:40px">${esc(titulo)}</h1>
+      ${rubrica ? `<p style="font-size:13px;color:${T.muted};margin-top:10px">${rubrica}</p>` : ''}
+      ${bajada ? `<p style="font-size:13.5px;line-height:1.6;color:${T.secondary};margin-top:${rubrica ? '6' : '10'}px;max-width:640px">${bajada}</p>` : ''}
     </div>
     ${acciones ? `<div style="display:flex;gap:10px;flex-shrink:0">${acciones}</div>` : ''}
   </div>`;
@@ -219,9 +227,9 @@ export const trabajadorDetalle = app({
   <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:26px">
     <div style="width:58px;height:58px;border-radius:12px;background:${T.tealLight};color:${T.tealDark};display:flex;align-items:center;justify-content:center;font-family:${FONTS.head};font-size:22px;font-weight:700;flex-shrink:0">HD</div>
     <div style="flex:1;min-width:0">
-      <p class="rub">Trabajador · <span class="num">CC 79.114.226</span></p>
-      <h1 class="display" style="font-size:40px;margin-top:9px">Hernán Duque Prieto</h1>
-      <p style="font-size:13.5px;color:${T.secondary};margin-top:8px">
+      <h1 class="display" style="font-size:40px">Hernán Duque Prieto</h1>
+      <p style="font-size:13px;color:${T.muted};margin-top:10px"><span class="num">CC 79.114.226</span></p>
+      <p style="font-size:13.5px;color:${T.secondary};margin-top:6px">
         Transportes Andinos S.A.S. · Supervisor de rutas · Técnico · vinculado desde <span class="num">2019-03-04</span>
       </p>
     </div>

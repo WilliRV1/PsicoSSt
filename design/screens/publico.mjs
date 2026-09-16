@@ -24,8 +24,8 @@ export const invitacion = movil(`
   <div style="flex:1;display:flex;flex-direction:column;padding:0 24px 28px">
     <div style="padding:8px 0 30px">${marca({ size: 26 })}</div>
 
-    <p class="rub">Clínica del Norte le invita</p>
-    <h1 class="display" style="font-size:40px;margin-top:12px">Evaluación de riesgo psicosocial</h1>
+    <h1 class="display" style="font-size:40px">Evaluación de riesgo psicosocial</h1>
+    <p style="font-size:14px;color:${T.secondary};margin-top:12px">Clínica del Norte le invita a responderla</p>
     <p class="prose" style="font-size:16px;margin-top:16px">
       Su empresa está obligada por ley a medir los factores de riesgo psicosocial. Sus respuestas
       las lee un psicólogo, no su jefe.
@@ -163,10 +163,10 @@ export const cuestionario = movil(`
 
     <div style="flex:1;padding:0 24px;display:flex;flex-direction:column;min-height:0">
       <div style="padding:14px 0 26px">
-        <p class="rub">Con qué frecuencia</p>
-        <p style="font-family:${FONTS.serif};font-size:25px;line-height:1.3;color:${T.ink};margin-top:14px">
+        <p style="font-size:25px;line-height:1.32;letter-spacing:-0.02em;color:${T.ink};font-weight:500">
           Por la cantidad de trabajo que tengo debo quedarme tiempo adicional.
         </p>
+        <p class="rub" style="margin-top:14px">¿Con qué frecuencia?</p>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:9px">
@@ -332,17 +332,14 @@ export const portada = artboard({
     </section>
 
     <section style="padding:72px 64px 0">
-      <div style="display:flex;gap:22px">
+      <div style="border-top:1.5px solid ${T.ink}">
         ${[
-          ['check', 'Conforme al manual, verificado', 'El motor se contrasta contra los 248 casos publicados en el manual oficial en cada despliegue. Una discrepancia bloquea la salida a producción.'],
-          ['escudo', 'Trazable hasta la respuesta', 'Cada puntaje se reconstruye desde los ítems que lo originaron, con baremo, versión del motor y huella del cálculo.'],
-          ['firma', 'Firmado y verificable', 'La firma digital emite un folio con QR que un inspector puede validar sin tener acceso al sistema.'],
-        ].map(([ic, t, d]) => `<div style="flex:1;padding:28px 30px;background:${T.surface};border:1px solid ${T.border};border-radius:14px">
-          <div style="width:34px;height:34px;border-radius:9px;background:${T.tealLight};display:flex;align-items:center;justify-content:center">
-            ${icono(ic, { size: 17, color: T.tealDark })}
-          </div>
-          <p style="font-family:${FONTS.head};font-size:23px;font-weight:600;letter-spacing:-0.01em;color:${T.ink};margin-top:16px">${esc(t)}</p>
-          <p class="prose" style="font-size:15px;margin-top:10px">${esc(d)}</p>
+          ['Conforme al manual, verificado', 'El motor se contrasta contra los 248 casos publicados en el manual oficial en cada despliegue. Una sola discrepancia bloquea la salida a producción.'],
+          ['Trazable hasta la respuesta', 'Cada puntaje se reconstruye desde los ítems que lo originaron, con baremo, versión del motor y huella del cálculo.'],
+          ['Firmado y verificable', 'La firma digital emite un folio con QR que un inspector puede validar sin tener acceso al sistema.'],
+        ].map(([t, d], i) => `<div style="display:flex;gap:56px;align-items:baseline;padding:26px 0;${i ? `border-top:1px solid ${T.border}` : ''}">
+          <p class="display" style="flex:1;font-size:30px;min-width:0">${esc(t)}</p>
+          <p class="prose" style="flex:1.1;font-size:16px;min-width:0">${esc(d)}</p>
         </div>`).join('')}
       </div>
     </section>

@@ -43,10 +43,10 @@ function motivo() {
 
 const argumento = `
   <div style="padding:72px 72px 0;height:100%;display:flex;flex-direction:column">
-    <p class="rub">Batería de riesgo psicosocial · Colombia</p>
-    <h2 class="display" style="font-size:56px;margin-top:20px;max-width:560px">
+    <h2 class="display" style="font-size:56px;max-width:560px">
       De 123 respuestas<br>a un informe defendible.
     </h2>
+    <p style="font-size:13px;color:${T.muted};margin-top:12px">Batería de riesgo psicosocial · Colombia</p>
     <p class="prose" style="max-width:520px;margin-top:22px">
       PsicoSST califica los cuatro instrumentos de la batería con los algoritmos exactos
       del manual oficial, redacta la interpretación por dimensión y deja constancia de
@@ -114,10 +114,10 @@ export const login = chasis({
 export const registro = chasis({
   derecha: `
     <div style="padding:72px 72px 0;height:100%;display:flex;flex-direction:column">
-      <p class="rub">Verificación profesional</p>
-      <h2 class="display" style="font-size:52px;margin-top:20px;max-width:520px">
+      <h2 class="display" style="font-size:52px;max-width:520px">
         Tres documentos<br>y una revisión humana.
       </h2>
+      <p style="font-size:13px;color:${T.muted};margin-top:12px">Verificación profesional</p>
       <p class="prose" style="max-width:500px;margin-top:20px">
         Ningún registro se aprueba solo. Un administrador verifica la tarjeta profesional
         ante el Colegio Colombiano de Psicólogos y el posgrado en SST antes de habilitar
@@ -169,10 +169,10 @@ export const registro = chasis({
 export const recuperar = chasis({
   derecha: `
     <div style="padding:72px;height:100%;display:flex;flex-direction:column;justify-content:center">
-      <p class="rub">Seguridad de la cuenta</p>
-      <h2 class="display" style="font-size:50px;margin-top:20px;max-width:480px">
+      <h2 class="display" style="font-size:50px;max-width:480px">
         El enlace<br>caduca en 30 minutos.
       </h2>
+      <p style="font-size:13px;color:${T.muted};margin-top:12px">Seguridad de la cuenta</p>
       <p class="prose" style="max-width:480px;margin-top:20px">
         Enviamos un código de seis dígitos al correo registrado. No lo comparta: quien lo
         tenga puede restablecer el acceso a todas las historias clínicas de su cartera.
@@ -216,10 +216,10 @@ function qr() {
 export const mfaSetup = chasis({
   derecha: `
     <div style="padding:72px;height:100%;display:flex;flex-direction:column;justify-content:center">
-      <p class="rub">Segundo factor</p>
-      <h2 class="display" style="font-size:50px;margin-top:20px;max-width:500px">
+      <h2 class="display" style="font-size:50px;max-width:500px">
         La contraseña<br>ya no alcanza.
       </h2>
+      <p style="font-size:13px;color:${T.muted};margin-top:12px">Segundo factor</p>
       <p class="prose" style="max-width:480px;margin-top:20px">
         Una cuenta de PsicoSST abre historias clínicas ocupacionales de cientos de personas.
         El segundo factor es obligatorio y no se puede desactivar desde la propia cuenta.
@@ -265,8 +265,8 @@ export const mfaSetup = chasis({
 export const mfaVerify = chasis({
   derecha: `
     <div style="padding:72px;height:100%;display:flex;flex-direction:column;justify-content:center">
-      <p class="rub">Sesión en curso</p>
-      <h2 class="display" style="font-size:50px;margin-top:20px;max-width:480px">Un paso más.</h2>
+      <h2 class="display" style="font-size:50px;max-width:480px">Un paso más.</h2>
+      <p style="font-size:13px;color:${T.muted};margin-top:12px">Sesión en curso</p>
       <p class="prose" style="max-width:470px;margin-top:20px">
         Pedimos el segundo factor en cada inicio de sesión desde un equipo nuevo, y una vez
         cada treinta días desde los equipos que ya reconoce.

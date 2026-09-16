@@ -27,10 +27,10 @@ const mods = {
 // El orden dentro de cada página es el orden de lectura en el lienzo.
 export const MANIFEST = [
   // ── Fundamentos ────────────────────────────────────────────────────
-  ['Fundamentos',   'fundamentos.fundamentos', 'sistema',  1440, 3700],
+  ['Fundamentos',   'fundamentos.fundamentos', 'sistema',  1440, 4060],
 
   // ── Operación ──────────────────────────────────────────────────────
-  ['Main',             'panel.panel',                        'operacion', 1440, 930],
+  ['Main',             'panel.panel',                        'operacion', 1440, 970],
   ['Empresas',         'operacion.empresas',                 'operacion', 1440, 900],
   ['EmpresaDetalle',   'operacion.empresaDetalle',           'operacion', 1440, 1030],
   ['Trabajadores',     'operacion.trabajadores',             'operacion', 1440, 900],

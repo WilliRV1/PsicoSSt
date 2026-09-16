@@ -111,17 +111,18 @@ function actividad() {
 }
 
 export const panel = app({
-  w: 1440, h: 930, activo: 'panel', creditos: 47,
+  w: 1440, h: 970, activo: 'panel', creditos: 47,
   contenido: `
-  <p class="rub">Cartera vigente · <span class="num">16 sep 2026</span></p>
-
-  <div style="display:flex;align-items:flex-end;gap:28px;margin-top:16px">
-    <h1 class="display" style="font-size:78px">1.284</h1>
-    <div style="padding-bottom:9px">
-      <p style="font-size:17px;color:${T.ink};font-weight:500">trabajadores evaluados</p>
-      <p style="font-size:14px;color:${T.secondary};margin-top:3px">en 12 empresas · corte a hoy</p>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px">
+    <div>
+      <h1 class="display" style="font-size:42px;max-width:840px">
+        317 de <span class="cifra">1.284</span> trabajadores están en riesgo alto o muy alto
+      </h1>
+      <p style="font-size:13px;color:${T.muted};margin-top:12px">
+        12 empresas · corte al <span class="num">16 de septiembre de 2026</span>
+      </p>
     </div>
-    <div style="margin-left:auto;display:flex;gap:10px;padding-bottom:6px">
+    <div style="display:flex;gap:10px;flex-shrink:0;padding-bottom:4px">
       <span class="btn btn-sec">${icono('desc', { size: 14, color: T.secondary })}Exportar cartera</span>
       <span class="btn btn-pri">${icono('mas', { size: 14, color: '#FFF' })}Nueva evaluación</span>
     </div>
@@ -129,13 +130,12 @@ export const panel = app({
 
   <div style="margin-top:26px">${banda()}</div>
 
-  <p class="prose" style="margin-top:22px;max-width:760px">
-    <strong style="font-weight:600">317 personas — el 24,7% de la cartera — están en riesgo alto o muy alto.</strong>
+  <p class="prose" style="margin-top:22px;max-width:780px">
     Tres empresas concentran el 71% de esos casos, y en las tres el dominio crítico es
     <em>Demandas del trabajo</em>. Es el lugar por donde conviene empezar la intervención.
   </p>
 
-  <div style="margin-top:28px">${cifras()}</div>
+  <div style="margin-top:30px">${cifras()}</div>
 
   <div style="display:flex;gap:44px;margin-top:30px">
     ${accion()}

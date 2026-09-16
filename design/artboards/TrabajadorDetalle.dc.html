@@ -23,18 +23,34 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
          -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-         font-feature-settings: 'cv11', 'ss01'; }
+         font-feature-settings: 'cv11', 'ss01'; caret-color: #009A80; }
+
+  /* Selección, cursor, barra de desplazamiento y anillo de foco vienen con
+     valores por defecto del navegador que no son de ningún sistema de diseño.
+     Tematizarlos es la señal más barata de que la página se construyó. */
+  ::selection { background: rgba(0,154,128,0.16); color: #0B0F14; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E4E8EB; border-radius: 999px;
+                              border: 3px solid #F7F8F9; }
+  ::-webkit-scrollbar-thumb:hover { background: #8996A1; }
+  :focus-visible { outline: 2px solid #0B0F14; outline-offset: 2px; border-radius: 6px; }
+  /* Toda tabla de datos alinea en columna sin pedirlo. */
+  td, th { font-variant-numeric: tabular-nums; }
   a { color: #007A65; text-decoration: none; }
   a:hover { color: #009A80; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
-     de museo era la mitad del aire formal que sobraba. */
-  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
-         text-transform: uppercase; color: #8996A1; }
-  .rub-ink { color: #55636E; }
+  /* Etiqueta menor: pie de cifra, leyenda de gráfico, nombre de columna.
+     Caja normal. Las versalitas espaciadas eran el disfraz de «documento». */
+  .rub { font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+         color: #8996A1; }
+  /* Encabezado de sección. No es un ojo de buey sobre un titular: es el
+     titular de su bloque y pesa lo que pesa. */
+  .rub-ink { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em;
+             color: #0B0F14; }
 
   /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
   .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
@@ -43,7 +59,7 @@
   /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
      alinea en columna sin parecer salida de una máquina de escribir. */
   .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
            font-weight: 600; line-height: 1; color: #0B0F14; }
   /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
   .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
@@ -99,6 +115,12 @@
   .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
              box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
   .btn-ghost { color: #55636E; }
+  .btn-off { background: #F0F2F4; color: #8996A1; }
+  .btn-foco { box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #0B0F14; }
+
+  /* Esqueleto de carga. Un disco girando en mitad del contenido no dice
+     qué está llegando; una silueta sí. */
+  .hueso { background: #F0F2F4; border-radius: 6px; display: block; }
 
   .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
            background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8996A1;
@@ -113,8 +135,10 @@
           border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
 
   /* ── Movimiento ───────────────────────────────────────────────────── */
-  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
-     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  /* La clase .anim queda sólo para superficies de persuasión —portada,
+     acceso—, donde la entrada es parte del argumento. En las pantallas de
+     producto no se usa: quien abre un panel entra a una tarea, no a ver cómo
+     se carga. Ahí el único movimiento es el que informa de un estado. */
   @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
   @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -203,13 +227,13 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </div>
   </header>
-    <div class="body anim">
+    <div class="body">
   <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:26px">
     <div style="width:58px;height:58px;border-radius:12px;background:#E4F6F1;color:#007A65;display:flex;align-items:center;justify-content:center;font-family:'Geist', system-ui, -apple-system, sans-serif;font-size:22px;font-weight:700;flex-shrink:0">HD</div>
     <div style="flex:1;min-width:0">
-      <p class="rub">Trabajador · <span class="num">CC 79.114.226</span></p>
-      <h1 class="display" style="font-size:40px;margin-top:9px">Hernán Duque Prieto</h1>
-      <p style="font-size:13.5px;color:#55636E;margin-top:8px">
+      <h1 class="display" style="font-size:40px">Hernán Duque Prieto</h1>
+      <p style="font-size:13px;color:#8996A1;margin-top:10px"><span class="num">CC 79.114.226</span></p>
+      <p style="font-size:13.5px;color:#55636E;margin-top:6px">
         Transportes Andinos S.A.S. · Supervisor de rutas · Técnico · vinculado desde <span class="num">2019-03-04</span>
       </p>
     </div>

@@ -103,6 +103,39 @@ Reglas propias del papel, distintas a las de pantalla:
 paleta de `typst/lib/theme.typ`, que hoy usa tonos de riesgo terrosos
 (`#3E7A63`, `#6F9558`, `#C39A3B`, `#BE7039`, `#A34037`) distintos a los de la aplicación.
 
+## Los skills instalados
+
+Los tres están instalados de verdad en este repositorio, no aplicados de memoria:
+
+| Fuente | Cómo se instala | Dónde |
+|---|---|---|
+| **Impeccable** (`pbakaus/impeccable`, Apache 2.0) | Marketplace de Claude Code | `.claude/settings.json` |
+| **Taste Skill** (`hestudy/taste-skill-claude-marketplace`, MIT) | Marketplace de Claude Code | `.claude/settings.json` |
+| **Emil Kowalski** (`emilkowalski/skills`, MIT) | No es marketplace: 13 skills copiados | `.claude/skills/` |
+
+Ver `.claude/skills/README.md` para el detalle y cómo revertirlo.
+
+## Qué cambió al aplicar sus reglas
+
+El `craft-floor.md` de Impeccable y su `operate.md` prohíben cosas que esta
+maqueta hacía en las 51 pantallas:
+
+| Regla | Qué había | Qué hay |
+|---|---|---|
+| «A kicker or eyebrow above a heading. **This one is a ban**: no brief earns it back» | Una etiqueta en versalitas sobre cada titular | El titular va primero; los datos que llevaba la etiqueta (NIT, folio, fecha) bajan debajo |
+| «The hero-metric template: big number, small label, supporting stats» | `1.284` gigante + etiqueta + cuatro cifras | El titular es una frase: «317 de 1.284 trabajadores están en riesgo alto o muy alto» |
+| «Same-size cards of icon + heading + text as the page structure. **Nested cards are always wrong**» | Rejillas de fichas en portada, fundamentos y diagnóstico —estas últimas dentro de otra ficha | Filas separadas por filete |
+| «Section numbers (01/02/03) unless the sequence carries information» | Numeración decorativa | Sólo en el PDF, donde numera los apartados del informe |
+| «Tracking floor −0.04em» | `.cifra` iba a −0,045em | −0,04em |
+| «Browser surfaces … the cheapest signal that a page was built» | Selección, cursor, barra y anillo de foco por defecto | Tematizados desde la paleta |
+| «**No orchestrated page-load sequences.** Product loads into a task» | Entrada escalonada en las 46 pantallas de producto | Sólo en portada y acceso; en producto, el movimiento informa de un estado |
+| «Every interactive component has: default, hover, focus, active, disabled, loading, error» | Tres estados | Los siete, documentados en Fundamentos |
+| «Skeleton states for loading, not spinners» · «Empty states that teach the interface» | No existían | Ambos, en Fundamentos |
+
+> El skill de Impeccable propone ejecutar `scripts/impeccable context`, que descarga
+> y corre un binario propio. **No se ejecutó**: sus reglas se aplicaron leyendo los
+> archivos de referencia del repositorio.
+
 ## De dónde salen las reglas
 
 - **Taste Skill** (`hestudy/taste-skill-claude-marketplace`, `Leonxlnx/taste-skill`) — dials de variación de diseño, intensidad de movimiento y densidad visual; la variante *soft* (contraste suave, aire, motion de muelle) es la que gobierna aquí.

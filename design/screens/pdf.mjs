@@ -96,10 +96,10 @@ export const pdfPortada = artboard({
     ${marca({ size: 25 })}
 
     <div style="margin-top:96px">
-      <p class="p-rub">Informe individual</p>
-      <h1 class="display" style="font-size:46px;margin-top:13px;color:${P.tinta};max-width:560px">
+      <h1 class="display" style="font-size:46px;color:${P.tinta};max-width:560px">
         Evaluación de factores de riesgo psicosocial
       </h1>
+      <p style="font-size:14px;color:${P.tinta3};margin-top:14px">Informe individual</p>
       <p class="p-prosa" style="margin-top:16px;max-width:480px">
         Batería de instrumentos del Ministerio de Trabajo de Colombia ·
         Resolución 2764 de 2022.

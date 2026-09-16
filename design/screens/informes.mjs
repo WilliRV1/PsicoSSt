@@ -62,9 +62,9 @@ export const informeIndividual = app({
     <article style="flex:1;min-width:0;background:${T.surface};border:1px solid ${T.border};border-radius:12px;padding:44px 52px">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:22px;border-bottom:2px solid ${T.ink}">
         <div>
-          <p class="rub">Informe individual de riesgo psicosocial</p>
-          <h1 class="display" style="font-size:34px;margin-top:10px">Hernán Duque Prieto</h1>
-          <p style="font-size:13px;color:${T.secondary};margin-top:7px">
+          <h1 class="display" style="font-size:34px">Hernán Duque Prieto</h1>
+          <p style="font-size:13px;color:${T.muted};margin-top:10px">Informe individual de riesgo psicosocial</p>
+          <p style="font-size:13px;color:${T.secondary};margin-top:6px">
             <span class="num">CC 79.114.226</span> · Transportes Andinos S.A.S. · Supervisor de rutas · Técnico
           </p>
         </div>
@@ -221,8 +221,8 @@ export const firmar = artboard({
   cuerpo: `<div style="width:1440px;height:900px;background:rgba(12,21,32,0.55);display:flex;align-items:center;justify-content:center">
     <div style="width:620px;background:${T.surface};border-radius:16px;border:1px solid ${T.border};overflow:hidden">
       <div style="padding:30px 36px 0">
-        <p class="rub">Firma digital · Folio <span class="num">IN-2026-0918</span></p>
-        <h2 class="display" style="font-size:32px;margin-top:11px">Firmar cierra el informe</h2>
+        <h2 class="display" style="font-size:32px">Firmar cierra el informe</h2>
+        <p style="font-size:13px;color:${T.muted};margin-top:10px">Firma digital · Folio <span class="num">IN-2026-0918</span></p>
         <p style="font-size:13.5px;line-height:1.6;color:${T.secondary};margin-top:10px">
           Al firmar, el contenido queda fijado: ningún puntaje, interpretación ni recomendación
           puede modificarse después. Si aparece un error habrá que emitir un informe de corrección.

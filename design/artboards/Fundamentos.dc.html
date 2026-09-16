@@ -23,18 +23,34 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
          -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-         font-feature-settings: 'cv11', 'ss01'; }
+         font-feature-settings: 'cv11', 'ss01'; caret-color: #009A80; }
+
+  /* Selección, cursor, barra de desplazamiento y anillo de foco vienen con
+     valores por defecto del navegador que no son de ningún sistema de diseño.
+     Tematizarlos es la señal más barata de que la página se construyó. */
+  ::selection { background: rgba(0,154,128,0.16); color: #0B0F14; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E4E8EB; border-radius: 999px;
+                              border: 3px solid #F7F8F9; }
+  ::-webkit-scrollbar-thumb:hover { background: #8996A1; }
+  :focus-visible { outline: 2px solid #0B0F14; outline-offset: 2px; border-radius: 6px; }
+  /* Toda tabla de datos alinea en columna sin pedirlo. */
+  td, th { font-variant-numeric: tabular-nums; }
   a { color: #007A65; text-decoration: none; }
   a:hover { color: #009A80; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
-     de museo era la mitad del aire formal que sobraba. */
-  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
-         text-transform: uppercase; color: #8996A1; }
-  .rub-ink { color: #55636E; }
+  /* Etiqueta menor: pie de cifra, leyenda de gráfico, nombre de columna.
+     Caja normal. Las versalitas espaciadas eran el disfraz de «documento». */
+  .rub { font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+         color: #8996A1; }
+  /* Encabezado de sección. No es un ojo de buey sobre un titular: es el
+     titular de su bloque y pesa lo que pesa. */
+  .rub-ink { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em;
+             color: #0B0F14; }
 
   /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
   .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
@@ -43,7 +59,7 @@
   /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
      alinea en columna sin parecer salida de una máquina de escribir. */
   .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
            font-weight: 600; line-height: 1; color: #0B0F14; }
   /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
   .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
@@ -99,6 +115,12 @@
   .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
              box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
   .btn-ghost { color: #55636E; }
+  .btn-off { background: #F0F2F4; color: #8996A1; }
+  .btn-foco { box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #0B0F14; }
+
+  /* Esqueleto de carga. Un disco girando en mitad del contenido no dice
+     qué está llegando; una silueta sí. */
+  .hueso { background: #F0F2F4; border-radius: 6px; display: block; }
 
   .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
            background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8996A1;
@@ -113,8 +135,10 @@
           border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
 
   /* ── Movimiento ───────────────────────────────────────────────────── */
-  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
-     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  /* La clase .anim queda sólo para superficies de persuasión —portada,
+     acceso—, donde la entrada es parte del argumento. En las pantallas de
+     producto no se usa: quien abre un panel entra a una tarea, no a ver cómo
+     se carga. Ahí el único movimiento es el que informa de un estado. */
   @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
   @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -135,12 +159,12 @@
   }
 </style>
 </helmet>
-<div style="width:1440px;height:3700px;background:#F7F8F9;overflow:hidden">
+<div style="width:1440px;height:4060px;background:#F7F8F9;overflow:hidden">
 <div style="padding:56px 64px 64px" class="anim">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
       <div>
-        <p class="rub">Sistema de diseño · PsicoSST</p>
-        <h1 class="display" style="font-size:66px;margin-top:14px">Moderno y fluido</h1>
+        <h1 class="display" style="font-size:66px">Moderno y fluido</h1>
+        <p style="font-size:13px;color:#8996A1;margin-top:12px">Sistema de diseño · PsicoSST</p>
         <p class="prose" style="font-size:17px;max-width:680px;margin-top:18px">
           Segunda dirección. Conserva el teal de la marca y los cinco niveles de riesgo que
           exige la norma, y cambia todo lo que hacía que el producto se leyera como un
@@ -420,16 +444,22 @@
       <div style="flex:1;min-width:0">
   <div style="display:flex;gap:56px;flex-wrap:wrap">
     <div>
-      <p class="rub" style="margin-bottom:14px">Botones</p>
-      <div style="display:flex;gap:10px;align-items:center">
-        <span class="btn btn-pri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg>Primario</span>
-        <span class="btn btn-acc">Acento</span>
-        <span class="btn btn-sec">Secundario</span>
-        <span class="btn btn-ghost">Terciario</span>
+      <p class="rub" style="margin-bottom:14px">Botones · los siete estados</p>
+      <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;max-width:560px">
+        <span class="btn btn-pri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg>Normal</span>
+        <span class="btn btn-pri" style="background:#1B2430">Sobre</span>
+        <span class="btn btn-pri btn-foco">Foco</span>
+        <span class="btn btn-pri" style="transform:scale(0.97)">Pulsado</span>
+        <span class="btn btn-off">Deshabilitado</span>
+        <span class="btn btn-pri" style="background:#1B2430">
+          <span style="width:13px;height:13px;border-radius:999px;border:2px solid rgba(255,255,255,0.3);border-top-color:#FFF;display:inline-block"></span>Guardando
+        </span>
+        <span class="btn" style="background:#F04438;color:#FFF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>No se guardó</span>
       </div>
-      <p style="font-size:11.5px;color:#8996A1;margin-top:10px;max-width:330px">
-        Al pulsar, <span class="maq">scale(0.97)</span> en 130&nbsp;ms. Un botón sin estado activo
-        se siente muerto al tacto.
+      <p style="font-size:11.5px;line-height:1.55;color:#8996A1;margin-top:11px;max-width:560px">
+        Un componente sin estos siete estados está a medio hacer. Al pulsar,
+        <span class="maq">scale(0.97)</span> en 130&nbsp;ms; el anillo de foco es de dos píxeles
+        con dos de separación, y nunca se retira con <span class="maq">outline: none</span>.
       </p>
     </div>
     <div>
@@ -508,6 +538,48 @@
       <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
       <circle cx="20" cy="22" r="4.2"/>
     </g></svg></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:24px;margin-top:32px;align-items:flex-start">
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:14px">Carga</p>
+      <div class="card" style="padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;">
+          <span class="hueso" style="width:168px;height:11px"></span>
+          <span class="hueso" style="width:58px;height:11px;margin-left:auto"></span>
+          <span class="hueso" style="width:70px;height:20px;border-radius:8px"></span>
+        </div><div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+          <span class="hueso" style="width:132px;height:11px"></span>
+          <span class="hueso" style="width:74px;height:11px;margin-left:auto"></span>
+          <span class="hueso" style="width:70px;height:20px;border-radius:8px"></span>
+        </div><div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-top:1px solid #EFF2F4">
+          <span class="hueso" style="width:152px;height:11px"></span>
+          <span class="hueso" style="width:44px;height:11px;margin-left:auto"></span>
+          <span class="hueso" style="width:70px;height:20px;border-radius:8px"></span>
+        </div>
+      </div>
+      <p style="font-size:11.5px;line-height:1.55;color:#8996A1;margin-top:10px">
+        Una silueta con la forma de lo que va a llegar, no un disco girando en mitad
+        del contenido. El esqueleto dice qué se está cargando; el disco, sólo que algo pasa.
+      </p>
+    </div>
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:14px">Vacío</p>
+      <div class="card" style="padding:28px 24px;text-align:center">
+        <div style="display:flex;gap:4px;align-items:flex-end;justify-content:center;height:30px;opacity:0.35">
+          <div style="width:16px;height:8px;border-radius:3px;background:#A9B4BC"></div><div style="width:16px;height:13px;border-radius:3px;background:#17B26A"></div><div style="width:16px;height:18px;border-radius:3px;background:#F79009"></div><div style="width:16px;height:23px;border-radius:3px;background:#EF6820"></div><div style="width:16px;height:28px;border-radius:3px;background:#F04438"></div>
+        </div>
+        <p style="font-size:15px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14;margin-top:14px">Todavía no hay evaluaciones</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:6px;max-width:320px;margin-left:auto;margin-right:auto">
+          Cargue los trabajadores de la empresa y envíeles la invitación. El primer resultado
+          aparece en cuanto alguien termina de responder.
+        </p>
+        <span class="btn btn-pri" style="margin-top:14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg>Invitar a responder</span>
+      </div>
+      <p style="font-size:11.5px;line-height:1.55;color:#8996A1;margin-top:10px">
+        Un estado vacío enseña la interfaz y ofrece la acción siguiente. «No hay datos»
+        no es un estado vacío: es una disculpa.
+      </p>
     </div>
   </div></div>
     </div>
@@ -595,25 +667,25 @@
         <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Lo que evita que el sistema se deshaga al crecer.</p>
       </div>
       <div style="flex:1;min-width:0">
-  <div style="display:flex;gap:18px;flex-wrap:wrap">
-    <div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">Una familia, tres trabajos</p>
-      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Geist hace de titular, de interfaz y de cifra. Las cuatro familias anteriores eran cuatro tonos de voz compitiendo en la misma pantalla.</p>
-    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">La cifra no es una máquina</p>
-      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Puntaje y porcentaje van en cifras tabulares de la misma grotesca, con tracking negativo. El monoespaciado queda para huellas y tokens.</p>
-    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">Elevación suave, no filete duro</p>
-      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Una sombra de 1px más un halo amplio y muy tenue. La regla anterior de «sólo líneas» mantenía todo plano, y plano se lee como impreso.</p>
-    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">El degradado vive en el isotipo</p>
-      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Los tres tonos teal→cian→azul son la marca. En ningún fondo, botón ni tarjeta.</p>
-    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">El riesgo nunca decora</p>
-      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Ámbar, naranja y rojo significan un nivel de la Resolución 2646. No se usan para botones ni acentos.</p>
-    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
-      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">El movimiento se gana su sitio</p>
-      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Se anima lo que ocurre pocas veces. Lo que se ve cien veces al día aparece y ya.</p>
+  <div style="display:flex;flex-direction:column">
+    <div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid #E4E8EB;width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#0B0F14">Una familia, tres trabajos</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:#55636E">Geist hace de titular, de interfaz y de cifra. Las cuatro familias anteriores eran cuatro tonos de voz compitiendo en la misma pantalla.</p>
+    </div><div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid #EFF2F4;width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#0B0F14">La cifra no es una máquina</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:#55636E">Puntaje y porcentaje van en cifras tabulares de la misma grotesca, con tracking negativo. El monoespaciado queda para huellas y tokens.</p>
+    </div><div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid #EFF2F4;width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#0B0F14">Elevación suave, no filete duro</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:#55636E">Una sombra de 1px más un halo amplio y muy tenue. La regla anterior de «sólo líneas» mantenía todo plano, y plano se lee como impreso.</p>
+    </div><div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid #EFF2F4;width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#0B0F14">El degradado vive en el isotipo</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:#55636E">Los tres tonos teal→cian→azul son la marca. En ningún fondo, botón ni tarjeta.</p>
+    </div><div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid #EFF2F4;width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#0B0F14">El riesgo nunca decora</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:#55636E">Ámbar, naranja y rojo significan un nivel de la Resolución 2646. No se usan para botones ni acentos.</p>
+    </div><div style="display:flex;gap:36px;align-items:baseline;padding:16px 0;border-top:1px solid #EFF2F4;width:100%">
+      <p style="width:280px;flex-shrink:0;font-size:16px;font-weight:600;letter-spacing:-0.018em;color:#0B0F14">El movimiento se gana su sitio</p>
+      <p style="flex:1;font-size:13px;line-height:1.65;color:#55636E">Se anima lo que ocurre pocas veces. Lo que se ve cien veces al día aparece y ya.</p>
     </div>
   </div></div>
     </div>

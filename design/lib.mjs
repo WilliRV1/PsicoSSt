@@ -87,18 +87,34 @@ export const CSS = `
   * { box-sizing: border-box; }
   body { margin: 0; font-family: ${FONTS.sans}; background: ${T.paper}; color: ${T.ink};
          -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-         font-feature-settings: 'cv11', 'ss01'; }
+         font-feature-settings: 'cv11', 'ss01'; caret-color: ${T.teal}; }
+
+  /* Selección, cursor, barra de desplazamiento y anillo de foco vienen con
+     valores por defecto del navegador que no son de ningún sistema de diseño.
+     Tematizarlos es la señal más barata de que la página se construyó. */
+  ::selection { background: rgba(0,154,128,0.16); color: ${T.ink}; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: ${T.border}; border-radius: 999px;
+                              border: 3px solid ${T.paper}; }
+  ::-webkit-scrollbar-thumb:hover { background: ${T.muted}; }
+  :focus-visible { outline: 2px solid ${T.ink}; outline-offset: 2px; border-radius: 6px; }
+  /* Toda tabla de datos alinea en columna sin pedirlo. */
+  td, th { font-variant-numeric: tabular-nums; }
   a { color: ${T.tealDark}; text-decoration: none; }
   a:hover { color: ${T.teal}; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
-     de museo era la mitad del aire formal que sobraba. */
-  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
-         text-transform: uppercase; color: ${T.muted}; }
-  .rub-ink { color: ${T.secondary}; }
+  /* Etiqueta menor: pie de cifra, leyenda de gráfico, nombre de columna.
+     Caja normal. Las versalitas espaciadas eran el disfraz de «documento». */
+  .rub { font-size: 12px; font-weight: 500; letter-spacing: -0.005em;
+         color: ${T.muted}; }
+  /* Encabezado de sección. No es un ojo de buey sobre un titular: es el
+     titular de su bloque y pesa lo que pesa. */
+  .rub-ink { font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em;
+             color: ${T.ink}; }
 
   /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
   .display { font-family: ${FONTS.head}; font-weight: 600; letter-spacing: -0.035em;
@@ -107,7 +123,7 @@ export const CSS = `
   /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
      alinea en columna sin parecer salida de una máquina de escribir. */
   .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
            font-weight: 600; line-height: 1; color: ${T.ink}; }
   /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
   .maq { font-family: ${FONTS.mono}; font-size: 0.92em; letter-spacing: -0.01em; }
@@ -163,6 +179,12 @@ export const CSS = `
   .btn-sec { background: ${T.surface}; color: ${T.ink}; border: 1px solid ${T.border};
              box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
   .btn-ghost { color: ${T.secondary}; }
+  .btn-off { background: ${T.surfaceMuted}; color: ${T.muted}; }
+  .btn-foco { box-shadow: 0 0 0 2px ${T.surface}, 0 0 0 4px ${T.ink}; }
+
+  /* Esqueleto de carga. Un disco girando en mitad del contenido no dice
+     qué está llegando; una silueta sí. */
+  .hueso { background: ${T.surfaceMuted}; border-radius: 6px; display: block; }
 
   .input { height: 40px; border: 1px solid ${T.border}; border-radius: 10px;
            background: ${T.surface}; padding: 0 13px; font-size: 14px; color: ${T.muted};
@@ -177,8 +199,10 @@ export const CSS = `
           border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
 
   /* ── Movimiento ───────────────────────────────────────────────────── */
-  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
-     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  /* La clase .anim queda sólo para superficies de persuasión —portada,
+     acceso—, donde la entrada es parte del argumento. En las pantallas de
+     producto no se usa: quien abre un panel entra a una tarea, no a ver cómo
+     se carga. Ahí el único movimiento es el que informa de un estado. */
   @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
   @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -431,7 +455,7 @@ export function app({ w = 1440, h = 900, activo, migas = [], creditos = 47, cont
   ${sidebar(activo, { usuario, iniciales })}
   <div class="main">
     ${topbar({ creditos, migas })}
-    <div class="body anim">${contenido}</div>
+    <div class="body">${contenido}</div>
   </div>
 </div>`,
   });
