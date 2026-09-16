@@ -1,5 +1,43 @@
+import crypto from "crypto";
 import { TOTP, Secret } from "otpauth";
 import QRCode from "qrcode";
+
+const EMAIL_CODE_TTL_MINUTES = 10;
+
+/**
+ * Genera un código de 6 dígitos para MFA por correo y su hash SHA-256 —
+ * el código en claro solo existe en memoria el tiempo de enviarlo por
+ * correo, igual que el token de las invitaciones de trabajador.
+ */
+export function generateEmailCode(): { code: string; codeHash: string; expiresAt: Date } {
+    const code = crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+    const codeHash = hashEmailCode(code);
+    const expiresAt = new Date(Date.now() + EMAIL_CODE_TTL_MINUTES * 60 * 1000);
+    return { code, codeHash, expiresAt };
+}
+
+export function hashEmailCode(code: string): string {
+    return crypto.createHash("sha256").update(code).digest("hex");
+}
+
+/**
+ * Verifica un código de correo contra su hash almacenado, respetando la
+ * expiración. Comparación en tiempo constante para no filtrar el código
+ * por temporización.
+ */
+export function verifyEmailCode(
+    inputCode: string,
+    storedHash: string | null,
+    expiresAt: Date | null
+): boolean {
+    if (!storedHash || !expiresAt) return false;
+    if (expiresAt < new Date()) return false;
+
+    const inputHash = Buffer.from(hashEmailCode(inputCode));
+    const stored = Buffer.from(storedHash);
+    if (inputHash.length !== stored.length) return false;
+    return crypto.timingSafeEqual(inputHash, stored);
+}
 
 const ISSUER = "PsicoSST";
 const PERIOD = 30;

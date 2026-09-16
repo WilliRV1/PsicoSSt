@@ -10,6 +10,7 @@ declare module "next-auth" {
             status: "PENDING" | "ACTIVE" | "SUSPENDED" | "INACTIVE";
             isAdmin: boolean;
             mfaEnabled: boolean;
+            mfaMethod: "TOTP" | "EMAIL";
             mfaVerified: boolean;
             licenseNumber: string;
         } & DefaultSession["user"];
@@ -21,6 +22,7 @@ declare module "next-auth" {
         status: "PENDING" | "ACTIVE" | "SUSPENDED" | "INACTIVE";
         isAdmin: boolean;
         mfaEnabled: boolean;
+        mfaMethod: "TOTP" | "EMAIL";
         mfaVerified: boolean;
         licenseNumber: string;
     }
@@ -33,6 +35,7 @@ declare module "next-auth/jwt" {
         status: "PENDING" | "ACTIVE" | "SUSPENDED" | "INACTIVE";
         isAdmin: boolean;
         mfaEnabled: boolean;
+        mfaMethod: "TOTP" | "EMAIL";
         mfaVerified: boolean;
         licenseNumber: string;
     }

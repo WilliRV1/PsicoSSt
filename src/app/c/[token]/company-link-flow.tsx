@@ -123,7 +123,7 @@ export default function CompanyLinkFlow({ token }: { token: string }) {
                     <button
                         onClick={handleIdentify}
                         disabled={isSubmitting || !documentId.trim()}
-                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors disabled:opacity-60"
+                        className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
                     >
                         {isSubmitting ? "Validando..." : "Continuar"}
                     </button>

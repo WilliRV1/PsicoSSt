@@ -19,6 +19,19 @@ model Psychologist {
   sstLicenseDate   DateTime?     @map("sst_license_date")
   mfaSecret        String?       @map("mfa_secret")
   mfaEnabled       Boolean       @default(false) @map("mfa_enabled")
+  /// Método vigente de verificación en dos pasos. TOTP usa mfaSecret; EMAIL
+  /// usa mfaEmailCodeHash, generado y enviado en cada intento de login.
+  mfaMethod        MfaMethod     @default(TOTP) @map("mfa_method")
+  /// SHA-256 del código de un solo uso enviado por correo; el código en
+  /// claro nunca se persiste, igual que los tokens de invitación.
+  mfaEmailCodeHash String?       @map("mfa_email_code_hash")
+  mfaEmailCodeExpiresAt DateTime? @map("mfa_email_code_expires_at")
+  /// Cuándo el servidor validó por última vez un código real (TOTP o
+  /// correo) para esta cuenta. Es la ÚNICA fuente de verdad de si el
+  /// segundo factor está satisfecho en la sesión vigente — nunca un booleano
+  /// que el cliente pueda mandar directo a /api/auth/session. Ver
+  /// callback jwt en lib/auth.ts.
+  mfaVerifiedAt    DateTime?     @map("mfa_verified_at")
   status           AccountStatus @default(PENDING)
   isAdmin          Boolean       @default(false) @map("is_admin")
   failedAttempts   Int           @default(0) @map("failed_attempts")
@@ -421,6 +434,11 @@ enum AccountStatus {
   INACTIVE
 }
 
+enum MfaMethod {
+  TOTP
+  EMAIL
+}
+
 /// Type of questionnaire form
 enum FormType {
   A
@@ -682,6 +700,12 @@ model OrganizationInvitationLink {
   revokedAt      DateTime? @map("revoked_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
+  /// Cédulas fallidas consecutivas contra este enlace — sin esto, cualquiera
+  /// podía probar documentos sin límite hasta acertar uno real. Se reinicia
+  /// en cada identificación exitosa; al llegar al umbral, bloquea el enlace
+  /// completo por un rato (ver identifyWorker).
+  failedIdentifyAttempts Int       @default(0) @map("failed_identify_attempts")
+  identifyLockedUntil    DateTime? @map("identify_locked_until")
 
   organization Organization @relation(fields: [organizationId], references: [id])
   psychologist Psychologist @relation(fields: [psychologistId], references: [id])

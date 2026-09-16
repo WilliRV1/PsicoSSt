@@ -200,3 +200,26 @@ export function passwordResetEmail(fullName: string, code: string) {
         `),
     };
 }
+
+export function mfaEmailCodeEmail(fullName: string, code: string) {
+    return {
+        subject: "Tu codigo de verificacion - PsicoSST",
+        html: layout(`
+            <h2 style="margin:0 0 16px;color:#18181b;font-size:18px">Verificacion en dos pasos</h2>
+            <p style="color:#3f3f46;line-height:1.6;margin:0 0 16px">
+                Hola ${fullName}, usa el siguiente codigo para iniciar sesion en tu cuenta:
+            </p>
+            <div style="text-align:center;margin:24px 0">
+                <div style="display:inline-block;background:#f4f4f5;border:2px solid #e4e4e7;border-radius:12px;padding:16px 40px;letter-spacing:8px;font-size:32px;font-weight:700;color:#18181b;font-family:monospace">
+                    ${code}
+                </div>
+            </div>
+            <p style="color:#ef4444;font-size:13px;font-weight:600;margin:0 0 12px;text-align:center">
+                Este codigo expira en 10 minutos.
+            </p>
+            <p style="color:#71717a;font-size:12px;margin:0">
+                Si no intentaste iniciar sesion, ignora este correo y considera cambiar tu contrasena.
+            </p>
+        `),
+    };
+}

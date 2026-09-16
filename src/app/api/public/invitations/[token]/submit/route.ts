@@ -8,6 +8,7 @@ const ERROR_STATUS: Record<string, number> = {
     INVITATION_EXPIRED: 410,
     QUESTIONNAIRE_NOT_PLANNED: 400,
     CONSENT_REQUIRED: 400,
+    SIGNATURE_REQUIRED: 400,
     INSUFFICIENT_CREDITS: 402,
 };
 
@@ -17,6 +18,7 @@ const ERROR_MESSAGE: Record<string, string> = {
     INVITATION_EXPIRED: "Este enlace venció. Pide a tu psicólogo(a) que te envíe uno nuevo.",
     QUESTIONNAIRE_NOT_PLANNED: "Este cuestionario no hace parte de tu invitación.",
     CONSENT_REQUIRED: "Debes aceptar el consentimiento informado para continuar.",
+    SIGNATURE_REQUIRED: "Debes firmar el consentimiento antes de continuar.",
     INSUFFICIENT_CREDITS: "Tu psicólogo(a) no tiene créditos disponibles en este momento. Contáctalo(a) directamente.",
 };
 

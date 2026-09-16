@@ -15,8 +15,8 @@ export async function GET(
     try {
         const { id } = await params;
 
-        const worker = await prisma.worker.findUnique({
-            where: { id: id },
+        const worker = await prisma.worker.findFirst({
+            where: { id, organization: { createdByPsychologist: session.user.id } },
             include: {
                 organization: {
                     select: { name: true }
@@ -178,24 +178,33 @@ export async function DELETE(
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
 
-        if (worker._count.assessments > 0) {
-            // Eliminar todas las evaluaciones y datos relacionados en cascada
-            const assessments = await (prisma.assessment as any).findMany({
-                where: { workerId: id },
-                select: { id: true }
-            });
-            const assessmentIds = assessments.map((a:any) => a.id);
+        const assessments = await (prisma.assessment as any).findMany({
+            where: { workerId: id },
+            select: { id: true }
+        });
+        const assessmentIds = assessments.map((a: any) => a.id);
 
-            if (assessmentIds.length > 0) {
-                await (prisma.informedConsent as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
-                await (prisma.generatedReport as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
-                await (prisma.responseSet as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
-                await (prisma.scoredResult as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } });
-                await (prisma.assessment as any).deleteMany({ where: { workerId: id } });
-            }
-        }
-
-        await (prisma.worker as any).delete({ where: { id } });
+        // Todo en una sola transacción: si el borrado del worker falla al
+        // final (por ejemplo por otra FK que no contemplamos aquí), Postgres
+        // revierte también los deleteMany anteriores — antes cada paso se
+        // confirmaba por separado y un fallo a mitad de camino borraba las
+        // evaluaciones sin lograr borrar al trabajador.
+        await prisma.$transaction([
+            ...(assessmentIds.length > 0
+                ? [
+                      (prisma.informedConsent as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      (prisma.generatedReport as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      (prisma.responseSet as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      (prisma.scoredResult as any).deleteMany({ where: { assessmentId: { in: assessmentIds } } }),
+                      (prisma.assessment as any).deleteMany({ where: { workerId: id } }),
+                  ]
+                : []),
+            // assessment_invitations.worker_id es ON DELETE RESTRICT — sin
+            // borrar esto primero, el delete del worker siempre falla si
+            // alguna vez se identificó por el enlace de autoservicio.
+            (prisma.assessmentInvitation as any).deleteMany({ where: { workerId: id } }),
+            (prisma.worker as any).delete({ where: { id } }),
+        ]);
 
         const { ipAddress, userAgent } = extractRequestMeta(request);
         await logAudit({
