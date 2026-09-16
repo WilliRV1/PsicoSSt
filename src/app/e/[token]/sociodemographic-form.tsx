@@ -333,41 +333,48 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Horas de trabajo al día</label>
-                        <input value={form.hoursPerDay} onChange={(e) => setForm((f) => ({ ...f, hoursPerDay: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} placeholder="Ej: 8" />
+                        <label className={LABEL_CLASS}>Horas de trabajo al día</label>
+                        <input type="number" inputMode="numeric" value={form.hoursPerDay} onChange={(e) => setForm((f) => ({ ...f, hoursPerDay: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} placeholder="Ej: 8" />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de salario</label>
+                        <label className={LABEL_CLASS}>Tipo de salario</label>
                         <div className="flex flex-col gap-2">
                             {[
                                 { v: "Fijo", l: "Fijo (diario, semanal, quincenal o mensual)" },
                                 { v: "Fijo_y_variable", l: "Una parte fija y otra variable" },
                                 { v: "Todo_variable", l: "Todo variable (comisión, producción)" },
                             ].map((o) => (
-                                <label key={o.v} className="flex items-center gap-2 text-sm">
-                                    <input type="radio" name="payment" checked={form.paymentModality === o.v} onChange={() => setForm((f) => ({ ...f, paymentModality: o.v }))} />
-                                    {o.l}
-                                </label>
+                                <RadioRow
+                                    key={o.v}
+                                    name="payment"
+                                    label={o.l}
+                                    checked={form.paymentModality === o.v}
+                                    onSelect={() => setForm((f) => ({ ...f, paymentModality: o.v }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Medio de transporte principal</label>
+                        <label className={LABEL_CLASS}>Medio de transporte principal</label>
                         <input value={form.transportMeans} onChange={(e) => setForm((f) => ({ ...f, transportMeans: e.target.value }))} className={INPUT_CLASS} placeholder="Ej: Bus, moto, a pie" />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tiempo de desplazamiento al trabajo (minutos)</label>
-                        <input type="number" inputMode="numeric" value={form.displacementTime} onChange={(e) => setForm((f) => ({ ...f, displacementTime: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
+                        <label className={LABEL_CLASS}>Tiempo de desplazamiento al trabajo (minutos)</label>
+                        <input type="number" inputMode="numeric" value={form.displacementTime} onChange={(e) => setForm((f) => ({ ...f, displacementTime: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} />
                     </div>
                 </div>
 
+                {/* Deliberadamente NO va pegado abajo: el formulario no valida
+                    nada, así que un «Continuar» siempre visible invita a
+                    enviarlo vacío desde el primer campo. Al final del recorrido
+                    natural cumple su función sin ese riesgo. */}
                 <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+                    className="w-full min-h-[52px] rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 touch-manipulation select-none"
                 >
                     {isSubmitting ? "Guardando..." : "Continuar"}
                 </button>
