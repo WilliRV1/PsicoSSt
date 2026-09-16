@@ -13,7 +13,7 @@ export const T = {
   surfaceMuted: '#F0F2F4',
   ink:          '#0B0F14',
   secondary:    '#55636E',
-  muted:        '#8996A1',
+  muted:        '#646F7A',
   border:       '#E4E8EB',
   borderMuted:  '#EFF2F4',
   teal:         '#009A80',
@@ -175,7 +175,7 @@ export const CSS = `
          transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
   .btn:active { transform: scale(0.97); }
   .btn-pri { background: ${T.ink}; color: #FFF; }
-  .btn-acc { background: ${T.teal}; color: #FFF; }
+  .btn-acc { background: ${T.tealDark}; color: #FFF; }
   .btn-sec { background: ${T.surface}; color: ${T.ink}; border: 1px solid ${T.border};
              box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
   .btn-ghost { color: ${T.secondary}; }

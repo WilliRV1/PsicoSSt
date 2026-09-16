@@ -58,7 +58,7 @@ function hoja({ cornisa, cuerpo, pagina, de = 14, pie = 'Informe individual de r
 const cornisaEstandar = (folio) => `
   <div style="display:flex;align-items:center;gap:9px">
     ${isotipo(15, 'pdfmk')}
-    <span style="font-family:${FONTS.marca};font-weight:700;font-size:13px;letter-spacing:-0.01em;color:${P.tinta}">Psico<span style="color:${T.teal}">SST</span></span>
+    <span style="font-family:${FONTS.marca};font-weight:700;font-size:13px;letter-spacing:-0.01em;color:${P.tinta}">Psico<span style="color:${T.tealDark}">SST</span></span>
   </div>
   <span class="num" style="font-size:9.5px;color:${P.tinta3};letter-spacing:0.02em">Folio ${esc(folio)}</span>`;
 
