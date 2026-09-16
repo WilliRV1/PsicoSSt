@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
 import { sendEmail } from "@/lib/email/resend";
 import { assessmentInvitationEmail } from "@/lib/email/templates";
+import { EntitlementError, assertCan } from "@/lib/entitlements";
 
 export async function POST(request: NextRequest) {
     const session = await auth();
@@ -12,6 +13,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+        await assertCan(session.user.id, "INVITE");
+
         const data = await request.json();
         const { workerId, formType, plannedTypes, contactEmail } = data;
 
@@ -60,6 +63,9 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ id, url, expiresAt });
     } catch (error: unknown) {
+        if (error instanceof EntitlementError) {
+            return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+        }
         console.error("[INVITATIONS] POST error:", error);
         return NextResponse.json({ error: "Error técnico al crear la invitación" }, { status: 500 });
     }

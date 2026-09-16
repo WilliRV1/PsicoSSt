@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
+import { EntitlementError, assertCan } from "@/lib/entitlements";
 import { buildIndividualData } from "@/lib/reports/individual-data";
 import { compileTypstPdf } from "@/lib/reports/typst";
 import {
@@ -37,6 +38,16 @@ export async function POST(
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Los informes del plan Residente son borradores sin valor probatorio.
+    try {
+        await assertCan(session.user.id, "SIGN_REPORT");
+    } catch (error) {
+        if (error instanceof EntitlementError) {
+            return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+        }
+        throw error;
     }
 
     const body = await request.json();

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { AssessmentService } from "@/lib/services/assessment-service";
-import { CreditService } from "@/lib/services/credit-service";
+import { consumeUnit, refundUnit } from "@/lib/entitlements";
 import { FormType, QuestionnaireType, ItemResponses } from "@/types/battery";
 
 const DEFAULT_EXPIRY_DAYS = 7;
@@ -186,10 +186,10 @@ export class AssessmentInvitationService {
             throw new Error("SIGNATURE_REQUIRED");
         }
 
-        const { consumed: creditConsumed } = await CreditService.consumeCreditForAssessment(
-            invitation.psychologistId,
-            invitation.workerId
-        );
+        const { consumed: unitConsumed } = await consumeUnit(invitation.psychologistId, {
+            workerId: invitation.workerId,
+            questionnaireType,
+        });
 
         let assessmentId: string;
         try {
@@ -220,11 +220,12 @@ export class AssessmentInvitationService {
             });
             assessmentId = result.id;
         } catch (err) {
-            if (creditConsumed) {
-                await CreditService.refundCredit(
-                    invitation.psychologistId,
-                    "Error al guardar cuestionario autoaplicado por el trabajador"
-                ).catch((e) => console.error("[INVITATIONS] Refund failed:", e));
+            if (unitConsumed) {
+                await refundUnit(invitation.psychologistId, {
+                    workerId: invitation.workerId,
+                    questionnaireType,
+                    reason: "Error al guardar el cuestionario diligenciado por el trabajador",
+                }).catch((e) => console.error("[INVITATIONS] Refund failed:", e));
             }
             throw err;
         }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { OrganizationInvitationLinkService } from "@/lib/services/organization-invitation-link-service";
+import { EntitlementError, assertCan } from "@/lib/entitlements";
 import { FormType, QuestionnaireType } from "@/types/battery";
 
 /**
@@ -33,6 +34,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+        await assertCan(session.user.id, "INVITE");
+
         const body = await request.json();
         const { organizationId, formType, plannedTypes } = body as {
             organizationId: string;
@@ -62,6 +65,9 @@ export async function POST(request: NextRequest) {
         const url = `${request.nextUrl.origin}/c/${token}`;
         return NextResponse.json({ url });
     } catch (error) {
+        if (error instanceof EntitlementError) {
+            return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+        }
         console.error("[ORGANIZATION_INVITATION_LINKS] POST error:", error);
         return NextResponse.json({ error: "Error técnico al crear el enlace" }, { status: 500 });
     }

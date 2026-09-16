@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { PaymentService } from "@/lib/payments/payment-service";
 import { isPaymentsEnabled } from "@/lib/payments/config";
+import { SubscriptionService } from "@/lib/services/subscription-service";
 
 /**
  * Barrido programado de órdenes a medias.
@@ -39,8 +40,21 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // El vencimiento de suscripciones no depende de la pasarela: un trial
+    // vence aunque los pagos estén apagados.
+    let suscripciones: { expired: number; unitsExpired: number };
+    try {
+        suscripciones = await SubscriptionService.expireDue();
+        console.info(
+            `[SUSCRIPCIONES][cron] vencidas=${suscripciones.expired} unidades_retiradas=${suscripciones.unitsExpired}`
+        );
+    } catch (error) {
+        console.error("[SUSCRIPCIONES][cron] Vencimiento fallido:", error);
+        return NextResponse.json({ error: "Subscription expiry failed" }, { status: 500 });
+    }
+
     if (!isPaymentsEnabled()) {
-        return NextResponse.json({ skipped: "payments_disabled" }, { status: 200 });
+        return NextResponse.json({ ok: true, skipped: "payments_disabled", suscripciones }, { status: 200 });
     }
 
     try {
@@ -48,7 +62,7 @@ export async function GET(request: NextRequest) {
         console.info(
             `[PAGOS][cron] vencidas=${resumen.expired} reconciliadas=${resumen.reconciled} fallidas=${resumen.failed}`
         );
-        return NextResponse.json({ ok: true, ...resumen });
+        return NextResponse.json({ ok: true, ...resumen, suscripciones });
     } catch (error) {
         console.error("[PAGOS][cron] Barrido fallido:", error);
         return NextResponse.json({ error: "Sweep failed" }, { status: 500 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
+import { EntitlementError, assertCan } from "@/lib/entitlements";
 
 /**
  * GET — List organizations for the current psychologist
@@ -105,6 +106,9 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+        // El plan Residente admite una sola empresa activa.
+        await assertCan(session.user.id, "CREATE_ORG");
+
         const body = await request.json();
         const { name, nit, economicSector, city, department, employeeCount } = body;
 
@@ -161,6 +165,9 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ data: organization }, { status: 201 });
     } catch (error) {
+        if (error instanceof EntitlementError) {
+            return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+        }
         console.error("[ORGANIZATIONS] POST Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }

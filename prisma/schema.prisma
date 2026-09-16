@@ -54,6 +54,7 @@ model Psychologist {
   creditTransactions CreditTransaction[]
   resetTokens        PasswordResetToken[]
   paymentOrders      PaymentOrder[]
+  subscription       Subscription?
   settings           PsychologistSettings?
   assessmentReports  AssessmentReport[]
   assessmentInvitations AssessmentInvitation[]
@@ -608,12 +609,23 @@ model CreditTransaction {
   paymentRef     String?           @map("payment_ref")
   /// Related assessment ID (for consumption)
   assessmentId   String?           @map("assessment_id") @db.Uuid
+  /// Trabajador al que se cargó la unidad (CONSUMPTION). La unidad de cobro es
+  /// el trabajador gestionado por familia de instrumento y periodo: con esto
+  /// se sabe si ya se cobró en el periodo sin recorrer evaluaciones.
+  workerId       String?           @map("worker_id") @db.Uuid
+  /// BATTERY | CLIMA
+  unitFamily     String?           @map("unit_family")
+  /// Vencimiento del cupo otorgado (PLAN_QUOTA, TRIAL_GRANT, ADMIN_GRANT con
+  /// plan). Nulo en compras sueltas y en los créditos anteriores al pivote,
+  /// que no vencen.
+  expiresAt      DateTime?         @map("expires_at")
   /// Description of the transaction
   description    String?
   createdAt      DateTime          @default(now()) @map("created_at")
   psychologist   Psychologist      @relation(fields: [psychologistId], references: [id])
 
   @@index([psychologistId, createdAt(sort: Desc)])
+  @@index([psychologistId, workerId, unitFamily, createdAt])
   @@map("credit_transactions")
 }
 
@@ -627,6 +639,54 @@ enum CreditTxType {
   /// Reversión por reembolso o contracargo en la pasarela: monto NEGATIVO.
   /// No confundir con REFUND, que devuelve un crédito al psicólogo.
   REVERSAL
+  /// Cupo de un periodo de suscripción, con `expiresAt = periodEnd`.
+  PLAN_QUOTA
+  /// Retiro del cupo no usado al vencer el periodo: monto NEGATIVO.
+  QUOTA_EXPIRY
+}
+
+enum PlanId {
+  RESIDENTE
+  PROFESIONAL
+}
+
+/// TRIAL y ACTIVE permiten escribir mientras periodEnd > now. EXPIRED y
+/// PAST_DUE sólo permiten leer: la evidencia del SG-SST se custodia 20 años y
+/// nunca se bloquea por impago. PAST_DUE queda reservado para el cobro
+/// recurrente, que no existe en esta entrega.
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  EXPIRED
+}
+
+/// Suscripción del psicólogo. Una por cuenta en esta entrega.
+///
+/// El cupo del periodo se otorga como créditos con vencimiento (ver
+/// CreditTransaction.expiresAt), así que la pasarela de pago único y el saldo
+/// almacenado siguen siendo la fuente de verdad del consumo.
+model Subscription {
+  id             String             @id @default(uuid()) @db.Uuid
+  psychologistId String             @unique @map("psychologist_id") @db.Uuid
+  plan           PlanId
+  status         SubscriptionStatus
+  periodStart    DateTime           @map("period_start")
+  periodEnd      DateTime           @map("period_end")
+  /// Unidades otorgadas en el periodo vigente (se acumula al renovar antes de vencer).
+  quotaGranted   Int                @map("quota_granted")
+  /// Módulos comprados y su vencimiento: { "ISO45003": "2027-09-16T…" }.
+  features       Json               @default("{}")
+  /// Orden que activó o renovó el periodo vigente. Nula en trial y asignación manual.
+  paymentOrderId String?            @unique @map("payment_order_id") @db.Uuid
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  psychologist   Psychologist       @relation(fields: [psychologistId], references: [id])
+  paymentOrder   PaymentOrder?      @relation(fields: [paymentOrderId], references: [id])
+
+  @@index([status, periodEnd])
+  @@map("subscriptions")
 }
 
 /// Password reset token (6-digit code)
@@ -777,6 +837,7 @@ model PaymentOrder {
   completedAt          DateTime?     @map("completed_at")
 
   psychologist         Psychologist  @relation(fields: [psychologistId], references: [id])
+  subscription         Subscription?
 
   @@index([psychologistId, createdAt(sort: Desc)])
   /// Barrido del cron de reconciliación: órdenes no terminales por antigüedad.

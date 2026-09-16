@@ -5,15 +5,10 @@ import { sendEmail } from "@/lib/email/resend";
 import { assessmentInvitationEmail } from "@/lib/email/templates";
 import { clearFailures, getLockoutSeconds, registerFailure } from "@/lib/security/rate-limit";
 import { AssessmentInvitationService, assessmentIdField } from "@/lib/services/assessment-invitation-service";
+import { isDue, workerValidity } from "@/lib/compliance/cadence";
 import { FormType, QuestionnaireType } from "@/types/battery";
 
 const RESOLVED_INVITATION_EXPIRY_DAYS = 3;
-
-/// Misma ventana que CreditService.consumeCreditForAssessment usa para
-/// decidir si a un trabajador ya le toca una evaluación nueva. Se reutiliza
-/// aquí para que "cuándo se puede repetir la prueba" sea una sola regla de
-/// negocio y no dos que puedan desincronizarse.
-const REEVALUATION_WINDOW_MONTHS = 3;
 
 /// El enlace de empresa se comparte ampliamente (cartelera, WhatsApp) y solo
 /// pide una cédula — sin límite de intentos, cualquiera podía probar
@@ -332,18 +327,19 @@ export class OrganizationInvitationLinkService {
         }
 
         if (latest && latest.status === "COMPLETED") {
-            const windowStart = new Date();
-            windowStart.setMonth(windowStart.getMonth() - REEVALUATION_WINDOW_MONTHS);
-
-            const recentAssessments = await prisma.assessment.count({
-                where: { workerId: worker.id, createdAt: { gte: windowStart } },
+            // Cadencia normativa, no ventana comercial: le toca un ciclo nuevo
+            // cuando venció la vigencia del último resultado (Res. 2764/2022
+            // art. 3: anual si fue riesgo alto o muy alto, bienal si no).
+            const last = await prisma.assessment.findFirst({
+                where: { workerId: worker.id, status: { in: ["SCORED", "REVIEWED", "SIGNED"] } },
+                orderBy: { assessmentDate: "desc" },
+                select: { assessmentDate: true, scoredResult: { select: { overallRiskCategory: true } } },
             });
-
-            if (recentAssessments > 0) {
+            if (last && !isDue(new Date(last.assessmentDate), workerValidity(last.scoredResult?.overallRiskCategory))) {
                 throw new Error("ALREADY_COMPLETED");
             }
-            // Fuera de la ventana: le toca legítimamente un ciclo nuevo, cae
-            // al bloque de abajo y crea una invitación desde cero.
+            // Vigencia vencida: le toca legítimamente un ciclo nuevo, cae al
+            // bloque de abajo y crea una invitación desde cero.
         }
 
         const created = await AssessmentInvitationService.create({

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, validatePasswordStrength } from "@/lib/auth/password";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
-import { CreditService } from "@/lib/services/credit-service";
+import { SubscriptionService } from "@/lib/services/subscription-service";
 import { sendEmail } from "@/lib/email/resend";
 import { welcomeEmail } from "@/lib/email/templates";
 
@@ -89,8 +89,8 @@ export async function POST(request: Request) {
             },
         });
 
-        // Grant trial credits
-        await CreditService.grantTrialCredits(psychologist.id);
+        // Periodo de prueba Residente: cupo con vencimiento, informes en borrador.
+        await SubscriptionService.startTrial(psychologist.id);
 
         // Send welcome email (fire-and-forget)
         const template = welcomeEmail(psychologist.fullName);

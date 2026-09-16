@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { PaymentService, PaymentOrderError } from "@/lib/payments/payment-service";
 import { getMercadoPagoConfig, MercadoPagoConfigError } from "@/lib/payments/config";
-import { getPackageById } from "@/config/credit-packages";
+import { getPackageById } from "@/config/plans";
 
 /**
  * Abre una orden de pago y devuelve lo que el Payment Brick necesita para
