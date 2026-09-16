@@ -1,0 +1,476 @@
+{
+  "artboards": [
+    {
+      "file": "Fundamentos.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 2420,
+      "page": "sistema"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "operacion"
+    },
+    {
+      "file": "Empresas.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "operacion"
+    },
+    {
+      "file": "EmpresaDetalle.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "operacion"
+    },
+    {
+      "file": "Trabajadores.dc.html",
+      "x": 0,
+      "y": 1190,
+      "w": 1440,
+      "h": 900,
+      "page": "operacion"
+    },
+    {
+      "file": "TrabajadorDetalle.dc.html",
+      "x": 1560,
+      "y": 1190,
+      "w": 1440,
+      "h": 1020,
+      "page": "operacion"
+    },
+    {
+      "file": "Evaluaciones.dc.html",
+      "x": 3120,
+      "y": 1190,
+      "w": 1440,
+      "h": 900,
+      "page": "operacion"
+    },
+    {
+      "file": "Invitar.dc.html",
+      "x": 0,
+      "y": 2400,
+      "w": 1440,
+      "h": 1000,
+      "page": "operacion"
+    },
+    {
+      "file": "Digitacion.dc.html",
+      "x": 1560,
+      "y": 2400,
+      "w": 1440,
+      "h": 920,
+      "page": "operacion"
+    },
+    {
+      "file": "CargaMasiva.dc.html",
+      "x": 3120,
+      "y": 2400,
+      "w": 1440,
+      "h": 1060,
+      "page": "operacion"
+    },
+    {
+      "file": "ImportarTrabajadores.dc.html",
+      "x": 0,
+      "y": 3650,
+      "w": 1440,
+      "h": 900,
+      "page": "operacion"
+    },
+    {
+      "file": "Informes.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "informes"
+    },
+    {
+      "file": "InformeIndividual.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 2060,
+      "page": "informes"
+    },
+    {
+      "file": "FirmarInforme.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "informes"
+    },
+    {
+      "file": "Diagnostico.dc.html",
+      "x": 0,
+      "y": 2250,
+      "w": 1440,
+      "h": 1860,
+      "page": "informes"
+    },
+    {
+      "file": "Sociodemografico.dc.html",
+      "x": 1560,
+      "y": 2250,
+      "w": 1440,
+      "h": 1280,
+      "page": "informes"
+    },
+    {
+      "file": "ProgramaSVE.dc.html",
+      "x": 3120,
+      "y": 2250,
+      "w": 1440,
+      "h": 1300,
+      "page": "informes"
+    },
+    {
+      "file": "Ingresar.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "acceso"
+    },
+    {
+      "file": "Registro.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "acceso"
+    },
+    {
+      "file": "Recuperar.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "acceso"
+    },
+    {
+      "file": "MfaActivar.dc.html",
+      "x": 0,
+      "y": 1090,
+      "w": 1440,
+      "h": 900,
+      "page": "acceso"
+    },
+    {
+      "file": "MfaVerificar.dc.html",
+      "x": 1560,
+      "y": 1090,
+      "w": 1440,
+      "h": 900,
+      "page": "acceso"
+    },
+    {
+      "file": "EnRevision.dc.html",
+      "x": 3120,
+      "y": 1090,
+      "w": 1440,
+      "h": 900,
+      "page": "acceso"
+    },
+    {
+      "file": "Analitica.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1220,
+      "page": "analisis"
+    },
+    {
+      "file": "Tendencias.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "page": "analisis"
+    },
+    {
+      "file": "Intervenciones.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1140,
+      "page": "analisis"
+    },
+    {
+      "file": "AsistenteIA.dc.html",
+      "x": 0,
+      "y": 1410,
+      "w": 1440,
+      "h": 1000,
+      "page": "analisis"
+    },
+    {
+      "file": "Creditos.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 980,
+      "page": "cuenta"
+    },
+    {
+      "file": "Planes.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1050,
+      "page": "cuenta"
+    },
+    {
+      "file": "Equipo.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1050,
+      "page": "cuenta"
+    },
+    {
+      "file": "Configuracion.dc.html",
+      "x": 0,
+      "y": 1240,
+      "w": 1440,
+      "h": 1500,
+      "page": "cuenta"
+    },
+    {
+      "file": "GuiaRapida.dc.html",
+      "x": 1560,
+      "y": 1240,
+      "w": 1440,
+      "h": 1080,
+      "page": "cuenta"
+    },
+    {
+      "file": "PanelAdmin.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1020,
+      "page": "admin"
+    },
+    {
+      "file": "Psicologos.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "admin"
+    },
+    {
+      "file": "SolicitudPendiente.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 960,
+      "page": "admin"
+    },
+    {
+      "file": "Auditoria.dc.html",
+      "x": 0,
+      "y": 1210,
+      "w": 1440,
+      "h": 900,
+      "page": "admin"
+    },
+    {
+      "file": "Comentarios.dc.html",
+      "x": 1560,
+      "y": 1210,
+      "w": 1440,
+      "h": 1100,
+      "page": "admin"
+    },
+    {
+      "file": "Portada.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1830,
+      "page": "publico"
+    },
+    {
+      "file": "InvitacionEmpresa.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "publico"
+    },
+    {
+      "file": "Terminos.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1280,
+      "page": "publico"
+    },
+    {
+      "file": "Privacidad.dc.html",
+      "x": 0,
+      "y": 2020,
+      "w": 1440,
+      "h": 1280,
+      "page": "publico"
+    },
+    {
+      "file": "Invitacion.dc.html",
+      "x": 1560,
+      "y": 2020,
+      "w": 390,
+      "h": 844,
+      "page": "publico"
+    },
+    {
+      "file": "Consentimiento.dc.html",
+      "x": 2070,
+      "y": 2020,
+      "w": 390,
+      "h": 844,
+      "page": "publico"
+    },
+    {
+      "file": "FichaSocio.dc.html",
+      "x": 2580,
+      "y": 2020,
+      "w": 390,
+      "h": 844,
+      "page": "publico"
+    },
+    {
+      "file": "Cuestionario.dc.html",
+      "x": 3090,
+      "y": 2020,
+      "w": 390,
+      "h": 844,
+      "page": "publico"
+    },
+    {
+      "file": "Finalizado.dc.html",
+      "x": 3600,
+      "y": 2020,
+      "w": 390,
+      "h": 844,
+      "page": "publico"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "nota-operacion-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "El núcleo diario. El Centro de control abre con la banda de\ndistribución de riesgo a todo el ancho en vez de cuatro\ntarjetas de estadística: una sola lectura, ordenada de menor\na mayor riesgo, legible también en gris.\n\nLa barra lateral pasa de 5 a 14 destinos agrupados en cuatro\nbloques. Hoy IA, analítica, tendencias, intervenciones,\ncréditos, trabajadores y el módulo admin no son alcanzables\ndesde la navegación.",
+      "page": "operacion"
+    },
+    {
+      "id": "nota-sistema-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "La paleta, los radios y las familias salen tal cual de\nglobals.css. Lo que cambia es la escala: Barlow Semi\nCondensed sube de etiqueta de 10px a titular de 78px, y\nSource Serif 4 —hoy solo en los PDF— entra a pantalla para\nla narrativa interpretativa.\n\nEl ordinal de cinco pasos acompaña siempre a la píldora de\nriesgo, de modo que el nivel se lee por posición antes que\npor color.",
+      "page": "sistema"
+    },
+    {
+      "id": "nota-acceso-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "Formulario sobre superficie blanca a la izquierda,\nargumento editorial sobre papel a la derecha. Es la\npartición que ya existe en login, con el lado derecho\nconvertido en página de verdad.\n\nEl segundo factor aparece como obligatorio, no opcional:\nuna cuenta abre historias clínicas de cientos de personas.",
+      "page": "acceso"
+    },
+    {
+      "id": "nota-informes-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "El informe individual se compone como el documento que va a\nsalir en PDF, no como un tablero. La interpretación va en\nSource Serif 4 —la misma familia del PDF— y el carril\nderecho es lo único que no es el documento.\n\nEn los colectivos, la paleta categórica está verificada con\nel validador de la guía de visualización: ΔE 11,2 en el peor\npar adyacente bajo protanopía.",
+      "page": "informes"
+    },
+    {
+      "id": "nota-analisis-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "Las cuatro pantallas que hoy son un marcador de «próximamente»\nen el código: analítica, tendencias, intervenciones y el\nasistente.\n\nEn Intervenciones el criterio es que una recomendación sin\nresponsable y sin fecha no es una intervención. En el\nasistente, que ningún texto generado llega a un informe\nfirmado sin aprobación explícita registrada.",
+      "page": "analisis"
+    },
+    {
+      "id": "nota-cuenta-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "Créditos, planes, equipo, configuración y la guía de\nprimeros pasos.\n\nLa matriz de permisos vive dentro de Equipo en vez de en una\npantalla de «Roles» aparte: el permiso solo se entiende\nmirando a quién se le asigna.",
+      "page": "cuenta"
+    },
+    {
+      "id": "nota-admin-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "Aprobar una cuenta habilita el acceso a datos de salud de\nterceros, así que la pantalla de verificación trata los tres\ndocumentos como una lista de comprobación explícita y deja\nnota en la auditoría.\n\nEl registro de auditoría es inmutable y sin borrado: es lo\nque se presenta ante una inspección.",
+      "page": "admin"
+    },
+    {
+      "id": "nota-publico-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "Lo que ven personas fuera del consultorio. El flujo del\ntrabajador va a 390×844 porque se responde en el teléfono.\n\nSin barra de estado ni teclado dibujados: en un móvil real\nlos pinta el sistema encima y una copia pintada se ve doble.\nBlancos de pulsación de 56px, un ítem por pantalla y el\nenunciado en Source Serif para que se lea como una pregunta,\nno como un control.",
+      "page": "publico"
+    }
+  ],
+  "pages": [
+    {
+      "id": "operacion",
+      "name": "Operación"
+    },
+    {
+      "id": "sistema",
+      "name": "Sistema"
+    },
+    {
+      "id": "acceso",
+      "name": "Acceso"
+    },
+    {
+      "id": "informes",
+      "name": "Informes"
+    },
+    {
+      "id": "analisis",
+      "name": "Análisis"
+    },
+    {
+      "id": "cuenta",
+      "name": "Cuenta y sistema"
+    },
+    {
+      "id": "admin",
+      "name": "Administración"
+    },
+    {
+      "id": "publico",
+      "name": "Público"
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "operacion"
+  }
+}

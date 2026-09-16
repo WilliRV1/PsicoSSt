@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; text-decoration: underline; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
+     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
+     principio de todo el sistema. */
+  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
+  .rub-ink { color: #4A5F70; }
+
+  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
+  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
+             line-height: 0.94; color: #0C1520; }
+
+  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
+  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
+  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
+           color: #1D2B38; text-wrap: pretty; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F2F0EC; }
+  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
+  .side-brand { padding: 26px 24px 22px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
+  .side-group { display: flex; flex-direction: column; gap: 1px; }
+  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
+  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
+         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
+         border-radius: 6px; }
+  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
+            border-left-color: #009A80; }
+  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
+               display: flex; align-items: center; gap: 10px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 28px; }
+  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
+         background: #E8E5E0; color: #8A9FAE; }
+  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
+         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .btn-pri { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
+  .btn-ghost { color: #4A5F70; }
+  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+           display: flex; align-items: center; }
+  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
+         text-transform: uppercase; color: #8A9FAE; }
+  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #8A9FAE; text-align: left;
+        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
+  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
+        color: #0C1520; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:#F2F0EC;overflow:hidden">
+<div style="display:flex;width:1440px;height:900px">
+      <div style="width:588px;flex-shrink:0;background:#FFFFFF;border-right:1px solid #D4CFC8;display:flex;flex-direction:column;padding:40px 76px">
+        <div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="24.3" height="27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:19.4px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:28px 0">
+          
+    <h1 class="display" style="font-size:38px">Entre a su consultorio</h1>
+    <p style="font-size:13.5px;line-height:1.6;color:#4A5F70;margin-top:10px;max-width:400px">
+      El acceso está restringido a psicólogos con licencia vigente en Seguridad y Salud en el Trabajo.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:17px;margin-top:30px;max-width:400px">
+      <div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+      <p class="lbl">Correo electrónico</p>
+      
+    </div>
+    <div class="input" style="height:44px;font-size:14px;color:#0C1520;border-color:#009A80;box-shadow:0 0 0 3px rgba(0,154,128,0.12);justify-content:space-between">
+      <span>psicologa@consultorio.co</span>
+      
+    </div>
+  </div>
+      <div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+      <p class="lbl">Contraseña</p>
+      <span style="font-size:12px;color:#007A65">¿La olvidó?</span>
+    </div>
+    <div class="input" style="height:44px;font-size:14px;color:#0C1520;;justify-content:space-between">
+      <span>••••••••••</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+    </div>
+  </div>
+      <span class="btn btn-pri" style="height:46px;justify-content:center;font-size:15px;margin-top:5px">Ingresar</span>
+      <p style="font-size:13px;color:#4A5F70;text-align:center">
+        ¿Aún no tiene cuenta? <span style="color:#007A65;font-weight:500">Solicite acceso</span>
+      </p>
+      <div style="display:flex;gap:10px;align-items:flex-start;padding-top:15px;border-top:1px solid #E2DED8;margin-top:5px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <p style="font-size:12px;line-height:1.55;color:#8A9FAE">
+          Sus credenciales protegen historias clínicas ocupacionales. Verificamos tarjeta
+          profesional y posgrado antes de habilitar la cuenta.
+        </p>
+      </div>
+    </div>
+        </div>
+        <p style="font-size:11.5px;color:#8A9FAE">
+          Resolución 2646 de 2008 · Resolución 2764 de 2022 · Ley 1090 de 2006 · Ley 1581 de 2012
+        </p>
+      </div>
+      <div style="flex:1;background:#F2F0EC;position:relative;overflow:hidden">
+  <div style="padding:72px 72px 0;height:100%;display:flex;flex-direction:column">
+    <p class="rub">Batería de riesgo psicosocial · Colombia</p>
+    <h2 class="display" style="font-size:56px;margin-top:20px;max-width:560px">
+      De 123 respuestas<br>a un informe defendible.
+    </h2>
+    <p class="prose" style="max-width:520px;margin-top:22px">
+      PsicoSST califica los cuatro instrumentos de la batería con los algoritmos exactos
+      del manual oficial, redacta la interpretación por dimensión y deja constancia de
+      cada operación. El juicio profesional sigue siendo suyo; la aritmética, no.
+    </p>
+    <div style="margin-top:38px;max-width:560px"><div style="display:flex;gap:4px;align-items:flex-end;height:118px">
+    <div style="flex:1;height:22px;background:#B8B2A8;border-radius:2px;opacity:0.35"></div><div style="flex:1;height:46px;background:#16A34A;border-radius:2px;opacity:0.51"></div><div style="flex:1;height:46px;background:#16A34A;border-radius:2px;opacity:0.51"></div><div style="flex:1;height:70px;background:#D97706;border-radius:2px;opacity:0.6699999999999999"></div><div style="flex:1;height:70px;background:#D97706;border-radius:2px;opacity:0.6699999999999999"></div><div style="flex:1;height:94px;background:#EA580C;border-radius:2px;opacity:0.83"></div><div style="flex:1;height:70px;background:#D97706;border-radius:2px;opacity:0.6699999999999999"></div><div style="flex:1;height:46px;background:#16A34A;border-radius:2px;opacity:0.51"></div><div style="flex:1;height:94px;background:#EA580C;border-radius:2px;opacity:0.83"></div><div style="flex:1;height:118px;background:#DC2626;border-radius:2px;opacity:0.99"></div><div style="flex:1;height:94px;background:#EA580C;border-radius:2px;opacity:0.83"></div><div style="flex:1;height:70px;background:#D97706;border-radius:2px;opacity:0.6699999999999999"></div><div style="flex:1;height:46px;background:#16A34A;border-radius:2px;opacity:0.51"></div><div style="flex:1;height:22px;background:#B8B2A8;border-radius:2px;opacity:0.35"></div><div style="flex:1;height:70px;background:#D97706;border-radius:2px;opacity:0.6699999999999999"></div><div style="flex:1;height:94px;background:#EA580C;border-radius:2px;opacity:0.83"></div><div style="flex:1;height:118px;background:#DC2626;border-radius:2px;opacity:0.99"></div><div style="flex:1;height:94px;background:#EA580C;border-radius:2px;opacity:0.83"></div><div style="flex:1;height:70px;background:#D97706;border-radius:2px;opacity:0.6699999999999999"></div>
+  </div></div>
+    <p class="rub" style="margin-top:14px;max-width:560px">19 dimensiones · 4 dominios · Intralaboral Forma A</p>
+
+    <div style="margin-top:auto;padding-bottom:64px;display:flex;flex-direction:column;gap:18px;max-width:520px">
+      <div style="display:flex;gap:13px;align-items:flex-start">
+        <div style="width:26px;height:26px;border-radius:7px;background:#CCF0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div>
+          <p style="font-size:13.5px;font-weight:600;color:#0C1520">Calificación conforme a los manuales</p>
+          <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:3px">Baremos, factores de transformación e ítems invertidos tal como los publica el Ministerio.</p>
+        </div>
+      </div><div style="display:flex;gap:13px;align-items:flex-start">
+        <div style="width:26px;height:26px;border-radius:7px;background:#CCF0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg>
+        </div>
+        <div>
+          <p style="font-size:13.5px;font-weight:600;color:#0C1520">Informes listos para entregar</p>
+          <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:3px">PDF firmado digitalmente, con folio verificable y anexo de trazabilidad.</p>
+        </div>
+      </div><div style="display:flex;gap:13px;align-items:flex-start">
+        <div style="width:26px;height:26px;border-radius:7px;background:#CCF0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <p style="font-size:13.5px;font-weight:600;color:#0C1520">Trazabilidad hasta la respuesta</p>
+          <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:3px">Cada puntaje se puede reconstruir desde los ítems que lo originaron.</p>
+        </div>
+      </div>
+    </div>
+  </div></div>
+    </div>
+</div>
+</x-dc>
+
+</body>
+</html>

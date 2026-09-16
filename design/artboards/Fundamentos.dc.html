@@ -1,0 +1,452 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; text-decoration: underline; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
+     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
+     principio de todo el sistema. */
+  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
+  .rub-ink { color: #4A5F70; }
+
+  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
+  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
+             line-height: 0.94; color: #0C1520; }
+
+  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
+  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
+  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
+           color: #1D2B38; text-wrap: pretty; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F2F0EC; }
+  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
+  .side-brand { padding: 26px 24px 22px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
+  .side-group { display: flex; flex-direction: column; gap: 1px; }
+  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
+  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
+         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
+         border-radius: 6px; }
+  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
+            border-left-color: #009A80; }
+  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
+               display: flex; align-items: center; gap: 10px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 28px; }
+  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
+         background: #E8E5E0; color: #8A9FAE; }
+  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
+         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .btn-pri { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
+  .btn-ghost { color: #4A5F70; }
+  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+           display: flex; align-items: center; }
+  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
+         text-transform: uppercase; color: #8A9FAE; }
+  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #8A9FAE; text-align: left;
+        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
+  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
+        color: #0C1520; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+</style>
+</helmet>
+<div style="width:1440px;height:2420px;background:#F2F0EC;overflow:hidden">
+<div style="padding:52px 60px 60px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:34px">
+      <div>
+        <p class="rub">Sistema de diseño · PsicoSST</p>
+        <h1 class="display" style="font-size:62px;margin-top:12px">Clínico editorial</h1>
+        <p class="prose" style="max-width:660px;margin-top:16px">
+          La paleta, los radios y las familias tipográficas se conservan tal como están en
+          <span class="num" style="font-size:14.5px">globals.css</span>. Lo que cambia es la escala:
+          Barlow Semi&nbsp;Condensed deja de ser solo una etiqueta de 10&nbsp;px y pasa a titular,
+          y Source Serif&nbsp;4 —hoy reservada al PDF— entra a pantalla para que la interpretación
+          se lea como el documento clínico que es.
+        </p>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="30.6" height="34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:24.5px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:9.2px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div>
+    </div>
+    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
+    <div style="display:flex;gap:44px">
+      <div style="width:230px;flex-shrink:0">
+        <p class="num" style="font-size:11px;color:#8A9FAE">01</p>
+        <h2 class="display" style="font-size:27px;margin-top:7px">Color</h2>
+        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Idéntico a producción. Ni un tono nuevo.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <p class="rub" style="margin-bottom:13px">Base</p>
+  <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#F2F0EC;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Papel</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#F2F0EC</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-background</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#FFFFFF;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Superficie</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#FFFFFF</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-surface</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#E8E5E0;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Superficie apagada</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#E8E5E0</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-surface-muted</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#0C1520;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Tinta</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#0C1520</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-foreground</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#4A5F70;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Texto secundario</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#4A5F70</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-text-secondary</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#8A9FAE;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Texto apagado</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#8A9FAE</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-text-muted</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#D4CFC8;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Filete</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#D4CFC8</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-border</p>
+  </div>
+  </div>
+  <p class="rub" style="margin:24px 0 13px">Señal</p>
+  <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#009A80;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Primario</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#009A80</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-primary</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#007A65;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Primario oscuro</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#007A65</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-teal-dark</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#CCF0E8;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Primario claro</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#CCF0E8</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-teal-light</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#16A34A;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Éxito</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#16A34A</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-success</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#D97706;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Aviso</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#D97706</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-warning</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#DC2626;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Peligro</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#DC2626</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-danger</p>
+  </div>
+    <div style="width:118px">
+    <div style="height:56px;border-radius:7px;background:#2563EB;border:1px solid rgba(12,21,32,0.10)"></div>
+    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Información</p>
+    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#2563EB</p>
+    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-info</p>
+  </div>
+  </div></div>
+    </div>
+  </section>
+    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
+    <div style="display:flex;gap:44px">
+      <div style="width:230px;flex-shrink:0">
+        <p class="num" style="font-size:11px;color:#8A9FAE">02</p>
+        <h2 class="display" style="font-size:27px;margin-top:7px">Tipografía</h2>
+        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Cuatro familias, cada una con un trabajo que ninguna otra hace.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <div style="display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;align-items:baseline;gap:26px">
+      <p class="rub" style="width:132px;flex-shrink:0">Display 78</p>
+      <p class="display" style="font-size:78px">1.284</p>
+      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Barlow Semi&nbsp;Condensed 600 · −0,02em</p>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
+      <p class="rub" style="width:132px;flex-shrink:0">Título 40</p>
+      <p class="display" style="font-size:40px">Demandas del trabajo</p>
+      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Barlow 600</p>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
+      <p class="rub" style="width:132px;flex-shrink:0">Narrativa 16,5</p>
+      <p class="prose" style="max-width:520px">El trabajador percibe que las exigencias de carga mental superan su capacidad de respuesta habitual.</p>
+      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Source Serif&nbsp;4 400 · 1,62</p>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
+      <p class="rub" style="width:132px;flex-shrink:0">Interfaz 13,5</p>
+      <p style="font-size:13.5px;color:#0C1520;max-width:520px">Texto de interfaz, etiquetas de formulario, celdas de tabla y botones.</p>
+      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">IBM Plex Sans 400/500/600</p>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
+      <p class="rub" style="width:132px;flex-shrink:0">Dato</p>
+      <p class="num" style="font-size:20px;color:#0C1520">68,4 · 24,7% · 2026-09-16 · 4f7a91c</p>
+      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">IBM Plex Mono · cifras tabulares</p>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
+      <p class="rub" style="width:132px;flex-shrink:0">Rúbrica</p>
+      <p class="rub rub-ink">Liderazgo y relaciones sociales en el trabajo</p>
+      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Barlow 600 · 10px · 0,22em</p>
+    </div>
+  </div></div>
+    </div>
+  </section>
+    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
+    <div style="display:flex;gap:44px">
+      <div style="width:230px;flex-shrink:0">
+        <p class="num" style="font-size:11px;color:#8A9FAE">03</p>
+        <h2 class="display" style="font-size:27px;margin-top:7px">Escala de riesgo</h2>
+        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Los cinco niveles de la Resolución 2646, legibles sin color.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <table>
+    <tr>
+      <th class="th">Nivel</th><th class="th">Píldora</th><th class="th">Ordinal</th>
+      <th class="th">Tramo típico</th><th class="th">Macizo</th><th class="th" style="padding-right:0">En gris</th>
+    </tr>
+    <tr>
+        <td class="td" style="font-weight:500">Sin riesgo</td>
+        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#F2F0EC;color:#4A5F70;border:1px solid #D4CFC8">
+    <span style="width:5px;height:5px;border-radius:999px;background:#B8B2A8"></span>Sin riesgo</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#B8B2A8;border:1px solid #B8B2A8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td num" style="color:#4A5F70">0 – 3,8</td>
+        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#B8B2A8"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 78%);border:1px solid hsl(0 0% 78%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+      </tr><tr>
+        <td class="td" style="font-weight:500">Bajo</td>
+        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">
+    <span style="width:5px;height:5px;border-radius:999px;background:#16A34A"></span>Bajo</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#16A34A;border:1px solid #16A34A"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#16A34A;border:1px solid #16A34A"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td num" style="color:#4A5F70">3,9 – 15,4</td>
+        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#16A34A"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 63%);border:1px solid hsl(0 0% 63%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 63%);border:1px solid hsl(0 0% 63%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+      </tr><tr>
+        <td class="td" style="font-weight:500">Medio</td>
+        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#FEF3C7;color:#B45309;border:1px solid #FDE68A">
+    <span style="width:5px;height:5px;border-radius:999px;background:#D97706"></span>Medio</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#D97706;border:1px solid #D97706"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#D97706;border:1px solid #D97706"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#D97706;border:1px solid #D97706"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td num" style="color:#4A5F70">15,5 – 30,8</td>
+        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#D97706"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 48%);border:1px solid hsl(0 0% 48%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 48%);border:1px solid hsl(0 0% 48%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 48%);border:1px solid hsl(0 0% 48%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+      </tr><tr>
+        <td class="td" style="font-weight:500">Alto</td>
+        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#FFEDD5;color:#C2410C;border:1px solid #FED7AA">
+    <span style="width:5px;height:5px;border-radius:999px;background:#EA580C"></span>Alto</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td num" style="color:#4A5F70">30,9 – 46,2</td>
+        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#EA580C"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+      </tr><tr>
+        <td class="td" style="font-weight:500">Muy alto</td>
+        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA">
+    <span style="width:5px;height:5px;border-radius:999px;background:#DC2626"></span>Muy alto</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span></span></td>
+        <td class="td num" style="color:#4A5F70">46,3 – 100</td>
+        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#DC2626"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span></span></td>
+      </tr>
+  </table>
+  <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:16px;max-width:640px">
+    El ordinal de cinco pasos acompaña <em>siempre</em> a la píldora. El color solo confirma lo
+    que ya dice la posición, así que el nivel sobrevive a la impresión en blanco y negro,
+    al daltonismo y a la miniatura de una tabla densa.
+  </p></div>
+    </div>
+  </section>
+    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
+    <div style="display:flex;gap:44px">
+      <div style="width:230px;flex-shrink:0">
+        <p class="num" style="font-size:11px;color:#8A9FAE">04</p>
+        <h2 class="display" style="font-size:27px;margin-top:7px">Componentes</h2>
+        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Las primitivas que se repiten en las 40 pantallas.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <div style="display:flex;gap:56px;flex-wrap:wrap">
+    <div>
+      <p class="rub" style="margin-bottom:13px">Botones</p>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="btn btn-pri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg>Primario</span>
+        <span class="btn btn-sec">Secundario</span>
+        <span class="btn btn-ghost">Terciario</span>
+      </div>
+    </div>
+    <div>
+      <p class="rub" style="margin-bottom:13px">Campo</p>
+      <div style="width:230px">
+        <p class="lbl" style="margin-bottom:7px">Correo electrónico</p>
+        <div class="input" style="border-color:#009A80;box-shadow:0 0 0 3px rgba(0,154,128,0.12)">psicologa@consultorio.co</div>
+      </div>
+    </div>
+    <div>
+      <p class="rub" style="margin-bottom:13px">Estados de flujo</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:330px">
+        <span class="chip" style="background:#E8E5E0;color:#4A5F70;border:1px solid #D4CFC8">Pendiente</span><span class="chip" style="background:#CCF0E8;color:#007A65;border:1px solid #A9E3D6">Calificado</span><span class="chip" style="background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE">Revisado</span>
+        <span class="chip" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">Firmado</span><span class="chip" style="background:#FEF3C7;color:#B45309;border:1px solid #FDE68A">Vence pronto</span><span class="chip" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA">Vencida</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:56px;margin-top:30px;flex-wrap:wrap">
+    <div>
+      <p class="rub" style="margin-bottom:13px">Radios</p>
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <div style="text-align:center">
+          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:4px"></div>
+          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">4</p></div><div style="text-align:center">
+          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:8px"></div>
+          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">8</p></div><div style="text-align:center">
+          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:12px"></div>
+          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">12</p></div><div style="text-align:center">
+          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:16px"></div>
+          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">16</p></div><div style="text-align:center">
+          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:999px"></div>
+          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">∞</p></div>
+      </div>
+    </div>
+    <div>
+      <p class="rub" style="margin-bottom:13px">Iconografía · trazo 1,6 · rejilla 24</p>
+      <div style="display:flex;gap:16px;align-items:center;color:#4A5F70">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17c3-6 5 3 8-2s4 2 7-3M4 21h16"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 11h14v10H5zM8 11V7a4 4 0 1 1 8 0v4"/></svg>
+      </div>
+    </div>
+    <div>
+      <p class="rub" style="margin-bottom:13px">Marca</p>
+      <div style="display:flex;gap:22px;align-items:center"><div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="27.0" height="30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:21.6px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div><svg viewBox="2.2 2.2 35.6 39.6" width="27.0" height="30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk2" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk2)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg></div>
+    </div>
+  </div></div>
+    </div>
+  </section>
+    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
+    <div style="display:flex;gap:44px">
+      <div style="width:230px;flex-shrink:0">
+        <p class="num" style="font-size:11px;color:#8A9FAE">05</p>
+        <h2 class="display" style="font-size:27px;margin-top:7px">Reglas</h2>
+        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Lo que hace que el sistema no se deshaga al crecer.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Filete, no sombra</p>
+      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">La interfaz se construye con líneas de 1px. La única sombra permitida es el anillo de foco. Un informe clínico no flota.</p>
+    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">El degradado vive en el isotipo</p>
+      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Los tres tonos teal→cian→azul son la marca. En ningún otro sitio: ni fondos, ni botones, ni tarjetas.</p>
+    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">El dato es monoespaciado</p>
+      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Puntaje, porcentaje, fecha, folio y hash en IBM Plex Mono con cifras tabulares. Las columnas alinean solas.</p>
+    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">La interpretación es texto</p>
+      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">La narrativa por dimensión se compone en Source Serif 4, la misma del PDF. Se lee como el informe que es.</p>
+    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">El riesgo nunca decora</p>
+      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Naranja y rojo significan un nivel de la Resolución 2646. No se usan para botones, avisos ni acentos.</p>
+    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Cada cifra tiene procedencia</p>
+      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Todo puntaje enlaza a los ítems que lo originaron. La trazabilidad no es una pantalla aparte: es un atributo del número.</p>
+    </div>
+  </div></div>
+    </div>
+  </section>
+  </div>
+</div>
+</x-dc>
+
+</body>
+</html>

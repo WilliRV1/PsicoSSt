@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; text-decoration: underline; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
+     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
+     principio de todo el sistema. */
+  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
+  .rub-ink { color: #4A5F70; }
+
+  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
+  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
+             line-height: 0.94; color: #0C1520; }
+
+  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
+  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
+  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
+           color: #1D2B38; text-wrap: pretty; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F2F0EC; }
+  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
+  .side-brand { padding: 26px 24px 22px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
+  .side-group { display: flex; flex-direction: column; gap: 1px; }
+  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
+  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
+         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
+         border-radius: 6px; }
+  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
+            border-left-color: #009A80; }
+  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
+               display: flex; align-items: center; gap: 10px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 28px; }
+  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
+         background: #E8E5E0; color: #8A9FAE; }
+  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
+         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .btn-pri { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
+  .btn-ghost { color: #4A5F70; }
+  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+           display: flex; align-items: center; }
+  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
+         text-transform: uppercase; color: #8A9FAE; }
+  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #8A9FAE; text-align: left;
+        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
+  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
+        color: #0C1520; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+</style>
+</helmet>
+<div style="width:1440px;height:1280px;background:#F2F0EC;overflow:hidden">
+<div style="width:1440px;height:1280px;background:#F2F0EC;overflow:hidden">
+      <header style="height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 64px;border-bottom:1px solid #D4CFC8">
+        <div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="24.3" height="27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:19.4px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div>
+        <span style="font-size:13.5px;color:#4A5F70">Volver al inicio</span>
+      </header>
+      <div style="display:flex;gap:64px;padding:56px 64px 0">
+        <aside style="width:250px;flex-shrink:0">
+          <p class="rub rub-ink">En esta página</p>
+          <div style="margin-top:14px">
+            <p style="font-size:13px;line-height:1.4;color:#0C1520;padding:8px 0;;font-weight:600;border-left:2px solid #009A80;padding-left:11px;margin-left:-13px">Quién puede usar la plataforma</p><p style="font-size:13px;line-height:1.4;color:#4A5F70;padding:8px 0;border-top:1px solid #E2DED8;">Alcance del servicio</p><p style="font-size:13px;line-height:1.4;color:#4A5F70;padding:8px 0;border-top:1px solid #E2DED8;">Responsabilidad sobre los datos</p><p style="font-size:13px;line-height:1.4;color:#4A5F70;padding:8px 0;border-top:1px solid #E2DED8;">Créditos y facturación</p><p style="font-size:13px;line-height:1.4;color:#4A5F70;padding:8px 0;border-top:1px solid #E2DED8;">Conservación y terminación</p>
+          </div>
+          <div style="margin-top:26px;padding:15px 17px;border-radius:10px;background:#FFFFFF;border:1px solid #D4CFC8">
+            <p class="rub">Última actualización</p>
+            <p class="num" style="font-size:13px;color:#0C1520;margin-top:7px">2026-08-01</p>
+          </div>
+        </aside>
+        <article style="flex:1;max-width:760px">
+          <p class="rub">Documento legal</p>
+          <h1 class="display" style="font-size:52px;margin-top:14px">Términos y condiciones</h1>
+          <p class="prose" style="font-size:18px;margin-top:18px">Estas condiciones rigen el uso de PsicoSST por parte de profesionales de la psicología con licencia vigente en Seguridad y Salud en el Trabajo. Al crear una cuenta usted las acepta en su totalidad.</p>
+          <section style="margin-top:34px">
+            <div style="display:flex;gap:16px;align-items:baseline">
+              <span class="num" style="font-size:12px;color:#8A9FAE;width:22px;flex-shrink:0">01</span>
+              <h2 style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:25px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Quién puede usar la plataforma</h2>
+            </div>
+            <div style="padding-left:38px;margin-top:11px">
+              <p class="prose" style="margin-bottom:11px">El acceso está restringido a psicólogos titulados, con tarjeta profesional vigente expedida por el Colegio Colombiano de Psicólogos, posgrado en Seguridad y Salud en el Trabajo y licencia vigente expedida por la autoridad sanitaria departamental.</p><p class="prose" style="margin-bottom:11px">PsicoSST verifica estos tres requisitos antes de habilitar una cuenta y puede suspenderla si alguno deja de cumplirse. La suspensión corta el acceso pero no invalida los informes ya firmados.</p>
+            </div>
+          </section><section style="margin-top:34px">
+            <div style="display:flex;gap:16px;align-items:baseline">
+              <span class="num" style="font-size:12px;color:#8A9FAE;width:22px;flex-shrink:0">02</span>
+              <h2 style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:25px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Alcance del servicio</h2>
+            </div>
+            <div style="padding-left:38px;margin-top:11px">
+              <p class="prose" style="margin-bottom:11px">PsicoSST automatiza la calificación de los cuatro instrumentos de la batería conforme al manual oficial, genera interpretaciones de apoyo y emite informes firmables. <strong style="font-weight:600">No reemplaza el juicio profesional del psicólogo</strong>, que sigue siendo el responsable del contenido de todo informe que firme.</p><p class="prose" style="margin-bottom:11px">Las funciones de asistencia por inteligencia artificial producen borradores marcados como generados. Ningún texto generado llega a un informe firmado sin revisión o aprobación explícita del profesional.</p>
+            </div>
+          </section><section style="margin-top:34px">
+            <div style="display:flex;gap:16px;align-items:baseline">
+              <span class="num" style="font-size:12px;color:#8A9FAE;width:22px;flex-shrink:0">03</span>
+              <h2 style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:25px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Responsabilidad sobre los datos</h2>
+            </div>
+            <div style="padding-left:38px;margin-top:11px">
+              <p class="prose" style="margin-bottom:11px">El profesional y la empresa evaluada son los responsables del tratamiento de los datos de los trabajadores. PsicoSST actúa como encargado y trata los datos únicamente conforme a sus instrucciones.</p><p class="prose" style="margin-bottom:11px">Es responsabilidad del profesional recabar el consentimiento informado de cada persona evaluada antes de la aplicación, y verificar que la empresa cuente con la autorización de tratamiento correspondiente.</p>
+            </div>
+          </section><section style="margin-top:34px">
+            <div style="display:flex;gap:16px;align-items:baseline">
+              <span class="num" style="font-size:12px;color:#8A9FAE;width:22px;flex-shrink:0">04</span>
+              <h2 style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:25px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Créditos y facturación</h2>
+            </div>
+            <div style="padding-left:38px;margin-top:11px">
+              <p class="prose" style="margin-bottom:11px">Un crédito equivale a una evaluación calificada. Los créditos incluidos en un plan se asignan al inicio de cada periodo y no se acumulan; los comprados por paquete no caducan.</p><p class="prose" style="margin-bottom:11px">La anulación de una evaluación por error de digitación dentro de las 48 horas siguientes reversa el crédito consumido.</p>
+            </div>
+          </section><section style="margin-top:34px">
+            <div style="display:flex;gap:16px;align-items:baseline">
+              <span class="num" style="font-size:12px;color:#8A9FAE;width:22px;flex-shrink:0">05</span>
+              <h2 style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:25px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Conservación y terminación</h2>
+            </div>
+            <div style="padding-left:38px;margin-top:11px">
+              <p class="prose" style="margin-bottom:11px">Al terminar la relación contractual el profesional conserva el derecho a exportar la totalidad de sus informes durante 90 días. Cumplido ese plazo los datos se conservan cifrados por el término de custodia legal de la historia clínica ocupacional y dejan de ser accesibles desde la plataforma.</p>
+            </div>
+          </section>
+        </article>
+      </div>
+    </div>
+</div>
+</x-dc>
+
+</body>
+</html>

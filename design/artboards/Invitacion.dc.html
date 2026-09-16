@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; text-decoration: underline; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
+     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
+     principio de todo el sistema. */
+  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
+  .rub-ink { color: #4A5F70; }
+
+  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
+  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
+             line-height: 0.94; color: #0C1520; }
+
+  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
+  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
+  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
+           color: #1D2B38; text-wrap: pretty; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F2F0EC; }
+  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
+  .side-brand { padding: 26px 24px 22px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
+  .side-group { display: flex; flex-direction: column; gap: 1px; }
+  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
+  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
+         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
+         border-radius: 6px; }
+  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
+            border-left-color: #009A80; }
+  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
+               display: flex; align-items: center; gap: 10px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 28px; }
+  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
+         background: #E8E5E0; color: #8A9FAE; }
+  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
+         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .btn-pri { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
+  .btn-ghost { color: #4A5F70; }
+  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+           display: flex; align-items: center; }
+  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
+         text-transform: uppercase; color: #8A9FAE; }
+  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #8A9FAE; text-align: left;
+        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
+  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
+        color: #0C1520; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:#F2F0EC;overflow:hidden">
+<div style="width:390px;height:844px;background:#F2F0EC;display:flex;flex-direction:column;overflow:hidden">
+      <div style="height:48px;flex-shrink:0"></div>
+      
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 24px 28px">
+    <div style="padding:8px 0 30px"><div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="23.4" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.7px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div></div>
+
+    <p class="rub">Clínica del Norte le invita</p>
+    <h1 class="display" style="font-size:40px;margin-top:12px">Evaluación de riesgo psicosocial</h1>
+    <p class="prose" style="font-size:16px;margin-top:16px">
+      Su empresa está obligada por ley a medir los factores de riesgo psicosocial. Sus respuestas
+      las lee un psicólogo, no su jefe.
+    </p>
+
+    <div style="margin-top:26px;border-top:1px solid #D4CFC8">
+      <div style="display:flex;gap:13px;padding:16px 0;border-bottom:1px solid #E2DED8">
+        <div style="width:30px;height:30px;border-radius:8px;background:#CCF0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg>
+        </div>
+        <div><p style="font-size:14px;font-weight:600;color:#0C1520">Entre 25 y 35 minutos</p>
+        <p style="font-size:13px;line-height:1.5;color:#4A5F70;margin-top:3px">Puede pausar y retomar desde el mismo enlace.</p></div>
+      </div><div style="display:flex;gap:13px;padding:16px 0;border-bottom:1px solid #E2DED8">
+        <div style="width:30px;height:30px;border-radius:8px;background:#CCF0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 11h14v10H5zM8 11V7a4 4 0 1 1 8 0v4"/></svg>
+        </div>
+        <div><p style="font-size:14px;font-weight:600;color:#0C1520">Su jefe no verá sus respuestas</p>
+        <p style="font-size:13px;line-height:1.5;color:#4A5F70;margin-top:3px">La empresa recibe solo el resultado del grupo, nunca el suyo.</p></div>
+      </div><div style="display:flex;gap:13px;padding:16px 0;border-bottom:1px solid #E2DED8">
+        <div style="width:30px;height:30px;border-radius:8px;background:#CCF0E8;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007A65" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div><p style="font-size:14px;font-weight:600;color:#0C1520">Puede negarse sin consecuencias</p>
+        <p style="font-size:13px;line-height:1.5;color:#4A5F70;margin-top:3px">Participar es voluntario y la negativa no se informa a la empresa.</p></div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:26px">
+      <span class="btn btn-pri" style="width:100%;height:52px;justify-content:center;font-size:16px">Comenzar</span>
+      <p style="font-size:12px;color:#8A9FAE;text-align:center;margin-top:14px">
+        Enlace válido hasta el <span class="num">30 de septiembre de 2026</span>
+      </p>
+    </div>
+  </div>
+    </div>
+</div>
+</x-dc>
+
+</body>
+</html>

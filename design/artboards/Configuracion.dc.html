@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; text-decoration: underline; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
+     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
+     principio de todo el sistema. */
+  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
+  .rub-ink { color: #4A5F70; }
+
+  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
+  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
+             line-height: 0.94; color: #0C1520; }
+
+  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
+  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
+  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
+           color: #1D2B38; text-wrap: pretty; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F2F0EC; }
+  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
+  .side-brand { padding: 26px 24px 22px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
+  .side-group { display: flex; flex-direction: column; gap: 1px; }
+  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
+  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
+         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
+         border-radius: 6px; }
+  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
+            border-left-color: #009A80; }
+  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
+               display: flex; align-items: center; gap: 10px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 28px; }
+  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
+         background: #E8E5E0; color: #8A9FAE; }
+  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
+         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .btn-pri { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
+  .btn-ghost { color: #4A5F70; }
+  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+           display: flex; align-items: center; }
+  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
+         text-transform: uppercase; color: #8A9FAE; }
+  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #8A9FAE; text-align: left;
+        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
+  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
+        color: #0C1520; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+</style>
+</helmet>
+<div style="width:1440px;height:1500px;background:#F2F0EC;overflow:hidden">
+<div class="shell" style="height:1500px">
+  <aside class="side">
+    <div class="side-brand"><div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="23.4" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.7px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div></div>
+    <nav class="side-nav">
+    <div class="side-group">
+      <p class="rub">Operación</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><span>Centro de control</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><span>Empresas</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><span>Trabajadores</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><span>Evaluaciones</span></div>
+    </div>
+    <div class="side-group">
+      <p class="rub">Análisis</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><span>Informes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><span>Analítica</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><span>Tendencias</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Intervenciones</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><span>Asistente IA</span></div>
+    </div>
+    <div class="side-group">
+      <p class="rub">Cuenta</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M2 7h20v10H2zM2 11h20M6 15h3"/></svg><span>Créditos</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 9l1.5-5h15L21 9M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM9 13h6"/></svg><span>Planes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Equipo</span></div><div class="nav nav-on"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#009A80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1.7a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V1.7a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg><span>Configuración</span></div>
+    </div>
+    <div class="side-group">
+      <p class="rub">Administración</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Panel admin</span></div>
+    </div></nav>
+    <div class="side-foot">
+      <div style="width:28px;height:28px;border-radius:999px;background:#CCF0E8;color:#009A80;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">MT</div>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:12.5px;font-weight:600;color:#4A5F70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">María Torres Gómez</p>
+        <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:1px">Lic. SST 2019-4471</p>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+    <div style="display:flex;align-items:center;gap:22px">
+      <div style="display:flex;align-items:center;gap:8px;color:#8A9FAE;font-size:13px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg><span>Buscar</span><span class="kbd">⌘K</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8A9FAE">
+         <span style="color:#0C1520;font-weight:500">Configuración</span>
+       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="display:flex;align-items:baseline;gap:5px;font-size:13px;color:#4A5F70">
+        <span class="num" style="font-weight:600">47</span>
+        <span style="font-size:12px;color:#8A9FAE">créditos</span>
+      </div>
+      <span style="width:1px;height:16px;background:#D4CFC8"></span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </div>
+  </header>
+    <div class="body">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:26px">
+    <div style="min-width:0">
+      <p class="rub">Cuenta · Preferencias</p>
+      <h1 class="display" style="font-size:40px;margin-top:11px">Configuración</h1>
+      
+    </div>
+    
+  </div>
+
+  <div style="display:flex;gap:40px;padding:26px 0;border-top:1px solid #D4CFC8">
+    <div style="width:250px;flex-shrink:0">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.005em;color:#0C1520">Perfil profesional</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">Estos datos aparecen en el pie de cada informe que usted firma.</p>
+    </div>
+    <div style="flex:1;min-width:0"><div style="display:flex;gap:24px;align-items:flex-start">
+      <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+        
+          <div><p class="lbl" style="margin-bottom:7px">Nombre completo</p><div class="input">María Torres Gómez</div></div>
+          <div><p class="lbl" style="margin-bottom:7px">Tarjeta profesional</p><div class="input">118432</div></div>
+          <div><p class="lbl" style="margin-bottom:7px">Licencia SST</p><div class="input">2019-4471</div></div>
+          <div><p class="lbl" style="margin-bottom:7px">Correo de contacto</p><div class="input">maria@consultorio.co</div></div>
+      </div>
+      <div style="width:300px;flex-shrink:0">
+        <p class="lbl" style="margin-bottom:7px">Rúbrica registrada</p>
+        <div style="height:112px;border:1px solid #D4CFC8;border-radius:9px;background:#F2F0EC;display:flex;align-items:center;justify-content:center">
+          <svg width="190" height="60" viewBox="0 0 240 76" fill="none">
+            <path d="M12 56c18-34 26 14 42-16s22 20 36-10 26 26 42-4 24 18 40-8 22 14 32 2" stroke="#0C1520" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M104 64c26 2 54 0 78-4" stroke="#0C1520" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="btn btn-sec" style="width:100%;justify-content:center;margin-top:9px;height:32px;font-size:12.5px">Volver a trazar</span>
+      </div>
+    </div></div>
+  </div>
+
+  <div style="display:flex;gap:40px;padding:26px 0;border-top:1px solid #D4CFC8">
+    <div style="width:250px;flex-shrink:0">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.005em;color:#0C1520">Seguridad</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">Una cuenta de PsicoSST abre historias clínicas ocupacionales. El segundo factor no es opcional.</p>
+    </div>
+    <div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Segundo factor obligatorio</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Aplicación de autenticación. Activo desde el 4 de marzo de 2025.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Pedir el segundo factor en cada sesión</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Si se desactiva, se pide una vez cada 30 días por equipo reconocido.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#D4CFC8;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Cerrar sesión tras 30 minutos de inactividad</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Recomendado en equipos compartidos de consultorio.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Avisar de inicios de sesión desde equipos nuevos</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Llega un correo con equipo, IP y hora aproximada.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div></div>
+  </div>
+
+  <div style="display:flex;gap:40px;padding:26px 0;border-top:1px solid #D4CFC8">
+    <div style="width:250px;flex-shrink:0">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.005em;color:#0C1520">Notificaciones</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">Lo que llega a su correo. Las alertas críticas no se pueden desactivar.</p>
+    </div>
+    <div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Vigencias próximas a vencer</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Un aviso a los 60, 30 y 7 días antes del vencimiento.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Evaluaciones completadas por los trabajadores</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Resumen diario, no un correo por respuesta.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Informes pendientes de firma</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Recordatorio semanal mientras queden informes sin firmar.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Novedades del producto</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Cambios en el motor de calificación y nuevas funciones.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#D4CFC8;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div></div>
+  </div>
+
+  <div style="display:flex;gap:40px;padding:26px 0;border-top:1px solid #D4CFC8">
+    <div style="width:250px;flex-shrink:0">
+      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.005em;color:#0C1520">Informes</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">Valores por defecto al generar un entregable.</p>
+    </div>
+    <div style="flex:1;min-width:0"><div style="display:flex;gap:16px;margin-bottom:6px">
+      <div style="flex:1"><p class="lbl" style="margin-bottom:7px">Baremo por defecto</p><div class="input">Nacional (Ministerio de Trabajo)</div></div>
+      <div style="flex:1"><p class="lbl" style="margin-bottom:7px">Idioma del informe</p><div class="input">Español (Colombia)</div></div>
+    </div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Incluir el anexo de trazabilidad</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Agrega las respuestas ítem por ítem al final del PDF.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:13px 0;border-bottom:1px solid #E2DED8">
+    <div><p style="font-size:13.5px;font-weight:500;color:#0C1520">Incluir el código QR de verificación</p>
+    <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Permite a un inspector validar el folio sin acceso al sistema.</p></div>
+    <span style="width:38px;height:22px;border-radius:999px;background:#009A80;flex-shrink:0;position:relative;margin-top:2px">
+      <span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:999px;background:#FFF"></span>
+    </span>
+  </div></div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:26px;border-top:1px solid #D4CFC8">
+    <span class="btn btn-ghost">Descartar cambios</span>
+    <span class="btn btn-pri">Guardar</span>
+  </div></div>
+  </div>
+</div>
+</div>
+</x-dc>
+
+</body>
+</html>

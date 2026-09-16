@@ -1,0 +1,357 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  a { color: #007A65; text-decoration: none; }
+  a:hover { color: #009A80; text-decoration: underline; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
+     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
+     principio de todo el sistema. */
+  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
+  .rub-ink { color: #4A5F70; }
+
+  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
+  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
+             line-height: 0.94; color: #0C1520; }
+
+  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
+  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
+  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
+           color: #1D2B38; text-wrap: pretty; }
+
+  /* ── Chrome de aplicación ─────────────────────────────────────────── */
+  .shell { display: flex; height: 100%; background: #F2F0EC; }
+  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
+  .side-brand { padding: 26px 24px 22px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
+  .side-group { display: flex; flex-direction: column; gap: 1px; }
+  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
+  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
+         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
+         border-radius: 6px; }
+  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
+            border-left-color: #009A80; }
+  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
+               display: flex; align-items: center; gap: 10px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 28px; }
+  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
+         background: #E8E5E0; color: #8A9FAE; }
+  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+
+  /* ── Primitivas ───────────────────────────────────────────────────── */
+  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
+         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
+  .btn-pri { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
+  .btn-ghost { color: #4A5F70; }
+  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+           display: flex; align-items: center; }
+  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
+         text-transform: uppercase; color: #8A9FAE; }
+  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        text-transform: uppercase; color: #8A9FAE; text-align: left;
+        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
+  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
+        color: #0C1520; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
+          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+</style>
+</helmet>
+<div style="width:1440px;height:1300px;background:#F2F0EC;overflow:hidden">
+<div class="shell" style="height:1300px">
+  <aside class="side">
+    <div class="side-brand"><div style="display:flex;align-items:center;gap:11px">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="23.4" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
+    </linearGradient></defs>
+    <g stroke="url(#mk)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 7V37"/><path d="M20 7 7 15"/><path d="M7 15 7 30"/><path d="M7 30 20 37"/>
+      <path d="M20 7 33 15"/><path d="M33 15 33 30"/><path d="M33 30 20 37"/>
+      <path d="M7 15 33 30"/><path d="M33 15 7 30"/>
+    </g>
+    <g fill="url(#mk)">
+      <circle cx="20" cy="7" r="4.6"/><circle cx="20" cy="37" r="4.6"/><circle cx="7" cy="15" r="4"/>
+      <circle cx="33" cy="15" r="4"/><circle cx="7" cy="30" r="4"/><circle cx="33" cy="30" r="4"/>
+      <circle cx="20" cy="22" r="4.2"/>
+    </g></svg>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.7px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+    </div></div></div>
+    <nav class="side-nav">
+    <div class="side-group">
+      <p class="rub">Operación</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><span>Centro de control</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><span>Empresas</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><span>Trabajadores</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><span>Evaluaciones</span></div>
+    </div>
+    <div class="side-group">
+      <p class="rub">Análisis</p>
+      <div class="nav nav-on"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#009A80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><span>Informes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><span>Analítica</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><span>Tendencias</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Intervenciones</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><span>Asistente IA</span></div>
+    </div>
+    <div class="side-group">
+      <p class="rub">Cuenta</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M2 7h20v10H2zM2 11h20M6 15h3"/></svg><span>Créditos</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 9l1.5-5h15L21 9M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM9 13h6"/></svg><span>Planes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Equipo</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1.7a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V1.7a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg><span>Configuración</span></div>
+    </div>
+    <div class="side-group">
+      <p class="rub">Administración</p>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Panel admin</span></div>
+    </div></nav>
+    <div class="side-foot">
+      <div style="width:28px;height:28px;border-radius:999px;background:#CCF0E8;color:#009A80;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">MT</div>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:12.5px;font-weight:600;color:#4A5F70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">María Torres Gómez</p>
+        <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:1px">Lic. SST 2019-4471</p>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+    <div style="display:flex;align-items:center;gap:22px">
+      <div style="display:flex;align-items:center;gap:8px;color:#8A9FAE;font-size:13px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg><span>Buscar</span><span class="kbd">⌘K</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8A9FAE">
+         <span style="">Empresas</span><span style="color:#D4CFC8">/</span><span style="">Constructora Sierra</span><span style="color:#D4CFC8">/</span><span style="color:#0C1520;font-weight:500">Programa SVE</span>
+       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="display:flex;align-items:baseline;gap:5px;font-size:13px;color:#4A5F70">
+        <span class="num" style="font-weight:600">47</span>
+        <span style="font-size:12px;color:#8A9FAE">créditos</span>
+      </div>
+      <span style="width:1px;height:16px;background:#D4CFC8"></span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </div>
+  </header>
+    <div class="body">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:26px">
+    <div style="min-width:0">
+      <p class="rub">Programa · Folio <span class="num">SVE-2026-0011</span></p>
+      <h1 class="display" style="font-size:40px;margin-top:11px">Vigilancia epidemiológica</h1>
+      <p style="font-size:13.5px;line-height:1.6;color:#4A5F70;margin-top:9px;max-width:620px">Constructora Sierra · 203 trabajadores · el sistema de vigilancia es obligatorio cuando hay población en riesgo alto o muy alto (Resolución 2646 de 2008, artículo 14).</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-shrink:0"><span class="btn btn-sec"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>Vista de impresión</span><span class="btn btn-pri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Descargar PDF</span></div>
+  </div>
+
+  <div style="display:flex;gap:22px;margin-bottom:24px">
+    <div style="flex:1;padding:24px 28px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+      <p class="rub rub-ink">Población objeto de vigilancia</p>
+      <div style="display:flex;align-items:flex-end;gap:22px;margin-top:14px">
+        <span class="display" style="font-size:58px">61</span>
+        <div style="padding-bottom:9px">
+          <p style="font-size:14px;color:#0C1520;font-weight:500">trabajadores en riesgo alto o muy alto</p>
+          <p style="font-size:12.5px;color:#4A5F70;margin-top:3px">30,0% de la población evaluada · todos con seguimiento individual abierto</p>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div style="width:560px">
+    <div style="display:flex;height:16px;border-radius:4px;overflow:hidden;background:#FFFFFF">
+      <div style="width:21.67%;background:#EA580C;"></div><div style="width:8.37%;background:#DC2626;border-left:2px solid #FFFFFF"></div><div style="width:69.95%;background:#E8E5E0;border-left:2px solid #FFFFFF"></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:13px;margin-top:10px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="width:9px;height:9px;border-radius:2.5px;background:#EA580C;flex-shrink:0"></span>
+        <span style="font-size:11.5px;color:#4A5F70">Riesgo alto</span>
+        <span class="num" style="font-size:11.5px;color:#8A9FAE">22%</span>
+      </div><div style="display:flex;align-items:center;gap:6px">
+        <span style="width:9px;height:9px;border-radius:2.5px;background:#DC2626;flex-shrink:0"></span>
+        <span style="font-size:11.5px;color:#4A5F70">Riesgo muy alto</span>
+        <span class="num" style="font-size:11.5px;color:#8A9FAE">8%</span>
+      </div><div style="display:flex;align-items:center;gap:6px">
+        <span style="width:9px;height:9px;border-radius:2.5px;background:#E8E5E0;flex-shrink:0"></span>
+        <span style="font-size:11.5px;color:#4A5F70">Resto de la población</span>
+        <span class="num" style="font-size:11.5px;color:#8A9FAE">70%</span>
+      </div>
+    </div>
+  </div>
+      </div>
+    </div>
+    <div style="width:376px;flex-shrink:0;padding:24px 26px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+      <p class="rub rub-ink">Estado del programa</p>
+      <div style="margin-top:14px">
+        
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;">
+            <span style="font-size:12.5px;color:#4A5F70">Casos abiertos</span>
+            <span class="num" style="font-size:18px;font-weight:600;color:#0C1520">61</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid #E2DED8">
+            <span style="font-size:12.5px;color:#4A5F70">Con valoración clínica</span>
+            <span class="num" style="font-size:18px;font-weight:600;color:#16A34A">48</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid #E2DED8">
+            <span style="font-size:12.5px;color:#4A5F70">Seguimiento vencido</span>
+            <span class="num" style="font-size:18px;font-weight:600;color:#D97706">9</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid #E2DED8">
+            <span style="font-size:12.5px;color:#4A5F70">Casos cerrados en 2026</span>
+            <span class="num" style="font-size:18px;font-weight:600;color:#4A5F70">23</span>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:22px">
+    <div class="card" style="padding:20px 22px;flex:1;min-width:0">
+    <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.005em;color:#0C1520">Fases del programa</p>
+    <p style="font-size:11.5px;color:#8A9FAE;margin-top:4px;margin-bottom:14px">Ciclo anual · cada fase deja evidencia documental</p>
+    <div style="margin-top:4px">
+        
+          <div style="display:flex;gap:16px;padding:14px 0;">
+            <span class="num" style="font-size:11.5px;color:#8A9FAE;width:20px;flex-shrink:0;padding-top:3px">01</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <p style="font-size:14px;font-weight:600;color:#0C1520">Identificación</p><span class="chip" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">Cumplida</span>
+              </div>
+              <p style="font-size:12.5px;color:#4A5F70;margin-top:4px">Aplicación de la batería y clasificación por nivel</p>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
+                <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:#E8E5E0;overflow:hidden">
+                  <div style="width:100%;height:100%;background:#16A34A;border-radius:0 3px 3px 0"></div>
+                </div>
+                <span class="num" style="font-size:11px;color:#8A9FAE;width:32px;text-align:right">100%</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid #E2DED8">
+            <span class="num" style="font-size:11.5px;color:#8A9FAE;width:20px;flex-shrink:0;padding-top:3px">02</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <p style="font-size:14px;font-weight:600;color:#0C1520">Evaluación individual</p><span class="chip" style="background:#CCF0E8;color:#007A65;border:1px solid #A9E3D6">En curso</span>
+              </div>
+              <p style="font-size:12.5px;color:#4A5F70;margin-top:4px">Valoración clínica de los casos priorizados</p>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
+                <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:#E8E5E0;overflow:hidden">
+                  <div style="width:79%;height:100%;background:#009A80;border-radius:0 3px 3px 0"></div>
+                </div>
+                <span class="num" style="font-size:11px;color:#8A9FAE;width:32px;text-align:right">79%</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid #E2DED8">
+            <span class="num" style="font-size:11.5px;color:#8A9FAE;width:20px;flex-shrink:0;padding-top:3px">03</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <p style="font-size:14px;font-weight:600;color:#0C1520">Intervención</p><span class="chip" style="background:#CCF0E8;color:#007A65;border:1px solid #A9E3D6">En curso</span>
+              </div>
+              <p style="font-size:12.5px;color:#4A5F70;margin-top:4px">Medidas organizacionales e individuales</p>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
+                <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:#E8E5E0;overflow:hidden">
+                  <div style="width:41%;height:100%;background:#009A80;border-radius:0 3px 3px 0"></div>
+                </div>
+                <span class="num" style="font-size:11px;color:#8A9FAE;width:32px;text-align:right">41%</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid #E2DED8">
+            <span class="num" style="font-size:11.5px;color:#8A9FAE;width:20px;flex-shrink:0;padding-top:3px">04</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <p style="font-size:14px;font-weight:600;color:#0C1520">Seguimiento</p><span class="chip" style="background:#E8E5E0;color:#4A5F70;border:1px solid #D4CFC8">Programada</span>
+              </div>
+              <p style="font-size:12.5px;color:#4A5F70;margin-top:4px">Reevaluación a 3, 6 y 12 meses</p>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
+                <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:#E8E5E0;overflow:hidden">
+                  <div style="width:12%;height:100%;background:#009A80;border-radius:0 3px 3px 0"></div>
+                </div>
+                <span class="num" style="font-size:11px;color:#8A9FAE;width:32px;text-align:right">12%</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid #E2DED8">
+            <span class="num" style="font-size:11.5px;color:#8A9FAE;width:20px;flex-shrink:0;padding-top:3px">05</span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <p style="font-size:14px;font-weight:600;color:#0C1520">Evaluación del programa</p><span class="chip" style="background:#E8E5E0;color:#4A5F70;border:1px solid #D4CFC8">Pendiente</span>
+              </div>
+              <p style="font-size:12.5px;color:#4A5F70;margin-top:4px">Indicadores de efectividad y ajuste</p>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
+                <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:#E8E5E0;overflow:hidden">
+                  <div style="width:0%;height:100%;background:#009A80;border-radius:0 3px 3px 0"></div>
+                </div>
+                <span class="num" style="font-size:11px;color:#8A9FAE;width:32px;text-align:right">0%</span>
+              </div>
+            </div>
+          </div>
+      </div>
+  </div>
+
+    <div class="card" style="padding:20px 22px;flex:1;min-width:0">
+    <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.005em;color:#0C1520">Indicadores de efectividad</p>
+    <p style="font-size:11.5px;color:#8A9FAE;margin-top:4px;margin-bottom:14px">Comparación entre la línea base 2024 y el corte 2026</p>
+    <div style="margin-top:4px">
+        
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;">
+            <span style="flex:1;font-size:13px;color:#0C1520">Prevalencia de riesgo alto y muy alto</span>
+            <span class="num" style="font-size:12.5px;color:#8A9FAE;width:58px;text-align:right">41,2%</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4CFC8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            <span class="num" style="font-size:13.5px;font-weight:600;color:#16A34A;width:58px;text-align:right">30,0%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #E2DED8">
+            <span style="flex:1;font-size:13px;color:#0C1520">Ausentismo por causa médica</span>
+            <span class="num" style="font-size:12.5px;color:#8A9FAE;width:58px;text-align:right">4,8%</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4CFC8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            <span class="num" style="font-size:13.5px;font-weight:600;color:#16A34A;width:58px;text-align:right">3,1%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #E2DED8">
+            <span style="flex:1;font-size:13px;color:#0C1520">Rotación anual</span>
+            <span class="num" style="font-size:12.5px;color:#8A9FAE;width:58px;text-align:right">22,4%</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4CFC8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            <span class="num" style="font-size:13.5px;font-weight:600;color:#16A34A;width:58px;text-align:right">18,9%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #E2DED8">
+            <span style="flex:1;font-size:13px;color:#0C1520">Accidentalidad con incapacidad</span>
+            <span class="num" style="font-size:12.5px;color:#8A9FAE;width:58px;text-align:right">17</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4CFC8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            <span class="num" style="font-size:13.5px;font-weight:600;color:#16A34A;width:58px;text-align:right">14</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #E2DED8">
+            <span style="flex:1;font-size:13px;color:#0C1520">Cobertura de la evaluación</span>
+            <span class="num" style="font-size:12.5px;color:#8A9FAE;width:58px;text-align:right">78%</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4CFC8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            <span class="num" style="font-size:13.5px;font-weight:600;color:#16A34A;width:58px;text-align:right">100%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #E2DED8">
+            <span style="flex:1;font-size:13px;color:#0C1520">Casos con seguimiento al día</span>
+            <span class="num" style="font-size:12.5px;color:#8A9FAE;width:58px;text-align:right">52%</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4CFC8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            <span class="num" style="font-size:13.5px;font-weight:600;color:#16A34A;width:58px;text-align:right">85%</span>
+          </div>
+        <p style="font-size:12px;line-height:1.6;color:#4A5F70;margin-top:16px;padding-top:14px;border-top:1px solid #D4CFC8">
+          Los seis indicadores mejoran respecto de la línea base. El programa se mantiene con los mismos
+          objetivos y se ajusta el plazo de la fase de intervención.
+        </p>
+      </div>
+  </div>
+  </div></div>
+  </div>
+</div>
+</div>
+</x-dc>
+
+</body>
+</html>
