@@ -20,7 +20,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 import OrgMetricsDashboard from "@/components/organizations/org-metrics-dashboard";
 import InterventionPlanPanel from "@/components/organizations/intervention-plan-panel";
 import CollectiveReportButton from "@/components/organizations/collective-report-button";
