@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentService } from "@/lib/payments/payment-service";
+import { AutoRenewalService } from "@/lib/payments/auto-renewal-service";
 import { verifyWebhookSignature } from "@/lib/payments/webhook-signature";
 import {
     getMercadoPagoConfig,
@@ -94,9 +95,32 @@ export async function POST(request: NextRequest) {
         );
     }
 
+    const tipo = (query.get("type") ?? body.type ?? body.topic) as string | undefined;
+
+    // Renovación automática: son temas DISTINTOS al pago único y llegan por
+    // esta misma URL. `subscription_preapproval` avisa que la autorización
+    // cambió de estado; `subscription_authorized_payment`, que Mercado Pago
+    // cobró un periodo. Ninguno de los dos se acredita desde aquí: se delega,
+    // igual que el pago único, en quien relee el estado real desde su API.
+    if (tipo === "subscription_preapproval" || tipo === "subscription_authorized_payment") {
+        if (!dataId) return ack("missing_data_id");
+        try {
+            const result =
+                tipo === "subscription_preapproval"
+                    ? await AutoRenewalService.syncFromPreapproval(dataId)
+                    : await AutoRenewalService.applyRecurringPayment(dataId);
+            return ack(result.outcome, { topic: tipo });
+        } catch (error) {
+            console.error(`[PAGOS][webhook] Error en ${tipo} ${dataId}:`, error);
+            return NextResponse.json(
+                { received: false, outcome: "auto_renewal_failed" },
+                { status: 500 }
+            );
+        }
+    }
+
     // Mercado Pago manda también `merchant_order`, `plan`, `subscription`…
     // Nada de eso nos incumbe, pero hay que acusar recibo igual.
-    const tipo = (query.get("type") ?? body.type ?? body.topic) as string | undefined;
     if (tipo && tipo !== "payment") {
         return ack("ignored_topic", { topic: tipo });
     }

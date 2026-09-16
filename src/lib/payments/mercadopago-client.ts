@@ -251,3 +251,130 @@ export async function searchPaymentsByExternalReference(
 
     return body?.results ?? [];
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Preapproval: la autorización de cobro recurrente.
+ *
+ * Es un recurso DISTINTO del pago único de arriba. Aquí no se cobra nada: se
+ * crea una autorización que el psicólogo aprueba en Mercado Pago (por eso se
+ * devuelve `init_point` y no se piden datos de tarjeta), y a partir de ahí es
+ * Mercado Pago quien genera un pago por periodo y nos avisa por webhook.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/** Estados que devuelve Mercado Pago para una autorización. */
+export type PreapprovalStatus = "pending" | "authorized" | "paused" | "cancelled";
+
+export interface MercadoPagoPreapproval {
+    id: string;
+    status: PreapprovalStatus;
+    /** URL a la que se envía al psicólogo para aprobar la autorización. */
+    init_point?: string;
+    external_reference?: string;
+    payer_email?: string;
+    auto_recurring?: {
+        frequency: number;
+        frequency_type: "days" | "months";
+        transaction_amount: number;
+        currency_id: string;
+    };
+}
+
+/** Pago recurrente generado por una autorización. */
+export interface MercadoPagoAuthorizedPayment {
+    id: string;
+    preapproval_id: string;
+    /** Identificador del pago real; es el que se concilia contra /v1/payments. */
+    payment?: { id: number | string; status?: string };
+}
+
+/**
+ * Crea la autorización en estado `pending`.
+ *
+ * Se crea SIN tarjeta a propósito: el psicólogo aprueba en el dominio de
+ * Mercado Pago (`init_point`) y así la aplicación nunca toca datos de tarjeta
+ * para el cobro recurrente. El estado real llega después por webhook; lo que
+ * devuelve esta llamada es sólo el punto de partida.
+ */
+export async function createPreapproval(
+    payload: Record<string, unknown>
+): Promise<MercadoPagoPreapproval> {
+    const { status, body } = await request<MercadoPagoPreapproval>("/preapproval", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+
+    if (status >= 400) {
+        throw new MercadoPagoApiError(
+            describeApiError(body, "No se pudo crear la autorización de cobro recurrente"),
+            status,
+            extractCauses(body)
+        );
+    }
+
+    return body;
+}
+
+/** Consulta una autorización. `null` si Mercado Pago no la reconoce. */
+export async function fetchPreapproval(
+    preapprovalId: string
+): Promise<MercadoPagoPreapproval | null> {
+    const { status, body } = await request<MercadoPagoPreapproval>(
+        `/preapproval/${encodeURIComponent(preapprovalId)}`,
+        { method: "GET" }
+    );
+
+    if (status === 404) return null;
+    if (status >= 400) {
+        throw new MercadoPagoApiError(
+            describeApiError(body, "No se pudo consultar la autorización"),
+            status,
+            extractCauses(body)
+        );
+    }
+
+    return body;
+}
+
+/**
+ * Cancela la autorización. Estado terminal en Mercado Pago: no se reactiva,
+ * hay que crear una nueva.
+ */
+export async function cancelPreapproval(
+    preapprovalId: string
+): Promise<MercadoPagoPreapproval> {
+    const { status, body } = await request<MercadoPagoPreapproval>(
+        `/preapproval/${encodeURIComponent(preapprovalId)}`,
+        { method: "PUT", body: JSON.stringify({ status: "cancelled" }) }
+    );
+
+    if (status >= 400) {
+        throw new MercadoPagoApiError(
+            describeApiError(body, "No se pudo cancelar la autorización"),
+            status,
+            extractCauses(body)
+        );
+    }
+
+    return body;
+}
+
+/** Consulta un pago recurrente. `null` si no existe. */
+export async function fetchAuthorizedPayment(
+    authorizedPaymentId: string | number
+): Promise<MercadoPagoAuthorizedPayment | null> {
+    const { status, body } = await request<MercadoPagoAuthorizedPayment>(
+        `/authorized_payments/${encodeURIComponent(String(authorizedPaymentId))}`,
+        { method: "GET" }
+    );
+
+    if (status === 404) return null;
+    if (status >= 400) {
+        throw new MercadoPagoApiError(
+            describeApiError(body, "No se pudo consultar el cobro recurrente"),
+            status,
+            extractCauses(body)
+        );
+    }
+
+    return body;
+}

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { PURCHASABLE_SKUS, formatCOP, type PlanId } from "@/config/plans";
 import { BuyPackageButton } from "@/components/payments/buy-package-button";
+import { AutoRenewalCard } from "@/components/payments/auto-renewal-card";
 import { PricingTable } from "@/components/payments/pricing-table";
 
 /**
@@ -34,6 +35,7 @@ const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 interface PlanState {
     plan: PlanId | null;
     planName?: string;
+    billingPeriod?: "ANNUAL" | "MONTHLY";
     status?: "TRIAL" | "ACTIVE" | "PAST_DUE" | "EXPIRED";
     periodEnd?: string;
     daysLeft?: number;
@@ -280,6 +282,17 @@ export default function PlanPage() {
                     )}
                 </div>
             </div>
+
+            {/* Renovación automática. El componente se oculta solo si no aplica
+                (plan gratuito, cadencia desconocida o pagos sin configurar). */}
+            {state?.plan && (
+                <AutoRenewalCard
+                    plan={state.plan}
+                    billingPeriod={state.billingPeriod}
+                    periodEnd={state.periodEnd}
+                    onChange={refresh}
+                />
+            )}
 
             {/* Planes pagados */}
             <div>
