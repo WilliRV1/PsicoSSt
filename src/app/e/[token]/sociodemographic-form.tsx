@@ -133,40 +133,43 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 py-8">
-            <div className="max-w-lg w-full bg-card border border-border rounded-2xl shadow-sm p-6 space-y-5">
+        <div className="min-h-svh flex items-center justify-center px-4 py-8">
+            <div className="max-w-lg w-full bg-card border border-border rounded-2xl shadow-sm p-5 sm:p-6 space-y-6">
                 <div>
-                    <h1 className="text-lg font-bold text-foreground">Antes de empezar, cuéntanos de ti</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h1 className="text-xl font-bold text-foreground leading-snug">Antes de empezar, cuéntanos de ti</h1>
+                    <p className="text-[15px] leading-relaxed text-muted-foreground mt-1.5">
                         Esta información es necesaria para calificar correctamente tu evaluación. Tus respuestas son
                         confidenciales.
                     </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Sexo</label>
-                        <div className="flex gap-4">
+                        <label className={LABEL_CLASS}>Sexo</label>
+                        <div className="flex flex-col gap-2">
                             {[
                                 { v: "M", l: "Masculino" },
                                 { v: "F", l: "Femenino" },
                                 { v: "NO_BINARIO", l: "No binario" },
                             ].map((o) => (
-                                <label key={o.v} className="flex items-center gap-2 text-sm">
-                                    <input type="radio" name="gender" checked={form.gender === o.v} onChange={() => setForm((f) => ({ ...f, gender: o.v }))} />
-                                    {o.l}
-                                </label>
+                                <RadioRow
+                                    key={o.v}
+                                    name="gender"
+                                    label={o.l}
+                                    checked={form.gender === o.v}
+                                    onSelect={() => setForm((f) => ({ ...f, gender: o.v }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Fecha de nacimiento</label>
+                        <label className={LABEL_CLASS}>Fecha de nacimiento</label>
                         <input type="date" value={form.birthDate} onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))} className={INPUT_CLASS} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Estado civil</label>
+                        <label className={LABEL_CLASS}>Estado civil</label>
                         <select value={form.maritalStatus} onChange={(e) => setForm((f) => ({ ...f, maritalStatus: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
                             <option value="Soltero(a)">Soltero(a)</option>
@@ -178,7 +181,7 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Último nivel de estudios</label>
+                        <label className={LABEL_CLASS}>Último nivel de estudios</label>
                         <select value={form.educationLevel} onChange={(e) => setForm((f) => ({ ...f, educationLevel: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
                             <option value="Ninguno">Ninguno</option>
@@ -197,12 +200,12 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Ocupación o profesión</label>
+                        <label className={LABEL_CLASS}>Ocupación o profesión</label>
                         <input value={form.profession} onChange={(e) => setForm((f) => ({ ...f, profession: e.target.value }))} className={INPUT_CLASS} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Lugar de residencia</label>
+                        <label className={LABEL_CLASS}>Lugar de residencia</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <select
                                 value={form.residenceDepartment}
@@ -229,40 +232,46 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Estrato de tu vivienda</label>
-                        <div className="flex flex-wrap gap-3">
+                        <label className={LABEL_CLASS}>Estrato de tu vivienda</label>
+                        <div className="grid grid-cols-4 gap-2">
                             {["1", "2", "3", "4", "5", "6", "Finca", "No_se"].map((opt) => (
-                                <label key={opt} className="flex items-center gap-1.5 text-sm">
-                                    <input type="radio" name="stratum" checked={form.socioeconomicStratum === opt} onChange={() => setForm((f) => ({ ...f, socioeconomicStratum: opt }))} />
-                                    {opt === "No_se" ? "No sé" : opt}
-                                </label>
+                                <RadioChip
+                                    key={opt}
+                                    name="stratum"
+                                    label={opt === "No_se" ? "No sé" : opt}
+                                    checked={form.socioeconomicStratum === opt}
+                                    onSelect={() => setForm((f) => ({ ...f, socioeconomicStratum: opt }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de vivienda</label>
-                        <div className="flex gap-4">
+                        <label className={LABEL_CLASS}>Tipo de vivienda</label>
+                        <div className="flex flex-col gap-2">
                             {[
                                 { v: "Propia", l: "Propia" },
                                 { v: "Arriendo", l: "En arriendo" },
                                 { v: "Familiar", l: "Familiar" },
                             ].map((o) => (
-                                <label key={o.v} className="flex items-center gap-1.5 text-sm">
-                                    <input type="radio" name="housing" checked={form.housingType === o.v} onChange={() => setForm((f) => ({ ...f, housingType: o.v }))} />
-                                    {o.l}
-                                </label>
+                                <RadioRow
+                                    key={o.v}
+                                    name="housing"
+                                    label={o.l}
+                                    checked={form.housingType === o.v}
+                                    onSelect={() => setForm((f) => ({ ...f, housingType: o.v }))}
+                                />
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Personas que dependen económicamente de ti</label>
-                        <input type="number" inputMode="numeric" value={form.dependentsCount} onChange={(e) => setForm((f) => ({ ...f, dependentsCount: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} />
+                        <label className={LABEL_CLASS}>Personas que dependen económicamente de ti</label>
+                        <input type="number" inputMode="numeric" value={form.dependentsCount} onChange={(e) => setForm((f) => ({ ...f, dependentsCount: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Lugar donde trabajas</label>
+                        <label className={LABEL_CLASS}>Lugar donde trabajas</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <select
                                 value={form.workDepartment}
@@ -289,22 +298,29 @@ export default function SociodemographicForm({ token, onDone }: Sociodemographic
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">¿Hace cuántos años trabajas en esta empresa?</label>
-                        <label className="flex items-center gap-2 text-sm mb-2">
+                        <label className={LABEL_CLASS}>¿Hace cuántos años trabajas en esta empresa?</label>
+                        <label
+                            className={`flex items-center gap-3 min-h-[52px] px-4 py-2.5 mb-2 rounded-xl border cursor-pointer transition-colors touch-manipulation select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${
+                                form.lessThanOneYearInCompany ? "border-primary bg-teal-light" : "border-border bg-muted/40 active:bg-muted"
+                            }`}
+                        >
                             <input
                                 type="checkbox"
+                                className="h-5 w-5 shrink-0 accent-primary"
                                 checked={form.lessThanOneYearInCompany}
                                 onChange={(e) => setForm((f) => ({ ...f, lessThanOneYearInCompany: e.target.checked, yearsInCompany: e.target.checked ? "0" : "" }))}
                             />
-                            Llevo menos de un año
+                            <span className={`text-base leading-snug ${form.lessThanOneYearInCompany ? "font-semibold text-teal-dark" : "text-foreground"}`}>
+                                Llevo menos de un año
+                            </span>
                         </label>
                         {!form.lessThanOneYearInCompany && (
-                            <input type="number" inputMode="numeric" value={form.yearsInCompany} onChange={(e) => setForm((f) => ({ ...f, yearsInCompany: e.target.value }))} className={`${INPUT_CLASS} max-w-[140px]`} placeholder="Años" />
+                            <input type="number" inputMode="numeric" value={form.yearsInCompany} onChange={(e) => setForm((f) => ({ ...f, yearsInCompany: e.target.value }))} className={`${INPUT_CLASS} max-w-[160px]`} placeholder="Años" />
                         )}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Tipo de contrato</label>
+                        <label className={LABEL_CLASS}>Tipo de contrato</label>
                         <select value={form.contractType} onChange={(e) => setForm((f) => ({ ...f, contractType: e.target.value }))} className={SELECT_CLASS}>
                             <option value="">Seleccione...</option>
                             <option value="Temporal_menos_1_ano">Temporal de menos de 1 año</option>
