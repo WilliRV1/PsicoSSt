@@ -58,7 +58,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
     const [collapsed, setCollapsed] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([])
-    const [creditBalance, setCreditBalance] = useState<number | null>(null)
+    const [plan, setPlan] = useState<{ planName: string; unitsAvailable: number; writable: boolean } | null>(null)
     const pathname = usePathname()
 
     // Cierra el menú móvil al cambiar de ruta. Se ajusta el estado DURANTE
@@ -80,11 +80,11 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
             .catch(() => {})
     }, [])
 
-    // Fetch credit balance
+    // Estado del plan: unidades disponibles y si la cuenta puede escribir.
     useEffect(() => {
-        fetch("/api/credits")
+        fetch("/api/plan")
             .then((r) => r.ok ? r.json() : null)
-            .then((d) => { if (d) setCreditBalance(d.balance) })
+            .then((d) => { if (d?.plan) setPlan({ planName: d.planName, unitsAvailable: d.unitsAvailable, writable: d.writable }) })
             .catch(() => {})
     }, [pathname])
 
@@ -258,22 +258,24 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        {/* Credit balance */}
+                        {/* Plan y unidades */}
                         <Link
-                            href="/dashboard/credits"
+                            href="/dashboard/plan"
                             className={cn(
                                 "hidden sm:inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
-                                creditBalance !== null && creditBalance <= 0
+                                plan && (!plan.writable || plan.unitsAvailable <= 0)
                                     ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                                    : creditBalance !== null && creditBalance <= 5
+                                    : plan && plan.unitsAvailable <= 5
                                     ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
                                     : "border-border bg-background text-foreground hover:bg-muted"
                             )}
-                            title="Créditos disponibles"
+                            title={plan && !plan.writable ? "Plan vencido" : "Trabajadores disponibles en tu plan"}
                         >
                             <Coins className="h-4 w-4" />
-                            <span className="font-semibold">{creditBalance ?? "—"}</span>
-                            <span className="hidden md:inline text-xs text-muted-foreground">créditos</span>
+                            <span className="font-semibold">{plan ? (plan.writable ? plan.unitsAvailable : "Vencido") : "—"}</span>
+                            <span className="hidden md:inline text-xs text-muted-foreground">
+                                {plan ? (plan.writable ? `· ${plan.planName}` : "") : ""}
+                            </span>
                         </Link>
 
                         {/* Notifications */}

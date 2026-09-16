@@ -5,7 +5,7 @@ import extralaboral from "@/config/battery/extralaboral-config.json";
 import stress from "@/config/battery/stress-config.json";
 import baremos from "@/config/battery/baremos.json";
 import itemTexts from "@/config/battery/items.json";
-import { lookupRiskCategory, scoreQuestionnaire } from "./index";
+import { lookupRiskCategory, scoreGeneralTotal, scoreQuestionnaire } from "./index";
 import type { BaremoThreshold, ItemResponses } from "@/types/battery";
 
 /**
@@ -256,6 +256,7 @@ describe("M2 · Tablas 29 a 33 — baremos", () => {
             liderazgo_relaciones: [9.1, 17.7, 25.6, 34.8, 100],
             control_trabajo: [10.7, 19, 29.8, 40.5, 100],
             demandas_trabajo: [28.5, 35, 41.5, 47.5, 100],
+            recompensa: [4.5, 11.4, 20.5, 29.5, 100],
         };
         const B: Record<string, number[]> = {
             liderazgo_relaciones: [8.3, 17.5, 26.7, 38.3, 100],
@@ -289,6 +290,15 @@ describe("M2 · Tablas 29 a 33 — baremos", () => {
             for (const [k, v] of Object.entries(b.dimensions)) revisar(v, `${forma}.${k}`);
             for (const [k, v] of Object.entries(b.domains)) revisar(v, `${forma}.${k}`);
             revisar(b.total, `${forma}.total`);
+        }
+        for (const grupo of ["jefes_profesionales_tecnicos", "auxiliares_operativos"] as const) {
+            const b = baremos.extralaboral[grupo];
+            for (const [k, v] of Object.entries(b.dimensions)) revisar(v, `extralaboral.${grupo}.${k}`);
+            revisar(b.total, `extralaboral.${grupo}.total`);
+            revisar(baremos.stress[grupo], `stress.${grupo}`);
+        }
+        for (const forma of ["forma_a", "forma_b"] as const) {
+            revisar(baremos.total_general[forma], `total_general.${forma}`);
         }
     });
 });
@@ -339,6 +349,164 @@ describe("M3 · cuestionario extralaboral", () => {
         expect(t(6, 36)).toBe(16.7); // características de la vivienda
         expect(t(28, 124)).toBe(22.6); // total
     });
+
+    it("Tabla 17 · baremos para cargos de jefatura y profesionales o técnicos", () => {
+        const T17: Record<string, number[]> = {
+            tiempo_fuera_trabajo: [6.3, 25, 37.5, 50, 100],
+            relaciones_familiares: [8.3, 25, 33.3, 50, 100],
+            comunicacion_relaciones: [0.9, 10, 20, 30, 100],
+            situacion_economica: [8.3, 25, 33.3, 50, 100],
+            caracteristicas_vivienda: [5.6, 11.1, 13.9, 22.2, 100],
+            influencia_entorno_extralaboral: [8.3, 16.7, 25, 41.7, 100],
+            desplazamiento_vivienda: [0.9, 12.5, 25, 43.8, 100],
+        };
+        const t = baremos.extralaboral.jefes_profesionales_tecnicos;
+        for (const [k, esperado] of Object.entries(T17)) {
+            expect(bands(t.dimensions[k as never]), k).toEqual(esperado);
+        }
+        expect(bands(t.total)).toEqual([11.3, 16.9, 22.6, 29, 100]);
+    });
+
+    it("Tabla 18 · baremos para cargos auxiliares y operarios", () => {
+        const T18: Record<string, number[]> = {
+            tiempo_fuera_trabajo: [6.3, 25, 37.5, 50, 100],
+            relaciones_familiares: [8.3, 25, 33.3, 50, 100],
+            comunicacion_relaciones: [5, 15, 25, 35, 100],
+            situacion_economica: [16.7, 25, 41.7, 50, 100],
+            caracteristicas_vivienda: [5.6, 11.1, 16.7, 27.8, 100],
+            influencia_entorno_extralaboral: [0.9, 16.7, 25, 41.7, 100],
+            desplazamiento_vivienda: [0.9, 12.5, 25, 43.8, 100],
+        };
+        const t = baremos.extralaboral.auxiliares_operativos;
+        for (const [k, esperado] of Object.entries(T18)) {
+            expect(bands(t.dimensions[k as never]), k).toEqual(esperado);
+        }
+        expect(bands(t.total)).toEqual([12.9, 17.7, 24.2, 32.3, 100]);
+    });
+
+    it("las Tablas 17 y 18 son tablas distintas, no una copia de la otra", () => {
+        // El manual publica dos tablas justamente porque el cuestionario
+        // discrimina entre niveles ocupacionales (M3 p. 151). Duplicar el
+        // bloque de jefes en el de auxiliares califica a los operarios con
+        // unos umbrales que no son los suyos.
+        const jefes = baremos.extralaboral.jefes_profesionales_tecnicos.dimensions;
+        const auxiliares = baremos.extralaboral.auxiliares_operativos.dimensions;
+        expect(JSON.stringify(auxiliares)).not.toEqual(JSON.stringify(jefes));
+
+        for (const k of [
+            "comunicacion_relaciones",
+            "situacion_economica",
+            "caracteristicas_vivienda",
+            "influencia_entorno_extralaboral",
+        ]) {
+            expect(bands(auxiliares[k as never]), k).not.toEqual(bands(jefes[k as never]));
+        }
+    });
+
+    it("M3 p. 148 · características de la vivienda admite un ítem sin respuesta", () => {
+        const completo: ItemResponses = {};
+        for (let i = 1; i <= 31; i++) completo[String(i)] = 2;
+
+        const conFaltante = { ...completo };
+        delete conFaltante["10"]; // características de la vivienda
+
+        const r = scoreQuestionnaire(conFaltante, "A", "EXTRALABORAL", { jobLevel: "PROFESIONAL" });
+        expect(r.dimensions.caracteristicas_vivienda.isValid).toBe(true);
+        expect(r.total.isValid).toBe(true);
+
+        // Cualquier otra dimensión sigue invalidando con un solo faltante.
+        const otra = { ...completo };
+        delete otra["29"]; // situación económica
+        const r2 = scoreQuestionnaire(otra, "A", "EXTRALABORAL", { jobLevel: "PROFESIONAL" });
+        expect(r2.dimensions.situacion_economica.isValid).toBe(false);
+        expect(r2.total.isValid).toBe(false);
+    });
+});
+
+// ════════════════════════════════════════════════════════════
+describe("M2 · Tablas 28 y 34 — puntaje total general (intralaboral + extralaboral)", () => {
+    /** Una evaluación completa con todos los ítems en el mismo valor. */
+    const evaluar = (formType: "A" | "B", valor: number) => {
+        const intraItems = formType === "A" ? 123 : 97;
+        const intra: ItemResponses = {};
+        for (let i = 1; i <= intraItems; i++) intra[String(i)] = valor;
+        const extra: ItemResponses = {};
+        for (let i = 1; i <= 31; i++) extra[String(i)] = valor;
+
+        return {
+            intra: scoreQuestionnaire(intra, formType, "INTRALABORAL", {
+                hasCustomerInteraction: true,
+                hasPeopleInCharge: true,
+                jobLevel: formType === "A" ? "PROFESIONAL" : "OPERATIVO",
+            }),
+            extra: scoreQuestionnaire(extra, formType, "EXTRALABORAL", {
+                jobLevel: formType === "A" ? "PROFESIONAL" : "OPERATIVO",
+            }),
+        };
+    };
+
+    it("Tabla 28 · el factor es 616 en la forma A y 512 en la forma B", () => {
+        expect(formA.generalTransformationFactor).toBe(616);
+        expect(formB.generalTransformationFactor).toBe(512);
+        // Y es la suma de los factores de los dos cuestionarios que lo integran.
+        expect(formA.totalTransformationFactor + extralaboral.totalTransformationFactor).toBe(616);
+        expect(formB.totalTransformationFactor + extralaboral.totalTransformationFactor).toBe(512);
+    });
+
+    it("Tabla 34 · baremos del puntaje total general", () => {
+        expect(bands(baremos.total_general.forma_a)).toEqual([18.8, 24.4, 29.5, 35.4, 100]);
+        expect(bands(baremos.total_general.forma_b)).toEqual([19.9, 24.8, 29.5, 35.4, 100]);
+    });
+
+    it("ejemplo 6 del manual · bruto 306 en la forma A → 49,7 y riesgo muy alto", () => {
+        const transformar = (bruto: number, factor: number) =>
+            Math.round((bruto / factor) * 100 * 10) / 10;
+        expect(transformar(306, formA.generalTransformationFactor)).toBe(49.7);
+        expect(
+            lookupRiskCategory(49.7, baremos.total_general.forma_a as BaremoThreshold)
+        ).toBe("MUY_ALTO");
+    });
+
+    it("suma los brutos de ambos cuestionarios y los divide por el factor general", () => {
+        const { intra, extra } = evaluar("A", 2);
+        const general = scoreGeneralTotal(intra, extra);
+
+        expect(general.isValid).toBe(true);
+        expect(general.maxPossible).toBe(616);
+        expect(general.rawScore).toBe(intra.total.rawScore + extra.total.rawScore);
+        expect(general.transformedScore).toBe(
+            Math.round((general.rawScore / 616) * 100 * 10) / 10
+        );
+        expect(general.riskCategory).not.toBe("INVALIDO");
+    });
+
+    it("la forma B usa el factor 512 y su propio baremo", () => {
+        const { intra, extra } = evaluar("B", 2);
+        const general = scoreGeneralTotal(intra, extra);
+
+        expect(general.maxPossible).toBe(512);
+        expect(general.transformedScore).toBe(
+            Math.round((general.rawScore / 512) * 100 * 10) / 10
+        );
+    });
+
+    it("si cualquiera de los dos cuestionarios es inválido, no hay total general", () => {
+        const { intra, extra } = evaluar("A", 2);
+
+        const intraRoto: ItemResponses = {};
+        for (let i = 1; i <= 123; i++) intraRoto[String(i)] = 2;
+        delete intraRoto["53"]; // claridad de rol no tolera faltantes
+        const intraInvalido = scoreQuestionnaire(intraRoto, "A", "INTRALABORAL", {
+            hasCustomerInteraction: true,
+            hasPeopleInCharge: true,
+        });
+
+        const general = scoreGeneralTotal(intraInvalido, extra);
+        expect(general.isValid).toBe(false);
+        expect(general.riskCategory).toBe("INVALIDO");
+        expect(general.transformedScore).toBe(0);
+        expect(intra.total.isValid).toBe(true); // control: el caso sano sí calcula
+    });
 });
 
 // ════════════════════════════════════════════════════════════
@@ -383,13 +551,11 @@ describe("M4 · cuestionario para la evaluación del estrés", () => {
         expect(bands(baremos.stress.auxiliares_operativos)).toEqual([6.5, 11.8, 17, 23.4, 100]);
     });
 
-    it("el desglose por grupo de síntomas refleja la gravedad real, no siempre Sin Riesgo", () => {
-        // baremos.json no publica baremo propio por grupo de síntomas (sólo
-        // para el total), y el motor calificaba cada grupo con un promedio
-        // simple sin baremo, cayendo siempre en SIN_RIESGO sin importar la
-        // respuesta — lo que impedía que la alerta de salud mental de
-        // sintomas_psicoemocionales se disparara jamás. Responder "Siempre"
-        // a los 9 ítems de ese grupo debe clasificarlo en un nivel alto.
+    it("los grupos de síntomas dan puntaje descriptivo pero NO nivel de riesgo", () => {
+        // El M4 baremiza únicamente el puntaje total (Tabla 6, p. 382). No
+        // existe baremo publicado por grupo de síntomas, así que el motor no
+        // puede asignarles un nivel: reutilizar las bandas del total fabricaba
+        // una clasificación que el instrumento no respalda.
         const responses: ItemResponses = {};
         for (let i = 1; i <= 31; i++) responses[String(i)] = 3; // resto en "Nunca"
         for (const i of [23, 24, 25, 26, 27, 28, 29, 30, 31]) responses[String(i)] = 0; // "Siempre"
@@ -402,11 +568,18 @@ describe("M4 · cuestionario para la evaluación del estrés", () => {
         const psicoemocional = r.dimensions.sintomas_psicoemocionales;
         expect(psicoemocional.isValid).toBe(true);
         expect(psicoemocional.transformedScore).toBe(100);
-        expect(["ALTO", "MUY_ALTO"]).toContain(psicoemocional.riskCategory);
+        expect(psicoemocional.riskCategory).toBeNull();
+        expect(psicoemocional.riskLevel).toBe(0);
+        expect(psicoemocional.isUnscored).toBe(true);
 
         const fisiologico = r.dimensions.sintomas_fisiologicos;
         expect(fisiologico.transformedScore).toBe(0);
-        expect(fisiologico.riskCategory).toBe("SIN_RIESGO");
+        expect(fisiologico.riskCategory).toBeNull();
+
+        // El total sí se baremiza, y sigue haciéndolo por nivel ocupacional.
+        expect(r.total.isValid).toBe(true);
+        expect(r.total.riskCategory).not.toBeNull();
+        expect(r.total.riskCategory).not.toBe("INVALIDO");
     });
 
     it("estrés incompleto invalida también el desglose por grupo de síntomas", () => {
@@ -464,6 +637,27 @@ describe("M2 · validez de los resultados", () => {
             expect(r.dimensions[clave].isValid, clave).toBe(true);
             expect(r.total.isValid, clave).toBe(true);
         }
+    });
+
+    it("el ítem faltante tolerado NO se imputa por la media", () => {
+        // M2 p. 76: "En la situación en que un ítem no haya sido respondido o
+        // presente una doble marcación, se tomará como un dato perdido, sin
+        // calificación alguna". El bruto es la suma de lo respondido y el
+        // divisor sigue siendo el factor completo de la dimensión.
+        const responses: ItemResponses = {};
+        for (let i = 1; i <= 123; i++) responses[String(i)] = 2;
+        delete responses["76"]; // relaciones sociales: 14 ítems, factor 56
+
+        const r = scoreQuestionnaire(responses, "A", "INTRALABORAL", {
+            hasCustomerInteraction: true,
+            hasPeopleInCharge: true,
+        });
+
+        const d = r.dimensions.relaciones_sociales;
+        expect(d.isValid).toBe(true);
+        expect(d.rawScore).toBe(26); // 13 ítems respondidos x 2
+        expect(d.transformedScore).toBe(46.4); // 26/56 — imputando daría 28/56 = 50,0
+        expect(d.transformedScore).not.toBe(50);
     });
 
     it("sin personal a cargo, relación con los colaboradores obtiene puntaje bruto cero", () => {

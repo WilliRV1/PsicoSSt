@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { PaymentService } from "@/lib/payments/payment-service";
 import { describeStatusDetail, isPending } from "@/lib/payments/status-map";
-import { getPackageById } from "@/config/credit-packages";
+import { getPackageById } from "@/config/plans";
 import { getMercadoPagoConfig, MercadoPagoConfigError } from "@/lib/payments/config";
 
 /**

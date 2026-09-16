@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+    MIN_GROUP_SIZE,
+    belowThresholdPayload,
+    meetsMinGroupSize,
+    suppressSmallCounts,
+} from "@/lib/reports/anonymity";
 
+/**
+ * Bloque sociodemográfico del informe colectivo.
+ *
+ * Camino paralelo al de /reports/sociodemographic y con el mismo defecto: aquí
+ * se devolvían conteos crudos por categoría, que identifican todavía más que un
+ * porcentaje ("estrato 1: 1"). Se aplica el mismo umbral único.
+ */
 export async function GET(
     _req: NextRequest,
     { params }: { params: Promise<{ orgId: string }> }
@@ -18,8 +31,10 @@ export async function GET(
         return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Describe la planta vigente (no filtra por evaluación), así que excluye
+    // archivados; ver la nota equivalente en /reports/sociodemographic.
     const workers = await prisma.worker.findMany({
-        where: { organizationId: orgId },
+        where: { organizationId: orgId, archivedAt: null },
         select: {
             gender: true,
             birthYear: true,
@@ -30,6 +45,10 @@ export async function GET(
             jobLevel: true,
         },
     });
+
+    if (!meetsMinGroupSize(workers.length)) {
+        return NextResponse.json(belowThresholdPayload(workers.length), { status: 409 });
+    }
 
     const currentYear = new Date().getFullYear();
 
@@ -90,5 +109,23 @@ export async function GET(
         data.jobLevel[job] = (data.jobLevel[job] || 0) + 1;
     });
 
-    return NextResponse.json(data);
+    // Cada variable se publica ya suprimida y con su propia señal, para que el
+    // informe pueda escribir "grupo omitido por confidencialidad" en vez de
+    // dejar un hueco sin explicación. No se reagrupa en "otros": si el residual
+    // también quedara bajo umbral, restarlo del total revelaría lo suprimido.
+    const suppressed = {
+        gender: suppressSmallCounts(data.gender),
+        age: suppressSmallCounts(data.age),
+        educationLevel: suppressSmallCounts(data.educationLevel),
+        maritalStatus: suppressSmallCounts(data.maritalStatus),
+        housingType: suppressSmallCounts(data.housingType),
+        contractType: suppressSmallCounts(data.contractType),
+        jobLevel: suppressSmallCounts(data.jobLevel),
+    };
+
+    return NextResponse.json({
+        totalWorkers: data.totalWorkers,
+        minGroupSize: MIN_GROUP_SIZE,
+        ...suppressed,
+    });
 }

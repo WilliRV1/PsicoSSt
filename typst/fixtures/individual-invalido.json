@@ -4,12 +4,25 @@
     "formLabel": "Forma A",
     "isStress": false,
     "isAnonymous": false,
-    "licenseMissing": false
+    "licenseMissing": false,
+    "instrument": {
+      "id": "INTRALABORAL",
+      "family": "BATTERY",
+      "regulated": true,
+      "provisionalBaremos": false
+    },
+    "provenance": {
+      "method": "MANUAL",
+      "source": null,
+      "importedAt": null,
+      "importJobId": null
+    }
   },
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "org": {
     "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
@@ -109,6 +122,7 @@
     "action": "Completar los ítems faltantes o repetir la aplicación del cuestionario.",
     "isValid": false
   },
+  "generalTotal": null,
   "domains": [
     {
       "key": "liderazgo_relaciones",
@@ -609,5 +623,6 @@
       "name": "Recompensas de la pertenencia a la organización",
       "definition": "Sentimiento de orgullo y percepción de estabilidad laboral, así como la percepción del trabajo como elemento que dignifica a quien lo realiza."
     }
-  ]
+  ],
+  "isDraft": false
 }

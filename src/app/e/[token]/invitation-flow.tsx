@@ -5,14 +5,13 @@ import PublicQuestionnaireForm from "./public-questionnaire-form";
 import SignaturePad from "./signature-pad";
 import SociodemographicForm from "./sociodemographic-form";
 import { QuestionnaireType } from "@/types/battery";
+import { INSTRUMENTS, INSTRUMENT_IDS, sortByOrder } from "@/config/instruments";
 
-const QUESTIONNAIRE_ORDER: QuestionnaireType[] = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
+const QUESTIONNAIRE_ORDER: QuestionnaireType[] = sortByOrder(INSTRUMENT_IDS);
 
-const SECTION_LABEL: Record<QuestionnaireType, string> = {
-    INTRALABORAL: "Cuestionario Intralaboral",
-    EXTRALABORAL: "Cuestionario Extralaboral",
-    STRESS: "Cuestionario de Estrés",
-};
+const SECTION_LABEL = Object.fromEntries(
+    INSTRUMENT_IDS.map((id) => [id, INSTRUMENTS[id].label])
+) as Record<QuestionnaireType, string>;
 
 interface PublicInvitationView {
     workerFullName: string;

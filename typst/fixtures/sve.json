@@ -478,5 +478,7 @@
         "MUY_ALTO": 20
       }
     }
-  ]
+  ],
+  "isDraft": false,
+  "poweredBy": false
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { AssessmentStatus, Prisma, QuestionnaireType } from "@/generated/prisma";
+import { INSTRUMENT_IDS } from "@/config/instruments";
 
 /**
  * GET /api/assessments/list
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
         const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
         const offset = (page - 1) * limit;
 
-        const VALID_QUESTIONNAIRE_TYPES = ["INTRALABORAL", "EXTRALABORAL", "STRESS"];
+        const VALID_QUESTIONNAIRE_TYPES: string[] = INSTRUMENT_IDS;
         const VALID_STATUSES = ["COMPLETED", "IN_PROGRESS", "PENDING"];
 
         if (questionnaireType && !VALID_QUESTIONNAIRE_TYPES.includes(questionnaireType)) {

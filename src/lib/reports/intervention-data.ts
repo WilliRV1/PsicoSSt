@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { loadImage, type ReportImage } from "./images";
+import { reportBranding } from "./branding";
 import { RISK_LABEL, RISK_ORDER, type RiskLevel } from "./battery-content";
 
 /**
@@ -36,7 +37,9 @@ export interface PlanAction {
 
 export interface InterventionData {
     org: { name: string; nit: string; city: string | null; today: string };
-    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null };
+    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null; poweredBy: boolean };
+    /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+    isDraft: boolean;
     professional: { name: string; license: string; signaturePath: string | null };
     plan: { title: string; period: string; status: string; createdAt: string };
     summary: {
@@ -74,7 +77,7 @@ export async function buildInterventionData(
     orgId: string,
     psychologistId: string,
     isAdmin: boolean
-): Promise<{ data: InterventionData; assets: InterventionAssets } | null> {
+): Promise<{ data: InterventionData; assets: InterventionAssets; viaAdmin: boolean } | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: {
@@ -86,6 +89,10 @@ export async function buildInterventionData(
 
     if (!org) return null;
     if (org.createdByPsychologist !== psychologistId && !isAdmin) return null;
+    // Acceso por la vía administrativa: queda para la auditoría de la ruta.
+    const viaAdmin = org.createdByPsychologist !== psychologistId;
+    // La marca del documento sigue al dueño de la empresa, no a quien lo abre.
+    const ownerPsychologistId = org.createdByPsychologist;
 
     const plan = await prisma.interventionPlan.findFirst({
         where: { organizationId: orgId },
@@ -168,9 +175,10 @@ export async function buildInterventionData(
         org.psychologist.signatures.find(s => s.signatureType === "drawn") ??
         org.psychologist.signatures.find(s => s.signatureType === "uploaded");
 
-    const [logo, signature] = await Promise.all([
+    const [logo, signature, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         loadImage(sig?.dataUrl ?? sig?.imageUrl ?? org.psychologist.signature),
+        reportBranding(ownerPsychologistId),
     ]);
 
     const contactBits = [settings?.email, settings?.phone, settings?.city].filter(Boolean);
@@ -182,7 +190,9 @@ export async function buildInterventionData(
                 tradeName: settings?.tradeName ?? settings?.consultingRoomName ?? null,
                 contactLine: contactBits.length ? contactBits.join(" · ") : null,
                 logoPath: logo ? `/assets/logo.${logo.ext}` : null,
+                poweredBy: branding.poweredBy,
             },
+            isDraft: branding.isDraft,
             professional: {
                 name: org.psychologist.fullName,
                 license: org.psychologist.licenseNumber,
@@ -208,5 +218,6 @@ export async function buildInterventionData(
             areas,
         },
         assets: { logo, signature },
+        viaAdmin,
     };
 }

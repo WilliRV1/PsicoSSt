@@ -10,6 +10,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { "Plan de intervención" },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // Color por estado de la acción. Se reutiliza la escala de riesgo en lugar de

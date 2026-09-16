@@ -18,8 +18,12 @@ export type RiskCategory =
 /** Form type determining questionnaire variant */
 export type FormType = "A" | "B";
 
-/** Questionnaire instrument type */
-export type QuestionnaireType = "INTRALABORAL" | "EXTRALABORAL" | "STRESS";
+/**
+ * Instrumento. Los tres primeros son la Batería normativa; CLIMA es un
+ * instrumento libre (sin restricción legal) que reutiliza el mismo motor.
+ * La definición de cada uno vive en `src/config/instruments`.
+ */
+export type QuestionnaireType = "INTRALABORAL" | "EXTRALABORAL" | "STRESS" | "CLIMA";
 
 /** Job levels determining form type or filters */
 export type JobLevel = "JEFATURA" | "PROFESIONAL" | "TECNICO" | "AUXILIAR" | "OPERATIVO";
@@ -40,12 +44,19 @@ export interface DimensionScore {
     transformedScore: number;
     transformationFactor: number;
     baremoPercentile?: number;
-    riskCategory: RiskCategory;
+    /**
+     * `null` cuando el manual no publica baremo para esa subescala y por tanto
+     * no existe nivel que asignarle — distinto de `INVALIDO`, que marca un
+     * resultado que no puede calcularse. Ocurre en los cuatro grupos de
+     * síntomas del cuestionario de estrés (M4 sólo baremiza el total).
+     */
+    riskCategory: RiskCategory | null;
     riskLevel: number; // 1-5 numeric
     itemCount: number;
     invertedItems: number[];
     isValid: boolean;          // False if nullified by missing items
     isFiltered?: boolean;      // True if zeroed by filter questions
+    isUnscored?: boolean;      // True if calculable but without a published baremo
 }
 
 /** Score result for a domain (aggregation of dimensions) */

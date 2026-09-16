@@ -79,7 +79,7 @@ export default function ConsentRecorder({
                         Registrar Consentimiento Informado
                     </h3>
                     <p className="text-xs text-muted-foreground mb-4">
-                        El psicólogo certifica que obtuvo el consentimiento informado del trabajador antes de la aplicación.
+                        El psicólogo certifica que obtuvo el consentimiento informado del trabajador antes de la evaluación.
                     </p>
 
                     <label className="block text-xs font-medium text-foreground mb-1">

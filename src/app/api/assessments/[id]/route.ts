@@ -86,7 +86,7 @@ export async function DELETE(
   }
 }
 
-import { AssessmentService } from "@/lib/services/assessment-service";
+import { AssessmentLockedError, AssessmentService } from "@/lib/services/assessment-service";
 import { getErrorMessage } from "@/lib/utils";
 
 export async function PUT(
@@ -114,10 +114,14 @@ export async function PUT(
 
     return NextResponse.json(result);
   } catch (error: unknown) {
+    // Un informe firmado no es un error del servidor: es una negativa.
+    if (error instanceof AssessmentLockedError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Error actualizando evaluación:", error);
-    return NextResponse.json({ 
-      error: `Error al actualizar: ${getErrorMessage(error)}`, 
-      details: getErrorMessage(error) 
+    return NextResponse.json({
+      error: `Error al actualizar: ${getErrorMessage(error)}`,
+      details: getErrorMessage(error)
     }, { status: 500 });
   }
 }

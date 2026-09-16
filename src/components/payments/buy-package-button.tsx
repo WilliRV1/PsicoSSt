@@ -8,7 +8,7 @@ import { CreditCard, Loader2 } from "lucide-react";
  * Botón de compra de un paquete de créditos.
  *
  * Sólo envía el identificador del paquete: el precio lo fija el servidor desde
- * `src/config/credit-packages.ts`. Aunque alguien manipulara esta petición, no
+ * `src/config/plans.ts`. Aunque alguien manipulara esta petición, no
  * podría alterar cuánto se le cobra.
  */
 

@@ -14,8 +14,8 @@ function layout(content: string): string {
       ${content}
     </div>
     <div style="padding:16px 32px;background:#fafafa;border-top:1px solid #e4e4e7;text-align:center">
-      <p style="margin:0;color:#a1a1aa;font-size:12px">PsicoSST — Plataforma de Riesgo Psicosocial</p>
-      <p style="margin:4px 0 0;color:#a1a1aa;font-size:11px">Conforme a la Resolucion 2764 de 2022</p>
+      <p style="margin:0;color:#a1a1aa;font-size:12px">PsicoSST — Gestion y calificacion de riesgo psicosocial</p>
+      <p style="margin:4px 0 0;color:#a1a1aa;font-size:11px">Herramienta del psicologo especialista en SST</p>
     </div>
   </div>
 </body>
@@ -35,8 +35,8 @@ export function welcomeEmail(fullName: string) {
                 Te notificaremos por correo cuando tu cuenta este activa.
             </p>
             <p style="color:#3f3f46;line-height:1.6;margin:0 0 8px">
-                Al ser aprobado, recibiras <strong>5 creditos de prueba gratis</strong> para que
-                conozcas la plataforma.
+                Al ser aprobado tendras un <strong>periodo de prueba de 30 dias</strong> con
+                5 trabajadores gestionados y una empresa, para que conozcas la plataforma.
             </p>
         `),
     };
@@ -57,7 +57,7 @@ export function accountApprovedEmail(fullName: string) {
                 </a>
             </div>
             <p style="color:#71717a;font-size:13px;margin:0">
-                Tienes 5 creditos de prueba para comenzar.
+                Tu periodo de prueba de 30 dias ya esta activo: 5 trabajadores gestionados y una empresa.
             </p>
         `),
     };
@@ -103,7 +103,7 @@ export function paymentReceiptEmail(
     });
 
     return {
-        subject: `Recibo de compra - ${credits} creditos PsicoSST`,
+        subject: `Recibo de compra - ${packageName} - PsicoSST`,
         html: layout(`
             <h2 style="margin:0 0 16px;color:#18181b;font-size:18px">Recibo de compra</h2>
             <p style="color:#3f3f46;line-height:1.6;margin:0 0 20px">
@@ -112,11 +112,11 @@ export function paymentReceiptEmail(
             <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:20px;margin:0 0 20px">
                 <table style="width:100%;border-collapse:collapse;font-size:14px">
                     <tr>
-                        <td style="padding:6px 0;color:#71717a">Paquete</td>
+                        <td style="padding:6px 0;color:#71717a">Concepto</td>
                         <td style="padding:6px 0;color:#18181b;text-align:right;font-weight:600">${packageName}</td>
                     </tr>
                     <tr>
-                        <td style="padding:6px 0;color:#71717a">Creditos</td>
+                        <td style="padding:6px 0;color:#71717a">Trabajadores gestionados</td>
                         <td style="padding:6px 0;color:#18181b;text-align:right;font-weight:600">${credits}</td>
                     </tr>
                     <tr>
@@ -134,7 +134,9 @@ export function paymentReceiptEmail(
                 </table>
             </div>
             <p style="color:#71717a;font-size:12px;margin:0">
-                Los creditos ya estan disponibles en tu cuenta. No tienen fecha de vencimiento.
+                Ya esta disponible en tu cuenta. El cupo de un plan vence al terminar su periodo;
+                las unidades adicionales no vencen. Conforme a la Ley 1480 de 2011 puedes ejercer el
+                derecho de retracto dentro de los cinco dias habiles siguientes sobre lo no consumido.
             </p>
         `),
     };
@@ -158,7 +160,7 @@ export function assessmentInvitationEmail(
             <h2 style="margin:0 0 16px;color:#18181b;font-size:18px">Hola ${workerFullName},</h2>
             <p style="color:#3f3f46;line-height:1.6;margin:0 0 16px">
                 ${psychologistFullName} te invita a diligenciar tu evaluacion de riesgo psicosocial
-                de forma virtual. El proceso toma unos minutos y tus respuestas son
+                mediante este enlace personal. El proceso toma unos minutos y tus respuestas son
                 <strong>confidenciales</strong>: solo tu psicologo(a) las vera.
             </p>
             <div style="text-align:center;margin:24px 0">

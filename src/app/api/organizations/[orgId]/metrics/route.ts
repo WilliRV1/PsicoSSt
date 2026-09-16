@@ -58,7 +58,10 @@ export async function GET(
 
         // Workers with their latest assessment risk
         prisma.worker.findMany({
-            where: { organizationId: orgId },
+            // Tablero operativo: el archivado sale del listado. Su evaluación
+            // sigue contando en las agregaciones de arriba, que se calculan
+            // sobre assessment/scoredResult y no sobre la planta vigente.
+            where: { organizationId: orgId, archivedAt: null },
             select: {
                 id: true,
                 fullName: true,

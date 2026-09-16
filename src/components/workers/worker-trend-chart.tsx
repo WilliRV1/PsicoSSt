@@ -36,6 +36,7 @@ const LINE_DISPLAY_NAMES: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
     STRESS: "Estrés",
+    CLIMA: "Clima",
 };
 
 function formatDateLabel(date: Date): string {

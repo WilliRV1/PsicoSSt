@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
+import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
 import { sendEmail } from "@/lib/email/resend";
 import { assessmentInvitationEmail } from "@/lib/email/templates";
 import { getErrorMessage } from "@/lib/utils";
@@ -39,6 +40,22 @@ export async function POST(
         sendEmail({ to: contactEmail, ...template }).catch((err) =>
             console.error("[INVITATIONS] Resend email failed:", err)
         );
+
+        // Rotar el token invalida el enlace anterior: queda registrado quién
+        // lo hizo y desde dónde, porque es la operación que puede dejar sin
+        // acceso al trabajador que ya tenía el enlace en su bandeja.
+        await logAudit({
+            ...extractRequestMeta(request),
+            userId: session.user.id,
+            action: "UPDATE",
+            resourceType: "AssessmentInvitation",
+            resourceId: id,
+            metadata: {
+                event: "INVITATION_TOKEN_ROTATED",
+                reason: "PSYCHOLOGIST_RESEND",
+                workerId,
+            },
+        });
 
         return NextResponse.json({ url, expiresAt });
     } catch (error: unknown) {

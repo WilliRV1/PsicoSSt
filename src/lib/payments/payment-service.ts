@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import type { PaymentOrder, PaymentStatus } from "@/generated/prisma/client";
 import { CreditService } from "@/lib/services/credit-service";
-import { getPackageById } from "@/config/credit-packages";
+import { getPackageById } from "@/config/plans";
+import { SubscriptionService } from "@/lib/services/subscription-service";
 import { logAudit } from "@/lib/auth/audit";
 import { ORDER_TTL_MINUTES, getMercadoPagoConfig } from "./config";
 import {
@@ -547,10 +548,29 @@ export class PaymentService {
                     });
                     if (claimed.count === 0) return null;
 
+                    // Un plan activa (o renueva) la suscripción en la MISMA
+                    // transacción y su cupo vence con el periodo; un módulo se
+                    // anota en la suscripción; las unidades sueltas no vencen.
+                    let expiresAt: Date | null = null;
+                    if (pkg.kind === "plan") {
+                        const sub = await SubscriptionService.activateInTx(tx, {
+                            psychologistId: order.psychologistId,
+                            sku: pkg,
+                            paymentOrderId: order.id,
+                        });
+                        expiresAt = sub.periodEnd;
+                    } else if (pkg.kind === "feature") {
+                        await SubscriptionService.grantFeatureInTx(tx, {
+                            psychologistId: order.psychologistId,
+                            sku: pkg,
+                        });
+                    }
+
                     const { transactionId } = await CreditService.creditPurchaseInTx(tx, {
                         psychologistId: order.psychologistId,
                         pkg,
                         paymentRef: paymentId,
+                        expiresAt,
                     });
 
                     return tx.paymentOrder.update({
@@ -573,6 +593,8 @@ export class PaymentService {
                 // Sin datos del pagador: sólo lo necesario para auditar el cobro.
                 metadata: {
                     packageId: pkg.id,
+                    kind: pkg.kind,
+                    plan: pkg.plan ?? null,
                     credits: pkg.credits,
                     amountCOP: order.amountCOP,
                     paymentId,
@@ -611,6 +633,15 @@ export class PaymentService {
                         paymentRef: paymentId,
                         reason: status === "REFUNDED" ? "reembolso" : "contracargo",
                     });
+
+                    // Devolver el dinero de un plan es cancelarlo: la cuenta
+                    // queda en sólo lectura, como cualquier suscripción vencida.
+                    if (pkg.kind === "plan") {
+                        await tx.subscription.updateMany({
+                            where: { paymentOrderId: order.id },
+                            data: { status: "EXPIRED" },
+                        });
+                    }
 
                     return tx.paymentOrder.findUnique({ where: { id: order.id } });
                 },

@@ -82,6 +82,12 @@ export default function ImportWorkersPage() {
                 <p className="text-muted-foreground text-sm mt-1">
                     Importa trabajadores desde un archivo CSV. Los existentes se actualizar&aacute;n autom&aacute;ticamente.
                 </p>
+                <p className="text-sm mt-2">
+                    &iquest;Ya tienes resultados calificados en SIRPSI u otra herramienta?{" "}
+                    <Link href={`/dashboard/organizations/${orgId}/import/scores`} className="font-semibold text-primary hover:underline">
+                        Importar resultados calificados &rsaquo;
+                    </Link>
+                </p>
             </div>
 
             {!result ? (

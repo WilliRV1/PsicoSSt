@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Public pages — accessible without a session.
  */
 const PUBLIC_PAGES = [
+  "/pricing",
   "/login",
   "/register",
   "/forgot-password",
@@ -85,10 +86,11 @@ export async function proxy(req: NextRequest) {
   }
 
   // ── Root ──────────────────────────────────────────────────────
+  // Sin sesión se sirve la landing pública; la propia página redirige al
+  // panel cuando sí hay sesión, leyéndola de verdad y no por presencia de
+  // cookie como puede hacerse aquí.
   if (pathname === "/") {
-    return NextResponse.redirect(
-      new URL(isAuthenticated ? "/dashboard" : "/login", req.url)
-    );
+    return NextResponse.next();
   }
 
   // ── Protected pages ───────────────────────────────────────────

@@ -29,7 +29,8 @@ const riskLabels: Record<string, string> = {
 const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
-    STRESS: "Estres"
+    STRESS: "Estres",
+    CLIMA: "Clima"
 };
 
 const statusConfig: Record<string, { label: string; class: string }> = {

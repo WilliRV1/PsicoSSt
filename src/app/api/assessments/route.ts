@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AssessmentService } from "@/lib/services/assessment-service";
-import { CreditService } from "@/lib/services/credit-service";
+import { EntitlementError, assertCan, consumeUnit, refundUnit } from "@/lib/entitlements";
 import { getErrorMessage } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
@@ -18,26 +18,27 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // consumeCreditForAssessment atomically checks whether this worker
-        // already has an assessment in the last 3 months AND deducts 1 credit
-        // if it is the first one — all inside a single DB transaction.
-        // This prevents the race condition where two concurrent requests for
-        // the same worker both see count=0 and both consume a credit.
-        let creditConsumed = false;
+        // Una unidad por trabajador, familia de instrumento y periodo de
+        // suscripción, descontada atómicamente antes de crear la evaluación.
+        let unitConsumed = false;
         try {
-            const { consumed } = await CreditService.consumeCreditForAssessment(
-                session.user.id,
-                data.workerId
-            );
-            creditConsumed = consumed;
-        } catch (creditError: unknown) {
-            if (getErrorMessage(creditError) === "INSUFFICIENT_CREDITS") {
+            await assertCan(session.user.id, "CREATE_ASSESSMENT");
+            if (data.questionnaireType === "CLIMA") {
+                await assertCan(session.user.id, "USE_CLIMA");
+            }
+            const { consumed } = await consumeUnit(session.user.id, {
+                workerId: data.workerId,
+                questionnaireType: data.questionnaireType,
+            });
+            unitConsumed = consumed;
+        } catch (entitlementError: unknown) {
+            if (entitlementError instanceof EntitlementError) {
                 return NextResponse.json(
-                    { error: "No tienes créditos suficientes. Adquiere un paquete de créditos para continuar.", code: "INSUFFICIENT_CREDITS" },
-                    { status: 402 }
+                    { error: entitlementError.message, code: entitlementError.code },
+                    { status: entitlementError.status }
                 );
             }
-            throw creditError;
+            throw entitlementError;
         }
 
         let result: Awaited<ReturnType<typeof AssessmentService.createAssessment>>;
@@ -56,14 +57,15 @@ export async function POST(request: NextRequest) {
                 informedConsent: data.informedConsent,
             });
         } catch (assessmentError) {
-            // Assessment creation failed after the credit was already consumed.
-            // Refund it so the psychologist doesn't lose a credit.
-            if (creditConsumed) {
-                await CreditService.refundCredit(
-                    session.user.id,
-                    "Error al crear la evaluación"
-                ).catch((refundErr) =>
-                    console.error("[CREDITS] Refund failed after assessment error:", refundErr)
+            // La evaluación falló después de descontar la unidad: se anula el
+            // consumo para que el psicólogo no la pierda.
+            if (unitConsumed) {
+                await refundUnit(session.user.id, {
+                    workerId: data.workerId,
+                    questionnaireType: data.questionnaireType,
+                    reason: "Error al crear la evaluación",
+                }).catch((refundErr) =>
+                    console.error("[UNITS] Refund failed after assessment error:", refundErr)
                 );
             }
             throw assessmentError;

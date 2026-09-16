@@ -320,9 +320,9 @@ export default function RegisterPage() {
                             Sólo un profesional con licencia puede firmar estos informes
                         </h2>
                         <p className="max-w-[430px] text-[15px] leading-relaxed text-text-secondary">
-                            La Resolución 2764 de 2022 reserva la aplicación e interpretación de la
-                            Batería a psicólogos con licencia vigente en Seguridad y Salud en el
-                            Trabajo. Por eso verificamos antes de dar acceso.
+                            La Resolución 2764 de 2022 y la Ley 1090 de 2006 reservan la evaluación e
+                            interpretación del riesgo psicosocial a psicólogos con licencia vigente en
+                            Seguridad y Salud en el Trabajo. Por eso verificamos antes de dar acceso.
                         </p>
                     </div>
 

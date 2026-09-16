@@ -6,6 +6,8 @@ import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase
 import EditWorkerProfileButton from "@/components/workers/EditWorkerProfileButton";
 import WorkerTrendChart from "@/components/workers/worker-trend-chart";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { dueInfo, isCriticalLevel, workerValidity } from "@/lib/compliance/cadence";
+import { INSTRUMENT_IDS } from "@/config/instruments";
 
 const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: React.ReactNode }) => {
     const texts: Record<string, string> = {
@@ -56,6 +58,7 @@ const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
     STRESS: "Estrés",
+    CLIMA: "Clima",
 };
 
 const statusConfig: Record<string, { label: string; class: string }> = {
@@ -145,18 +148,23 @@ export default async function WorkerDetailPage({ params }: PageProps) {
         latestByType[a.questionnaireType] = a;
     }
 
-    // Expiration alert (2-year rule, Res. 2764/2022)
+    // Vigencia (Res. 2764/2022 art. 3): anual si la última medición tuvo
+    // riesgo alto o muy alto en cualquiera de sus cuestionarios, bienal si no.
     const signedAssessments = assessments.filter(a => a.status === "SIGNED");
     const lastSignedDate = signedAssessments.length > 0
         ? new Date(signedAssessments[0].assessmentDate)
         : null;
-    const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
-    const expiresAt = lastSignedDate ? new Date(lastSignedDate.getTime() + TWO_YEARS_MS) : null;
+    const lastCycleCritical = signedAssessments
+        .slice(0, 3)
+        .some(a => isCriticalLevel(a.scoredResult?.overallRiskCategory));
+    const validity = workerValidity(lastCycleCritical ? "ALTO" : signedAssessments[0]?.scoredResult?.overallRiskCategory);
     // Server Component: sin el re-render concurrente que esta regla vigila
     // en cliente — necesita la hora real del servidor para este cálculo.
     // eslint-disable-next-line react-hooks/purity
-    const daysUntilExpiry = expiresAt ? Math.floor((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
-    const expirationStatus = daysUntilExpiry === null ? "NEVER" : daysUntilExpiry <= 0 ? "EXPIRED" : daysUntilExpiry <= 180 ? "EXPIRING_SOON" : "OK";
+    const due = lastSignedDate ? dueInfo(lastSignedDate, validity, new Date()) : null;
+    const expiresAt = due?.dueDate ?? null;
+    const daysUntilExpiry = due?.daysLeft ?? null;
+    const expirationStatus = !due ? "NEVER" : due.status === "VENCIDA" ? "EXPIRED" : due.status === "POR_VENCER" ? "EXPIRING_SOON" : "OK";
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -216,7 +224,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
             {/* Risk summary cards */}
             {Object.keys(latestByType).length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {["INTRALABORAL", "EXTRALABORAL", "STRESS"].map(type => {
+                    {INSTRUMENT_IDS.map(type => {
                         const a = latestByType[type];
                         if (!a) return (
                             <div key={type} className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-center">
@@ -249,7 +257,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                     <div>
                         <p className="font-semibold text-red-800 text-sm">Evaluación vencida</p>
                         <p className="text-red-700 text-xs mt-0.5">
-                            La última evaluación firmada fue el {lastSignedDate!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}. Han pasado más de 2 años — se requiere reevaluación según la Res. 2764/2022.
+                            La última evaluación firmada fue el {lastSignedDate!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}. Venció la vigencia de {validity.years === 1 ? "un año (riesgo alto o muy alto)" : "dos años"} — se requiere reevaluación según la Res. 2764/2022, art. 3.
                         </p>
                         <a href={`/dashboard/assessments/new/manual?workerId=${worker.id}`} className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-red-700 hover:text-red-900 underline">
                             <RefreshCw className="h-3 w-3" /> Iniciar reevaluación

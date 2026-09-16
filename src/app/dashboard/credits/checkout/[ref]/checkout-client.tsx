@@ -15,7 +15,7 @@ import {
     XCircle,
 } from "lucide-react";
 import type { ProcessResult } from "@/components/payments/payment-brick";
-import { formatCOP } from "@/config/credit-packages";
+import { formatCOP } from "@/config/plans";
 
 /**
  * Pantalla de pago de una orden.

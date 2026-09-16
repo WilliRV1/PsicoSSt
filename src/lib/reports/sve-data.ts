@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
 import { loadImage, type ReportImage } from "./images";
+import { reportBranding } from "./branding";
+import { BATTERY_IDS } from "@/config/instruments";
 
 export const RISK_ORDER = ["SIN_RIESGO", "BAJO", "MEDIO", "ALTO", "MUY_ALTO"] as const;
 export type RiskLevel = (typeof RISK_ORDER)[number];
@@ -21,6 +23,10 @@ export interface DomainBand {
 }
 
 export interface SVEData {
+    /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+    isDraft: boolean;
+    /** Plan Residente: pie «Generado con PsicoSST». */
+    poweredBy: boolean;
     org: {
         name: string;
         nit: string;
@@ -144,17 +150,25 @@ export async function buildSVEData(
     orgId: string,
     userId: string,
     isAdmin: boolean
-): Promise<{ data: SVEData; assets: SVEAssets } | null> {
+): Promise<{ data: SVEData; assets: SVEAssets; viaAdmin: boolean } | null> {
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         include: { psychologist: { select: { id: true, fullName: true, licenseNumber: true } } }
     });
 
     if (!org || (org.createdByPsychologist !== userId && !isAdmin)) return null;
+    // Acceso por la vía administrativa: queda para la auditoría de la ruta.
+    const viaAdmin = org.createdByPsychologist !== userId;
 
     const [assessments, settings, signature] = await Promise.all([
         prisma.assessment.findMany({
-            where: { organizationId: orgId, status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] } },
+            // Vigilancia epidemiológica de riesgo psicosocial: sólo la Batería
+            // normativa; el clima es un instrumento libre.
+            where: {
+                organizationId: orgId,
+                questionnaireType: { in: BATTERY_IDS },
+                status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] },
+            },
             include: {
                 worker: {
                     select: {
@@ -364,12 +378,16 @@ export async function buildSVEData(
 
     // Signatures are usually stored inline as a data URI; imageUrl is the
     // fallback for uploaded files. Matches how the other report routes read it.
-    const [logo, signatureImg] = await Promise.all([
+    const [logo, signatureImg, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         loadImage(signature?.dataUrl ?? signature?.imageUrl),
+        // La marca sigue al dueño de la empresa, no a quien abre el documento.
+        reportBranding(org.psychologist.id),
     ]);
 
     const data: SVEData = {
+        isDraft: branding.isDraft,
+        poweredBy: branding.poweredBy,
         org: {
             name: org.name,
             nit: org.nit,
@@ -415,5 +433,5 @@ export async function buildSVEData(
         areas,
     };
 
-    return { data, assets: { logo, signature: signatureImg } };
+    return { data, assets: { logo, signature: signatureImg }, viaAdmin };
 }

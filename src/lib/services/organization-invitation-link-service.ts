@@ -1,21 +1,33 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/auth/audit";
+import { sendEmail } from "@/lib/email/resend";
+import { assessmentInvitationEmail } from "@/lib/email/templates";
+import { clearFailures, getLockoutSeconds, registerFailure } from "@/lib/security/rate-limit";
 import { AssessmentInvitationService, assessmentIdField } from "@/lib/services/assessment-invitation-service";
+import { isDue, workerValidity } from "@/lib/compliance/cadence";
 import { FormType, QuestionnaireType } from "@/types/battery";
 
 const RESOLVED_INVITATION_EXPIRY_DAYS = 3;
 
-/// Misma ventana que CreditService.consumeCreditForAssessment usa para
-/// decidir si a un trabajador ya le toca una evaluación nueva. Se reutiliza
-/// aquí para que "cuándo se puede repetir la prueba" sea una sola regla de
-/// negocio y no dos que puedan desincronizarse.
-const REEVALUATION_WINDOW_MONTHS = 3;
-
 /// El enlace de empresa se comparte ampliamente (cartelera, WhatsApp) y solo
 /// pide una cédula — sin límite de intentos, cualquiera podía probar
 /// documentos hasta acertar uno real y tomar la evaluación de otra persona.
+///
+/// El bloqueo es POR IP, no por enlace. Contarlo por enlace (como se hacía
+/// antes, en las columnas failedIdentifyAttempts/identifyLockedUntil) permitía
+/// una denegación de servicio trivial: ocho cédulas inventadas dejaban a toda
+/// la empresa sin poder diligenciar durante diez minutos.
 const MAX_FAILED_IDENTIFY_ATTEMPTS = 8;
 const IDENTIFY_LOCKOUT_MINUTES = 10;
+const IDENTIFY_FAILURE_BUCKET = "company-link-identify";
+
+/// La cédula es dato personal (Ley 1581/2012): en la bitácora se guarda solo
+/// un prefijo de su hash, suficiente para correlacionar intentos de un mismo
+/// atacante sin dejar el documento en claro en una tabla de auditoría.
+function documentFingerprint(documentId: string) {
+    return crypto.createHash("sha256").update(documentId).digest("hex").slice(0, 12);
+}
 
 /// La forma A/B es propia de cada trabajador (elegida por el psicólogo al
 /// registrarlo, codificada en jobLevel — ver comentario en dashboard de
@@ -40,6 +52,23 @@ export interface PublicCompanyLinkView {
     psychologistFullName: string;
     isActive: boolean;
 }
+
+/** Metadatos de la petición pública, necesarios para auditar y limitar por IP. */
+export interface RequestMeta {
+    ipAddress: string;
+    userAgent: string;
+    /** Origen del despliegue, para armar la URL del enlace que se reenvía por correo. */
+    origin: string;
+}
+
+/**
+ * `RESOLVED` = se entrega el token al navegador que se identificó.
+ * `RESENT_TO_CONTACT` = ya existía una invitación en curso y el enlace se
+ * reenvió al canal registrado; el navegador NO recibe token.
+ */
+export type IdentifyResult =
+    | { outcome: "RESOLVED"; invitationToken: string }
+    | { outcome: "RESENT_TO_CONTACT" };
 
 /**
  * Enlace único por empresa: el psicólogo lo genera una vez y lo comparte con
@@ -118,46 +147,81 @@ export class OrganizationInvitationLinkService {
      * nueva en silencio — sin este bloqueo, cualquiera que conociera la
      * cédula podía volver a entrar indefinidamente e inyectar respuestas
      * sobre un trabajador real ya evaluado.
+     *
+     * Si ya existe una invitación PENDING, el enlace NO se entrega a quien
+     * digitó la cédula: se reenvía al canal de contacto registrado en esa
+     * invitación. La cédula la conocen RR.HH. y cualquier jefe, así que
+     * devolverle un token válido a quien la escribe equivalía a entregar la
+     * evaluación de otra persona y, de paso, a invalidar el enlace que el
+     * trabajador legítimo había recibido por correo.
      */
     static async identifyWorker(
         token: string,
-        documentId: string
-    ): Promise<{ invitationToken: string }> {
+        documentId: string,
+        meta: RequestMeta
+    ): Promise<IdentifyResult> {
         const tokenHash = hashToken(token);
         const link = await prisma.organizationInvitationLink.findUnique({ where: { tokenHash } });
 
         if (!link || !link.isActive) throw new Error("LINK_NOT_FOUND");
 
-        if (link.identifyLockedUntil && link.identifyLockedUntil > new Date()) {
+        const auditBase = {
+            resourceType: "OrganizationInvitationLink",
+            resourceId: link.id,
+            userId: link.psychologistId,
+            ipAddress: meta.ipAddress,
+            userAgent: meta.userAgent,
+        };
+
+        // El bloqueo se cuenta contra la IP y contra este enlace a la vez, de
+        // modo que un atacante no puede castigar a la empresa entera ni saltar
+        // entre enlaces reutilizando el mismo cupo.
+        const failureKey = `${meta.ipAddress}|${link.id}`;
+        if (getLockoutSeconds(IDENTIFY_FAILURE_BUCKET, failureKey) > 0) {
             throw new Error("TOO_MANY_ATTEMPTS");
         }
 
+        // Un trabajador archivado conserva su evidencia pero ya no se evalúa; se
+        // trata como inexistente para no revelar por la vía del enlace público
+        // que esa cédula estuvo registrada en la empresa.
         const worker = await prisma.worker.findFirst({
-            where: { organizationId: link.organizationId, documentId },
-            select: { id: true, jobLevel: true },
+            where: { organizationId: link.organizationId, documentId, archivedAt: null },
+            select: { id: true, jobLevel: true, fullName: true },
         });
 
         if (!worker) {
-            const attempts = link.failedIdentifyAttempts + 1;
-            const lockedOut = attempts >= MAX_FAILED_IDENTIFY_ATTEMPTS;
-            await prisma.organizationInvitationLink.update({
-                where: { id: link.id },
-                data: lockedOut
-                    ? {
-                          failedIdentifyAttempts: 0,
-                          identifyLockedUntil: new Date(Date.now() + IDENTIFY_LOCKOUT_MINUTES * 60 * 1000),
-                      }
-                    : { failedIdentifyAttempts: attempts },
+            const lockedOut = registerFailure(
+                IDENTIFY_FAILURE_BUCKET,
+                failureKey,
+                MAX_FAILED_IDENTIFY_ATTEMPTS,
+                IDENTIFY_LOCKOUT_MINUTES * 60 * 1000
+            );
+            await logAudit({
+                ...auditBase,
+                action: lockedOut ? "ACCOUNT_LOCKED" : "LOGIN_FAILED",
+                metadata: {
+                    event: lockedOut
+                        ? "SELF_SERVICE_IDENTIFY_IP_LOCKED"
+                        : "SELF_SERVICE_IDENTIFY_FAILED",
+                    organizationId: link.organizationId,
+                    documentFingerprint: documentFingerprint(documentId),
+                    lockoutMinutes: lockedOut ? IDENTIFY_LOCKOUT_MINUTES : 0,
+                },
             });
             throw new Error(lockedOut ? "TOO_MANY_ATTEMPTS" : "WORKER_NOT_FOUND");
         }
 
-        if (link.failedIdentifyAttempts > 0) {
-            await prisma.organizationInvitationLink.update({
-                where: { id: link.id },
-                data: { failedIdentifyAttempts: 0 },
-            });
-        }
+        clearFailures(IDENTIFY_FAILURE_BUCKET, failureKey);
+
+        await logAudit({
+            ...auditBase,
+            action: "READ",
+            metadata: {
+                event: "SELF_SERVICE_IDENTIFY_SUCCESS",
+                organizationId: link.organizationId,
+                workerId: worker.id,
+            },
+        });
 
         const formType = formTypeForJobLevel(worker.jobLevel);
 
@@ -185,27 +249,97 @@ export class OrganizationInvitationLinkService {
         }
 
         if (latest && latest.status === "PENDING") {
-            const { token: invitationToken } = await AssessmentInvitationService.rotateAndResend(
+            // El token solo se guarda hasheado, así que "reenviar el enlace"
+            // obliga a emitir uno nuevo. La diferencia con el comportamiento
+            // anterior —y lo que cierra el secuestro— es a dónde va: al correo
+            // ya registrado en la invitación, nunca al navegador que digitó la
+            // cédula.
+            const { token: invitationToken, expiresAt } = await AssessmentInvitationService.rotateAndResend(
                 latest.id,
                 link.psychologistId,
                 RESOLVED_INVITATION_EXPIRY_DAYS
             );
-            return { invitationToken };
+
+            const contactEmail = latest.contactEmail?.trim();
+
+            await logAudit({
+                ...auditBase,
+                action: "UPDATE",
+                resourceType: "AssessmentInvitation",
+                resourceId: latest.id,
+                metadata: {
+                    event: "INVITATION_TOKEN_ROTATED",
+                    reason: "SELF_SERVICE_IDENTIFY_ON_PENDING",
+                    workerId: worker.id,
+                    deliveredToRegisteredContact: !!contactEmail,
+                },
+            });
+
+            if (contactEmail) {
+                const psychologist = await prisma.psychologist.findUnique({
+                    where: { id: link.psychologistId },
+                    select: { fullName: true },
+                });
+                const template = assessmentInvitationEmail(
+                    worker.fullName,
+                    psychologist?.fullName ?? "Tu psicólogo(a)",
+                    `${meta.origin}/e/${invitationToken}`,
+                    expiresAt
+                );
+                sendEmail({ to: contactEmail, ...template }).catch((err) =>
+                    console.error("[COMPANY_LINK] Resend email failed:", err)
+                );
+
+                await logAudit({
+                    ...auditBase,
+                    action: "UPDATE",
+                    resourceType: "AssessmentInvitation",
+                    resourceId: latest.id,
+                    metadata: {
+                        event: "INVITATION_RESENT_TO_CONTACT",
+                        workerId: worker.id,
+                    },
+                });
+
+                // La pantalla nunca ve el correo: revelarlo, aunque sea
+                // enmascarado, le confirmaría a un tercero que esa cédula
+                // existe y a qué buzón está asociada.
+                return { outcome: "RESENT_TO_CONTACT" };
+            }
+
+            // Sin correo registrado no hay canal al cual reenviar. Esto solo
+            // ocurre con invitaciones nacidas del propio enlace de empresa
+            // (contactEmail queda vacío), cuyo token jamás salió del navegador
+            // del trabajador: bloquear aquí dejaría sin salida a quien
+            // simplemente cerró la pestaña a mitad de la batería. Se continúa,
+            // pero queda registrado como entrega directa.
+            await logAudit({
+                ...auditBase,
+                action: "UPDATE",
+                resourceType: "AssessmentInvitation",
+                resourceId: latest.id,
+                metadata: {
+                    event: "SELF_SERVICE_TOKEN_DELIVERED_NO_CONTACT",
+                    workerId: worker.id,
+                },
+            });
+            return { outcome: "RESOLVED", invitationToken };
         }
 
         if (latest && latest.status === "COMPLETED") {
-            const windowStart = new Date();
-            windowStart.setMonth(windowStart.getMonth() - REEVALUATION_WINDOW_MONTHS);
-
-            const recentAssessments = await prisma.assessment.count({
-                where: { workerId: worker.id, createdAt: { gte: windowStart } },
+            // Cadencia normativa, no ventana comercial: le toca un ciclo nuevo
+            // cuando venció la vigencia del último resultado (Res. 2764/2022
+            // art. 3: anual si fue riesgo alto o muy alto, bienal si no).
+            const last = await prisma.assessment.findFirst({
+                where: { workerId: worker.id, status: { in: ["SCORED", "REVIEWED", "SIGNED"] } },
+                orderBy: { assessmentDate: "desc" },
+                select: { assessmentDate: true, scoredResult: { select: { overallRiskCategory: true } } },
             });
-
-            if (recentAssessments > 0) {
+            if (last && !isDue(new Date(last.assessmentDate), workerValidity(last.scoredResult?.overallRiskCategory))) {
                 throw new Error("ALREADY_COMPLETED");
             }
-            // Fuera de la ventana: le toca legítimamente un ciclo nuevo, cae
-            // al bloque de abajo y crea una invitación desde cero.
+            // Vigencia vencida: le toca legítimamente un ciclo nuevo, cae al
+            // bloque de abajo y crea una invitación desde cero.
         }
 
         const created = await AssessmentInvitationService.create({
@@ -218,6 +352,18 @@ export class OrganizationInvitationLinkService {
             expiresInDays: RESOLVED_INVITATION_EXPIRY_DAYS,
         });
 
-        return { invitationToken: created.token };
+        await logAudit({
+            ...auditBase,
+            action: "CREATE",
+            resourceType: "AssessmentInvitation",
+            resourceId: created.id,
+            metadata: {
+                event: "SELF_SERVICE_INVITATION_CREATED",
+                workerId: worker.id,
+                formType,
+            },
+        });
+
+        return { outcome: "RESOLVED", invitationToken: created.token };
     }
 }

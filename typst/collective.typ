@@ -12,6 +12,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { D.variantLabel },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // ─── Componentes propios ────────────────────────────────────

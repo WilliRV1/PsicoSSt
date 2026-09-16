@@ -11,6 +11,8 @@
   brand: if D.org.tradeName != none { D.org.tradeName } else { "Programa de Vigilancia Epidemiológica" },
   org-name: D.org.name,
   chapters: true,
+  draft: D.isDraft,
+  powered-by: D.poweredBy,
 )
 
 // ════════════════════════════════════════════════════════════

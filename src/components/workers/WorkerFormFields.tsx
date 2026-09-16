@@ -240,7 +240,7 @@ export const WorkerFormFields = ({ form, setForm, organizationId }: { form: Work
                 <div className="flex justify-between items-start border-b border-gray-300 pb-4 mb-6">
                     <div className="space-y-4 flex-1">
                         <div className="flex items-center gap-4">
-                            <span className="font-bold whitespace-nowrap">Fecha de aplicación:</span>
+                            <span className="font-bold whitespace-nowrap">Fecha de evaluación:</span>
                             <span className="text-gray-400 italic text-sm">dd mm aaaa (Sólo lectura en creación)</span>
                         </div>
                         <div className="flex items-center gap-4">

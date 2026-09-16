@@ -66,7 +66,7 @@ export function Header({ user }: HeaderProps) {
       <div className="flex items-center gap-4">
         {/* Credits */}
         <Link
-          href="/dashboard/store"
+          href="/dashboard/plan"
           className="flex items-center gap-1.5 text-[13px] transition-colors duration-100"
           style={{ color: creditColor }}
           onMouseEnter={(e) =>
@@ -80,7 +80,7 @@ export function Header({ user }: HeaderProps) {
             {credits}
           </span>
           <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
-            créditos
+            trabajadores
           </span>
         </Link>
 

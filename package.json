@@ -22,7 +22,8 @@
     "test:flow": "cypress run --spec 'cypress/e2e/full_flow.cy.js'",
     "test": "vitest run",
     "test:watch": "vitest",
-    "rescore": "tsx scripts/rescore-assessments.ts"
+    "rescore": "tsx scripts/rescore-assessments.ts",
+    "verify:templates": "tsx scripts/verify-templates.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -57,6 +58,7 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -75,6 +77,7 @@
     "next-auth": "^5.0.0-beta.30",
     "next-themes": "^0.4.6",
     "otpauth": "^9.5.0",
+    "papaparse": "^5.7.0",
     "pg": "^8.18.0",
     "prisma": "7.4.1",
     "qrcode": "^1.5.4",
@@ -98,6 +101,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/pg": "^8.16.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",

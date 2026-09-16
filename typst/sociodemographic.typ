@@ -10,6 +10,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { "Perfil sociodemográfico" },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // Una variable: tabla de frecuencias con barra proporcional. La barra se escala
@@ -49,6 +51,20 @@
       "Sin dato registrado: " + str(b.missing) + " "
         + (if b.missing == 1 { "trabajador" } else { "trabajadores" })
         + ". Los porcentajes se calculan sobre quienes sí tienen el dato.",
+      size: 6.6pt, fill: ink3,
+    )
+  }
+
+  // Una casilla omitida sin explicación se lee como un error del informe; hay
+  // que decir que se omitió y por qué.
+  if b.suppressed > 0 {
+    v(4pt)
+    micro(
+      (if b.suppressedGroups == 1 { "1 categoría omitida" }
+       else { str(b.suppressedGroups) + " categorías omitidas" })
+        + " por confidencialidad, con " + str(b.suppressed) + " "
+        + (if b.suppressed == 1 { "trabajador" } else { "trabajadores" })
+        + " en total: no alcanzan el mínimo de personas para publicarse sin identificar a nadie.",
       size: 6.6pt, fill: ink3,
     )
   }
@@ -167,12 +183,26 @@ indefinido.
   ]
 ]
 
+#if D.coverage.belowThreshold [
+  #v(8pt)
+  #note-block(accent: rc("ALTO"))[
+    *Sin distribuciones publicables.* Se evaluó a #D.coverage.evaluated
+    #(if D.coverage.evaluated == 1 { "trabajador" } else { "trabajadores" }), por
+    debajo del mínimo de #D.coverage.minGroupSize que exige la reserva del
+    resultado individual (Resolución 2646 de 2008, art. 11, y Ley 1581 de 2012).
+    Con una población así, cualquier porcentaje equivale a señalar a una persona
+    concreta, de modo que este informe no presenta distribuciones.
+  ]
+]
+
 #v(6pt)
 
 #micro[
   A cada trabajador se le aplican hasta tres cuestionarios, de modo que el
   número de evaluaciones supera al de personas. Todas las frecuencias de este
-  informe se cuentan sobre trabajadores, nunca sobre evaluaciones.
+  informe se cuentan sobre trabajadores, nunca sobre evaluaciones. Las
+  categorías con menos de #D.coverage.minGroupSize trabajadores se omiten por
+  confidencialidad.
 ]
 
 = Características personales y familiares

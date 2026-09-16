@@ -12,7 +12,8 @@ interface DimensionScore {
     dimensionKey: string;
     dimensionName: string;
     transformedScore: number;
-    riskCategory: string;
+    /** `null` cuando el manual no publica baremo para la subescala (grupos de síntomas de estrés). */
+    riskCategory: string | null;
     itemCount: number;
 }
 
@@ -183,14 +184,14 @@ export default function EditAssessmentForm({
                                     <span className="text-xs font-semibold leading-tight line-clamp-2">{dim.name}</span>
                                     {dimScore && (
                                         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                            isActive ? "bg-white/70" : RISK_DOT[dimScore.riskCategory]
+                                            isActive ? "bg-white/70" : dimScore.riskCategory ? RISK_DOT[dimScore.riskCategory] : "bg-slate-300"
                                         }`} />
                                     )}
                                 </div>
                                 <div className={`text-[10px] mt-1 font-medium ${isActive ? "text-indigo-200" : "text-muted-foreground"}`}>
                                     {answered}/{dim.items.length} ítems
                                     {missing > 0 && ` · faltan ${missing}`}
-                                    {dimScore && ` · ${RISK_LABELS[dimScore.riskCategory]}`}
+                                    {dimScore && ` · ${dimScore.riskCategory ? RISK_LABELS[dimScore.riskCategory] : "Sin baremo"}`}
                                 </div>
                             </button>
                         );
@@ -325,13 +326,13 @@ export default function EditAssessmentForm({
                                     <div key={dim.dimensionKey} className="space-y-1">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[10px] text-muted-foreground font-medium truncate pr-1">{dim.dimensionName}</span>
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${RISK_COLORS[dim.riskCategory]}`}>
-                                                {RISK_LABELS[dim.riskCategory]}
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${dim.riskCategory ? RISK_COLORS[dim.riskCategory] : "bg-slate-100 text-slate-600"}`}>
+                                                {dim.riskCategory ? RISK_LABELS[dim.riskCategory] : "Sin baremo"}
                                             </span>
                                         </div>
                                         <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
                                             <div
-                                                className={`h-full transition-all duration-300 ${RISK_DOT[dim.riskCategory]}`}
+                                                className={`h-full transition-all duration-300 ${dim.riskCategory ? RISK_DOT[dim.riskCategory] : "bg-slate-300"}`}
                                                 style={{ width: `${dim.transformedScore}%` }}
                                             />
                                         </div>

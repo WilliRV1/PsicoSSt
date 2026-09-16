@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
 import type { TotalScore } from "@/types/battery";
 
 const riskLabels: Record<string, string> = {
     SIN_RIESGO: "Sin Riesgo", BAJO: "Bajo", MEDIO: "Medio", ALTO: "Alto", MUY_ALTO: "Muy Alto",
 };
 const questionnaireLabels: Record<string, string> = {
-    INTRALABORAL: "Intralaboral", EXTRALABORAL: "Extralaboral", STRESS: "Estrés",
+    INTRALABORAL: "Intralaboral", EXTRALABORAL: "Extralaboral", STRESS: "Estrés", CLIMA: "Clima",
 };
 const statusLabels: Record<string, string> = {
     SCORED: "Calificado", REVIEWED: "Revisado", SIGNED: "Firmado", COMPLETED: "Completado",
@@ -68,6 +69,25 @@ export async function GET(req: NextRequest) {
 
     const csv = [headers.join(","), ...rows].join("\n");
     const filename = orgId ? `evaluaciones_empresa.csv` : `evaluaciones_todas.csv`;
+
+    // El CSV lleva nombre, documento y nivel de riesgo de cada trabajador: es
+    // una salida de datos de salud y debe quedar auditada. La consulta ya está
+    // acotada al psicólogo de la sesión, así que nunca sale por vía admin.
+    const { ipAddress, userAgent } = extractRequestMeta(req);
+    await logAudit({
+        userId: session.user.id,
+        action: "EXPORT",
+        resourceType: "assessment_csv",
+        resourceId: orgId,
+        metadata: {
+            viaAdmin: false,
+            anonymized: false,
+            organizationId: orgId ?? null,
+            rows: assessments.length,
+        },
+        ipAddress,
+        userAgent,
+    });
 
     return new NextResponse("\uFEFF" + csv, {
         headers: {

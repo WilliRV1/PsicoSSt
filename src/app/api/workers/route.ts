@@ -22,6 +22,11 @@ export async function GET(request: NextRequest) {
             where.organizationId = orgId;
         }
 
+        // Los archivados conservan su evidencia pero salen de la operación: no
+        // se listan, no se les crea una evaluación nueva y no cuentan para la
+        // cobertura. Ver DELETE en /api/workers/[id].
+        where.archivedAt = null;
+
         // Only show workers from organizations owned by this psychologist
         where.organization = { createdByPsychologist: session.user.id };
 
@@ -167,15 +172,23 @@ export async function POST(request: NextRequest) {
         // We removed enum validation for educationLevel and others since they are now generic Strings
         // to support the specific exact text options requested by the user.
 
-        // Check for duplicate document in the same organization
+        // Check for duplicate document in the same organization.
+        // A propósito NO se filtra por archivedAt: el índice único
+        // (documentType, documentId, organizationId) sí incluye a los
+        // archivados, así que ignorarlos aquí cambiaría este 409 explicativo
+        // por un P2002 convertido en 500.
         const existingWorker = await prisma.worker.findFirst({
             where: { documentId, organizationId },
-            select: { id: true }
+            select: { id: true, archivedAt: true }
         });
 
         if (existingWorker) {
             return NextResponse.json(
-                { error: "Ya existe un trabajador con este documento en esta organización" },
+                {
+                    error: existingWorker.archivedAt
+                        ? "Ya existe un trabajador archivado con este documento en esta organización."
+                        : "Ya existe un trabajador con este documento en esta organización"
+                },
                 { status: 409 }
             );
         }

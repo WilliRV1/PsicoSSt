@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import JSZip from "jszip";
+import { extractRequestMeta, logAudit } from "@/lib/auth/audit";
 import { buildIndividualData } from "@/lib/reports/individual-data";
 import { compileTypstPdf } from "@/lib/reports/typst";
 
@@ -56,7 +57,10 @@ export async function POST(request: NextRequest) {
         // de todos modos. Paralelizar aquí sólo aumentaría el pico de memoria.
         for (const a of assessments) {
             try {
-                const built = await buildIndividualData(a.id, session.user.id, !!session.user.isAdmin, false);
+                // Sin vía admin a propósito: la consulta de arriba ya está
+                // acotada a las evaluaciones propias, y un administrador sólo
+                // podría llevarse informes con nombre de pacientes ajenos.
+                const built = await buildIndividualData(a.id, session.user.id, false, false);
                 if (!built) {
                     failed.push(a.id);
                     continue;
@@ -91,6 +95,27 @@ export async function POST(request: NextRequest) {
             : "todos";
         const safeOrgName = orgName.replace(/[^a-zA-Z0-9-_]/g, "_").slice(0, 40);
         const dateStr = new Date().toISOString().slice(0, 10);
+
+        // Una exportación masiva saca decenas de resultados individuales de la
+        // plataforma de una vez; tiene que quedar registrada quién la pidió.
+        const { ipAddress, userAgent } = extractRequestMeta(request);
+        await logAudit({
+            userId: session.user.id,
+            action: "EXPORT",
+            resourceType: "individual_report_bulk",
+            resourceId: orgId,
+            metadata: {
+                viaAdmin: false,
+                anonymized: false,
+                organizationId: orgId ?? null,
+                statusFilter: status ?? null,
+                generated,
+                failed: failed.length,
+                assessmentIds: assessments.map(a => a.id),
+            },
+            ipAddress,
+            userAgent,
+        });
 
         return new NextResponse(new Uint8Array(zipBuffer), {
             status: 200,

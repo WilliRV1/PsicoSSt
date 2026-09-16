@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+    MIN_GROUP_SIZE,
+    belowThresholdPayload,
+    meetsMinGroupSize,
+    toSuppressedPercentages,
+    type SuppressedDistribution,
+} from "@/lib/reports/anonymity";
 import type { Worker } from "@/generated/prisma";
 
 type StringDistributionField = "gender" | "educationLevel" | "jobLevel" | "housingType" | "socioeconomicStratum";
 
+/**
+ * Distribuciones sociodemográficas agregadas de una organización.
+ *
+ * Al empleador sólo pueden entregársele agregados que no permitan reidentificar
+ * a nadie (Res. 2646/2008 art. 11 y Ley 1581/2012). Antes el único control era
+ * "hay al menos un trabajador" y después se convertía todo a porcentajes: en un
+ * área de dos personas, "50% estrato 1" es el estrato de una persona concreta.
+ * Ahora rige el umbral único del producto y las casillas por debajo se suprimen.
+ */
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ orgId: string }> }
@@ -29,21 +45,34 @@ export async function GET(
             return NextResponse.json({ error: "Organization not found or access denied" }, { status: 404 });
         }
 
-        // 2. Fetch all workers in the organization
+        // 2. Fetch all workers in the organization.
+        // Este endpoint describe la planta vigente (no filtra por evaluación),
+        // así que los archivados —que ya no están en la empresa— quedan fuera.
+        // El perfil de la población EVALUADA, que sí debe incluirlos, se arma
+        // en lib/reports/sociodemographic-data.ts.
         const workers = await prisma.worker.findMany({
-            where: { organizationId: orgId }
+            where: { organizationId: orgId, archivedAt: null }
         });
 
-        if (workers.length === 0) {
+        const totalWorkers = workers.length;
+
+        if (totalWorkers === 0) {
             return NextResponse.json({
                 count: 0,
                 message: "No workers found for this organization."
             });
         }
 
+        // Con la planta entera por debajo del umbral no hay agregación posible:
+        // cualquier porcentaje sería un dato individual.
+        if (!meetsMinGroupSize(totalWorkers)) {
+            return NextResponse.json(belowThresholdPayload(totalWorkers), { status: 409 });
+        }
+
         // 3. Process Epidemiological Data
         const stats = {
-            totalWorkers: workers.length,
+            totalWorkers,
+            minGroupSize: MIN_GROUP_SIZE,
             ageDistribution: calculateAgeDistribution(workers),
             genderDistribution: calculateGenericDistribution(workers, "gender"),
             educationDistribution: calculateGenericDistribution(workers, "educationLevel"),
@@ -61,7 +90,7 @@ export async function GET(
     }
 }
 
-function calculateAgeDistribution(workers: Worker[]) {
+function calculateAgeDistribution(workers: Worker[]): SuppressedDistribution {
     const groups: Record<string, number> = {
         "18-25": 0,
         "26-35": 0,
@@ -86,10 +115,10 @@ function calculateAgeDistribution(workers: Worker[]) {
         else if (age > 55) groups["55+"]++;
     });
 
-    return convertToPercentages(groups, workers.length);
+    return toSuppressedPercentages(groups, workers.length);
 }
 
-function calculateTenureDistribution(workers: Worker[]) {
+function calculateTenureDistribution(workers: Worker[]): SuppressedDistribution {
     const groups: Record<string, number> = {
         "Menos de 1 año": 0,
         "1-3 años": 0,
@@ -113,10 +142,10 @@ function calculateTenureDistribution(workers: Worker[]) {
         else if (tenure > 12) groups["Más de 12 años"]++;
     });
 
-    return convertToPercentages(groups, workers.length);
+    return toSuppressedPercentages(groups, workers.length);
 }
 
-function calculateGenericDistribution(workers: Worker[], field: StringDistributionField) {
+function calculateGenericDistribution(workers: Worker[], field: StringDistributionField): SuppressedDistribution {
     const groups: Record<string, number> = {};
 
     workers.forEach(w => {
@@ -124,36 +153,20 @@ function calculateGenericDistribution(workers: Worker[], field: StringDistributi
         groups[val] = (groups[val] || 0) + 1;
     });
 
-    return convertToPercentages(groups, workers.length);
+    return toSuppressedPercentages(groups, workers.length);
 }
 
-function calculateFreeTimeDistribution(workers: Worker[]) {
+function calculateFreeTimeDistribution(workers: Worker[]): SuppressedDistribution {
     const counts: Record<string, number> = {};
-    let totalInterests = 0;
 
     workers.forEach(w => {
         const interests = w.freeTimeUsage || [];
         interests.forEach((intr: string) => {
             counts[intr] = (counts[intr] || 0) + 1;
-            totalInterests++;
         });
     });
 
-    if (totalInterests === 0) return {};
-
-    const percentages: Record<string, number> = {};
-    for (const key in counts) {
-        percentages[key] = Math.round((counts[key] / workers.length) * 100);
-    }
-
-    return percentages;
-}
-
-function convertToPercentages(groups: Record<string, number>, total: number) {
-    if (total === 0) return groups;
-    const percentages: Record<string, number> = {};
-    for (const key in groups) {
-        percentages[key] = Math.round((groups[key] / total) * 100);
-    }
-    return percentages;
+    // Selección múltiple: el denominador son los trabajadores, no las
+    // respuestas, así que las filas suman más de 100.
+    return toSuppressedPercentages(counts, workers.length);
 }

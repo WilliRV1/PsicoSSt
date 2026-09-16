@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
     try {
         const workers = await prisma.worker.findMany({
             where: {
+                // El buscador alimenta la selección de trabajador para una
+                // evaluación nueva; un archivado no debe poder elegirse.
+                archivedAt: null,
                 OR: [
                     { documentId: { contains: query, mode: "insensitive" } },
                     { fullName: { contains: query, mode: "insensitive" } }
