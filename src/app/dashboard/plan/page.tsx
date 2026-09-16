@@ -6,19 +6,18 @@ import {
     AlertTriangle,
     ArrowDownRight,
     ArrowUpRight,
-    Check,
     CheckCircle2,
     Clock,
     Gift,
     Loader2,
     Receipt,
-    ShieldCheck,
     Sparkles,
     Users,
     type LucideIcon,
 } from "lucide-react";
-import { PLANS, PURCHASABLE_SKUS, formatCOP, type PlanId } from "@/config/plans";
+import { PURCHASABLE_SKUS, formatCOP, type PlanId } from "@/config/plans";
 import { BuyPackageButton } from "@/components/payments/buy-package-button";
+import { PricingTable } from "@/components/payments/pricing-table";
 
 /**
  * «Mi plan»: suscripción, cupo de unidades y movimientos del saldo.
@@ -44,6 +43,8 @@ interface PlanState {
     orgLimit?: number | null;
     orgCount?: number;
     draftReports?: boolean;
+    canImport?: boolean;
+    canUseClima?: boolean;
     features?: Record<string, string>;
 }
 
@@ -139,11 +140,9 @@ export default function PlanPage() {
         refresh();
     }, [refresh]);
 
-    const profesional = PLANS.PROFESIONAL;
-    const planSku = PURCHASABLE_SKUS.find((s) => s.kind === "plan" && s.plan === "PROFESIONAL");
     const addons = PURCHASABLE_SKUS.filter((s) => s.kind !== "plan");
 
-    const isProfesional = state?.plan === "PROFESIONAL";
+    const isPaidPlan = !!state?.plan && state.plan !== "RESIDENTE";
     const expired = state?.status === "EXPIRED" || state?.status === "PAST_DUE";
     const units = state?.unitsAvailable ?? null;
     const sinUnidades = units !== null && units <= 0;
@@ -282,62 +281,19 @@ export default function PlanPage() {
                 </div>
             </div>
 
-            {/* Plan Profesional */}
-            {planSku && (
-                <div
-                    className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6"
-                    style={
-                        isProfesional && !expired
-                            ? { borderColor: "var(--color-border)" }
-                            : {
-                                  borderColor: "var(--color-primary)",
-                                  boxShadow: "0 0 0 1px var(--color-primary), var(--shadow-sm)",
-                              }
-                    }
-                >
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0 lg:max-w-xl">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
-                                <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-foreground">
-                                    Plan {profesional.name}
-                                </h2>
-                            </div>
-                            <p className="mt-1 text-[14px] text-text-secondary">{profesional.tagline}</p>
-                            <ul className="mt-4 space-y-2">
-                                {profesional.features.map((f) => (
-                                    <li key={f} className="flex items-start gap-2 text-[14px] text-foreground">
-                                        <Check
-                                            className="mt-0.5 h-4 w-4 shrink-0"
-                                            style={{ color: "var(--color-risk-low-solid)" }}
-                                        />
-                                        <span className="min-w-0">{f}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        <div className="shrink-0 border-t border-border pt-5 lg:border-t-0 lg:pt-0 lg:text-right">
-                            <p className="font-mono text-[28px] font-semibold leading-none tabular-nums text-foreground">
-                                {formatCOP(profesional.priceCOP)}
-                            </p>
-                            <p className="mt-1.5 text-[12px] text-text-muted">por año · IVA incluido</p>
-                            <div className="mt-4 lg:flex lg:justify-end">
-                                <BuyPackageButton
-                                    packageId={planSku.id}
-                                    label={isProfesional && !expired ? "Renovar un año más" : "Pasar a Profesional"}
-                                    size="lg"
-                                />
-                            </div>
-                            {isProfesional && !expired && (
-                                <p className="mt-2 max-w-xs text-[11px] leading-snug text-text-muted lg:ml-auto">
-                                    La renovación se suma al periodo vigente: no pierdes días.
-                                </p>
-                            )}
-                        </div>
-                    </div>
+            {/* Planes pagados */}
+            <div>
+                <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-foreground">
+                    {isPaidPlan ? "Cambiar de plan" : "Pasar a un plan pagado"}
+                </h2>
+                <p className="mt-1 max-w-2xl text-[14px] text-text-secondary">
+                    Anual o mensual. Renovar el mismo plan y la misma cadencia suma el cupo nuevo al periodo
+                    vigente: no pierdes días.
+                </p>
+                <div className="mt-4">
+                    <PricingTable mode="buy" currentPlan={state?.plan} />
                 </div>
-            )}
+            </div>
 
             {/* Complementos */}
             <section>
@@ -347,35 +303,40 @@ export default function PlanPage() {
                     restricción legal de aplicación.
                 </p>
                 <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {addons.map((sku) => (
-                        <div
-                            key={sku.id}
-                            className="flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm"
-                        >
-                            <h3 className="text-[14px] font-semibold leading-snug text-foreground">{sku.name}</h3>
-                            <p className="mt-2 font-mono text-[20px] font-semibold leading-none tabular-nums text-foreground">
-                                {formatCOP(sku.priceCOP)}
-                            </p>
-                            {sku.kind === "credits" && (
-                                <p className="mt-1 text-[12px] text-text-muted">
-                                    {formatCOP(sku.pricePerCredit)} por trabajador
+                    {addons.map((sku) => {
+                        const needsClima = sku.id.startsWith("CLIMA");
+                        const available = needsClima ? !!state?.canUseClima : isPaidPlan;
+                        const requirement = needsClima ? "Disponible en Profesional y Avanzado." : "Disponible en un plan pagado.";
+                        return (
+                            <div
+                                key={sku.id}
+                                className="flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm"
+                            >
+                                <h3 className="text-[14px] font-semibold leading-snug text-foreground">{sku.name}</h3>
+                                <p className="mt-2 font-mono text-[20px] font-semibold leading-none tabular-nums text-foreground">
+                                    {formatCOP(sku.priceCOP)}
                                 </p>
-                            )}
-                            {sku.kind === "feature" && sku.featureDays && (
-                                <p className="mt-1 text-[12px] text-text-muted">vigencia {sku.featureDays} días</p>
-                            )}
-                            <div className="mt-4 flex grow items-end">
-                                <BuyPackageButton
-                                    packageId={sku.id}
-                                    label="Comprar"
-                                    variant={isProfesional ? "default" : "outline"}
-                                    disabled={!isProfesional}
-                                    disabledHint="Disponible en el plan Profesional."
-                                    fullWidth
-                                />
+                                {sku.kind === "credits" && (
+                                    <p className="mt-1 text-[12px] text-text-muted">
+                                        {formatCOP(sku.pricePerCredit)} por trabajador
+                                    </p>
+                                )}
+                                {sku.kind === "feature" && sku.featureDays && (
+                                    <p className="mt-1 text-[12px] text-text-muted">vigencia {sku.featureDays} días</p>
+                                )}
+                                <div className="mt-4 flex grow items-end">
+                                    <BuyPackageButton
+                                        packageId={sku.id}
+                                        label="Comprar"
+                                        variant={available ? "default" : "outline"}
+                                        disabled={!available}
+                                        disabledHint={requirement}
+                                        fullWidth
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </section>
 

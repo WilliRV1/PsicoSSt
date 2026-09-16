@@ -672,7 +672,17 @@ enum CreditTxType {
 
 enum PlanId {
   RESIDENTE
+  STARTER
   PROFESIONAL
+  AVANZADO
+}
+
+/// Cadencia con la que se pagó el periodo vigente. Nula en trial y en
+/// asignación manual de administrador (cortesías): ninguna de las dos está
+/// atada a un SKU comprado con precio propio.
+enum BillingPeriod {
+  MONTHLY
+  ANNUAL
 }
 
 /// TRIAL y ACTIVE permiten escribir mientras periodEnd > now. EXPIRED y
@@ -695,6 +705,10 @@ model Subscription {
   id             String             @id @default(uuid()) @db.Uuid
   psychologistId String             @unique @map("psychologist_id") @db.Uuid
   plan           PlanId
+  /// SKU comprado (anual o mensual). Distingue una renovación (misma cadencia,
+  /// se extiende desde el vencimiento vigente) de un cambio de tier o de
+  /// cadencia (empieza de nuevo desde hoy, sin prorrateo).
+  billingPeriod  BillingPeriod?     @map("billing_period")
   status         SubscriptionStatus
   periodStart    DateTime           @map("period_start")
   periodEnd      DateTime           @map("period_end")

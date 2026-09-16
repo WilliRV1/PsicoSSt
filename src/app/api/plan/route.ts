@@ -27,6 +27,7 @@ export async function GET() {
         return NextResponse.json({
             plan: entitlements.plan,
             planName: PLANS[entitlements.plan].name,
+            billingPeriod: entitlements.billingPeriod,
             status: entitlements.status,
             periodStart: subscription.periodStart,
             periodEnd: subscription.periodEnd,
@@ -37,6 +38,8 @@ export async function GET() {
             orgLimit: entitlements.orgLimit,
             orgCount: entitlements.orgCount,
             draftReports: entitlements.draftReports,
+            canImport: entitlements.canImport,
+            canUseClima: entitlements.canUseClima,
             features: entitlements.features,
         });
     } catch (error) {

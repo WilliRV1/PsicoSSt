@@ -28,13 +28,28 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const psychologistId = typeof body.psychologistId === "string" ? body.psychologistId : null;
         const plan = typeof body.plan === "string" && body.plan in PLANS ? (body.plan as PlanId) : null;
-        const days = Number.parseInt(String(body.days ?? PLANS[plan ?? "PROFESIONAL"].periodDays), 10);
+        const days = Number.parseInt(String(body.days ?? 15), 10);
+        // Una cortesía corta no debe regalar el cupo anual completo del tier
+        // (ver SubscriptionService.adminAssign); por defecto se prorratea el
+        // cupo de referencia a los días pedidos, redondeando hacia arriba.
+        const quota =
+            body.quota !== undefined
+                ? Number.parseInt(String(body.quota), 10)
+                : plan
+                  ? Math.max(1, Math.ceil((PLANS[plan].annualQuota * days) / 365))
+                  : undefined;
 
         if (!psychologistId || !plan || !Number.isFinite(days) || days <= 0 || days > 3660) {
             return NextResponse.json(
-                { error: "Se requieren psychologistId, plan (RESIDENTE | PROFESIONAL) y días (1-3660)" },
+                {
+                    error:
+                        "Se requieren psychologistId, plan (RESIDENTE | STARTER | PROFESIONAL | AVANZADO) y días (1-3660)",
+                },
                 { status: 400 }
             );
+        }
+        if (quota === undefined || !Number.isFinite(quota) || quota <= 0) {
+            return NextResponse.json({ error: "quota inválida" }, { status: 400 });
         }
 
         const target = await prisma.psychologist.findUnique({
@@ -50,6 +65,7 @@ export async function POST(req: NextRequest) {
             psychologistId,
             plan,
             days,
+            quota,
             actorEmail: admin.email,
         });
 
@@ -64,6 +80,7 @@ export async function POST(req: NextRequest) {
                 psychologistId,
                 plan,
                 days,
+                quota,
                 previousPlan: previous?.plan ?? null,
                 previousStatus: previous?.status ?? null,
                 previousPeriodEnd: previous?.periodEnd ?? null,
@@ -74,7 +91,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `Plan ${PLANS[plan].name} asignado a ${target.fullName} por ${days} días`,
+            message: `Plan ${PLANS[plan].name} asignado a ${target.fullName}: ${quota} trabajadores por ${days} días`,
             subscription,
         });
     } catch (error) {

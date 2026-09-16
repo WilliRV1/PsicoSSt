@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
@@ -216,22 +217,21 @@ export function Sidebar({ user, mobileOpen = false, onClose }: SidebarProps) {
             {user?.fullName || "Usuario"}
           </Link>
         </div>
-        <form action="/api/auth/signout" method="POST">
-          <button
-            type="submit"
-            title="Cerrar sesión"
-            className="press-feedback p-1 rounded transition-colors duration-150 outline-none"
-            style={{ color: "var(--color-text-muted)" }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-            }
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </form>
+        <button
+          type="button"
+          title="Cerrar sesión"
+          className="press-feedback p-1 rounded transition-colors duration-150 outline-none"
+          style={{ color: "var(--color-text-muted)" }}
+          onMouseEnter={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
+          }
+          onMouseLeave={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
+          }
+          onClick={() => signOut({ callbackUrl: "/login" })}
+        >
+          <LogOut className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );

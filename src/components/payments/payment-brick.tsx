@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 
 /**
@@ -70,7 +71,21 @@ export function PaymentBrick({
         onFailureRef.current = onFailure;
     });
 
+    // El Brick tarda unos segundos en montar su propio iframe (SDK de
+    // Mercado Pago, no nuestro código): sin esto, entre que termina de
+    // cargar el chunk de la página y que aparece el formulario real no hay
+    // ninguna señal en pantalla, y se ve como si se hubiera colgado.
+    const [listo, setListo] = useState(false);
+
     return (
+        <div className="relative min-h-[300px]">
+            {!listo && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Conectando con Mercado Pago…</span>
+                </div>
+            )}
+            <div className={listo ? undefined : "invisible"}>
         <Payment
             initialization={{
                 amount: amountCOP,
@@ -87,6 +102,7 @@ export function PaymentBrick({
                 },
                 visual: { style: { theme: "default" } },
             }}
+            onReady={() => setListo(true)}
             onSubmit={async ({ formData }) => {
                 // El Brick espera una promesa: si se rechaza, muestra el error
                 // y deja el formulario utilizable para reintentar.
@@ -116,5 +132,7 @@ export function PaymentBrick({
                 );
             }}
         />
+            </div>
+        </div>
     );
 }

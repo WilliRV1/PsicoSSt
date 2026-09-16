@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, Info } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import { Logo } from "@/components/psicosst/logo";
-import { PLANS, PURCHASABLE_SKUS, formatCOP } from "@/config/plans";
+import { PLANS, PURCHASABLE_SKUS, TRIAL_DAYS, formatCOP } from "@/config/plans";
+import { PricingTable } from "@/components/payments/pricing-table";
 
 export const metadata: Metadata = {
     title: "Precios — PsicoSST",
-    description: "Suscripción anual del psicólogo especialista en SST, con complementos por uso.",
+    description: "Suscripción del psicólogo especialista en SST, anual o mensual, con complementos por uso.",
 };
 
 /**
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
  * el visitante no puedan divergir.
  */
 export default function PricingPage() {
-    const plans = [PLANS.RESIDENTE, PLANS.PROFESIONAL];
+    const residente = PLANS.RESIDENTE;
     const addons = PURCHASABLE_SKUS.filter((s) => s.kind !== "plan");
 
     return (
@@ -81,77 +82,21 @@ export default function PricingPage() {
 
                 {/* ── Planes ─────────────────────────────────── */}
                 <section className="mx-auto max-w-5xl px-5 py-14 sm:px-6 sm:py-16">
-                    <div className="grid gap-5 md:grid-cols-2">
-                        {plans.map((plan) => {
-                            const destacado = plan.id === "PROFESIONAL";
-                            return (
-                                <article
-                                    key={plan.id}
-                                    className={`relative flex h-full flex-col rounded-2xl border bg-surface p-6 sm:p-8 ${
-                                        destacado
-                                            ? "border-primary shadow-md ring-1 ring-primary/30"
-                                            : "border-border shadow-sm"
-                                    }`}
-                                >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h2 className="text-[18px] font-semibold tracking-[-0.01em] text-foreground">
-                                                {plan.name}
-                                            </h2>
-                                            <p className="mt-1 text-[13.5px] leading-relaxed text-text-secondary">
-                                                {plan.tagline}
-                                            </p>
-                                        </div>
-                                        {destacado && (
-                                            <span className="shrink-0 rounded-full bg-teal-light px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-teal-dark">
-                                                Recomendado
-                                            </span>
-                                        )}
-                                    </div>
+                    <div className="flex gap-3.5 rounded-2xl border border-primary/20 bg-teal-light p-5 sm:p-6">
+                        <Info className="mt-0.5 h-[18px] w-[18px] shrink-0 text-teal-dark" aria-hidden="true" />
+                        <p className="text-[13.5px] leading-relaxed text-teal-dark">
+                            Empieza gratis con el plan <strong className="font-semibold">Residente</strong>:{" "}
+                            {residente.annualQuota} trabajadores, {residente.orgLimit} empresa, {TRIAL_DAYS} días —
+                            informes en borrador, sin marca de firma.{" "}
+                            <Link href="/register" className="font-semibold underline underline-offset-2">
+                                Crear cuenta
+                            </Link>
+                            .
+                        </p>
+                    </div>
 
-                                    <p className="mt-6 flex items-baseline gap-1.5">
-                                        <span className="text-4xl font-bold tracking-[-0.025em] text-foreground">
-                                            {plan.priceCOP === 0 ? "Gratis" : formatCOP(plan.priceCOP)}
-                                        </span>
-                                        {plan.priceCOP > 0 && (
-                                            <span className="text-[13.5px] font-normal text-text-muted">/ año</span>
-                                        )}
-                                    </p>
-
-                                    <div className="mt-7 h-px bg-border-muted" />
-
-                                    <p className="mt-5 text-[11.5px] font-semibold uppercase tracking-[0.11em] text-text-muted">
-                                        Incluye
-                                    </p>
-                                    <ul className="mt-3 space-y-2.5">
-                                        {plan.features.map((f) => (
-                                            <li
-                                                key={f}
-                                                className="flex items-start gap-2.5 text-[14px] leading-relaxed text-text-secondary"
-                                            >
-                                                <Check
-                                                    className="mt-[3px] h-4 w-4 shrink-0 text-primary"
-                                                    aria-hidden="true"
-                                                />
-                                                {f}
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <Link
-                                        href="/register"
-                                        className={`press-feedback mt-8 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-[14.5px] font-semibold transition-colors ${
-                                            destacado
-                                                ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                                                : "border border-border bg-surface text-foreground hover:bg-surface-muted"
-                                        }`}
-                                    >
-                                        {destacado ? "Empezar" : "Probar gratis"}
-                                        {destacado && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
-                                    </Link>
-                                </article>
-                            );
-                        })}
+                    <div className="mt-10">
+                        <PricingTable mode="register" />
                     </div>
                 </section>
 

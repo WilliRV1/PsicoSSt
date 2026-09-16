@@ -5,7 +5,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
     Archive,
     ArrowRight,
-    Check,
     FileText,
     Scale,
     ShieldCheck,
@@ -13,7 +12,8 @@ import {
     Users,
 } from "lucide-react";
 import { Logo } from "@/components/psicosst/logo";
-import { PLANS, formatCOP } from "@/config/plans";
+import { PLANS, TRIAL_DAYS } from "@/config/plans";
+import { PricingTable } from "@/components/payments/pricing-table";
 
 /**
  * Página pública del producto.
@@ -110,8 +110,6 @@ function Reveal({
 
 export default function Landing() {
     const residente = PLANS.RESIDENTE;
-    const profesional = PLANS.PROFESIONAL;
-    const planes = [residente, profesional];
 
     return (
         <div className="min-h-screen bg-background">
@@ -193,7 +191,7 @@ export default function Landing() {
                                 </Link>
                             </div>
                             <p className="mt-4 text-[12.5px] text-text-muted">
-                                {residente.quota} trabajadores y una empresa durante {residente.periodDays} días.
+                                {residente.annualQuota} trabajadores y una empresa durante {TRIAL_DAYS} días.
                                 Sin tarjeta.
                             </p>
                         </Rise>
@@ -251,77 +249,14 @@ export default function Landing() {
                             Planes
                         </h2>
                         <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">
-                            Una suscripción anual del profesional, no un cobro por cuestionario aplicado.
+                            Empieza gratis con el plan Residente ({residente.annualQuota} trabajadores,{" "}
+                            {residente.orgLimit} empresa). Cuando quieras firmar informes, pasa a uno de estos tres.
                         </p>
                     </Reveal>
 
-                    <div className="mt-10 grid gap-5 md:grid-cols-2">
-                        {planes.map((plan, i) => {
-                            const destacado = plan.id === "PROFESIONAL";
-                            return (
-                                <Reveal key={plan.id} delay={i * 0.06} className="h-full">
-                                    <article
-                                        className={`relative flex h-full flex-col rounded-2xl border bg-surface p-6 sm:p-7 ${
-                                            destacado
-                                                ? "border-primary shadow-md ring-1 ring-primary/30"
-                                                : "border-border shadow-sm"
-                                        }`}
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <h3 className="text-[17px] font-semibold text-foreground">
-                                                    {plan.name}
-                                                </h3>
-                                                <p className="mt-1 text-[13.5px] leading-relaxed text-text-secondary">
-                                                    {plan.tagline}
-                                                </p>
-                                            </div>
-                                            {destacado && (
-                                                <span className="shrink-0 rounded-full bg-teal-light px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-teal-dark">
-                                                    Recomendado
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <p className="mt-6 flex items-baseline gap-1.5">
-                                            <span className="text-3xl font-bold tracking-[-0.02em] text-foreground sm:text-4xl">
-                                                {plan.priceCOP === 0 ? "Gratis" : formatCOP(plan.priceCOP)}
-                                            </span>
-                                            {plan.priceCOP > 0 && (
-                                                <span className="text-[13.5px] font-normal text-text-muted">/ año</span>
-                                            )}
-                                        </p>
-
-                                        <ul className="mt-6 space-y-2.5">
-                                            {plan.features.map((f) => (
-                                                <li
-                                                    key={f}
-                                                    className="flex items-start gap-2.5 text-[14px] leading-relaxed text-text-secondary"
-                                                >
-                                                    <Check
-                                                        className="mt-[3px] h-4 w-4 shrink-0 text-primary"
-                                                        aria-hidden="true"
-                                                    />
-                                                    {f}
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        <Link
-                                            href="/register"
-                                            className={`press-feedback mt-8 inline-flex h-11 w-full items-center justify-center rounded-xl px-4 text-[14.5px] font-semibold transition-colors ${
-                                                destacado
-                                                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                                                    : "border border-border bg-surface text-foreground hover:bg-surface-muted"
-                                            }`}
-                                        >
-                                            {destacado ? "Empezar" : "Probar gratis"}
-                                        </Link>
-                                    </article>
-                                </Reveal>
-                            );
-                        })}
-                    </div>
+                    <Reveal delay={0.06} className="mt-10">
+                        <PricingTable mode="register" />
+                    </Reveal>
 
                     <Reveal>
                         <p className="mt-8 text-[12.5px] leading-relaxed text-text-muted">
@@ -344,7 +279,7 @@ export default function Landing() {
                     <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-6 sm:py-20">
                         <Reveal>
                             <h2 className="text-balance text-2xl font-semibold tracking-[-0.02em] text-primary-foreground sm:text-4xl">
-                                Pruébalo con {residente.quota} trabajadores durante {residente.periodDays} días
+                                Pruébalo con {residente.annualQuota} trabajadores durante {TRIAL_DAYS} días
                             </h2>
                             <p className="mx-auto mt-4 max-w-xl text-pretty text-[15px] leading-relaxed text-primary-foreground/80">
                                 Crea tu cuenta, carga una batería ya calificada y mira el informe que sale.
