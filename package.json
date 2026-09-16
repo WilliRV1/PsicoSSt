@@ -22,7 +22,8 @@
     "test:flow": "cypress run --spec 'cypress/e2e/full_flow.cy.js'",
     "test": "vitest run",
     "test:watch": "vitest",
-    "rescore": "tsx scripts/rescore-assessments.ts"
+    "rescore": "tsx scripts/rescore-assessments.ts",
+    "verify:templates": "tsx scripts/verify-templates.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
