@@ -120,7 +120,7 @@ export default async function SociodemographicReportPage({ params }: PageProps) 
                 </p>
                 <Link
                     href={`/dashboard/organizations/${orgId}`}
-                    className="inline-block mt-8 text-blue-600 font-semibold hover:underline"
+                    className="inline-block mt-8 text-primary font-semibold hover:underline"
                 >
                     ← Volver a la organización
                 </Link>

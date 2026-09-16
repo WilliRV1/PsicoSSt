@@ -7,22 +7,7 @@ import FilterBar from "@/components/psicosst/filter-bar";
 import BulkExportButton from "@/components/psicosst/bulk-export-button";
 import { Suspense } from "react";
 import DeleteAssessmentButton from "../assessments/delete-assessment-button";
-
-const riskColors: Record<string, string> = {
-    SIN_RIESGO: "bg-green-100 text-green-700",
-    BAJO: "bg-lime-100 text-lime-700",
-    MEDIO: "bg-yellow-100 text-yellow-700",
-    ALTO: "bg-orange-100 text-orange-700",
-    MUY_ALTO: "bg-red-100 text-red-700"
-};
-
-const riskLabels: Record<string, string> = {
-    SIN_RIESGO: "Sin Riesgo",
-    BAJO: "Bajo",
-    MEDIO: "Medio",
-    ALTO: "Alto",
-    MUY_ALTO: "Muy Alto"
-};
+import { RiskBadge, type RiskLevel } from "@/components/ui/atoms/RiskBadge";
 
 const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
@@ -30,10 +15,10 @@ const questionnaireLabels: Record<string, string> = {
     STRESS: "Estres"
 };
 
-const statusConfig: Record<string, { label: string; class: string }> = {
-    SCORED:   { label: "Calificado", class: "bg-yellow-100 text-yellow-700" },
-    REVIEWED: { label: "Revisado",   class: "bg-blue-100 text-blue-700" },
-    SIGNED:   { label: "Firmado",    class: "bg-green-100 text-green-700" },
+const statusConfig: Record<string, { label: string; background: string; color: string }> = {
+    SCORED:   { label: "Calificado", background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+    REVIEWED: { label: "Revisado",   background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+    SIGNED:   { label: "Firmado",    background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
 };
 
 interface PageProps {
@@ -109,11 +94,11 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                         <p className="text-sm text-muted-foreground mt-1">Total Informes</p>
                     </div>
                     <div className="rounded-xl border border-border bg-card p-5 shadow-sm text-center">
-                        <div className="text-3xl font-bold text-emerald-600">{signed}</div>
+                        <div className="text-3xl font-bold text-teal-dark">{signed}</div>
                         <p className="text-sm text-muted-foreground mt-1">Firmados</p>
                     </div>
                     <div className="rounded-xl border border-border bg-card p-5 shadow-sm text-center">
-                        <div className="text-3xl font-bold text-amber-600">{pending}</div>
+                        <div className="text-3xl font-bold" style={{ color: "var(--color-risk-medium-text)" }}>{pending}</div>
                         <p className="text-sm text-muted-foreground mt-1">Pendientes de Firma</p>
                     </div>
                 </div>
@@ -200,7 +185,10 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                                                 {assessment.organization.name}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/10">
+                                                <span
+                                                    className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium"
+                                                    style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+                                                >
                                                     {questionnaireLabels[assessment.questionnaireType] || assessment.questionnaireType}
                                                     {" "}Forma {assessment.formType}
                                                 </span>
@@ -211,15 +199,16 @@ export default async function ReportsPage({ searchParams }: PageProps) {
                                                 })}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${riskColors[risk]}`}>
-                                                    {riskLabels[risk]}
-                                                    {transformedScore !== undefined && (
-                                                        <span className="opacity-70">({transformedScore.toFixed(1)})</span>
-                                                    )}
-                                                </span>
+                                                <RiskBadge level={risk as RiskLevel} />
+                                                {transformedScore !== undefined && (
+                                                    <span className="text-xs text-text-muted ml-1.5">({transformedScore.toFixed(1)})</span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.class}`}>
+                                                <span
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                                                    style={{ background: status.background, color: status.color }}
+                                                >
                                                     {assessment.status === "SIGNED"
                                                         ? <CheckCircle2 className="h-3 w-3" />
                                                         : <Clock className="h-3 w-3" />
