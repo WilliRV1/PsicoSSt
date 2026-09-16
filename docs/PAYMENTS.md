@@ -51,11 +51,20 @@ Verificado con seis webhooks simultáneos en `payment-service.integration.test.t
 | Método | Ruta | Acceso | Qué hace |
 |---|---|---|---|
 | `POST` | `/api/payments/checkout` | Sesión | Abre (o reutiliza) una orden. Sólo recibe `packageId`; el precio lo fija el servidor |
-| `POST` | `/api/payments/process` | Sesión | Envía a Mercado Pago el formulario del Brick |
+| `POST` | `/api/payments/process` | Sesión | Envía a Mercado Pago el formulario del Brick. Añade lo que el Brick no manda y Mercado Pago exige: IP del comprador y `callback_url` (PSE), nombre y correo del pagador desde la sesión |
 | `POST` | `/api/payments/webhook` | **Público**, firma HMAC | Notificaciones de Mercado Pago |
 | `GET` | `/api/payments/webhook` | Público | Verificación de URL del panel |
 | `GET` | `/api/payments/orders/[ref]` | Sesión + dueño | Estado de la orden, con reconciliación perezosa |
 | `GET` | `/api/payments/reconcile-stale` | `CRON_SECRET` | Barrido diario de órdenes a medias |
+
+### Respuestas de `/process` cuando algo falla
+
+| Código | `code` | Qué pasó | Qué hace la orden |
+|---|---|---|---|
+| `422` | `GATEWAY_REJECTED` | Mercado Pago rechazó la petición (4xx): datos inválidos, correo prohibido, token vencido. **No se registró ningún pago** | Vuelve a `CREATED`; el usuario corrige y reintenta sobre la misma orden con otra llave de idempotencia |
+| `502` | `GATEWAY_ERROR` | 5xx o timeout de Mercado Pago. Ambiguo: el pago pudo crearse | Se queda en `PROCESSING`; la reconciliación lo resuelve (ver §4) |
+| `409` | `ORDER_NOT_PAYABLE` | Otra pestaña ya está cobrando esta orden, o ya se pagó | Sin cambios |
+| `409` | `ORDER_EXPIRED` | La orden venció sin intento de pago | Sin cambios; hay que crear otra |
 
 ### Códigos de estado del webhook
 
@@ -71,19 +80,22 @@ Verificado con seis webhooks simultáneos en `payment-service.integration.test.t
 ```
                  /process              MP responde
   CREATED ──────────────▶ PROCESSING ───────┬──▶ APPROVED ●  (créditos acreditados)
-     │                                      ├──▶ PENDING / IN_PROCESS ──webhook──▶ APPROVED ● | REJECTED ● | CANCELLED ●
-     │                                      └──▶ REJECTED ●
+     ▲                       │              ├──▶ PENDING / IN_PROCESS ──webhook──▶ APPROVED ● | REJECTED ● | CANCELLED ●
+     │  4xx: MP no registró  │              └──▶ REJECTED ●
+     └───────── nada ────────┘
+     │                       └── sin pago en MP tras 15 min ──▶ EXPIRED ● (huérfana)
      └── sin /process en 30 min ──▶ EXPIRED ●
 
   APPROVED ──webhook──▶ REFUNDED ● / CHARGED_BACK ●   (reversión de créditos)
 ```
 
-Dos reglas que evitan dinero perdido:
+Reglas que evitan dinero perdido:
 
-- **`/process` sólo acepta órdenes en `CREATED`.** Un doble clic, un reintento del navegador o dos pestañas abiertas pierden la carrera y reciben `409`.
-- **Un pago rechazado no se reintenta sobre la misma orden**: se crea otra. Así cada `PaymentOrder` equivale a un único intento y su `internalRef` sirve de `X-Idempotency-Key`.
-
-Una orden `EXPIRED` **sí puede acreditarse** más tarde: si el dinero llegó (un cupón de Efecty pagado al tercer día), los créditos entran. El vencimiento es nuestro, no de Mercado Pago.
+- **`/process` sólo acepta órdenes `CREATED` y no vencidas**, en un único `updateMany` condicionado. Un doble clic, un reintento del navegador, dos pestañas abiertas o el barrido venciéndola en ese instante pierden la carrera y reciben `409` con el motivo correcto.
+- **Una orden lleva como máximo un pago registrado en Mercado Pago.** Si un intento muere con 4xx, Mercado Pago no registró nada y la orden vuelve a `CREATED`; el siguiente intento lleva otra llave de idempotencia (`internalRef#attemptCount`). Si muere de forma ambigua (5xx, timeout) se queda en `PROCESSING` y la reconciliación decide: o encuentra el pago buscando por `external_reference`, o pasados 15 minutos sin rastro la declara huérfana y la vence.
+- **Una orden `EXPIRED` sí puede acreditarse después.** Si el dinero llegó (un cupón de Efecty pagado al quinto día), los créditos entran: el cerrojo de acreditación sólo mira `creditTransactionId`, no el estado. El vencimiento es nuestro, no de Mercado Pago.
+- **Una notificación vieja no degrada una orden que ya movió créditos.** El registro genérico de estado excluye `APPROVED`, `REFUNDED` y `CHARGED_BACK`.
+- **Un `refunded` sobre una orden que nunca se acreditó** (PSE que el banco devolvió sin que llegara el `approved`) no revierte nada — no hay qué revertir — pero sí cierra la orden como `REFUNDED` para que no quede «pendiente» eternamente.
 
 ## 5. Reembolsos y contracargos
 
@@ -136,12 +148,28 @@ TEST_DATABASE_URL=postgresql://…/psicosst_test npx vitest run
 
 Con credenciales `TEST-`, el checkout muestra un aviso de modo de pruebas.
 
-> **El error más común en sandbox** es `Both payer and collector must be real or test users`. Ocurre cuando el correo del pagador coincide con el de la cuenta que recibe los pagos. En modo de pruebas el formulario **no** prellena el correo del psicólogo justamente por eso: hay que escribir uno distinto.
+**Sobre el correo del pagador — verificado contra el sandbox.** Con las credenciales de prueba (`TEST-…`) de la cuenta real:
+
+- Un correo real cualquiera distinto al del vendedor → el pago se **aprueba** (tarjeta de prueba `APRO`).
+- Un correo `@testuser.com` de un usuario de prueba → **rechazado** con `4390 Payer email forbidden`.
+- El correo de la propia cuenta vendedora → rechazado.
+
+Por eso en modo de pruebas el formulario **no** prellena el correo del psicólogo. `/process` traduce el `4390` a un mensaje accionable.
 
 Tarjetas de prueba vigentes: <https://www.mercadopago.com.co/developers/es/docs/checkout-api/additional-content/test-cards>
+
+### Qué se verificó empíricamente y qué no
+
+| Medio | Resultado en sandbox | Notas |
+|---|---|---|
+| Tarjeta | ✅ Verificada de punta a punta **en la aplicación compilada**: inicio de sesión → orden → `422` por correo prohibido (la orden vuelve a `CREATED`) → reintento aprobado sobre la misma orden (`attemptCount = 2`) → 100 créditos → tres webhooks firmados con el pago real devuelven `already_settled` sin duplicar → tarjeta `OTHE` rechazada sin créditos | Pagos `1352062017` y `1352065983` en la cuenta de prueba |
+| Efecty | ✅ Creada, `pending_waiting_payment`, cupón con 7 días de vigencia | La orden adopta ese vencimiento |
+| PSE | ⚠️ Sin `ip_address` → `400` explícito (campo obligatorio, ya se envía). Con IP y `callback_url` el sandbox devuelve `500 / 1090` con o sin dirección y teléfono | No se pudo cerrar el ciclo en sandbox. Los campos obligatorios (IP y `callback_url`) están implementados según la documentación oficial; **hay que probarlo con dinero real de bajo monto o con credenciales de un vendedor de prueba** antes de anunciarlo |
+| Nequi | ❌ `400 not_result_by_params` al crear por API | Puede aparecer en el Brick; si falla, el usuario recibe «ese medio no está disponible» y la orden vuelve a `CREATED`. Pendiente de probar con credenciales de vendedor de prueba |
 
 ## 8. Qué NO hace esta integración
 
 - **No factura.** Mercado Pago cobra; emitir factura electrónica ante la DIAN es una obligación aparte, todavía sin resolver.
 - **No ofrece reembolso autogestionado.** Los reembolsos se hacen desde el panel de Mercado Pago y el webhook aplica la reversión.
 - **No usa `binary_mode`.** Activarlo simplificaría el código a costa de eliminar PSE, Nequi y Efecty, que son justo los medios que más se usan en Colombia.
+- **No verifica la razón social de Mercado Pago en Colombia.** La política de privacidad lo nombra como «Mercado Pago» sin sociedad; para el registro de encargados del tratamiento (Ley 1581) conviene confirmar la razón social vigente en los términos de Mercado Pago Colombia.

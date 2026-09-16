@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
     AlertTriangle,
@@ -10,9 +11,9 @@ import {
     Clock,
     ExternalLink,
     Loader2,
+    RotateCcw,
     XCircle,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import type { ProcessResult } from "@/components/payments/payment-brick";
 import { formatCOP } from "@/config/credit-packages";
 
@@ -22,6 +23,10 @@ import { formatCOP } from "@/config/credit-packages";
  * Es también la TERCERA red de seguridad de la acreditación: cada vez que se
  * abre, el servidor reconcilia la orden contra Mercado Pago. Si el webhook se
  * perdió, basta con que el usuario vuelva aquí para que sus créditos entren.
+ *
+ * Dos clases de error, y no se mezclan: la orden no existe (fatal: se
+ * sustituye la pantalla) y el intento de pago falló (no fatal: se muestra
+ * encima del formulario, que sigue montado para reintentar).
  */
 
 interface EstadoOrden {
@@ -33,6 +38,7 @@ interface EstadoOrden {
     externalResourceUrl: string | null;
     settled: boolean;
     pending: boolean;
+    expiresAt: string;
     publicKey: string | null;
     mode: "test" | "production" | null;
     payerEmail: string | null;
@@ -59,11 +65,17 @@ const PaymentBrick = dynamic(
 /** Cada cuánto se vuelve a consultar mientras el pago está en vuelo. */
 const INTERVALO_CONSULTA_MS = 5_000;
 
+const ESTADOS_CERRADOS_SIN_PAGO = ["REJECTED", "CANCELLED", "EXPIRED", "ERROR"];
+const ESTADOS_REVERTIDOS = ["REFUNDED", "CHARGED_BACK"];
+
 export function CheckoutClient({ internalRef }: { internalRef: string }) {
     const router = useRouter();
     const [orden, setOrden] = useState<EstadoOrden | null>(null);
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    /** La orden no existe o no se pudo cargar: sustituye la pantalla. */
+    const [errorFatal, setErrorFatal] = useState<string | null>(null);
+    /** El intento de pago falló: se muestra encima del formulario. */
+    const [errorPago, setErrorPago] = useState<string | null>(null);
 
     const consultar = useCallback(async () => {
         try {
@@ -71,7 +83,7 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
                 cache: "no-store",
             });
             if (respuesta.status === 404) {
-                setError("No encontramos esta orden.");
+                setErrorFatal("No encontramos esta orden.");
                 return null;
             }
             if (!respuesta.ok) return null;
@@ -106,11 +118,23 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
 
     const manejarResultado = useCallback(
         (resultado: ProcessResult) => {
+            setErrorPago(null);
             // PSE manda al portal del banco y Efecty entrega un cupón.
             if (resultado.externalResourceUrl) {
                 window.location.href = resultado.externalResourceUrl;
                 return;
             }
+            void consultar();
+        },
+        [consultar]
+    );
+
+    const manejarFallo = useCallback(
+        (mensaje: string) => {
+            setErrorPago(mensaje);
+            // El servidor pudo haber devuelto la orden a CREATED (rechazo
+            // definitivo) o dejarla en PROCESSING (fallo ambiguo): se relee
+            // para que la pantalla refleje lo que de verdad pasó.
             void consultar();
         },
         [consultar]
@@ -127,20 +151,22 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
         );
     }
 
-    if (error || !orden) {
+    if (errorFatal || !orden) {
         return (
             <Contenedor>
                 <Aviso
                     tono="error"
                     icono={<XCircle className="h-5 w-5 text-red-500" />}
                     titulo="Orden no disponible"
-                    texto={error ?? "No pudimos cargar esta orden."}
+                    texto={errorFatal ?? "No pudimos cargar esta orden."}
+                    accion={<Volver texto="Volver a los paquetes" />}
                 />
             </Contenedor>
         );
     }
 
     const pagosDeshabilitados = !orden.publicKey;
+    const vencimiento = new Date(orden.expiresAt);
 
     return (
         <Contenedor>
@@ -170,7 +196,7 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
                     tono="aviso"
                     icono={<AlertTriangle className="h-5 w-5 text-amber-500" />}
                     titulo="Modo de pruebas"
-                    texto="Esta integración usa credenciales de prueba: no se cobra dinero real. Usa las tarjetas de prueba de Mercado Pago y un correo distinto al de la cuenta que recibe los pagos."
+                    texto="No se cobra dinero real. Usa las tarjetas de prueba de Mercado Pago y, como correo del pagador, cualquier correo real distinto al de la cuenta que recibe los pagos (los correos @testuser.com no funcionan con estas credenciales)."
                 />
             )}
 
@@ -192,13 +218,34 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
                 />
             )}
 
+            {/* Revertido: se acreditó y luego hubo reembolso o contracargo */}
+            {ESTADOS_REVERTIDOS.includes(orden.status) && (
+                <Aviso
+                    tono="error"
+                    icono={<RotateCcw className="h-5 w-5 text-red-500" />}
+                    titulo={
+                        orden.status === "REFUNDED" ? "Pago reembolsado" : "Pago con contracargo"
+                    }
+                    texto={
+                        orden.settled
+                            ? `${orden.message} Los ${orden.package?.credits ?? ""} créditos de esta compra fueron retirados de tu saldo.`
+                            : orden.message
+                    }
+                    accion={<Volver texto="Ver mis créditos" />}
+                />
+            )}
+
             {/* En vuelo */}
             {orden.pending && (
                 <Aviso
                     tono="aviso"
                     icono={<Clock className="h-5 w-5 text-amber-500 animate-pulse" />}
                     titulo="Esperando confirmación"
-                    texto={orden.message}
+                    texto={
+                        orden.paymentTypeId === "ticket" && !Number.isNaN(vencimiento.getTime())
+                            ? `${orden.message} El cupón vence el ${vencimiento.toLocaleDateString("es-CO", { day: "numeric", month: "long" })}.`
+                            : orden.message
+                    }
                     accion={
                         orden.externalResourceUrl ? (
                             <a
@@ -217,37 +264,40 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
                 />
             )}
 
-            {/* Cerrado sin éxito */}
+            {/* Cerrado sin pago */}
             {!orden.pending &&
                 !orden.settled &&
-                ["REJECTED", "CANCELLED", "EXPIRED", "ERROR"].includes(orden.status) && (
+                ESTADOS_CERRADOS_SIN_PAGO.includes(orden.status) && (
                     <Aviso
                         tono="error"
                         icono={<XCircle className="h-5 w-5 text-red-500" />}
                         titulo="El pago no se completó"
                         texto={orden.message}
-                        accion={
-                            <Link
-                                href="/dashboard/credits"
-                                className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                            >
-                                Intentar de nuevo
-                            </Link>
-                        }
+                        accion={<Volver texto="Intentar de nuevo" />}
                     />
                 )}
 
             {/* Formulario de pago */}
             {orden.status === "CREATED" && !pagosDeshabilitados && (
-                <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-                    <PaymentBrick
-                        publicKey={orden.publicKey!}
-                        internalRef={orden.internalRef}
-                        amountCOP={orden.amountCOP}
-                        payerEmail={orden.mode === "production" ? orden.payerEmail : null}
-                        onResult={manejarResultado}
-                        onFailure={setError}
-                    />
+                <div className="space-y-4">
+                    {errorPago && (
+                        <Aviso
+                            tono="error"
+                            icono={<AlertTriangle className="h-5 w-5 text-red-500" />}
+                            titulo="No se pudo procesar el pago"
+                            texto={errorPago}
+                        />
+                    )}
+                    <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
+                        <PaymentBrick
+                            publicKey={orden.publicKey!}
+                            internalRef={orden.internalRef}
+                            amountCOP={orden.amountCOP}
+                            payerEmail={orden.mode === "production" ? orden.payerEmail : null}
+                            onResult={manejarResultado}
+                            onFailure={manejarFallo}
+                        />
+                    </div>
                 </div>
             )}
 
@@ -265,6 +315,17 @@ export function CheckoutClient({ internalRef }: { internalRef: string }) {
 
 function Contenedor({ children }: { children: React.ReactNode }) {
     return <div className="max-w-2xl mx-auto space-y-4">{children}</div>;
+}
+
+function Volver({ texto }: { texto: string }) {
+    return (
+        <Link
+            href="/dashboard/credits"
+            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+            {texto}
+        </Link>
+    );
 }
 
 function Aviso({
@@ -287,7 +348,7 @@ function Aviso({
     }[tono];
 
     return (
-        <div className={`rounded-xl border px-5 py-4 flex items-start gap-3 ${estilos}`}>
+        <div className={`rounded-xl border px-5 py-4 flex items-start gap-3 ${estilos}`} role={tono === "error" ? "alert" : undefined}>
             <div className="shrink-0 mt-0.5">{icono}</div>
             <div className="min-w-0 flex-1">
                 <p className="font-semibold text-sm text-foreground">{titulo}</p>

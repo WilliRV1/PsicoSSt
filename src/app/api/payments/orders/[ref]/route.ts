@@ -41,7 +41,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     // Reconciliación perezosa: sólo si sigue en vuelo y ya pasó el enfriamiento.
-    const antiguedad = Date.now() - order.updatedAt.getTime();
+    // Se mide desde la última CONSULTA a Mercado Pago (`lastSyncedAt`), que
+    // `syncOrder` registra aunque no cambie nada; `updatedAt` no sirve porque
+    // una consulta sin novedades no lo mueve y el sondeo martillearía la API.
+    const ultimaConsulta = order.lastSyncedAt ?? order.updatedAt;
+    const antiguedad = Date.now() - ultimaConsulta.getTime();
     if (isPending(order.status) && antiguedad > RECONCILE_COOLDOWN_MS) {
         try {
             const result = await PaymentService.syncOrder(order);

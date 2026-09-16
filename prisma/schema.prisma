@@ -722,6 +722,17 @@ model PaymentOrder {
   statusDetail         String?       @map("status_detail")
   /// Transacción de créditos emitida al acreditar. NULL = nunca se acreditó.
   creditTransactionId  String?       @unique @map("credit_transaction_id") @db.Uuid
+  /// Intentos de cobro enviados a Mercado Pago. Forma parte de la llave de
+  /// idempotencia: si un intento falla con 4xx (no se registró pago), la orden
+  /// vuelve a CREATED y el siguiente intento lleva una llave distinta.
+  attemptCount         Int           @default(0) @map("attempt_count")
+  /// Momento del último paso a PROCESSING. Sirve para detectar órdenes
+  /// huérfanas: en PROCESSING, sin pago registrado en Mercado Pago, más allá
+  /// de un plazo de gracia.
+  processingAt         DateTime?     @map("processing_at")
+  /// Última consulta a Mercado Pago sobre esta orden. Regula el enfriamiento
+  /// del sondeo y la rotación del barrido; no confundir con updatedAt.
+  lastSyncedAt         DateTime?     @map("last_synced_at")
   expiresAt            DateTime      @map("expires_at")
   createdAt            DateTime      @default(now()) @map("created_at")
   updatedAt            DateTime      @updatedAt @map("updated_at")

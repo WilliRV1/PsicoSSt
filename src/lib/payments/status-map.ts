@@ -139,3 +139,33 @@ export function describeStatusDetail(
             return "Estamos procesando tu pago. Te avisamos apenas se acredite.";
     }
 }
+
+/**
+ * Texto para el usuario cuando Mercado Pago rechaza la PETICIÓN (4xx) antes de
+ * registrar un pago. Distinto de `describeStatusDetail`, que traduce el estado
+ * de un pago que sí existe.
+ *
+ * Los mensajes de la API vienen en inglés y a veces son crípticos; los casos
+ * conocidos se traducen a algo accionable y el resto se muestra tal cual —
+ * es preferible a una caja negra, y nunca contienen secretos.
+ */
+export function describeGatewayRejection(message: string, causes: string[] = []): string {
+    const texto = [message, ...causes].join(" | ").toLowerCase();
+
+    if (texto.includes("payer email forbidden") || texto.includes("4390")) {
+        return "Mercado Pago no acepta ese correo para el pago. Usa un correo distinto al de la cuenta que recibe los pagos.";
+    }
+    if (texto.includes("ip_address")) {
+        return "No pudimos determinar tu dirección IP, necesaria para pagar con PSE. Intenta desde otra red o con otro medio de pago.";
+    }
+    if (texto.includes("card_token") || texto.includes("token")) {
+        return "Los datos de la tarjeta vencieron. Vuelve a ingresarlos e intenta de nuevo.";
+    }
+    if (texto.includes("not_result_by_params") || texto.includes("10102")) {
+        return "Ese medio de pago no está disponible en este momento. Intenta con otro.";
+    }
+    if (texto.includes("invalid") && texto.includes("identification")) {
+        return "Revisa el tipo y número de documento.";
+    }
+    return `Mercado Pago rechazó la solicitud: ${message}`;
+}

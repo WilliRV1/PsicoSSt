@@ -66,18 +66,20 @@ export async function POST(request: NextRequest) {
 
     const query = request.nextUrl.searchParams;
 
-    // El identificador llega en el query (`data.id`) en las notificaciones
-    // configuradas desde el panel, y en el cuerpo (`data.id`) en las de la API.
+    // Mercado Pago firma con el `data.id` del QUERY STRING; si no viene, el
+    // segmento `id:` se omite del manifest. El identificador del cuerpo sirve
+    // para saber qué pago consultar, pero jamás entra en la firma: meterlo
+    // produciría un manifest distinto al que Mercado Pago firmó.
+    const signatureDataId = query.get("data.id") ?? query.get("id");
     const bodyData = body.data as { id?: unknown } | undefined;
     const dataId =
-        query.get("data.id") ??
-        query.get("id") ??
+        signatureDataId ??
         (bodyData?.id !== undefined && bodyData.id !== null ? String(bodyData.id) : null);
 
     const verification = verifyWebhookSignature({
         signatureHeader: request.headers.get("x-signature"),
         requestId: request.headers.get("x-request-id"),
-        dataId,
+        dataId: signatureDataId,
         secret: config.webhookSecret,
         toleranceSeconds: WEBHOOK_TOLERANCE_SECONDS,
     });

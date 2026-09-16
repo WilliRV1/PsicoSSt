@@ -28,10 +28,30 @@ export class MercadoPagoApiError extends Error {
     constructor(
         message: string,
         readonly httpStatus: number,
+        /** Descripciones del arreglo `cause` de Mercado Pago, si vino. */
+        readonly causes: string[] = [],
         readonly cause_?: unknown
     ) {
         super(message);
         this.name = "MercadoPagoApiError";
+    }
+
+    /**
+     * ¿Mercado Pago rechazó la petición sin registrar nada?
+     *
+     * Un 4xx (datos inválidos, correo prohibido, token vencido) significa que
+     * NO existe ningún pago del otro lado: la orden puede volver a CREATED y
+     * el usuario reintentar. Un 5xx o un timeout es ambiguo — el pago pudo
+     * crearse y perderse sólo la respuesta — y exige reconciliar, no reintentar.
+     * 408 y 429 se tratan como ambiguos por prudencia.
+     */
+    get isDefinitiveRejection(): boolean {
+        return (
+            this.httpStatus >= 400 &&
+            this.httpStatus < 500 &&
+            this.httpStatus !== 408 &&
+            this.httpStatus !== 429
+        );
     }
 }
 
@@ -83,6 +103,7 @@ async function request<T>(
                 ? `Mercado Pago no respondió en ${REQUEST_TIMEOUT_MS / 1000} s`
                 : "No se pudo contactar a Mercado Pago",
             503,
+            [],
             error
         );
     }
@@ -113,6 +134,23 @@ function describeApiError(body: unknown, fallback: string): string {
     return fallback;
 }
 
+/** Arreglo `cause` de Mercado Pago reducido a texto: código y descripción. */
+function extractCauses(body: unknown): string[] {
+    if (!body || typeof body !== "object") return [];
+    const cause = (body as Record<string, unknown>).cause;
+    if (!Array.isArray(cause)) return [];
+    return cause
+        .map((c) => {
+            if (!c || typeof c !== "object") return "";
+            const r = c as Record<string, unknown>;
+            const code = r.code !== undefined && r.code !== null ? String(r.code) : "";
+            const desc = typeof r.description === "string" ? r.description : "";
+            return [code, desc].filter(Boolean).join(" - ");
+        })
+        .filter(Boolean)
+        .slice(0, 5);
+}
+
 /**
  * Consulta un pago. Devuelve `null` si no existe.
  *
@@ -132,7 +170,8 @@ export async function fetchPayment(
     if (status >= 400) {
         throw new MercadoPagoApiError(
             describeApiError(body, "No se pudo consultar el pago en Mercado Pago"),
-            status
+            status,
+            extractCauses(body)
         );
     }
 
@@ -159,7 +198,8 @@ export async function createPayment(
     if (status >= 400) {
         throw new MercadoPagoApiError(
             describeApiError(body, "Mercado Pago rechazó la creación del pago"),
-            status
+            status,
+            extractCauses(body)
         );
     }
 
@@ -204,7 +244,8 @@ export async function searchPaymentsByExternalReference(
     if (status >= 400) {
         throw new MercadoPagoApiError(
             describeApiError(body, "No se pudo buscar el pago en Mercado Pago"),
-            status
+            status,
+            extractCauses(body)
         );
     }
 

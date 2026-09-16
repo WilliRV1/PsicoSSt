@@ -46,7 +46,9 @@ export class CreditService {
     }
 
     /**
-     * Purchase a credit package. Returns the new balance.
+     * Compra directa de un paquete (sin pasarela: asignación administrativa o
+     * pruebas). Delega en `creditPurchaseInTx` para que exista UNA sola
+     * implementación del asiento de compra.
      */
     static async purchasePackage(
         psychologistId: string,
@@ -56,28 +58,13 @@ export class CreditService {
         const pkg = getPackageById(packageId);
         if (!pkg) throw new Error("Paquete no encontrado");
 
-        return await prisma.$transaction(async (tx) => {
-            const psych = await tx.psychologist.update({
-                where: { id: psychologistId },
-                data: { creditBalance: { increment: pkg.credits } },
-                select: { creditBalance: true },
-            });
-
-            const transaction = await tx.creditTransaction.create({
-                data: {
-                    psychologistId,
-                    type: "PURCHASE",
-                    amount: pkg.credits,
-                    balanceAfter: psych.creditBalance,
-                    packageId: pkg.id,
-                    priceCOP: pkg.priceCOP,
-                    paymentRef,
-                    description: `Compra paquete ${pkg.name}: ${pkg.credits} créditos`,
-                },
-            });
-
-            return { balance: psych.creditBalance, transactionId: transaction.id };
-        });
+        return prisma.$transaction((tx) =>
+            this.creditPurchaseInTx(tx, {
+                psychologistId,
+                pkg,
+                paymentRef: paymentRef ?? null,
+            })
+        );
     }
 
     /**
@@ -265,7 +252,7 @@ export class CreditService {
      */
     static async creditPurchaseInTx(
         tx: Prisma.TransactionClient,
-        params: { psychologistId: string; pkg: CreditPackage; paymentRef: string }
+        params: { psychologistId: string; pkg: CreditPackage; paymentRef: string | null }
     ): Promise<{ transactionId: string; balance: number }> {
         const psych = await tx.psychologist.update({
             where: { id: params.psychologistId },

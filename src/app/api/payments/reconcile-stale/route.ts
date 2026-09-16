@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { PaymentService } from "@/lib/payments/payment-service";
 import { isPaymentsEnabled } from "@/lib/payments/config";
 
@@ -18,6 +19,13 @@ import { isPaymentsEnabled } from "@/lib/payments/config";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** Compara el Bearer en tiempo constante: un `!==` filtra el secreto byte a byte. */
+function bearerMatches(header: string | null, secret: string): boolean {
+    const esperado = Buffer.from(`Bearer ${secret}`);
+    const recibido = Buffer.from(header ?? "");
+    return esperado.length === recibido.length && timingSafeEqual(esperado, recibido);
+}
+
 export async function GET(request: NextRequest) {
     // Vercel Cron firma sus llamadas con `Authorization: Bearer $CRON_SECRET`.
     // Sin secreto configurado se rechaza todo: es preferible un cron que no
@@ -27,7 +35,7 @@ export async function GET(request: NextRequest) {
         console.error("[PAGOS][cron] CRON_SECRET no está configurado.");
         return NextResponse.json({ error: "Not configured" }, { status: 503 });
     }
-    if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+    if (!bearerMatches(request.headers.get("authorization"), secret)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

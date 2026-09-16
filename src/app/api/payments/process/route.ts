@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { PaymentService, PaymentOrderError } from "@/lib/payments/payment-service";
+import { extractRequestMeta } from "@/lib/auth/audit";
+import {
+    PaymentService,
+    PaymentOrderError,
+    type PayerContext,
+} from "@/lib/payments/payment-service";
 import { MercadoPagoApiError } from "@/lib/payments/mercadopago-client";
 import { MercadoPagoConfigError } from "@/lib/payments/config";
-import { resolveNotificationUrl } from "@/lib/payments/urls";
+import { resolveCallbackUrl, resolveNotificationUrl } from "@/lib/payments/urls";
+import { describeGatewayRejection } from "@/lib/payments/status-map";
 
 /**
  * Envía a Mercado Pago el formulario que produjo el Payment Brick.
@@ -13,6 +19,10 @@ import { resolveNotificationUrl } from "@/lib/payments/urls";
  * paquete. Sólo el token de la tarjeta (que ya viene tokenizado por Mercado
  * Pago, sin datos sensibles) y la referencia de la orden, que se valida contra
  * el psicólogo de la sesión.
+ *
+ * Lo que el backend AÑADE porque la documentación de Mercado Pago lo exige y el
+ * Brick no lo envía: la IP del comprador y la `callback_url` (ambas
+ * obligatorias para PSE) y el nombre y correo del pagador desde la sesión.
  */
 
 const bodySchema = z.object({
@@ -42,6 +52,23 @@ const bodySchema = z.object({
     }),
 });
 
+/** «Ana María Pérez Gómez» → nombre «Ana María», apellido «Pérez Gómez». */
+function splitFullName(fullName: string | null | undefined): {
+    firstName: string | null;
+    lastName: string | null;
+} {
+    const partes = (fullName ?? "").trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) return { firstName: null, lastName: null };
+    if (partes.length === 1) return { firstName: partes[0], lastName: null };
+    // En Colombia lo habitual son dos nombres y dos apellidos; con 3 o 4
+    // palabras la partición por la mitad acierta más que «primera palabra».
+    const corte = Math.ceil(partes.length / 2);
+    return {
+        firstName: partes.slice(0, corte).join(" "),
+        lastName: partes.slice(corte).join(" "),
+    };
+}
+
 export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -59,6 +86,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { formData } = parsed;
+
+    const { ipAddress } = extractRequestMeta(request);
+    const usuario = session.user as { email?: string | null; fullName?: string | null; name?: string | null };
+    const payer: PayerContext = {
+        email: usuario.email ?? null,
+        ...splitFullName(usuario.fullName ?? usuario.name),
+    };
 
     try {
         const result = await PaymentService.processBrickPayment({
@@ -79,6 +113,9 @@ export async function POST(request: NextRequest) {
                       }
                     : undefined,
             },
+            payer,
+            ipAddress: ipAddress === "unknown" ? null : ipAddress,
+            callbackUrl: resolveCallbackUrl(request, parsed.internalRef),
             notificationUrl: resolveNotificationUrl(request),
         });
 
@@ -104,13 +141,29 @@ export async function POST(request: NextRequest) {
             );
         }
         if (error instanceof MercadoPagoApiError) {
-            // El mensaje de Mercado Pago puede ser técnico; se registra completo
-            // y al usuario se le da algo accionable.
-            console.error(`[PAGOS] API respondió ${error.httpStatus}: ${error.message}`);
+            console.error(
+                `[PAGOS] API respondió ${error.httpStatus}: ${error.message}`,
+                error.causes
+            );
+            if (error.isDefinitiveRejection) {
+                // Nada se registró en Mercado Pago y la orden volvió a CREATED:
+                // el usuario puede corregir y reintentar sobre la misma orden.
+                return NextResponse.json(
+                    {
+                        error: describeGatewayRejection(error.message, error.causes),
+                        code: "GATEWAY_REJECTED",
+                        retryable: true,
+                    },
+                    { status: 422 }
+                );
+            }
+            // Ambiguo (5xx, timeout): la orden sigue en PROCESSING y la
+            // reconciliación decidirá. No se invita a reintentar a ciegas.
             return NextResponse.json(
                 {
-                    error: "Mercado Pago no pudo procesar el pago. Verifica los datos e intenta de nuevo.",
+                    error: "Mercado Pago no respondió. Estamos verificando el estado de tu pago; no vuelvas a pagar.",
                     code: "GATEWAY_ERROR",
+                    retryable: false,
                 },
                 { status: 502 }
             );
