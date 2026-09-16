@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
     return (
         <article className="prose prose-zinc dark:prose-invert max-w-none">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 mb-8 text-sm text-amber-800">
+            <div className="rounded-lg border border-risk-medium-border bg-risk-medium-bg p-4 mb-8 text-sm text-risk-medium-text">
                 <strong>Documento preliminar.</strong> Este texto es un borrador sujeto a revision legal.
                 Ultima actualizacion: marzo 2026.
             </div>

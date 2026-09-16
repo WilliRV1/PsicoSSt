@@ -242,7 +242,7 @@ export default function ForgotPasswordPage() {
                 {/* Step 3: Success */}
                 {step === 3 && (
                     <div className="text-center space-y-6">
-                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-teal-light text-teal-dark">
                             <CheckCircle className="h-7 w-7" />
                         </div>
                         <div className="space-y-2">

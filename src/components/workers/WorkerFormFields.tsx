@@ -8,7 +8,7 @@ import colombiaData from "@/config/colombia.json";
 const FormTooltip = ({ text }: { text: string }) => (
     <Tooltip>
         <TooltipTrigger type="button" tabIndex={-1} className="ml-1 cursor-help">
-            <Info className="h-4 w-4 text-gray-400 hover:text-indigo-600 transition-colors inline-block" />
+            <Info className="h-4 w-4 text-text-muted hover:text-primary transition-colors inline-block" />
         </TooltipTrigger>
         <TooltipContent className="max-w-[280px]">
             <p className="text-xs font-normal leading-relaxed">{text}</p>
@@ -79,7 +79,7 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setF
                             placeholder="Escriba el departamento" 
                             autoFocus={selectedDept === "OTRO"}
                         />
-                        <button type="button" onClick={() => setForm((f:any) => ({ ...f, [deptKey]: "", [cityKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                        <button type="button" onClick={() => setForm((f:any) => ({ ...f, [deptKey]: "", [cityKey]: "" }))} className="text-xs text-primary hover:opacity-80 underline whitespace-nowrap">Lista</button>
                     </div>
                 ) : (
                     <select 
@@ -105,7 +105,7 @@ const LocationSelector = ({ form, setForm, deptKey, cityKey }: { form: any, setF
                             autoFocus={selectedCity === "OTRO"}
                         />
                         {!showCustomDept && (
-                            <button type="button" onClick={() => setForm((f:any) => ({ ...f, [cityKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Lista</button>
+                            <button type="button" onClick={() => setForm((f:any) => ({ ...f, [cityKey]: "" }))} className="text-xs text-primary hover:opacity-80 underline whitespace-nowrap">Lista</button>
                         )}
                     </div>
                 ) : (
@@ -148,7 +148,7 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                             autoFocus={selectedValue === "OTRO"}
                         />
                         {!noOptionsAvailable && (
-                            <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap">Cancelar</button>
+                            <button type="button" onClick={() => setForm((f:any) => ({ ...f, [fieldKey]: "" }))} className="text-xs text-primary hover:opacity-80 underline whitespace-nowrap">Cancelar</button>
                         )}
                     </div>
                     {((selectedValue === "OTRO" || selectedValue !== "") && !isKnown) && (
@@ -165,7 +165,7 @@ const AutocompleteSelector = ({ form, setForm, fieldKey, options, placeholder }:
                 >
                     <option value="">Seleccione...</option>
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
-                    <option value="OTRO" className="font-semibold text-indigo-600">+ Crear nuevo...</option>
+                    <option value="OTRO" className="font-semibold text-primary">+ Crear nuevo...</option>
                 </select>
             )}
         </div>

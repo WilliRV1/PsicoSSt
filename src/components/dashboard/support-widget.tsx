@@ -18,10 +18,10 @@ export default function SupportWidget() {
                 <MessageCircle className="w-7 h-7" />
                 
                 {/* Tooltip */}
-                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-foreground text-background text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                     Soporte en línea
                     {/* Arrow */}
-                    <span className="absolute left-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-l-gray-900"></span>
+                    <span className="absolute left-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-l-foreground"></span>
                 </span>
                 
                 {/* Ping animation */}
