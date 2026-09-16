@@ -5,7 +5,7 @@
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 2420,
+      "h": 3700,
       "page": "sistema"
     },
     {
@@ -13,7 +13,7 @@
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 900,
+      "h": 930,
       "page": "operacion"
     },
     {
@@ -29,13 +29,13 @@
       "x": 3120,
       "y": 0,
       "w": 1440,
-      "h": 1000,
+      "h": 1030,
       "page": "operacion"
     },
     {
       "file": "Trabajadores.dc.html",
       "x": 0,
-      "y": 1190,
+      "y": 1220,
       "w": 1440,
       "h": 900,
       "page": "operacion"
@@ -43,7 +43,7 @@
     {
       "file": "TrabajadorDetalle.dc.html",
       "x": 1560,
-      "y": 1190,
+      "y": 1220,
       "w": 1440,
       "h": 1020,
       "page": "operacion"
@@ -51,7 +51,7 @@
     {
       "file": "Evaluaciones.dc.html",
       "x": 3120,
-      "y": 1190,
+      "y": 1220,
       "w": 1440,
       "h": 900,
       "page": "operacion"
@@ -59,15 +59,15 @@
     {
       "file": "Invitar.dc.html",
       "x": 0,
-      "y": 2400,
+      "y": 2430,
       "w": 1440,
-      "h": 1000,
+      "h": 1030,
       "page": "operacion"
     },
     {
       "file": "Digitacion.dc.html",
       "x": 1560,
-      "y": 2400,
+      "y": 2430,
       "w": 1440,
       "h": 920,
       "page": "operacion"
@@ -75,15 +75,15 @@
     {
       "file": "CargaMasiva.dc.html",
       "x": 3120,
-      "y": 2400,
+      "y": 2430,
       "w": 1440,
-      "h": 1060,
+      "h": 1090,
       "page": "operacion"
     },
     {
       "file": "ImportarTrabajadores.dc.html",
       "x": 0,
-      "y": 3650,
+      "y": 3710,
       "w": 1440,
       "h": 900,
       "page": "operacion"
@@ -101,7 +101,7 @@
       "x": 1560,
       "y": 0,
       "w": 1440,
-      "h": 2060,
+      "h": 2200,
       "page": "informes"
     },
     {
@@ -115,15 +115,15 @@
     {
       "file": "Diagnostico.dc.html",
       "x": 0,
-      "y": 2250,
+      "y": 2390,
       "w": 1440,
-      "h": 1860,
+      "h": 1930,
       "page": "informes"
     },
     {
       "file": "Sociodemografico.dc.html",
       "x": 1560,
-      "y": 2250,
+      "y": 2390,
       "w": 1440,
       "h": 1280,
       "page": "informes"
@@ -131,7 +131,7 @@
     {
       "file": "ProgramaSVE.dc.html",
       "x": 3120,
-      "y": 2250,
+      "y": 2390,
       "w": 1440,
       "h": 1300,
       "page": "informes"
@@ -213,7 +213,7 @@
       "x": 0,
       "y": 1410,
       "w": 1440,
-      "h": 1000,
+      "h": 1070,
       "page": "analisis"
     },
     {
@@ -221,7 +221,7 @@
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 980,
+      "h": 1020,
       "page": "cuenta"
     },
     {
@@ -237,13 +237,13 @@
       "x": 3120,
       "y": 0,
       "w": 1440,
-      "h": 1050,
+      "h": 1110,
       "page": "cuenta"
     },
     {
       "file": "Configuracion.dc.html",
       "x": 0,
-      "y": 1240,
+      "y": 1300,
       "w": 1440,
       "h": 1500,
       "page": "cuenta"
@@ -251,9 +251,9 @@
     {
       "file": "GuiaRapida.dc.html",
       "x": 1560,
-      "y": 1240,
+      "y": 1300,
       "w": 1440,
-      "h": 1080,
+      "h": 1130,
       "page": "cuenta"
     },
     {
@@ -261,7 +261,7 @@
       "x": 0,
       "y": 0,
       "w": 1440,
-      "h": 1020,
+      "h": 1060,
       "page": "admin"
     },
     {
@@ -283,7 +283,7 @@
     {
       "file": "Auditoria.dc.html",
       "x": 0,
-      "y": 1210,
+      "y": 1250,
       "w": 1440,
       "h": 900,
       "page": "admin"
@@ -291,7 +291,7 @@
     {
       "file": "Comentarios.dc.html",
       "x": 1560,
-      "y": 1210,
+      "y": 1250,
       "w": 1440,
       "h": 1100,
       "page": "admin"
@@ -317,7 +317,7 @@
       "x": 3120,
       "y": 0,
       "w": 1440,
-      "h": 1280,
+      "h": 1460,
       "page": "publico"
     },
     {
@@ -325,7 +325,7 @@
       "x": 0,
       "y": 2020,
       "w": 1440,
-      "h": 1280,
+      "h": 1460,
       "page": "publico"
     },
     {
@@ -367,6 +367,51 @@
       "w": 390,
       "h": 844,
       "page": "publico"
+    },
+    {
+      "file": "PdfPortada.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "page": "pdf",
+      "print": "fixed"
+    },
+    {
+      "file": "PdfIndividual.dc.html",
+      "x": 914,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "page": "pdf",
+      "print": "fixed"
+    },
+    {
+      "file": "PdfColectivo.dc.html",
+      "x": 1828,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "page": "pdf",
+      "print": "fixed"
+    },
+    {
+      "file": "PdfSociodemografico.dc.html",
+      "x": 2742,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "page": "pdf",
+      "print": "fixed"
+    },
+    {
+      "file": "PdfIntervencion.dc.html",
+      "x": 3656,
+      "y": 0,
+      "w": 794,
+      "h": 1123,
+      "page": "pdf",
+      "print": "fixed"
     }
   ],
   "annotations": [
@@ -427,6 +472,14 @@
       "page": "admin"
     },
     {
+      "id": "nota-pdf-1",
+      "x": -420,
+      "y": 10,
+      "w": 360,
+      "text": "Las cinco plantillas que hoy compila Typst en typst/*.typ,\nrediseñadas: portada e interior del informe individual,\ndiagnóstico colectivo, perfil sociodemográfico y plan de\nintervención.\n\nA4 a 96 px por pulgada, una hoja por artboard, paginación\nfija. El texto corrido va a 16 px —los 12 pt de suelo para\nlectura en papel— y los filetes nunca bajan de 1 px.\n\nPara llevarlas a producción hay que añadir Geist a\ntypst/fonts/ y reemplazar la paleta de lib/theme.typ, que\nhoy usa tonos de riesgo terrosos distintos a los de la app.",
+      "page": "pdf"
+    },
+    {
       "id": "nota-publico-1",
       "x": -420,
       "y": 10,
@@ -467,6 +520,10 @@
     {
       "id": "publico",
       "name": "Público"
+    },
+    {
+      "id": "pdf",
+      "name": "PDF"
     }
   ],
   "launch": {

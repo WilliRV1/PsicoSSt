@@ -4,7 +4,7 @@ import { barras, figura } from './graficos.mjs';
 
 // ── Créditos ───────────────────────────────────────────────────────────
 export const creditos = app({
-  w: 1440, h: 980, activo: 'credits', migas: ['Créditos'],
+  w: 1440, h: 1020, activo: 'credits', migas: ['Créditos'],
   contenido: `
   ${cabecera({
     rubrica: 'Cuenta · Consumo',
@@ -20,7 +20,7 @@ export const creditos = app({
         <span class="display" style="font-size:66px;color:${T.danger}">47</span>
         <div style="padding-bottom:11px">
           <p style="font-size:14px;color:${T.ink};font-weight:500">créditos</p>
-          <p style="font-size:12.5px;color:${T.secondary};margin-top:3px">Al ritmo de los últimos 90 días se agotan en <span class="num">8</span> días</p>
+          <p style="font-size:12.5px;color:${T.secondary};margin-top:3px">Al ritmo de septiembre se agotan en <span class="num">4</span> días</p>
         </div>
       </div>
       <div style="display:flex;gap:11px;align-items:flex-start;margin-top:20px;padding:13px 15px;border-radius:9px;background:#FEE2E2;border:1px solid #FECACA">
@@ -34,10 +34,10 @@ export const creditos = app({
     <div style="width:420px;flex-shrink:0;padding:26px 28px;border-radius:12px;background:${T.surface};border:1px solid ${T.border}">
       <p class="rub rub-ink">Consumo por mes</p>
       <div style="margin-top:16px">
-        ${barras([['Jun', 84], ['Jul', 121], ['Ago', 96], ['Sep', 186]], { w: 360, color: CAT[0], unidad: '' })}
+        ${barras([['Jun', 84], ['Jul', 121], ['Ago', 96], ['Sep', 380]], { w: 360, color: CAT[0], unidad: '' })}
       </div>
       <p style="font-size:12px;line-height:1.6;color:${T.secondary};margin-top:14px;padding-top:12px;border-top:1px solid ${T.borderMuted}">
-        Septiembre va un 94% por encima del promedio del trimestre, por la reaplicación en Clínica del Norte.
+        Septiembre casi cuadruplica el promedio del trimestre, por la reaplicación en Clínica del Norte y las invitaciones de Constructora Sierra.
       </p>
     </div>
   </div>
@@ -49,13 +49,15 @@ export const creditos = app({
       <th class="th">Referencia</th><th class="th" style="text-align:right">Movimiento</th>
       <th class="th" style="text-align:right;padding-right:0">Saldo</th>
     </tr>
+    // Encadenado: 26 de saldo inicial + 150 + 1 + 250 − 164 − 214 − 1 − 1 = 47.
     ${[
       ['2026-09-16 08:12', 'Calificación de evaluación', 'Transportes Andinos', 'EV-2026-1184', -1, 47],
       ['2026-09-15 16:40', 'Calificación de evaluación', 'Clínica del Norte', 'EV-2026-1183', -1, 48],
       ['2026-09-15 09:02', 'Carga masiva · 214 evaluaciones', 'Clínica del Norte', 'IMP-2026-0071', -214, 49],
-      ['2026-09-10 11:24', 'Compra · paquete Business', '—', 'PAG-2026-0233', 250, 263],
-      ['2026-09-04 14:55', 'Reverso por evaluación anulada', 'Agroindustria Valle', 'EV-2026-1102', 1, 13],
-      ['2026-09-01 00:00', 'Asignación mensual · plan Profesional', '—', 'PLN-2026-09', 50, 12],
+      ['2026-09-12 10:15', 'Invitaciones enviadas · 164 trabajadores', 'Constructora Sierra', 'INV-2026-0188', -164, 263],
+      ['2026-09-10 11:24', 'Compra · paquete Business', '—', 'PAG-2026-0233', 250, 427],
+      ['2026-09-04 14:55', 'Reverso por evaluación anulada', 'Agroindustria Valle', 'EV-2026-1102', 1, 177],
+      ['2026-09-01 00:00', 'Asignación mensual · plan Profesional', '—', 'PLN-2026-09', 150, 176],
     ].map(([f, c, o, r, m, s]) => `<tr>
       <td class="td num" style="color:${T.secondary};font-size:12.5px">${f}</td>
       <td class="td">${esc(c)}</td>
@@ -65,14 +67,14 @@ export const creditos = app({
       <td class="td num" style="text-align:right;color:${T.secondary}">${s}</td>
     </tr>`).join('')}
   </table>
-  ${paginacion(1, 6, 418)}`,
+  ${paginacion(1, 7, 418)}`,
 });
 
 // ── Planes ─────────────────────────────────────────────────────────────
 const PLANES = [
   ['Starter', '190.000', 50, ['Hasta 3 empresas', 'Los cuatro instrumentos', 'Informes individuales', 'Soporte por correo'], false],
-  ['Profesional', '420.000', 150, ['Hasta 10 empresas', 'Informes colectivos y SVE', 'Asistente de redacción', 'Firma digital ilimitada', 'Soporte prioritario por correo'], true],
-  ['Business', '890.000', 400, ['Empresas ilimitadas', 'Analítica y tendencias', 'Hasta 5 psicólogos en el equipo', 'API de importación', 'Soporte por correo y chat'], false],
+  ['Profesional', '420.000', 150, ['Hasta 15 empresas', 'Informes colectivos y SVE', 'Analítica y tendencias', 'Asistente de redacción', 'Firma digital ilimitada'], true],
+  ['Business', '890.000', 400, ['Empresas ilimitadas', 'Hasta 5 psicólogos en el equipo', 'API de importación', 'Comparación entre carteras', 'Soporte por correo y chat'], false],
   ['Corporativo', 'A convenir', null, ['Todo lo del plan Business', 'Despliegue dedicado', 'Acuerdo de nivel de servicio', 'Soporte 24/7'], false],
 ];
 
@@ -127,7 +129,7 @@ export const planes = app({
     <div style="width:376px;flex-shrink:0;padding:22px 24px;border-radius:12px;background:${T.surface};border:1px solid ${T.border}">
       <p class="rub rub-ink">Facturación</p>
       <div style="margin-top:14px">
-        ${[['Razón social', 'Consultorio Torres SAS'], ['NIT', '901.774.220-3'], ['Medio de pago', 'Mercado Pago · ••4471'], ['Próximo cobro', '2026-10-01'], ['Régimen', 'Común · IVA 19%']].map(([k, v], i) => `
+        ${[['Razón social', 'Consultorio Torres SAS'], ['NIT', '901.774.220-3'], ['Medio de pago', 'Mercado Pago · ••4471'], ['Próximo cobro', '2026-10-01'], ['Régimen', 'Responsable de IVA · 19%']].map(([k, v], i) => `
           <div style="display:flex;justify-content:space-between;gap:14px;padding:8px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
             <span style="font-size:12px;color:${T.muted}">${esc(k)}</span>
             <span style="font-size:12px;color:${T.ink};text-align:right">${esc(v)}</span>
@@ -140,7 +142,7 @@ export const planes = app({
 
 // ── Equipo ─────────────────────────────────────────────────────────────
 export const equipo = app({
-  w: 1440, h: 1050, activo: 'users', migas: ['Equipo'],
+  w: 1440, h: 1110, activo: 'users', migas: ['Equipo'],
   contenido: `
   ${cabecera({
     rubrica: 'Cuenta · Personas con acceso',
@@ -265,7 +267,7 @@ export const configuracion = app({
 
 // ── Guía rápida ────────────────────────────────────────────────────────
 export const tutorial = app({
-  w: 1440, h: 1080, activo: 'panel', migas: ['Guía rápida'],
+  w: 1440, h: 1130, activo: 'panel', migas: ['Guía rápida'],
   contenido: `
   ${cabecera({
     rubrica: 'Primeros pasos',
@@ -299,7 +301,7 @@ export const tutorial = app({
       <div style="margin-top:16px">
         ${[
           ['¿Puedo aplicar la batería a toda la empresa con una sola forma?', 'No. La Forma A es para profesionales, jefaturas y técnicos; la Forma B para auxiliares y operativos. Aplicar la forma equivocada invalida el resultado.'],
-          ['¿Cada cuánto debo reaplicarla?', 'Cada dos años como regla general, y cada año cuando el riesgo global es alto o muy alto.'],
+          ['¿Cada cuánto debo reaplicarla?', 'El artículo 3 de la Resolución 2764 de 2022 fija cada dos años con riesgo bajo o medio, y cada año con riesgo alto o muy alto.'],
           ['¿La empresa puede ver los resultados individuales?', 'No. El resultado individual es reserva del profesional (Ley 1090 de 2006). La empresa recibe el informe colectivo.'],
           ['¿Qué pasa si un trabajador deja ítems en blanco?', 'El cuestionario se anula: la batería no admite imputación de faltantes. Hay que repetir la aplicación.'],
         ].map(([q, a], i) => `<div style="padding:14px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
@@ -315,7 +317,7 @@ export const tutorial = app({
         <div style="margin-top:14px">
           ${[
             ['Resolución 2646 de 2008', 'Define los factores de riesgo psicosocial y obliga a evaluarlos.'],
-            ['Resolución 2764 de 2022', 'Actualiza la batería y sus baremos.'],
+            ['Resolución 2764 de 2022', 'Adopta la batería, la guía técnica y los protocolos, y fija la periodicidad. Derogó la Resolución 2404 de 2019.'],
             ['Ley 1090 de 2006', 'Ejercicio de la psicología y custodia de la historia clínica.'],
             ['Ley 1581 de 2012', 'Protección de datos personales y habeas data.'],
           ].map(([n, d], i) => `<div style="padding:11px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">

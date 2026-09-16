@@ -21,12 +21,14 @@ export const analitica = app({
         ['Salud humana', 48.1], ['Manufactura', 39.5], ['Logística', 36.7], ['Servicios', 28.4],
       ], { w: 470, color: CAT[0], unidad: '' }))}
     ${figura('Distribución por nivel del cargo', 'Cada barra suma el 100% de su nivel',
+      // Las columnas suman la banda del centro de control (214/389/364/224/93),
+      // las filas suman 1.284 y alto+muy alto da los 317 que enuncia el panel.
       `<div>${[
-        ['Operativo', [22, 74, 138, 161, 92]],
+        ['Operativo', [22, 74, 138, 121, 52]],
         ['Auxiliar', [18, 61, 79, 54, 21]],
-        ['Técnico', [31, 68, 52, 24, 8]],
-        ['Profesional', [58, 94, 61, 19, 4]],
-        ['Jefatura', [41, 52, 27, 8, 1]],
+        ['Técnico', [31, 68, 62, 24, 8]],
+        ['Profesional', [78, 118, 61, 19, 8]],
+        ['Jefatura', [65, 68, 24, 6, 4]],
       ].map(([n, d], i) => `
         <div style="display:flex;align-items:center;gap:13px;padding:8px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
           <span style="width:88px;flex-shrink:0;font-size:12.5px;color:${T.ink}">${esc(n)}</span>
@@ -65,8 +67,8 @@ export const analitica = app({
         ].map(([n, r], i) => `
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
             <span style="flex:1;font-size:12.5px;color:${T.ink}">${esc(n)}</span>
-            <div style="width:110px;height:8px;border-radius:0 4px 4px 0;background:${T.surfaceMuted};overflow:hidden">
-              <div style="width:${r * 100}%;height:100%;background:${CAT[0]};border-radius:0 4px 4px 0"></div>
+            <div style="width:110px;height:8px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
+              <div style="width:${r * 100}%;height:100%;background:${CAT[0]};border-radius:999px"></div>
             </div>
             <span class="num" style="font-size:12.5px;font-weight:600;color:${T.ink};width:36px;text-align:right">${r.toFixed(2).replace('.', ',')}</span>
           </div>`).join('')}
@@ -128,7 +130,7 @@ export const tendencias = app({
             <div style="width:140px;display:flex;align-items:center">
               <div style="width:70px;display:flex;justify-content:flex-end">${bien ? `<div style="width:${ancho}%;height:9px;background:${T.success};border-radius:4px 0 0 4px"></div>` : ''}</div>
               <div style="width:1px;height:14px;background:${T.border}"></div>
-              <div style="width:70px">${!bien ? `<div style="width:${ancho}%;height:9px;background:${T.danger};border-radius:0 4px 4px 0"></div>` : ''}</div>
+              <div style="width:70px">${!bien ? `<div style="width:${ancho}%;height:9px;background:${T.danger};border-radius:999px"></div>` : ''}</div>
             </div>
             <span class="num" style="font-size:12.5px;font-weight:600;color:${bien ? T.success : T.danger};width:46px;text-align:right">${v > 0 ? '+' : '−'}${n1(Math.abs(v))}</span>
           </div>`;
@@ -184,8 +186,8 @@ export const intervenciones = app({
             ${estado(est, tono)}
           </div>
           <div style="display:flex;align-items:center;gap:16px;margin-top:14px">
-            <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:${T.surfaceMuted};overflow:hidden">
-              <div style="width:${pct}%;height:100%;background:${pct === 100 ? T.success : tono === 'alerta' ? T.danger : T.teal};border-radius:0 3px 3px 0"></div>
+            <div style="flex:1;height:5px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:${pct === 100 ? T.success : tono === 'alerta' ? T.danger : T.teal};border-radius:999px"></div>
             </div>
             <span class="num" style="font-size:11.5px;color:${T.muted};width:34px;text-align:right">${pct}%</span>
           </div>
@@ -204,8 +206,8 @@ export const intervenciones = app({
               <span style="font-size:12.5px;color:${T.ink}">${esc(n)}</span>
               <span class="num" style="font-size:12px;color:${hecho / total > 0.6 ? T.success : hecho === 0 ? T.danger : T.warning}">${hecho}/${total}</span>
             </div>
-            <div style="height:6px;border-radius:0 3px 3px 0;background:${T.surfaceMuted};margin-top:7px;overflow:hidden">
-              <div style="width:${(hecho / total) * 100}%;height:100%;background:${hecho / total > 0.6 ? T.success : hecho === 0 ? T.danger : T.warning};border-radius:0 3px 3px 0"></div>
+            <div style="height:6px;border-radius:999px;background:${T.surfaceMuted};margin-top:7px;overflow:hidden">
+              <div style="width:${(hecho / total) * 100}%;height:100%;background:${hecho / total > 0.6 ? T.success : hecho === 0 ? T.danger : T.warning};border-radius:999px"></div>
             </div>
           </div>`).join('')}</div>`, { w: 376 })}
 
@@ -227,7 +229,7 @@ export const intervenciones = app({
 
 // ── Asistente IA ───────────────────────────────────────────────────────
 export const asistenteIA = app({
-  w: 1440, h: 1000, activo: 'ai', migas: ['Asistente IA'],
+  w: 1440, h: 1070, activo: 'ai', migas: ['Asistente IA'],
   contenido: `
   ${cabecera({
     rubrica: 'Análisis · Apoyo a la redacción',

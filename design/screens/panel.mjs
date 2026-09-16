@@ -35,7 +35,7 @@ function banda() {
   }).join('');
 
   return `<div>
-    <div style="display:flex;border-radius:6px;overflow:hidden;border:1px solid ${T.border}">${tramos}</div>
+    <div class="barra-anim" style="display:flex;border-radius:10px;overflow:hidden">${tramos}</div>
     <div style="display:flex;margin-top:9px">${pies}</div>
   </div>`;
 }
@@ -44,7 +44,7 @@ function banda() {
 function cifras() {
   const items = [
     ['Empresas activas', '12', null],
-    ['Evaluaciones este mes', '186', '+23%'],
+    ['Evaluaciones este mes', '380', '×4 frente a agosto'],
     ['Informes sin firmar', '9', null],
     ['Vigencias por vencer', '3', 'en 30 días'],
   ];
@@ -66,7 +66,7 @@ function accion() {
     ['Transportes Andinos S.A.S.', 'Vigencia vencida', 'alerta', '412', 'alto'],
     ['Clínica del Norte', 'Vence en 12 días', 'aviso', '268', 'medio'],
     ['Agroindustria Valle Ltda.', 'Vence en 27 días', 'aviso', '156', 'muyAlto'],
-    ['Constructora Sierra', '31 informes sin firmar', 'info', '203', 'medio'],
+    ['Constructora Sierra', '6 informes sin firmar', 'info', '203', 'medio'],
   ];
   return `<section style="flex:1;min-width:0">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
@@ -111,7 +111,7 @@ function actividad() {
 }
 
 export const panel = app({
-  w: 1440, h: 900, activo: 'panel', creditos: 47,
+  w: 1440, h: 930, activo: 'panel', creditos: 47,
   contenido: `
   <p class="rub">Cartera vigente · <span class="num">16 sep 2026</span></p>
 

@@ -77,16 +77,16 @@ export const consentimiento = movil(`
         ${[
           ['Para qué se usan sus respuestas', 'Para calificar su nivel de riesgo psicosocial conforme a la Resolución 2646 de 2008 y construir el diagnóstico colectivo de su empresa.'],
           ['Quién las puede ver', 'Únicamente el psicólogo responsable, con licencia vigente en SST. Su empresa recibe resultados agregados de grupos de cinco personas o más.'],
-          ['Cuánto tiempo se conservan', 'Veinte años, como exige la custodia de la historia clínica ocupacional (Ley 1090 de 2006).'],
+          ['Cuánto tiempo se conservan', 'Veinte años, el plazo que la Resolución 1995 de 1999 fija para la historia clínica. La custodia es del psicólogo (Ley 1090 de 2006).'],
           ['Sus derechos', 'Puede conocer, actualizar, rectificar y pedir la supresión de sus datos cuando quiera (Ley 1581 de 2012).'],
-        ].map(([t, d], i) => `<div style="padding:11px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
+        ].map(([t, d], i) => `<div style="padding:9px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
           <p style="font-size:13.5px;font-weight:600;color:${T.ink}">${esc(t)}</p>
           <p style="font-size:12.5px;line-height:1.5;color:${T.secondary};margin-top:4px">${esc(d)}</p>
         </div>`).join('')}
       </div>
     </div>
 
-    <div style="flex-shrink:0;padding:18px 24px 26px;border-top:1px solid ${T.border};background:${T.surface}">
+    <div style="flex-shrink:0;padding:14px 24px 20px;border-top:1px solid ${T.border};background:${T.surface}">
       <div style="display:flex;gap:11px;align-items:flex-start">
         <span style="width:22px;height:22px;border-radius:6px;border:1.5px solid ${T.teal};background:${T.teal};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
           ${icono('check', { size: 13, color: '#FFF', w: 2.8 })}
@@ -217,7 +217,7 @@ export const finalizado = movil(`
     <div style="margin-top:28px;padding:17px 19px;border-radius:11px;background:${T.surface};border:1px solid ${T.border}">
       <p style="font-size:13.5px;font-weight:600;color:${T.ink}">¿Necesita hablar con alguien?</p>
       <p style="font-size:13px;line-height:1.55;color:${T.secondary};margin-top:5px">
-        Línea nacional de salud mental <span class="num">106</span> · atención gratuita, 24 horas.
+        Línea nacional de salud mental <span class="num">192</span>, opción <span class="num">4</span> · gratuita, 24 horas.
       </p>
     </div>
 
@@ -388,8 +388,8 @@ export const portada = artboard({
 // ── Documentos legales ─────────────────────────────────────────────────
 function legal({ titulo, rubrica, entrada, secciones, actualizado }) {
   return artboard({
-    w: 1440, h: 1280,
-    cuerpo: `<div style="width:1440px;height:1280px;background:${T.paper};overflow:hidden">
+    w: 1440, h: 1460,
+    cuerpo: `<div style="width:1440px;height:1460px;background:${T.paper};overflow:hidden">
       <header style="height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 64px;border-bottom:1px solid ${T.border}">
         ${marca({ size: 27 })}
         <span style="font-size:13.5px;color:${T.secondary}">Volver al inicio</span>
@@ -474,7 +474,7 @@ export const privacidad = legal({
       'Las solicitudes se atienden en los términos del artículo 14 de la Ley 1581 de 2012 escribiendo a <span style="color:#007A65">datos@psicosst.co</span>.',
     ]],
     ['Conservación y seguridad', [
-      'Los datos de salud se conservan veinte años, conforme al deber de custodia de la historia clínica ocupacional. Se almacenan cifrados en reposo y en tránsito, en infraestructura ubicada en territorio de la Comunidad Andina.',
+      'Los datos de salud se conservan veinte años, el plazo que fija la Resolución 1995 de 1999 —modificada por la Resolución 839 de 2017— para la historia clínica. Se almacenan cifrados en reposo y en tránsito, en infraestructura ubicada en territorio de la Comunidad Andina.',
       'El acceso de los profesionales exige un segundo factor de autenticación que no puede desactivarse desde la propia cuenta.',
     ]],
   ],

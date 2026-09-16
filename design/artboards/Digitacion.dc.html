@@ -8,83 +8,136 @@
 <x-dc>
 <helmet>
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
 
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
-         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; }
   a { color: #007A65; text-decoration: none; }
-  a:hover { color: #009A80; text-decoration: underline; }
+  a:hover { color: #009A80; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
-     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
-     principio de todo el sistema. */
-  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
-         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
-  .rub-ink { color: #4A5F70; }
+  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
+     de museo era la mitad del aire formal que sobraba. */
+  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+         text-transform: uppercase; color: #8996A1; }
+  .rub-ink { color: #55636E; }
 
-  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
-  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
-             line-height: 0.94; color: #0C1520; }
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
 
-  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
-  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
 
-  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
-  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
-           color: #1D2B38; text-wrap: pretty; }
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
 
   /* ── Chrome de aplicación ─────────────────────────────────────────── */
-  .shell { display: flex; height: 100%; background: #F2F0EC; }
-  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
-          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
-  .side-brand { padding: 26px 24px 22px; }
-  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
-  .side-group { display: flex; flex-direction: column; gap: 1px; }
-  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
-  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
-         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
-         border-radius: 6px; }
-  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
-            border-left-color: #009A80; }
-  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
-               display: flex; align-items: center; gap: 10px; }
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
-         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
-         justify-content: space-between; padding: 0 28px; }
-  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
-         background: #E8E5E0; color: #8A9FAE; }
-  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #8996A1; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #8996A1; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
 
   /* ── Primitivas ───────────────────────────────────────────────────── */
-  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
-         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
-  .btn-pri { background: #009A80; color: #FFF; }
-  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
-  .btn-ghost { color: #4A5F70; }
-  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
-           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8996A1;
            display: flex; align-items: center; }
-  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
-         text-transform: uppercase; color: #8A9FAE; }
-  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-        text-transform: uppercase; color: #8A9FAE; text-align: left;
-        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
-  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
-        color: #0C1520; vertical-align: middle; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
-          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #8996A1;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
+     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
 </style>
 </helmet>
-<div style="width:1440px;height:920px;background:#F2F0EC;overflow:hidden">
-<div style="width:1440px;height:920px;background:#F2F0EC;display:flex;flex-direction:column">
-    <header style="height:58px;flex-shrink:0;background:#FFFFFF;border-bottom:1px solid #D4CFC8;display:flex;align-items:center;justify-content:space-between;padding:0 32px">
+<div style="width:1440px;height:920px;background:#F7F8F9;overflow:hidden">
+<div style="width:1440px;height:920px;background:#F7F8F9;display:flex;flex-direction:column">
+    <header style="height:58px;flex-shrink:0;background:#FFFFFF;border-bottom:1px solid #E4E8EB;display:flex;align-items:center;justify-content:space-between;padding:0 32px">
       <div style="display:flex;align-items:center;gap:11px">
     <svg viewBox="2.2 2.2 35.6 39.6" width="21.6" height="24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
@@ -101,14 +154,14 @@
       <circle cx="20" cy="22" r="4.2"/>
     </g></svg>
     <div style="display:flex;flex-direction:column;gap:3px">
-      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:17.3px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:17.3px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
       
     </div></div>
       <div style="display:flex;align-items:center;gap:20px">
-        <p style="font-size:13px;color:#4A5F70">Hernán Duque Prieto · <span class="num">CC 79.114.226</span> · Forma A</p>
-        <span style="width:1px;height:18px;background:#D4CFC8"></span>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8A9FAE">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg><span>Guardado hace <span class="num">4 s</span></span>
+        <p style="font-size:13px;color:#55636E">Hernán Duque Prieto · <span class="num">CC 79.114.226</span> · Forma A</p>
+        <span style="width:1px;height:18px;background:#E4E8EB"></span>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8996A1">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17B26A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg><span>Guardado hace <span class="num">4 s</span></span>
         </div>
         <span class="btn btn-ghost">Salir</span>
       </div>
@@ -119,9 +172,9 @@
         <div style="max-width:880px;margin:0 auto">
           <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px">
             <p class="rub rub-ink">Demandas del trabajo · Demandas cuantitativas y de carga mental</p>
-            <p class="num" style="font-size:12.5px;color:#8A9FAE">18 / 123</p>
+            <p class="num" style="font-size:12.5px;color:#8996A1">18 / 123</p>
           </div>
-          <div style="height:4px;border-radius:2px;background:#E8E5E0;overflow:hidden;margin-bottom:26px">
+          <div style="height:4px;border-radius:2px;background:#F0F2F4;overflow:hidden;margin-bottom:26px">
             <div style="width:14.6%;height:100%;background:#009A80"></div>
           </div>
 
@@ -130,259 +183,259 @@
           </div>
 
           
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;background:#FFFFFF">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;background:#FFFFFF">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">13</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">13</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Por la cantidad de trabajo que tengo debo quedarme tiempo adicional</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Por la cantidad de trabajo que tengo debo quedarme tiempo adicional</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
                   <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #009A80;background:#009A80;display:flex;align-items:center;justify-content:center">
                     <span style="width:7px;height:7px;border-radius:999px;background:#FFF"></span>
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;background:#FFFFFF">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;background:#FFFFFF">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">14</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">14</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Me alcanza el tiempo de trabajo para tener al día mis deberes</p>
-                  <span class="rub" style="color:#2563EB;margin-top:5px;display:inline-block">Ítem invertido</span>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Me alcanza el tiempo de trabajo para tener al día mis deberes</p>
+                  <span class="rub" style="color:#2E90FA;margin-top:5px;display:inline-block">Ítem invertido</span>
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
                   <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #009A80;background:#009A80;display:flex;align-items:center;justify-content:center">
                     <span style="width:7px;height:7px;border-radius:999px;background:#FFF"></span>
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;background:#FFFFFF">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;background:#FFFFFF">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">15</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">15</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Por la cantidad de trabajo que tengo debo trabajar sin parar</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Por la cantidad de trabajo que tengo debo trabajar sin parar</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
                   <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #009A80;background:#009A80;display:flex;align-items:center;justify-content:center">
                     <span style="width:7px;height:7px;border-radius:999px;background:#FFF"></span>
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;background:#FFFFFF">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;background:#FFFFFF">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">16</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">16</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Mi trabajo me exige hacer mucho esfuerzo mental</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Mi trabajo me exige hacer mucho esfuerzo mental</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
                   <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #009A80;background:#009A80;display:flex;align-items:center;justify-content:center">
                     <span style="width:7px;height:7px;border-radius:999px;background:#FFF"></span>
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">17</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">17</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Mi trabajo me exige estar muy concentrado</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Mi trabajo me exige estar muy concentrado</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">18</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">18</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Mi trabajo me exige memorizar mucha información</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Mi trabajo me exige memorizar mucha información</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">19</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">19</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">En mi trabajo tengo que tomar decisiones difíciles muy rápido</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">En mi trabajo tengo que tomar decisiones difíciles muy rápido</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">20</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">20</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Mi trabajo me exige atender a muchos asuntos al mismo tiempo</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Mi trabajo me exige atender a muchos asuntos al mismo tiempo</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">21</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">21</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">Mi trabajo requiere que me fije en pequeños detalles</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">Mi trabajo requiere que me fije en pequeños detalles</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
-            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #E2DED8;">
+            <div style="display:flex;align-items:center;gap:0;padding:13px 0;border-top:1px solid #EFF2F4;">
               <div style="width:452px;flex-shrink:0;display:flex;gap:13px;padding-right:24px">
-                <span class="num" style="font-size:12px;color:#8A9FAE;padding-top:2px;width:22px;flex-shrink:0">22</span>
+                <span class="num" style="font-size:12px;color:#8996A1;padding-top:2px;width:22px;flex-shrink:0">22</span>
                 <div>
-                  <p style="font-size:14px;line-height:1.45;color:#0C1520">En mi trabajo respondo por cosas de mucho valor</p>
+                  <p style="font-size:14px;line-height:1.45;color:#0B0F14">En mi trabajo respondo por cosas de mucho valor</p>
                   
                 </div>
               </div>
               <div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div><div style="flex:1;display:flex;justify-content:center">
-                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #D4CFC8;background:transparent;display:flex;align-items:center;justify-content:center">
+                  <span style="width:22px;height:22px;border-radius:999px;border:1.5px solid #E4E8EB;background:transparent;display:flex;align-items:center;justify-content:center">
                     
                   </span></div>
             </div>
 
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:28px;padding-top:20px;border-top:1px solid #D4CFC8">
-            <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#8A9FAE">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:28px;padding-top:20px;border-top:1px solid #E4E8EB">
+            <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#8996A1">
               <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span><span class="kbd">5</span>
               <span>para responder ·</span><span class="kbd">↑</span><span class="kbd">↓</span><span>para moverse</span>
             </div>
@@ -394,59 +447,59 @@
         </div>
       </div>
 
-      <aside style="width:292px;flex-shrink:0;background:#FFFFFF;border-left:1px solid #D4CFC8;padding:28px 24px">
+      <aside style="width:292px;flex-shrink:0;background:#FFFFFF;border-left:1px solid #E4E8EB;padding:28px 24px">
         <p class="rub rub-ink">Avance por dominio</p>
         <div style="margin-top:16px">
           
-            <div style="padding:11px 0;border-bottom:1px solid #E2DED8">
+            <div style="padding:11px 0;border-bottom:1px solid #EFF2F4">
               <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span style="font-size:12.5px;color:#0C1520">Liderazgo y relaciones</span>
-                <span class="num" style="font-size:11.5px;color:#16A34A">41/41</span>
+                <span style="font-size:12.5px;color:#0B0F14">Demandas del trabajo</span>
+                <span class="num" style="font-size:11.5px;color:#8996A1">18/50</span>
               </div>
-              <div style="height:3px;border-radius:2px;background:#E8E5E0;margin-top:7px;overflow:hidden">
-                <div style="width:100%;height:100%;background:#16A34A"></div>
-              </div>
-            </div>
-            <div style="padding:11px 0;border-bottom:1px solid #E2DED8">
-              <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span style="font-size:12.5px;color:#0C1520">Control sobre el trabajo</span>
-                <span class="num" style="font-size:11.5px;color:#16A34A">21/21</span>
-              </div>
-              <div style="height:3px;border-radius:2px;background:#E8E5E0;margin-top:7px;overflow:hidden">
-                <div style="width:100%;height:100%;background:#16A34A"></div>
-              </div>
-            </div>
-            <div style="padding:11px 0;border-bottom:1px solid #E2DED8">
-              <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span style="font-size:12.5px;color:#0C1520">Demandas del trabajo</span>
-                <span class="num" style="font-size:11.5px;color:#8A9FAE">18/50</span>
-              </div>
-              <div style="height:3px;border-radius:2px;background:#E8E5E0;margin-top:7px;overflow:hidden">
+              <div style="height:3px;border-radius:2px;background:#F0F2F4;margin-top:7px;overflow:hidden">
                 <div style="width:36%;height:100%;background:#009A80"></div>
               </div>
             </div>
-            <div style="padding:11px 0;border-bottom:1px solid #E2DED8">
+            <div style="padding:11px 0;border-bottom:1px solid #EFF2F4">
               <div style="display:flex;justify-content:space-between;align-items:baseline">
-                <span style="font-size:12.5px;color:#0C1520">Recompensa</span>
-                <span class="num" style="font-size:11.5px;color:#8A9FAE">0/11</span>
+                <span style="font-size:12.5px;color:#0B0F14">Liderazgo y relaciones</span>
+                <span class="num" style="font-size:11.5px;color:#8996A1">0/41</span>
               </div>
-              <div style="height:3px;border-radius:2px;background:#E8E5E0;margin-top:7px;overflow:hidden">
+              <div style="height:3px;border-radius:2px;background:#F0F2F4;margin-top:7px;overflow:hidden">
+                <div style="width:0%;height:100%;background:#009A80"></div>
+              </div>
+            </div>
+            <div style="padding:11px 0;border-bottom:1px solid #EFF2F4">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:12.5px;color:#0B0F14">Control sobre el trabajo</span>
+                <span class="num" style="font-size:11.5px;color:#8996A1">0/21</span>
+              </div>
+              <div style="height:3px;border-radius:2px;background:#F0F2F4;margin-top:7px;overflow:hidden">
+                <div style="width:0%;height:100%;background:#009A80"></div>
+              </div>
+            </div>
+            <div style="padding:11px 0;border-bottom:1px solid #EFF2F4">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:12.5px;color:#0B0F14">Recompensa</span>
+                <span class="num" style="font-size:11.5px;color:#8996A1">0/11</span>
+              </div>
+              <div style="height:3px;border-radius:2px;background:#F0F2F4;margin-top:7px;overflow:hidden">
                 <div style="width:0%;height:100%;background:#009A80"></div>
               </div>
             </div>
         </div>
 
-        <div style="margin-top:24px;padding:16px 17px;border-radius:10px;background:#F2F0EC;border:1px solid #D4CFC8">
+        <div style="margin-top:24px;padding:16px 17px;border-radius:10px;background:#F7F8F9;border:1px solid #E4E8EB">
           <p class="rub rub-ink">Sin responder</p>
-          <p class="num" style="font-size:30px;font-weight:600;margin-top:8px;color:#D97706">105</p>
-          <p style="font-size:12px;line-height:1.55;color:#4A5F70;margin-top:7px">
+          <p class="num" style="font-size:30px;font-weight:600;margin-top:8px;color:#F79009">105</p>
+          <p style="font-size:12px;line-height:1.55;color:#55636E;margin-top:7px">
             La batería no admite ítems en blanco: si alguno queda sin marcar, el cuestionario se anula y no se puede calificar.
           </p>
         </div>
 
         <div style="margin-top:20px;display:flex;gap:10px;align-items:flex-start">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <p style="font-size:11.5px;line-height:1.55;color:#8A9FAE">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <p style="font-size:11.5px;line-height:1.55;color:#8996A1">
             Cada respuesta se registra con marca de tiempo y usuario. La digitación queda en el log de auditoría.
           </p>
         </div>

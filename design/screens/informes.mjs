@@ -55,7 +55,7 @@ const DIMS_INFORME = [
 ];
 
 export const informeIndividual = app({
-  w: 1440, h: 2060, activo: 'reports', migas: ['Informes', 'IN-2026-0918'],
+  w: 1440, h: 2200, activo: 'reports', migas: ['Informes', 'IN-2026-0918'],
   contenido: `
   <div style="display:flex;gap:36px">
     <!-- El documento, compuesto como el PDF que va a salir -->
@@ -65,7 +65,7 @@ export const informeIndividual = app({
           <p class="rub">Informe individual de riesgo psicosocial</p>
           <h1 class="display" style="font-size:34px;margin-top:10px">Hernán Duque Prieto</h1>
           <p style="font-size:13px;color:${T.secondary};margin-top:7px">
-            <span class="num">CC 79.114.226</span> · Transportes Andinos S.A.S. · Conducción · Operativo
+            <span class="num">CC 79.114.226</span> · Transportes Andinos S.A.S. · Supervisor de rutas · Técnico
           </p>
         </div>
         <div style="text-align:right">
@@ -87,9 +87,9 @@ export const informeIndividual = app({
           <div style="flex:1;min-width:0">
             <p class="prose">
               El puntaje total transformado sitúa a la persona evaluada en <strong style="font-weight:600">riesgo
-              muy alto</strong>, percentil 96 del baremo nacional para población operativa. La Resolución 2646
-              de 2008 exige, en este nivel, intervención inmediata dentro del sistema de vigilancia
-              epidemiológica y seguimiento individual documentado.
+              muy alto</strong>, percentil 96 del baremo nacional para técnicos. En este nivel el manual de la batería
+              indica intervención inmediata dentro del sistema de vigilancia epidemiológica y
+              seguimiento individual documentado, conforme a la Resolución 2764 de 2022.
             </p>
             <div style="display:flex;gap:26px;margin-top:20px;padding-top:16px;border-top:1px solid ${T.borderMuted}">
               ${[['Extralaboral', 38.4, 'medio'], ['Estrés', 44.1, 'alto'], ['Ítems respondidos', null, null]].map(([k, v, r]) => `
@@ -111,7 +111,7 @@ export const informeIndividual = app({
             <td class="td" style="font-size:13px">${esc(d)}</td>
             <td class="td num" style="text-align:right;font-weight:600;color:${RISK[r].text}">${n1(p)}</td>
             <td class="td">
-              <div style="height:6px;border-radius:3px;background:${T.surfaceMuted};overflow:hidden"><div style="width:${p}%;height:100%;background:${RISK[r].bar}"></div></div>
+              <div style="height:6px;border-radius:3px;background:${T.surfaceMuted};overflow:hidden"><div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div></div>
             </td>
             <td class="td"><div style="display:flex;align-items:center;gap:9px">${pasos(r, { w: 9, h: 6, gap: 2 })}${riesgo(r, { size: 'sm' })}</div></td>
           </tr>`).join('')}
@@ -158,7 +158,11 @@ export const informeIndividual = app({
       <div style="margin-top:36px;padding-top:22px;border-top:1px solid ${T.border};display:flex;justify-content:space-between;align-items:flex-end">
         <div>
           <p class="rub">Profesional responsable</p>
-          <p style="font-family:${FONTS.serif};font-size:21px;font-style:italic;color:${T.ink};margin-top:12px">María Torres Gómez</p>
+          <svg width="150" height="44" viewBox="0 0 240 76" fill="none" style="margin-top:8px;display:block">
+            <path d="M12 56c18-34 26 14 42-16s22 20 36-10 26 26 42-4 24 18 40-8 22 14 32 2" stroke="${T.ink}" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M104 64c26 2 54 0 78-4" stroke="${T.ink}" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <p style="font-size:15px;font-weight:600;color:${T.ink};margin-top:4px">María Torres Gómez</p>
           <p style="font-size:11.5px;color:${T.secondary};margin-top:5px">Psicóloga · T.P. <span class="num">118432</span> · Lic. SST <span class="num">2019-4471</span></p>
         </div>
         <p class="num" style="font-size:10px;color:${T.muted};text-align:right;line-height:1.7">

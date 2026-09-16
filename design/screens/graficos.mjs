@@ -17,7 +17,7 @@ export function barras(datos, { w = 400, color = null, rampa = false, unidad = '
       const pct = (v / tope) * 100;
       return `<div style="display:flex;align-items:center;gap:10px;padding:4.5px 0">
         <span style="font-size:12px;color:${T.secondary};width:${Math.min(anchoEtq, 140)}px;flex-shrink:0;text-align:right">${esc(k)}</span>
-        <div style="flex:1;min-width:0"><div style="width:${pct.toFixed(1)}%;height:11px;background:${c};border-radius:0 4px 4px 0;min-width:3px"></div></div>
+        <div style="flex:1;min-width:0"><div class="barra-anim" style="width:${pct.toFixed(1)}%;height:11px;background:${c};border-radius:0 4px 4px 0;min-width:3px"></div></div>
         <span class="num" style="font-size:11.5px;color:${T.secondary};white-space:nowrap;width:44px;flex-shrink:0">${typeof v === 'number' && !Number.isInteger(v) ? n1(v) : v}${unidad}</span>
       </div>`;
     }).join('')}

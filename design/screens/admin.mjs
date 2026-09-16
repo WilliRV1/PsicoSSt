@@ -4,7 +4,7 @@ import { barras, figura } from './graficos.mjs';
 
 // ── Panel de administración ────────────────────────────────────────────
 export const panelAdmin = app({
-  w: 1440, h: 1020, activo: 'admin', migas: ['Panel admin'],
+  w: 1440, h: 1060, activo: 'admin', migas: ['Panel admin'],
   contenido: `
   ${cabecera({
     rubrica: 'Administración · Plataforma',

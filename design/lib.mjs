@@ -1,37 +1,39 @@
-// Sistema visual PsicoSST — dirección «clínico editorial».
-// Los valores de color, radio y tipografía se toman literalmente de
-// src/app/globals.css y de las pantallas ya implementadas (login, Sidebar,
-// Header, StatCard). Lo que cambia es la ESCALA, no la paleta: Barlow pasa de
-// etiqueta de 10px a titular de 56px, y Source Serif 4 —que hoy solo vive en
-// los PDF— entra a pantalla para la narrativa interpretativa.
+// Sistema visual PsicoSST — dirección «moderno y fluido».
+//
+// Segunda iteración. La primera conservaba la paleta y las cuatro familias de
+// src/app/globals.css y sólo cambiaba la escala; se leía formal y los números
+// parecían antiguos. Aquí se conservan el teal de la marca y los cinco niveles
+// de riesgo que exige la norma, y se cambia todo lo demás: el papel cálido pasa
+// a un neutro frío, Geist sustituye a Barlow + IBM Plex Sans + IBM Plex Mono +
+// Source Serif 4, y el movimiento entra con las reglas de Emil Kowalski.
 
 export const T = {
-  paper:        '#F2F0EC',
+  paper:        '#F7F8F9',
   surface:      '#FFFFFF',
-  surfaceMuted: '#E8E5E0',
-  ink:          '#0C1520',
-  secondary:    '#4A5F70',
-  muted:        '#8A9FAE',
-  border:       '#D4CFC8',
-  borderMuted:  '#E2DED8',
+  surfaceMuted: '#F0F2F4',
+  ink:          '#0B0F14',
+  secondary:    '#55636E',
+  muted:        '#8996A1',
+  border:       '#E4E8EB',
+  borderMuted:  '#EFF2F4',
   teal:         '#009A80',
-  tealLight:    '#CCF0E8',
+  tealLight:    '#E4F6F1',
   tealDark:     '#007A65',
-  success:      '#16A34A',
-  warning:      '#D97706',
-  danger:       '#DC2626',
-  info:         '#2563EB',
+  success:      '#17B26A',
+  warning:      '#F79009',
+  danger:       '#F04438',
+  info:         '#2E90FA',
 };
 
 // Escala de riesgo de la Resolución 2646. bg/text/border salen tal cual de
 // las variables --color-risk-* ; `bar` es el tono macizo para la banda y los
 // pasos ordinales, donde un pastel no aguanta a 8px de alto.
 export const RISK = {
-  sin:     { label: 'Sin riesgo', bg: '#F2F0EC', text: '#4A5F70', border: '#D4CFC8', bar: '#B8B2A8' },
-  bajo:    { label: 'Bajo',       bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0', bar: '#16A34A' },
-  medio:   { label: 'Medio',      bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', bar: '#D97706' },
-  alto:    { label: 'Alto',       bg: '#FFEDD5', text: '#C2410C', border: '#FED7AA', bar: '#EA580C' },
-  muyAlto: { label: 'Muy alto',   bg: '#FEE2E2', text: '#B91C1C', border: '#FECACA', bar: '#DC2626' },
+  sin:     { label: 'Sin riesgo', bg: '#F1F3F5', text: '#55636E', border: '#E4E8EB', bar: '#A9B4BC' },
+  bajo:    { label: 'Bajo',       bg: '#E7F8EF', text: '#067647', border: '#CDF0DE', bar: '#17B26A' },
+  medio:   { label: 'Medio',      bg: '#FEF6E7', text: '#B54708', border: '#FBE3BC', bar: '#F79009' },
+  alto:    { label: 'Alto',       bg: '#FEF0E7', text: '#B93815', border: '#FBD9C4', bar: '#EF6820' },
+  muyAlto: { label: 'Muy alto',   bg: '#FEECEC', text: '#B42318', border: '#FBD2D2', bar: '#F04438' },
 };
 export const RISK_ORDER = ['sin', 'bajo', 'medio', 'alto', 'muyAlto'];
 
@@ -51,13 +53,19 @@ export const CAT_OSCURO = ['#0FA68F', '#D97706', '#4B82F0', '#DB2777', '#8B5CF6'
 export const RAMPA = ['#CCF0E8', '#8ED9C8', '#4FC2AA', '#1FA88C', '#00806B', '#005C4E'];
 
 export const FONTS = {
-  sans:  "'IBM Plex Sans', system-ui, -apple-system, sans-serif",
-  head:  "'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif",
-  mono:  "'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace",
-  serif: "'Source Serif 4', Georgia, 'Times New Roman', serif",
+  // Geist hace de interfaz, de titular y de cifra. Una sola familia moderna en
+  // lugar de cuatro históricas: es lo que quita de encima el aire de documento.
+  sans:  "'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif",
+  head:  "'Geist', system-ui, -apple-system, sans-serif",
+  serif: "'Geist', system-ui, -apple-system, sans-serif",
+  // El monoespaciado queda sólo para lo que es literalmente una cadena de
+  // máquina: huellas, tokens y claves. Nunca para un puntaje.
+  mono:  "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace",
+  // La marca conserva Barlow Semi Condensed: es el logotipo, no la interfaz.
+  marca: "'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif",
 };
 
-const GOOGLE = 'https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap';
+const GOOGLE = 'https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap';
 
 // CSS compartido. Solo cubre el chrome que se repite idéntico en 40 pantallas
 // (barra lateral, cabecera, tabla, ficha). Todo lo que alguien querría
@@ -66,76 +74,129 @@ const GOOGLE = 'https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:w
 export const CSS = `
   @import url('${GOOGLE}');
 
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
+
   * { box-sizing: border-box; }
   body { margin: 0; font-family: ${FONTS.sans}; background: ${T.paper}; color: ${T.ink};
-         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; }
   a { color: ${T.tealDark}; text-decoration: none; }
-  a:hover { color: ${T.teal}; text-decoration: underline; }
+  a:hover { color: ${T.teal}; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
-     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
-     principio de todo el sistema. */
-  .rub { font-family: ${FONTS.head}; font-size: 10px; font-weight: 600;
-         letter-spacing: 0.22em; text-transform: uppercase; color: ${T.muted}; }
+  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
+     de museo era la mitad del aire formal que sobraba. */
+  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+         text-transform: uppercase; color: ${T.muted}; }
   .rub-ink { color: ${T.secondary}; }
 
-  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
-  .display { font-family: ${FONTS.head}; font-weight: 600; letter-spacing: -0.02em;
-             line-height: 0.94; color: ${T.ink}; }
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: ${FONTS.head}; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: ${T.ink}; }
 
-  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
-  .num { font-family: ${FONTS.mono}; font-variant-numeric: tabular-nums; }
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+           font-weight: 600; line-height: 1; color: ${T.ink}; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: ${FONTS.mono}; font-size: 0.92em; letter-spacing: -0.01em; }
 
-  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
-  .prose { font-family: ${FONTS.serif}; font-size: 16.5px; line-height: 1.62;
-           color: #1D2B38; text-wrap: pretty; }
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: ${T.secondary};
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: ${T.ink}; font-weight: 600; }
+  .prose em { font-style: normal; color: ${T.ink}; font-weight: 500; }
 
   /* ── Chrome de aplicación ─────────────────────────────────────────── */
   .shell { display: flex; height: 100%; background: ${T.paper}; }
-  .side { width: 240px; flex-shrink: 0; background: ${T.surface};
+  .side { width: 244px; flex-shrink: 0; background: ${T.surface};
           border-right: 1px solid ${T.border}; display: flex; flex-direction: column; }
-  .side-brand { padding: 26px 24px 22px; }
-  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
-  .side-group { display: flex; flex-direction: column; gap: 1px; }
-  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
-  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
-         font-size: 13px; color: ${T.secondary}; border-left: 2px solid transparent;
-         border-radius: 6px; }
-  .nav-on { color: ${T.teal}; font-weight: 600; background: ${T.tealLight};
-            border-left-color: ${T.teal}; }
-  .side-foot { padding: 14px 16px; border-top: 1px solid ${T.border};
-               display: flex; align-items: center; gap: 10px; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: ${T.secondary}; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: ${T.ink}; font-weight: 500; background: ${T.surfaceMuted}; }
+  .side-foot { padding: 12px; border-top: 1px solid ${T.border}; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: ${T.surfaceMuted}; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .top { height: 52px; flex-shrink: 0; background: ${T.surface};
+  .top { height: 60px; flex-shrink: 0; background: ${T.surface};
          border-bottom: 1px solid ${T.border}; display: flex; align-items: center;
-         justify-content: space-between; padding: 0 28px; }
-  .kbd { font-family: ${FONTS.mono}; font-size: 11px; padding: 2px 6px; border-radius: 4px;
-         background: ${T.surfaceMuted}; color: ${T.muted}; }
-  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: ${T.surfaceMuted};
+           color: ${T.muted}; font-size: 13.5px; }
+  .kbd { font-family: ${FONTS.mono}; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: ${T.surface}; color: ${T.muted}; border: 1px solid ${T.border}; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
 
   /* ── Primitivas ───────────────────────────────────────────────────── */
-  .card { background: ${T.surface}; border: 1px solid ${T.border}; border-radius: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
-         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
-  .btn-pri { background: ${T.teal}; color: #FFF; }
-  .btn-sec { background: ${T.surface}; color: ${T.ink}; border: 1px solid ${T.border}; }
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: ${T.surface}; border: 1px solid ${T.border}; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: ${T.ink}; color: #FFF; }
+  .btn-acc { background: ${T.teal}; color: #FFF; }
+  .btn-sec { background: ${T.surface}; color: ${T.ink}; border: 1px solid ${T.border};
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
   .btn-ghost { color: ${T.secondary}; }
-  .input { height: 40px; border: 1px solid ${T.border}; border-radius: 8px;
+
+  .input { height: 40px; border: 1px solid ${T.border}; border-radius: 10px;
            background: ${T.surface}; padding: 0 13px; font-size: 14px; color: ${T.muted};
            display: flex; align-items: center; }
-  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
-         text-transform: uppercase; color: ${T.muted}; }
-  .th { font-family: ${FONTS.head}; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-        text-transform: uppercase; color: ${T.muted}; text-align: left;
-        padding: 0 0 10px; border-bottom: 1px solid ${T.border}; }
-  .td { padding: 13px 0; border-bottom: 1px solid ${T.borderMuted}; font-size: 13.5px;
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: ${T.secondary}; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: ${T.muted};
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid ${T.border};
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid ${T.borderMuted}; font-size: 13.5px;
         color: ${T.ink}; vertical-align: middle; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
-          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
+     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
 `;
 
 // ── Utilidades de composición ────────────────────────────────────────
@@ -173,7 +234,7 @@ export function marca({ size = 26, light = false, sub = 'Riesgo psicosocial' } =
   return `<div style="display:flex;align-items:center;gap:11px">
     ${isotipo(size)}
     <div style="display:flex;flex-direction:column;gap:3px">
-      <span style="font-family:${FONTS.head};font-weight:700;font-size:${(size * 0.72).toFixed(1)}px;letter-spacing:-0.01em;line-height:1;color:${nom}">Psico<span style="color:${acc}">SST</span></span>
+      <span style="font-family:${FONTS.marca};font-weight:700;font-size:${(size * 0.72).toFixed(1)}px;letter-spacing:-0.01em;line-height:1;color:${nom}">Psico<span style="color:${acc}">SST</span></span>
       ${sub ? `<span style="font-size:${Math.max(size * 0.27, 8.5).toFixed(1)}px;letter-spacing:0.15em;text-transform:uppercase;color:${baj};line-height:1">${sub}</span>` : ''}
     </div></div>`;
 }
@@ -183,11 +244,13 @@ export function marca({ size = 26, light = false, sub = 'Riesgo psicosocial' } =
  * Es la pieza que hace el nivel legible sin depender del color —posición
  * primero, color después— y funciona en gris, que es como se imprime.
  */
-export function pasos(level, { w = 13, h = 7, gap = 3 } = {}) {
+export function pasos(level, { w = 14, h = 6, gap = 3 } = {}) {
   const i = RISK_ORDER.indexOf(level);
   const cells = RISK_ORDER.map((k, n) => {
     const on = n <= i;
-    return `<span style="width:${w}px;height:${h}px;border-radius:1.5px;background:${on ? RISK[level].bar : 'transparent'};border:1px solid ${on ? RISK[level].bar : T.border}"></span>`;
+    // El paso apagado es una pista rellena, no un rectángulo con contorno:
+    // los contornos vacíos se leen como casilla de formulario.
+    return `<span style="width:${w}px;height:${h}px;border-radius:${(h / 2).toFixed(1)}px;background:${on ? RISK[level].bar : '#E4E8EB'}"></span>`;
   }).join('');
   return `<span style="display:inline-flex;gap:${gap}px;align-items:center">${cells}</span>`;
 }
@@ -195,24 +258,24 @@ export function pasos(level, { w = 13, h = 7, gap = 3 } = {}) {
 /** Píldora de nivel. */
 export function riesgo(level, { size = 'md' } = {}) {
   const r = RISK[level];
-  const fs = size === 'sm' ? 11 : 11.5;
-  const h = size === 'sm' ? 20 : 22;
-  return `<span class="chip" style="height:${h}px;font-size:${fs}px;background:${r.bg};color:${r.text};border:1px solid ${r.border}">
-    <span style="width:5px;height:5px;border-radius:999px;background:${r.bar}"></span>${r.label}</span>`;
+  const fs = size === 'sm' ? 11.5 : 12;
+  const h = size === 'sm' ? 22 : 24;
+  return `<span class="chip" style="height:${h}px;font-size:${fs}px;background:${r.bg};color:${r.text}">
+    <span style="width:6px;height:6px;border-radius:999px;background:${r.bar}"></span>${r.label}</span>`;
 }
 
 /** Estado de flujo de una evaluación. */
 export function estado(txt, tone = 'neutro') {
   const map = {
-    neutro:  [T.surfaceMuted, T.secondary, T.border],
-    teal:    [T.tealLight, T.tealDark, '#A9E3D6'],
-    ok:      ['#DCFCE7', '#15803D', '#BBF7D0'],
-    aviso:   ['#FEF3C7', '#B45309', '#FDE68A'],
-    alerta:  ['#FEE2E2', '#B91C1C', '#FECACA'],
-    info:    ['#DBEAFE', '#1D4ED8', '#BFDBFE'],
+    neutro:  [T.surfaceMuted, T.secondary],
+    teal:    [T.tealLight, T.tealDark],
+    ok:      ['#E7F8EF', '#067647'],
+    aviso:   ['#FEF6E7', '#B54708'],
+    alerta:  ['#FEECEC', '#B42318'],
+    info:    ['#E8F1FE', '#1849A9'],
   };
-  const [bg, fg, bd] = map[tone] || map.neutro;
-  return `<span class="chip" style="background:${bg};color:${fg};border:1px solid ${bd}">${esc(txt)}</span>`;
+  const [bg, fg] = map[tone] || map.neutro;
+  return `<span class="chip" style="background:${bg};color:${fg}">${esc(txt)}</span>`;
 }
 
 /** Iconos de trazo, rejilla de 24, 1.6px — nunca emoji. */
@@ -300,15 +363,17 @@ export function sidebar(activo, { usuario = 'María Torres Gómez', iniciales = 
     </div>`).join('');
 
   return `<aside class="side">
-    <div class="side-brand">${marca({ size: 26 })}</div>
+    <div class="side-brand">${marca({ size: 25 })}</div>
     <nav class="side-nav">${grupos}</nav>
     <div class="side-foot">
-      <div style="width:28px;height:28px;border-radius:999px;background:${T.tealLight};color:${T.teal};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${esc(iniciales)}</div>
-      <div style="flex:1;min-width:0">
-        <p style="font-size:12.5px;font-weight:600;color:${T.secondary};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(usuario)}</p>
-        <p class="num" style="font-size:10.5px;color:${T.muted};margin-top:1px">Lic. SST 2019-4471</p>
+      <div class="side-user">
+        <div style="width:28px;height:28px;border-radius:9px;background:${T.ink};color:#FFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">${esc(iniciales)}</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:12.5px;font-weight:500;color:${T.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(usuario)}</p>
+          <p class="num" style="font-size:11px;color:${T.muted};margin-top:1px">Lic. SST 2019-4471</p>
+        </div>
+        ${icono('salir', { size: 14, color: T.muted })}
       </div>
-      ${icono('salir', { size: 14, color: T.muted })}
     </div>
   </aside>`;
 }
@@ -320,19 +385,18 @@ export function topbar({ creditos = 47, migas = [] } = {}) {
          ${migas.map((m, i) => `${i ? `<span style="color:${T.border}">/</span>` : ''}<span style="${i === migas.length - 1 ? `color:${T.ink};font-weight:500` : ''}">${esc(m)}</span>`).join('')}
        </div>` : '';
   return `<header class="top">
-    <div style="display:flex;align-items:center;gap:22px">
-      <div style="display:flex;align-items:center;gap:8px;color:${T.muted};font-size:13px">
-        ${icono('buscar', { size: 14, color: T.muted })}<span>Buscar</span><span class="kbd">⌘K</span>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div class="busca">
+        ${icono('buscar', { size: 15, color: T.muted })}<span style="flex:1">Buscar</span><span class="kbd">⌘K</span>
       </div>
       ${ruta}
     </div>
-    <div style="display:flex;align-items:center;gap:16px">
-      <div style="display:flex;align-items:baseline;gap:5px;font-size:13px;color:${colorCr}">
-        <span class="num" style="font-weight:600">${creditos}</span>
-        <span style="font-size:12px;color:${T.muted}">créditos</span>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:9px;background:${T.surfaceMuted}">
+        <span class="num" style="font-size:13px;font-weight:600;color:${colorCr}">${creditos}</span>
+        <span style="font-size:12.5px;color:${T.muted}">créditos</span>
       </div>
-      <span style="width:1px;height:16px;background:${T.border}"></span>
-      ${icono('luna', { size: 15, color: T.muted })}
+      ${icono('luna', { size: 16, color: T.muted })}
     </div>
   </header>`;
 }
@@ -367,7 +431,7 @@ export function app({ w = 1440, h = 900, activo, migas = [], creditos = 47, cont
   ${sidebar(activo, { usuario, iniciales })}
   <div class="main">
     ${topbar({ creditos, migas })}
-    <div class="body">${contenido}</div>
+    <div class="body anim">${contenido}</div>
   </div>
 </div>`,
   });

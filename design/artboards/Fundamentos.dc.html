@@ -8,92 +8,144 @@
 <x-dc>
 <helmet>
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
 
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
-         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; }
   a { color: #007A65; text-decoration: none; }
-  a:hover { color: #009A80; text-decoration: underline; }
+  a:hover { color: #009A80; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
-     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
-     principio de todo el sistema. */
-  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
-         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
-  .rub-ink { color: #4A5F70; }
+  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
+     de museo era la mitad del aire formal que sobraba. */
+  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+         text-transform: uppercase; color: #8996A1; }
+  .rub-ink { color: #55636E; }
 
-  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
-  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
-             line-height: 0.94; color: #0C1520; }
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
 
-  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
-  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
 
-  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
-  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
-           color: #1D2B38; text-wrap: pretty; }
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
 
   /* ── Chrome de aplicación ─────────────────────────────────────────── */
-  .shell { display: flex; height: 100%; background: #F2F0EC; }
-  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
-          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
-  .side-brand { padding: 26px 24px 22px; }
-  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
-  .side-group { display: flex; flex-direction: column; gap: 1px; }
-  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
-  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
-         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
-         border-radius: 6px; }
-  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
-            border-left-color: #009A80; }
-  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
-               display: flex; align-items: center; gap: 10px; }
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
-         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
-         justify-content: space-between; padding: 0 28px; }
-  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
-         background: #E8E5E0; color: #8A9FAE; }
-  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #8996A1; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #8996A1; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
 
   /* ── Primitivas ───────────────────────────────────────────────────── */
-  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
-         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
-  .btn-pri { background: #009A80; color: #FFF; }
-  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
-  .btn-ghost { color: #4A5F70; }
-  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
-           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8996A1;
            display: flex; align-items: center; }
-  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
-         text-transform: uppercase; color: #8A9FAE; }
-  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-        text-transform: uppercase; color: #8A9FAE; text-align: left;
-        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
-  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
-        color: #0C1520; vertical-align: middle; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
-          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #8996A1;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
+     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
 </style>
 </helmet>
-<div style="width:1440px;height:2420px;background:#F2F0EC;overflow:hidden">
-<div style="padding:52px 60px 60px">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:34px">
+<div style="width:1440px;height:3700px;background:#F7F8F9;overflow:hidden">
+<div style="padding:56px 64px 64px" class="anim">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
       <div>
         <p class="rub">Sistema de diseño · PsicoSST</p>
-        <h1 class="display" style="font-size:62px;margin-top:12px">Clínico editorial</h1>
-        <p class="prose" style="max-width:660px;margin-top:16px">
-          La paleta, los radios y las familias tipográficas se conservan tal como están en
-          <span class="num" style="font-size:14.5px">globals.css</span>. Lo que cambia es la escala:
-          Barlow Semi&nbsp;Condensed deja de ser solo una etiqueta de 10&nbsp;px y pasa a titular,
-          y Source Serif&nbsp;4 —hoy reservada al PDF— entra a pantalla para que la interpretación
-          se lea como el documento clínico que es.
+        <h1 class="display" style="font-size:66px;margin-top:14px">Moderno y fluido</h1>
+        <p class="prose" style="font-size:17px;max-width:680px;margin-top:18px">
+          Segunda dirección. Conserva el teal de la marca y los cinco niveles de riesgo que
+          exige la norma, y cambia todo lo que hacía que el producto se leyera como un
+          documento: el papel cálido, la condensada de titular, la serif de la narrativa
+          y el monoespaciado de los puntajes.
         </p>
       </div>
       <div style="display:flex;align-items:center;gap:11px">
@@ -112,158 +164,193 @@
       <circle cx="20" cy="22" r="4.2"/>
     </g></svg>
     <div style="display:flex;flex-direction:column;gap:3px">
-      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:24.5px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
-      <span style="font-size:9.2px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:24.5px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:9.2px;letter-spacing:0.15em;text-transform:uppercase;color:#8996A1;line-height:1">Riesgo psicosocial</span>
     </div></div>
     </div>
-    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
-    <div style="display:flex;gap:44px">
-      <div style="width:230px;flex-shrink:0">
-        <p class="num" style="font-size:11px;color:#8A9FAE">01</p>
-        <h2 class="display" style="font-size:27px;margin-top:7px">Color</h2>
-        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Idéntico a producción. Ni un tono nuevo.</p>
+    <section style="padding:40px 0;border-top:1px solid #E4E8EB">
+    <div style="display:flex;gap:48px">
+      <div style="width:236px;flex-shrink:0">
+        <p class="num" style="font-size:12px;color:#8996A1">01</p>
+        <h2 class="display" style="font-size:28px;margin-top:8px">Color</h2>
+        <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Se va el beige; se queda el teal.</p>
       </div>
       <div style="flex:1;min-width:0">
-  <p class="rub" style="margin-bottom:13px">Base</p>
-  <div style="display:flex;gap:14px;flex-wrap:wrap">
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#F2F0EC;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Papel</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#F2F0EC</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-background</p>
+  <p class="rub" style="margin-bottom:14px">Base</p>
+  <div style="display:flex;gap:15px;flex-wrap:wrap">
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#F7F8F9;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Lienzo</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#F7F8F9</p>
+    <p style="font-size:10.5px;color:#8996A1;margin-top:2px">antes #F2F0EC</p>
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#FFFFFF;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Superficie</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#FFFFFF</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-surface</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#FFFFFF;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Superficie</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#FFFFFF</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#E8E5E0;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Superficie apagada</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#E8E5E0</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-surface-muted</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#F0F2F4;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Superficie apagada</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#F0F2F4</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#0C1520;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Tinta</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#0C1520</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-foreground</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#0B0F14;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Tinta</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#0B0F14</p>
+    <p style="font-size:10.5px;color:#8996A1;margin-top:2px">antes #0C1520</p>
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#4A5F70;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Texto secundario</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#4A5F70</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-text-secondary</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#55636E;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Secundario</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#55636E</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#8A9FAE;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Texto apagado</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#8A9FAE</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-text-muted</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#8996A1;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Apagado</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#8996A1</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#D4CFC8;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Filete</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#D4CFC8</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-border</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#E4E8EB;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Filete</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#E4E8EB</p>
+    
   </div>
   </div>
-  <p class="rub" style="margin:24px 0 13px">Señal</p>
-  <div style="display:flex;gap:14px;flex-wrap:wrap">
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#009A80;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Primario</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#009A80</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-primary</p>
+  <p class="rub" style="margin:26px 0 14px">Señal</p>
+  <div style="display:flex;gap:15px;flex-wrap:wrap">
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#009A80;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Marca</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#009A80</p>
+    <p style="font-size:10.5px;color:#8996A1;margin-top:2px">sin cambio</p>
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#007A65;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Primario oscuro</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#007A65</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-teal-dark</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#007A65;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Marca oscura</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#007A65</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#CCF0E8;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Primario claro</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#CCF0E8</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-teal-light</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#E4F6F1;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Marca clara</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#E4F6F1</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#16A34A;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Éxito</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#16A34A</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-success</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#17B26A;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Éxito</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#17B26A</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#D97706;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Aviso</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#D97706</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-warning</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#F79009;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Aviso</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#F79009</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#DC2626;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Peligro</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#DC2626</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-danger</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#F04438;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Peligro</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#F04438</p>
+    
   </div>
-    <div style="width:118px">
-    <div style="height:56px;border-radius:7px;background:#2563EB;border:1px solid rgba(12,21,32,0.10)"></div>
-    <p style="font-size:12px;font-weight:500;margin-top:8px;color:#0C1520">Información</p>
-    <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:2px">#2563EB</p>
-    <p class="num" style="font-size:9.5px;color:#D4CFC8;margin-top:1px">--color-info</p>
+    <div style="width:124px">
+    <div style="height:60px;border-radius:12px;background:#2E90FA;border:1px solid rgba(11,15,20,0.08)"></div>
+    <p style="font-size:12.5px;font-weight:500;margin-top:9px;color:#0B0F14">Información</p>
+    <p class="num" style="font-size:11.5px;color:#8996A1;margin-top:2px">#2E90FA</p>
+    
   </div>
+  </div>
+  <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:22px;max-width:660px">
+    El teal de la marca se conserva. Lo que se fue es el papel cálido: un beige de
+    fondo es la primera cosa que delata a una interfaz generada, y era la mitad del
+    aire de documento antiguo. El lienzo pasa a un neutro frío y las superficies a blanco puro.
+  </p></div>
+    </div>
+  </section>
+    <section style="padding:40px 0;border-top:1px solid #E4E8EB">
+    <div style="display:flex;gap:48px">
+      <div style="width:236px;flex-shrink:0">
+        <p class="num" style="font-size:12px;color:#8996A1">02</p>
+        <h2 class="display" style="font-size:28px;margin-top:8px">Tipografía</h2>
+        <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Cuatro familias históricas pasan a una contemporánea.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <div style="display:flex;flex-direction:column;gap:0">
+    
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;">
+        <p class="rub" style="width:118px;flex-shrink:0">Titular</p>
+        <div style="flex:1;min-width:0"><p class="display" style="font-size:72px">1.284</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist 600 · −0,035em · 1,02</p>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;border-top:1px solid #EFF2F4">
+        <p class="rub" style="width:118px;flex-shrink:0">Cifra grande</p>
+        <div style="flex:1;min-width:0"><p class="cifra" style="font-size:44px">74,8</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist 600 · tabular · −0,045em</p>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;border-top:1px solid #EFF2F4">
+        <p class="rub" style="width:118px;flex-shrink:0">Título</p>
+        <div style="flex:1;min-width:0"><p class="display" style="font-size:34px">Demandas del trabajo</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist 600 · −0,035em</p>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;border-top:1px solid #EFF2F4">
+        <p class="rub" style="width:118px;flex-shrink:0">Texto corrido</p>
+        <div style="flex:1;min-width:0"><p class="prose" style="max-width:540px">El trabajador percibe que las exigencias de carga mental superan su capacidad de respuesta habitual.</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist 400 · 15,5/1,65</p>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;border-top:1px solid #EFF2F4">
+        <p class="rub" style="width:118px;flex-shrink:0">Interfaz</p>
+        <div style="flex:1;min-width:0"><p style="font-size:13.5px;color:#0B0F14;max-width:540px">Etiquetas, celdas de tabla, botones y campos.</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist 400/500 · 13,5</p>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;border-top:1px solid #EFF2F4">
+        <p class="rub" style="width:118px;flex-shrink:0">Rúbrica</p>
+        <div style="flex:1;min-width:0"><p class="rub rub-ink">Liderazgo y relaciones sociales</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist 600 · 11 · 0,05em</p>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:28px;padding:20px 0;border-top:1px solid #EFF2F4">
+        <p class="rub" style="width:118px;flex-shrink:0">Máquina</p>
+        <div style="flex:1;min-width:0"><p class="maq" style="font-size:14px">4f7a91c8e2b7d3 · jbswy3dpehpk</p></div>
+        <p style="font-size:11.5px;color:#8996A1;flex-shrink:0;text-align:right;width:190px">Geist Mono · sólo huellas y tokens</p>
+      </div>
+  </div>
+  <div style="display:flex;gap:18px;margin-top:26px">
+    <div style="flex:1;padding:18px 20px;border-radius:14px;background:#F0F2F4">
+      <p class="rub" style="margin-bottom:10px">Lo que se retiró</p>
+      <p style="font-size:12.5px;line-height:1.65;color:#55636E">
+        <strong style="color:#0B0F14;font-weight:600">Barlow Semi Condensed</strong> como titular: una
+        condensada de periódico impone tono editorial. Se queda sólo en el logotipo.<br><br>
+        <strong style="color:#0B0F14;font-weight:600">Source Serif 4</strong> en pantalla: la serif con
+        cursivas era el mayor foco de formalidad, y los detectores de interfaz generada la marcan.<br><br>
+        <strong style="color:#0B0F14;font-weight:600">IBM Plex Mono</strong> para puntajes: un 74,8 en
+        monoespaciado se lee como salida de terminal, no como un dato.
+      </p>
+    </div>
+    <div style="flex:1;padding:18px 20px;border-radius:14px;background:#F0F2F4">
+      <p class="rub" style="margin-bottom:10px">Por qué una sola familia</p>
+      <p style="font-size:12.5px;line-height:1.65;color:#55636E">
+        Geist cubre titular, interfaz y cifra. Sus cifras tabulares alinean en columna
+        igual que una monoespaciada, pero con el ancho y el contraste de una grotesca
+        contemporánea: la tabla sigue cuadrando y el número deja de parecer antiguo.<br><br>
+        El tracking negativo —de −0,02em en el dato a −0,045em en la cifra grande— es lo
+        que convierte una columna de números en un bloque visual, en vez de una lista de
+        caracteres sueltos.
+      </p>
+    </div>
   </div></div>
     </div>
   </section>
-    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
-    <div style="display:flex;gap:44px">
-      <div style="width:230px;flex-shrink:0">
-        <p class="num" style="font-size:11px;color:#8A9FAE">02</p>
-        <h2 class="display" style="font-size:27px;margin-top:7px">Tipografía</h2>
-        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Cuatro familias, cada una con un trabajo que ninguna otra hace.</p>
-      </div>
-      <div style="flex:1;min-width:0">
-  <div style="display:flex;flex-direction:column;gap:22px">
-    <div style="display:flex;align-items:baseline;gap:26px">
-      <p class="rub" style="width:132px;flex-shrink:0">Display 78</p>
-      <p class="display" style="font-size:78px">1.284</p>
-      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Barlow Semi&nbsp;Condensed 600 · −0,02em</p>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
-      <p class="rub" style="width:132px;flex-shrink:0">Título 40</p>
-      <p class="display" style="font-size:40px">Demandas del trabajo</p>
-      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Barlow 600</p>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
-      <p class="rub" style="width:132px;flex-shrink:0">Narrativa 16,5</p>
-      <p class="prose" style="max-width:520px">El trabajador percibe que las exigencias de carga mental superan su capacidad de respuesta habitual.</p>
-      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Source Serif&nbsp;4 400 · 1,62</p>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
-      <p class="rub" style="width:132px;flex-shrink:0">Interfaz 13,5</p>
-      <p style="font-size:13.5px;color:#0C1520;max-width:520px">Texto de interfaz, etiquetas de formulario, celdas de tabla y botones.</p>
-      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">IBM Plex Sans 400/500/600</p>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
-      <p class="rub" style="width:132px;flex-shrink:0">Dato</p>
-      <p class="num" style="font-size:20px;color:#0C1520">68,4 · 24,7% · 2026-09-16 · 4f7a91c</p>
-      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">IBM Plex Mono · cifras tabulares</p>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:26px;border-top:1px solid #E2DED8;padding-top:20px">
-      <p class="rub" style="width:132px;flex-shrink:0">Rúbrica</p>
-      <p class="rub rub-ink">Liderazgo y relaciones sociales en el trabajo</p>
-      <p style="font-size:11.5px;color:#8A9FAE;margin-left:auto">Barlow 600 · 10px · 0,22em</p>
-    </div>
-  </div></div>
-    </div>
-  </section>
-    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
-    <div style="display:flex;gap:44px">
-      <div style="width:230px;flex-shrink:0">
-        <p class="num" style="font-size:11px;color:#8A9FAE">03</p>
-        <h2 class="display" style="font-size:27px;margin-top:7px">Escala de riesgo</h2>
-        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Los cinco niveles de la Resolución 2646, legibles sin color.</p>
+    <section style="padding:40px 0;border-top:1px solid #E4E8EB">
+    <div style="display:flex;gap:48px">
+      <div style="width:236px;flex-shrink:0">
+        <p class="num" style="font-size:12px;color:#8996A1">03</p>
+        <h2 class="display" style="font-size:28px;margin-top:8px">Escala de riesgo</h2>
+        <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Mismos cinco niveles, tonos limpios.</p>
       </div>
       <div style="flex:1;min-width:0">
   <table>
@@ -273,110 +360,122 @@
     </tr>
     <tr>
         <td class="td" style="font-weight:500">Sin riesgo</td>
-        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#F2F0EC;color:#4A5F70;border:1px solid #D4CFC8">
-    <span style="width:5px;height:5px;border-radius:999px;background:#B8B2A8"></span>Sin riesgo</span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#B8B2A8;border:1px solid #B8B2A8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
-        <td class="td num" style="color:#4A5F70">0 – 3,8</td>
-        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#B8B2A8"></span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 78%);border:1px solid hsl(0 0% 78%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td"><span class="chip" style="height:24px;font-size:12px;background:#F1F3F5;color:#55636E">
+    <span style="width:6px;height:6px;border-radius:999px;background:#A9B4BC"></span>Sin riesgo</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:#A9B4BC"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
+        <td class="td num" style="color:#55636E">0 – 3,8</td>
+        <td class="td"><span style="display:inline-block;width:36px;height:14px;border-radius:7px;background:#A9B4BC"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 74%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
       </tr><tr>
         <td class="td" style="font-weight:500">Bajo</td>
-        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">
-    <span style="width:5px;height:5px;border-radius:999px;background:#16A34A"></span>Bajo</span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#16A34A;border:1px solid #16A34A"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#16A34A;border:1px solid #16A34A"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
-        <td class="td num" style="color:#4A5F70">3,9 – 15,4</td>
-        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#16A34A"></span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 63%);border:1px solid hsl(0 0% 63%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 63%);border:1px solid hsl(0 0% 63%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td"><span class="chip" style="height:24px;font-size:12px;background:#E7F8EF;color:#067647">
+    <span style="width:6px;height:6px;border-radius:999px;background:#17B26A"></span>Bajo</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:#17B26A"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#17B26A"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
+        <td class="td num" style="color:#55636E">3,9 – 15,4</td>
+        <td class="td"><span style="display:inline-block;width:36px;height:14px;border-radius:7px;background:#17B26A"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 60%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 60%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
       </tr><tr>
         <td class="td" style="font-weight:500">Medio</td>
-        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#FEF3C7;color:#B45309;border:1px solid #FDE68A">
-    <span style="width:5px;height:5px;border-radius:999px;background:#D97706"></span>Medio</span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#D97706;border:1px solid #D97706"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#D97706;border:1px solid #D97706"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#D97706;border:1px solid #D97706"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
-        <td class="td num" style="color:#4A5F70">15,5 – 30,8</td>
-        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#D97706"></span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 48%);border:1px solid hsl(0 0% 48%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 48%);border:1px solid hsl(0 0% 48%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 48%);border:1px solid hsl(0 0% 48%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td"><span class="chip" style="height:24px;font-size:12px;background:#FEF6E7;color:#B54708">
+    <span style="width:6px;height:6px;border-radius:999px;background:#F79009"></span>Medio</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:#F79009"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#F79009"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#F79009"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
+        <td class="td num" style="color:#55636E">15,5 – 30,8</td>
+        <td class="td"><span style="display:inline-block;width:36px;height:14px;border-radius:7px;background:#F79009"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 46%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 46%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 46%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
       </tr><tr>
         <td class="td" style="font-weight:500">Alto</td>
-        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#FFEDD5;color:#C2410C;border:1px solid #FED7AA">
-    <span style="width:5px;height:5px;border-radius:999px;background:#EA580C"></span>Alto</span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#EA580C;border:1px solid #EA580C"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
-        <td class="td num" style="color:#4A5F70">30,9 – 46,2</td>
-        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#EA580C"></span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 33%);border:1px solid hsl(0 0% 33%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:transparent;border:1px solid #D4CFC8"></span></span></td>
+        <td class="td"><span class="chip" style="height:24px;font-size:12px;background:#FEF0E7;color:#B93815">
+    <span style="width:6px;height:6px;border-radius:999px;background:#EF6820"></span>Alto</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:#EF6820"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#EF6820"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#EF6820"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#EF6820"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
+        <td class="td num" style="color:#55636E">30,9 – 46,2</td>
+        <td class="td"><span style="display:inline-block;width:36px;height:14px;border-radius:7px;background:#EF6820"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 32%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 32%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 32%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 32%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#E4E8EB"></span></span></td>
       </tr><tr>
         <td class="td" style="font-weight:500">Muy alto</td>
-        <td class="td"><span class="chip" style="height:22px;font-size:11.5px;background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA">
-    <span style="width:5px;height:5px;border-radius:999px;background:#DC2626"></span>Muy alto</span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span><span style="width:13px;height:7px;border-radius:1.5px;background:#DC2626;border:1px solid #DC2626"></span></span></td>
-        <td class="td num" style="color:#4A5F70">46,3 – 100</td>
-        <td class="td"><span style="display:inline-block;width:34px;height:14px;border-radius:3px;background:#DC2626"></span></td>
-        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span><span style="width:13px;height:7px;border-radius:1.5px;background:hsl(0 0% 18%);border:1px solid hsl(0 0% 18%)"></span></span></td>
+        <td class="td"><span class="chip" style="height:24px;font-size:12px;background:#FEECEC;color:#B42318">
+    <span style="width:6px;height:6px;border-radius:999px;background:#F04438"></span>Muy alto</span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:#F04438"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#F04438"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#F04438"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#F04438"></span><span style="width:14px;height:6px;border-radius:3.0px;background:#F04438"></span></span></td>
+        <td class="td num" style="color:#55636E">46,3 – 100</td>
+        <td class="td"><span style="display:inline-block;width:36px;height:14px;border-radius:7px;background:#F04438"></span></td>
+        <td class="td"><span style="display:inline-flex;gap:3px;align-items:center"><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 18%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 18%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 18%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 18%)"></span><span style="width:14px;height:6px;border-radius:3.0px;background:hsl(210 8% 18%)"></span></span></td>
       </tr>
   </table>
-  <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:16px;max-width:640px">
-    El ordinal de cinco pasos acompaña <em>siempre</em> a la píldora. El color solo confirma lo
-    que ya dice la posición, así que el nivel sobrevive a la impresión en blanco y negro,
-    al daltonismo y a la miniatura de una tabla densa.
+  <p style="font-size:12.5px;line-height:1.65;color:#55636E;margin-top:18px;max-width:680px">
+    Los cinco niveles de la Resolución 2646 conservan sus tonos —verde, ámbar, naranja, rojo— pero
+    pasan a la versión saturada y limpia de cada uno. Los pasteles anteriores, sobre papel cálido,
+    daban el aspecto de una tabla impresa.
+    El ordinal de cinco pasos acompaña <strong style="color:#0B0F14;font-weight:600">siempre</strong>
+    a la píldora, así que el nivel se lee por posición antes que por color y sobrevive al gris,
+    al daltonismo y a la miniatura.
   </p></div>
     </div>
   </section>
-    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
-    <div style="display:flex;gap:44px">
-      <div style="width:230px;flex-shrink:0">
-        <p class="num" style="font-size:11px;color:#8A9FAE">04</p>
-        <h2 class="display" style="font-size:27px;margin-top:7px">Componentes</h2>
-        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Las primitivas que se repiten en las 40 pantallas.</p>
+    <section style="padding:40px 0;border-top:1px solid #E4E8EB">
+    <div style="display:flex;gap:48px">
+      <div style="width:236px;flex-shrink:0">
+        <p class="num" style="font-size:12px;color:#8996A1">04</p>
+        <h2 class="display" style="font-size:28px;margin-top:8px">Componentes</h2>
+        <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Las primitivas que se repiten en las 46 pantallas.</p>
       </div>
       <div style="flex:1;min-width:0">
   <div style="display:flex;gap:56px;flex-wrap:wrap">
     <div>
-      <p class="rub" style="margin-bottom:13px">Botones</p>
+      <p class="rub" style="margin-bottom:14px">Botones</p>
       <div style="display:flex;gap:10px;align-items:center">
-        <span class="btn btn-pri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg>Primario</span>
+        <span class="btn btn-pri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 5v14M5 12h14"/></svg>Primario</span>
+        <span class="btn btn-acc">Acento</span>
         <span class="btn btn-sec">Secundario</span>
         <span class="btn btn-ghost">Terciario</span>
       </div>
+      <p style="font-size:11.5px;color:#8996A1;margin-top:10px;max-width:330px">
+        Al pulsar, <span class="maq">scale(0.97)</span> en 130&nbsp;ms. Un botón sin estado activo
+        se siente muerto al tacto.
+      </p>
     </div>
     <div>
-      <p class="rub" style="margin-bottom:13px">Campo</p>
-      <div style="width:230px">
-        <p class="lbl" style="margin-bottom:7px">Correo electrónico</p>
-        <div class="input" style="border-color:#009A80;box-shadow:0 0 0 3px rgba(0,154,128,0.12)">psicologa@consultorio.co</div>
+      <p class="rub" style="margin-bottom:14px">Campo</p>
+      <div style="width:236px">
+        <p class="lbl" style="margin-bottom:8px">Correo electrónico</p>
+        <div class="input" style="border-color:#0B0F14;box-shadow:0 0 0 3px rgba(11,15,20,0.08)">psicologa@consultorio.co</div>
       </div>
     </div>
     <div>
-      <p class="rub" style="margin-bottom:13px">Estados de flujo</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:330px">
-        <span class="chip" style="background:#E8E5E0;color:#4A5F70;border:1px solid #D4CFC8">Pendiente</span><span class="chip" style="background:#CCF0E8;color:#007A65;border:1px solid #A9E3D6">Calificado</span><span class="chip" style="background:#DBEAFE;color:#1D4ED8;border:1px solid #BFDBFE">Revisado</span>
-        <span class="chip" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">Firmado</span><span class="chip" style="background:#FEF3C7;color:#B45309;border:1px solid #FDE68A">Vence pronto</span><span class="chip" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA">Vencida</span>
+      <p class="rub" style="margin-bottom:14px">Estados</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:320px">
+        <span class="chip" style="background:#F0F2F4;color:#55636E">Pendiente</span><span class="chip" style="background:#E4F6F1;color:#007A65">Calificado</span><span class="chip" style="background:#E8F1FE;color:#1849A9">Revisado</span>
+        <span class="chip" style="background:#E7F8EF;color:#067647">Firmado</span><span class="chip" style="background:#FEF6E7;color:#B54708">Vence pronto</span><span class="chip" style="background:#FEECEC;color:#B42318">Vencida</span>
       </div>
     </div>
   </div>
-  <div style="display:flex;gap:56px;margin-top:30px;flex-wrap:wrap">
+  <div style="display:flex;gap:56px;margin-top:32px;flex-wrap:wrap;align-items:flex-start">
     <div>
-      <p class="rub" style="margin-bottom:13px">Radios</p>
-      <div style="display:flex;gap:10px;align-items:flex-end">
+      <p class="rub" style="margin-bottom:14px">Radios y elevación</p>
+      <div style="display:flex;gap:12px;align-items:flex-end">
         <div style="text-align:center">
-          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:4px"></div>
-          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">4</p></div><div style="text-align:center">
-          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:8px"></div>
-          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">8</p></div><div style="text-align:center">
-          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:12px"></div>
-          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">12</p></div><div style="text-align:center">
-          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:16px"></div>
-          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">16</p></div><div style="text-align:center">
-          <div style="width:44px;height:44px;border:1px solid #D4CFC8;background:#FFFFFF;border-radius:999px"></div>
-          <p class="num" style="font-size:10px;color:#8A9FAE;margin-top:5px">∞</p></div>
+          <div class="card" style="width:52px;height:52px;border-radius:8px"></div>
+          <p class="num" style="font-size:11px;color:#8996A1;margin-top:6px">8</p></div><div style="text-align:center">
+          <div class="card" style="width:52px;height:52px;border-radius:10px"></div>
+          <p class="num" style="font-size:11px;color:#8996A1;margin-top:6px">10</p></div><div style="text-align:center">
+          <div class="card" style="width:52px;height:52px;border-radius:12px"></div>
+          <p class="num" style="font-size:11px;color:#8996A1;margin-top:6px">12</p></div><div style="text-align:center">
+          <div class="card" style="width:52px;height:52px;border-radius:16px"></div>
+          <p class="num" style="font-size:11px;color:#8996A1;margin-top:6px">16</p></div><div style="text-align:center">
+          <div class="card" style="width:52px;height:52px;border-radius:20px"></div>
+          <p class="num" style="font-size:11px;color:#8996A1;margin-top:6px">20</p></div>
+        <div style="text-align:center">
+          <div class="card card-alto" style="width:52px;height:52px;border-radius:16px"></div>
+          <p style="font-size:11px;color:#8996A1;margin-top:6px">alta</p>
+        </div>
       </div>
     </div>
     <div>
-      <p class="rub" style="margin-bottom:13px">Iconografía · trazo 1,6 · rejilla 24</p>
-      <div style="display:flex;gap:16px;align-items:center;color:#4A5F70">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17c3-6 5 3 8-2s4 2 7-3M4 21h16"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 11h14v10H5zM8 11V7a4 4 0 1 1 8 0v4"/></svg>
+      <p class="rub" style="margin-bottom:14px">Iconografía · trazo 1,6 · rejilla 24</p>
+      <div style="display:flex;gap:17px;align-items:center">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17c3-6 5 3 8-2s4 2 7-3M4 21h16"/></svg><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M5 11h14v10H5zM8 11V7a4 4 0 1 1 8 0v4"/></svg>
       </div>
     </div>
     <div>
-      <p class="rub" style="margin-bottom:13px">Marca</p>
+      <p class="rub" style="margin-bottom:14px">Marca</p>
       <div style="display:flex;gap:22px;align-items:center"><div style="display:flex;align-items:center;gap:11px">
     <svg viewBox="2.2 2.2 35.6 39.6" width="27.0" height="30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
@@ -393,8 +492,8 @@
       <circle cx="20" cy="22" r="4.2"/>
     </g></svg>
     <div style="display:flex;flex-direction:column;gap:3px">
-      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:21.6px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
-      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:21.6px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8996A1;line-height:1">Riesgo psicosocial</span>
     </div></div><svg viewBox="2.2 2.2 35.6 39.6" width="27.0" height="30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs><linearGradient id="mk2" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
@@ -413,33 +512,108 @@
   </div></div>
     </div>
   </section>
-    <section style="padding:38px 0;border-top:1px solid #D4CFC8">
-    <div style="display:flex;gap:44px">
-      <div style="width:230px;flex-shrink:0">
-        <p class="num" style="font-size:11px;color:#8A9FAE">05</p>
-        <h2 class="display" style="font-size:27px;margin-top:7px">Reglas</h2>
-        <p style="font-size:12.5px;line-height:1.55;color:#4A5F70;margin-top:10px">Lo que hace que el sistema no se deshaga al crecer.</p>
+    <section style="padding:40px 0;border-top:1px solid #E4E8EB">
+    <div style="display:flex;gap:48px">
+      <div style="width:236px;flex-shrink:0">
+        <p class="num" style="font-size:12px;color:#8996A1">05</p>
+        <h2 class="display" style="font-size:28px;margin-top:8px">Movimiento</h2>
+        <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Tomado del manual de ingeniería de interfaz de Emil Kowalski.</p>
+      </div>
+      <div style="flex:1;min-width:0">
+  <div style="display:flex;gap:20px">
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:12px">Duraciones</p>
+      <table>
+        <tr>
+          <td class="td" style="font-size:13px;border-top:none">Respuesta al pulsar</td>
+          <td class="td num" style="text-align:right;color:#55636E">100 – 160 ms</td>
+        </tr><tr>
+          <td class="td" style="font-size:13px;">Tooltip y globo pequeño</td>
+          <td class="td num" style="text-align:right;color:#55636E">125 – 200 ms</td>
+        </tr><tr>
+          <td class="td" style="font-size:13px;">Menú y desplegable</td>
+          <td class="td num" style="text-align:right;color:#55636E">150 – 250 ms</td>
+        </tr><tr>
+          <td class="td" style="font-size:13px;">Modal, panel y cajón</td>
+          <td class="td num" style="text-align:right;color:#55636E">200 – 300 ms</td>
+        </tr><tr>
+          <td class="td" style="font-size:13px;">Escalonado entre piezas</td>
+          <td class="td num" style="text-align:right;color:#55636E">30 – 80 ms</td>
+        </tr>
+      </table>
+      <p style="font-size:12px;line-height:1.6;color:#55636E;margin-top:14px">
+        Techo absoluto de 300&nbsp;ms. Ante la duda, más rápido: la velocidad es
+        rendimiento percibido.
+      </p>
+    </div>
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:12px">Curvas</p>
+      <div>
+        <div style="padding:13px 0;">
+          <p style="font-size:13px;color:#0B0F14">Entrada en pantalla</p>
+          <p class="maq" style="font-size:12px;color:#55636E;margin-top:4px">cubic-bezier(0.23, 1, 0.32, 1)</p>
+        </div><div style="padding:13px 0;border-top:1px solid #EFF2F4">
+          <p style="font-size:13px;color:#0B0F14">Movimiento dentro de la pantalla</p>
+          <p class="maq" style="font-size:12px;color:#55636E;margin-top:4px">cubic-bezier(0.77, 0, 0.175, 1)</p>
+        </div><div style="padding:13px 0;border-top:1px solid #EFF2F4">
+          <p style="font-size:13px;color:#0B0F14">Cajón estilo iOS</p>
+          <p class="maq" style="font-size:12px;color:#55636E;margin-top:4px">cubic-bezier(0.32, 0.72, 0, 1)</p>
+        </div>
+      </div>
+      <p style="font-size:12px;line-height:1.6;color:#55636E;margin-top:14px">
+        Sólo se animan <span class="maq">transform</span> y <span class="maq">opacity</span>.
+        Nada de <span class="maq">height</span>, <span class="maq">width</span> ni
+        <span class="maq">margin</span>: no van por GPU y tironean.
+      </p>
+    </div>
+    <div style="flex:1">
+      <p class="rub" style="margin-bottom:12px">Cuándo no animar</p>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;">
+          <span style="font-size:13px;color:#0B0F14">Más de cien veces al día</span><span class="chip" style="background:#FEECEC;color:#B42318">Sin animación</span>
+        </div><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #EFF2F4">
+          <span style="font-size:13px;color:#0B0F14">Decenas de veces al día</span><span class="chip" style="background:#FEF6E7;color:#B54708">Reducida al mínimo</span>
+        </div><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #EFF2F4">
+          <span style="font-size:13px;color:#0B0F14">Ocasional</span><span class="chip" style="background:#E4F6F1;color:#007A65">Animación estándar</span>
+        </div><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #EFF2F4">
+          <span style="font-size:13px;color:#0B0F14">Primera vez o excepcional</span><span class="chip" style="background:#E7F8EF;color:#067647">Cabe el detalle</span>
+        </div>
+      </div>
+      <p style="font-size:12px;line-height:1.6;color:#55636E;margin-top:14px">
+        Con <span class="maq">prefers-reduced-motion</span> se conserva la opacidad y se
+        retira el desplazamiento. Un atajo de teclado nunca anima.
+      </p>
+    </div>
+  </div></div>
+    </div>
+  </section>
+    <section style="padding:40px 0;border-top:1px solid #E4E8EB">
+    <div style="display:flex;gap:48px">
+      <div style="width:236px;flex-shrink:0">
+        <p class="num" style="font-size:12px;color:#8996A1">06</p>
+        <h2 class="display" style="font-size:28px;margin-top:8px">Reglas</h2>
+        <p style="font-size:13px;line-height:1.6;color:#55636E;margin-top:11px">Lo que evita que el sistema se deshaga al crecer.</p>
       </div>
       <div style="flex:1;min-width:0">
   <div style="display:flex;gap:18px;flex-wrap:wrap">
-    <div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
-      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Filete, no sombra</p>
-      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">La interfaz se construye con líneas de 1px. La única sombra permitida es el anillo de foco. Un informe clínico no flota.</p>
-    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
-      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">El degradado vive en el isotipo</p>
-      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Los tres tonos teal→cian→azul son la marca. En ningún otro sitio: ni fondos, ni botones, ni tarjetas.</p>
-    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
-      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">El dato es monoespaciado</p>
-      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Puntaje, porcentaje, fecha, folio y hash en IBM Plex Mono con cifras tabulares. Las columnas alinean solas.</p>
-    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
-      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">La interpretación es texto</p>
-      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">La narrativa por dimensión se compone en Source Serif 4, la misma del PDF. Se lee como el informe que es.</p>
-    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
-      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">El riesgo nunca decora</p>
-      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Naranja y rojo significan un nivel de la Resolución 2646. No se usan para botones, avisos ni acentos.</p>
-    </div><div style="width:512px;padding:17px 19px;border:1px solid #D4CFC8;border-radius:10px;background:#FFFFFF">
-      <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.01em;color:#0C1520">Cada cifra tiene procedencia</p>
-      <p style="font-size:12.5px;line-height:1.58;color:#4A5F70;margin-top:7px">Todo puntaje enlaza a los ítems que lo originaron. La trazabilidad no es una pantalla aparte: es un atributo del número.</p>
+    <div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
+      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">Una familia, tres trabajos</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Geist hace de titular, de interfaz y de cifra. Las cuatro familias anteriores eran cuatro tonos de voz compitiendo en la misma pantalla.</p>
+    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
+      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">La cifra no es una máquina</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Puntaje y porcentaje van en cifras tabulares de la misma grotesca, con tracking negativo. El monoespaciado queda para huellas y tokens.</p>
+    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
+      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">Elevación suave, no filete duro</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Una sombra de 1px más un halo amplio y muy tenue. La regla anterior de «sólo líneas» mantenía todo plano, y plano se lee como impreso.</p>
+    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
+      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">El degradado vive en el isotipo</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Los tres tonos teal→cian→azul son la marca. En ningún fondo, botón ni tarjeta.</p>
+    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
+      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">El riesgo nunca decora</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Ámbar, naranja y rojo significan un nivel de la Resolución 2646. No se usan para botones ni acentos.</p>
+    </div><div style="width:344px;padding:20px 22px;border-radius:16px;background:#FFFFFF;border:1px solid #E4E8EB;box-shadow:0 1px 2px rgba(11,15,20,0.04)">
+      <p style="font-size:16px;font-weight:600;letter-spacing:-0.015em;color:#0B0F14">El movimiento se gana su sitio</p>
+      <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:8px">Se anima lo que ocurre pocas veces. Lo que se ve cien veces al día aparece y ya.</p>
     </div>
   </div></div>
     </div>

@@ -1,4 +1,4 @@
-import { T, RISK, RISK_ORDER, FONTS, app, icono, riesgo, pasos, estado, esc, n1 } from '../lib.mjs';
+import { T, RISK, RISK_ORDER, FONTS, app, icono, riesgo, pasos, estado, esc, n1, mil } from '../lib.mjs';
 
 /** Cabecera de página: rúbrica, titular Barlow, bajada y acciones. */
 export function cabecera({ rubrica, titulo, bajada = '', acciones = '' }) {
@@ -32,7 +32,7 @@ export function filtros(campos, { busca = 'Buscar…' } = {}) {
 export function paginacion(desde, hasta, total) {
   return `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px">
     <p style="font-size:12.5px;color:${T.muted}">
-      <span class="num">${desde}–${hasta}</span> de <span class="num">${total}</span>
+      <span class="num">${desde}–${hasta}</span> de <span class="num">${mil(total)}</span>
     </p>
     <div style="display:flex;gap:5px">
       ${['‹', '1', '2', '3', '…', '9', '›'].map((p, i) => `<span class="num" style="min-width:28px;height:28px;padding:0 8px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;${p === '1' ? `background:${T.ink};color:#FFF` : `color:${T.secondary};border:1px solid ${T.border};background:${T.surface}`}">${p}</span>`).join('')}
@@ -90,7 +90,7 @@ const DOMINIOS = [
 ];
 
 export const empresaDetalle = app({
-  w: 1440, h: 1000, activo: "orgs", migas: ['Empresas', 'Transportes Andinos S.A.S.'],
+  w: 1440, h: 1030, activo: "orgs", migas: ['Empresas', 'Transportes Andinos S.A.S.'],
   contenido: `
   ${cabecera({
     rubrica: `Empresa · NIT <span class="num">900.412.336-1</span>`,
@@ -128,7 +128,7 @@ export const empresaDetalle = app({
           </div>
           <div style="display:flex;align-items:center;gap:13px;margin-top:9px">
             <div style="flex:1;height:5px;border-radius:3px;background:${T.surfaceMuted};overflow:hidden">
-              <div style="width:${p}%;height:100%;background:${RISK[r].bar}"></div>
+              <div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div>
             </div>
             <span class="num" style="font-size:11px;color:${T.muted};width:96px;text-align:right">${d} dimensiones</span>
           </div>
@@ -174,7 +174,7 @@ export const empresaDetalle = app({
 // ── Trabajadores ───────────────────────────────────────────────────────
 const TRAB = [
   ['Ana Lucía Cárdenas', 'CC 52.418.903', 'Clínica del Norte', 'Profesional', 'Enfermería', 'medio', '2026-08-14', 'Firmado', 'ok'],
-  ['Hernán Duque Prieto', 'CC 79.114.226', 'Transportes Andinos', 'Operativo', 'Conducción', 'muyAlto', '2026-09-02', 'Calificado', 'teal'],
+  ['Hernán Duque Prieto', 'CC 79.114.226', 'Transportes Andinos', 'Técnico', 'Conducción', 'muyAlto', '2026-09-02', 'Calificado', 'teal'],
   ['Marta Ximena Ruiz', 'CC 43.902.117', 'Constructora Sierra', 'Jefatura', 'Obra civil', 'bajo', '2026-09-09', 'Revisado', 'info'],
   ['José Aníbal Peña', 'CC 16.780.334', 'Agroindustria Valle', 'Auxiliar', 'Cosecha', 'alto', '2026-09-11', 'Calificado', 'teal'],
   ['Diana Carolina Soto', 'CC 1.020.774.556', 'Clínica del Norte', 'Técnico', 'Laboratorio', 'medio', '2026-09-12', 'Pendiente', 'neutro'],
@@ -222,7 +222,7 @@ export const trabajadorDetalle = app({
       <p class="rub">Trabajador · <span class="num">CC 79.114.226</span></p>
       <h1 class="display" style="font-size:40px;margin-top:9px">Hernán Duque Prieto</h1>
       <p style="font-size:13.5px;color:${T.secondary};margin-top:8px">
-        Transportes Andinos S.A.S. · Conducción · Operativo · vinculado desde <span class="num">2019-03-04</span>
+        Transportes Andinos S.A.S. · Supervisor de rutas · Técnico · vinculado desde <span class="num">2019-03-04</span>
       </p>
     </div>
     <div style="display:flex;gap:10px;flex-shrink:0">
@@ -239,7 +239,7 @@ export const trabajadorDetalle = app({
           <span class="display" style="font-size:64px;color:${RISK.muyAlto.text}">74,8</span>
           <div style="padding-bottom:10px">
             ${riesgo('muyAlto')}
-            <p style="font-size:12.5px;color:${RISK.muyAlto.text};margin-top:7px">Percentil <span class="num">96</span> del baremo nacional operativo</p>
+            <p style="font-size:12.5px;color:${RISK.muyAlto.text};margin-top:7px">Percentil <span class="num">96</span> del baremo nacional de técnicos</p>
           </div>
           <div style="margin-left:auto;padding-bottom:8px">${pasos('muyAlto', { w: 24, h: 11, gap: 5 })}</div>
         </div>
@@ -291,9 +291,9 @@ export const trabajadorDetalle = app({
           <div style="display:flex;align-items:center;gap:13px;padding:9px 0">
             <span class="num" style="font-size:12.5px;color:${T.muted};width:34px">${a}</span>
             <div style="flex:1;height:7px;border-radius:4px;background:${T.surfaceMuted};overflow:hidden">
-              <div style="width:${p}%;height:100%;background:${RISK[r].bar}"></div>
+              <div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div>
             </div>
-            <span class="num" style="font-size:12.5px;font-weight:600;color:${RISK[r].text};width:38px;text-align:right">${p}</span>
+            <span class="num" style="font-size:12.5px;font-weight:600;color:${RISK[r].text};width:38px;text-align:right">${n1(p)}</span>
           </div>`).join('')}
         <p style="font-size:12px;line-height:1.55;color:${T.secondary};margin-top:12px;padding-top:12px;border-top:1px solid ${T.borderMuted}">
           Sube <span class="num">40,6</span> puntos en cuatro años y cambia dos niveles. Es un caso de seguimiento individual, no solo colectivo.

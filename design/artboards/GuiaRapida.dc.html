@@ -8,85 +8,138 @@
 <x-dc>
 <helmet>
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
 
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
-         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; }
   a { color: #007A65; text-decoration: none; }
-  a:hover { color: #009A80; text-decoration: underline; }
+  a:hover { color: #009A80; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
-     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
-     principio de todo el sistema. */
-  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
-         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
-  .rub-ink { color: #4A5F70; }
+  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
+     de museo era la mitad del aire formal que sobraba. */
+  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+         text-transform: uppercase; color: #8996A1; }
+  .rub-ink { color: #55636E; }
 
-  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
-  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
-             line-height: 0.94; color: #0C1520; }
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
 
-  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
-  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
 
-  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
-  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
-           color: #1D2B38; text-wrap: pretty; }
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
 
   /* ── Chrome de aplicación ─────────────────────────────────────────── */
-  .shell { display: flex; height: 100%; background: #F2F0EC; }
-  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
-          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
-  .side-brand { padding: 26px 24px 22px; }
-  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
-  .side-group { display: flex; flex-direction: column; gap: 1px; }
-  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
-  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
-         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
-         border-radius: 6px; }
-  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
-            border-left-color: #009A80; }
-  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
-               display: flex; align-items: center; gap: 10px; }
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
-         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
-         justify-content: space-between; padding: 0 28px; }
-  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
-         background: #E8E5E0; color: #8A9FAE; }
-  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #8996A1; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #8996A1; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
 
   /* ── Primitivas ───────────────────────────────────────────────────── */
-  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
-         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
-  .btn-pri { background: #009A80; color: #FFF; }
-  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
-  .btn-ghost { color: #4A5F70; }
-  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
-           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8996A1;
            display: flex; align-items: center; }
-  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
-         text-transform: uppercase; color: #8A9FAE; }
-  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-        text-transform: uppercase; color: #8A9FAE; text-align: left;
-        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
-  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
-        color: #0C1520; vertical-align: middle; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
-          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #8996A1;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
+     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
 </style>
 </helmet>
-<div style="width:1440px;height:1080px;background:#F2F0EC;overflow:hidden">
-<div class="shell" style="height:1080px">
+<div style="width:1440px;height:1130px;background:#F7F8F9;overflow:hidden">
+<div class="shell" style="height:1130px">
   <aside class="side">
     <div class="side-brand"><div style="display:flex;align-items:center;gap:11px">
-    <svg viewBox="2.2 2.2 35.6 39.6" width="23.4" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg viewBox="2.2 2.2 35.6 39.6" width="22.5" height="25" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs><linearGradient id="mk" x1="4" y1="22" x2="36" y2="22" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#0FD6A0"/><stop offset=".5" stop-color="#0FB3DA"/><stop offset="1" stop-color="#2C6BFF"/>
     </linearGradient></defs>
@@ -101,60 +154,61 @@
       <circle cx="20" cy="22" r="4.2"/>
     </g></svg>
     <div style="display:flex;flex-direction:column;gap:3px">
-      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.7px;letter-spacing:-0.01em;line-height:1;color:#0C1520">Psico<span style="color:#009A80">SST</span></span>
-      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8A9FAE;line-height:1">Riesgo psicosocial</span>
+      <span style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-weight:700;font-size:18.0px;letter-spacing:-0.01em;line-height:1;color:#0B0F14">Psico<span style="color:#009A80">SST</span></span>
+      <span style="font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;color:#8996A1;line-height:1">Riesgo psicosocial</span>
     </div></div></div>
     <nav class="side-nav">
     <div class="side-group">
       <p class="rub">Operación</p>
-      <div class="nav nav-on"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#009A80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><span>Centro de control</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><span>Empresas</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><span>Trabajadores</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><span>Evaluaciones</span></div>
+      <div class="nav nav-on"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#009A80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z"/></svg><span>Centro de control</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg><span>Empresas</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><span>Trabajadores</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg><span>Evaluaciones</span></div>
     </div>
     <div class="side-group">
       <p class="rub">Análisis</p>
-      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><span>Informes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><span>Analítica</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><span>Tendencias</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Intervenciones</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><span>Asistente IA</span></div>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><span>Informes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg><span>Analítica</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17l6-6 4 4 7-8M17 7h4v4"/></svg><span>Tendencias</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Intervenciones</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg><span>Asistente IA</span></div>
     </div>
     <div class="side-group">
       <p class="rub">Cuenta</p>
-      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M2 7h20v10H2zM2 11h20M6 15h3"/></svg><span>Créditos</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 9l1.5-5h15L21 9M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM9 13h6"/></svg><span>Planes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Equipo</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1.7a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V1.7a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg><span>Configuración</span></div>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M2 7h20v10H2zM2 11h20M6 15h3"/></svg><span>Créditos</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 9l1.5-5h15L21 9M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM9 13h6"/></svg><span>Planes</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Equipo</span></div><div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1.7a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 7.5a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V1.7a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg><span>Configuración</span></div>
     </div>
     <div class="side-group">
       <p class="rub">Administración</p>
-      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Panel admin</span></div>
+      <div class="nav"><svg width="14.5" height="14.5" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Panel admin</span></div>
     </div></nav>
     <div class="side-foot">
-      <div style="width:28px;height:28px;border-radius:999px;background:#CCF0E8;color:#009A80;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">MT</div>
-      <div style="flex:1;min-width:0">
-        <p style="font-size:12.5px;font-weight:600;color:#4A5F70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">María Torres Gómez</p>
-        <p class="num" style="font-size:10.5px;color:#8A9FAE;margin-top:1px">Lic. SST 2019-4471</p>
+      <div class="side-user">
+        <div style="width:28px;height:28px;border-radius:9px;background:#0B0F14;color:#FFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">MT</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:12.5px;font-weight:500;color:#0B0F14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">María Torres Gómez</p>
+          <p class="num" style="font-size:11px;color:#8996A1;margin-top:1px">Lic. SST 2019-4471</p>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
       </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
     </div>
   </aside>
   <div class="main">
     <header class="top">
-    <div style="display:flex;align-items:center;gap:22px">
-      <div style="display:flex;align-items:center;gap:8px;color:#8A9FAE;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg><span>Buscar</span><span class="kbd">⌘K</span>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div class="busca">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg><span style="flex:1">Buscar</span><span class="kbd">⌘K</span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8A9FAE">
-         <span style="color:#0C1520;font-weight:500">Guía rápida</span>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#8996A1">
+         <span style="color:#0B0F14;font-weight:500">Guía rápida</span>
        </div>
     </div>
-    <div style="display:flex;align-items:center;gap:16px">
-      <div style="display:flex;align-items:baseline;gap:5px;font-size:13px;color:#4A5F70">
-        <span class="num" style="font-weight:600">47</span>
-        <span style="font-size:12px;color:#8A9FAE">créditos</span>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:9px;background:#F0F2F4">
+        <span class="num" style="font-size:13px;font-weight:600;color:#55636E">47</span>
+        <span style="font-size:12.5px;color:#8996A1">créditos</span>
       </div>
-      <span style="width:1px;height:16px;background:#D4CFC8"></span>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A9FAE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8996A1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </div>
   </header>
-    <div class="body">
+    <div class="body anim">
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:26px">
     <div style="min-width:0">
       <p class="rub">Primeros pasos</p>
       <h1 class="display" style="font-size:40px;margin-top:11px">De cero a un informe firmado</h1>
-      <p style="font-size:13.5px;line-height:1.6;color:#4A5F70;margin-top:9px;max-width:620px">Cinco pasos. Si es su primera evaluación, este es el camino más corto y no se salta ningún requisito de la norma.</p>
+      <p style="font-size:13.5px;line-height:1.6;color:#55636E;margin-top:9px;max-width:620px">Cinco pasos. Si es su primera evaluación, este es el camino más corto y no se salta ningún requisito de la norma.</p>
     </div>
     
   </div>
@@ -166,93 +220,93 @@
           <div style="width:32px;height:32px;border-radius:9px;background:#DCFCE7;display:flex;align-items:center;justify-content:center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 11h.01M15 11h.01"/></svg>
           </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#17B26A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
-        <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0C1520;margin-top:14px">Registre la empresa</p>
-        <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">NIT, sector, actividad económica y clase de riesgo. El sector determina el baremo que se aplicará.</p>
+        <p style="font-family:'Geist', system-ui, -apple-system, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0B0F14;margin-top:14px">Registre la empresa</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:7px">NIT, sector, actividad económica y clase de riesgo. El sector determina el baremo que se aplicará.</p>
       </div>
       <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #BBF7D0">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="width:32px;height:32px;border-radius:9px;background:#DCFCE7;display:flex;align-items:center;justify-content:center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg>
           </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#17B26A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
-        <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0C1520;margin-top:14px">Cargue los trabajadores</p>
-        <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">Uno a uno o con un CSV. El nivel del cargo decide si le corresponde Forma A o Forma B.</p>
+        <p style="font-family:'Geist', system-ui, -apple-system, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0B0F14;margin-top:14px">Cargue los trabajadores</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:7px">Uno a uno o con un CSV. El nivel del cargo decide si le corresponde Forma A o Forma B.</p>
       </div>
-      <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+      <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E8EB">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="width:32px;height:32px;border-radius:9px;background:#E8E5E0;display:flex;align-items:center;justify-content:center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg>
+          <div style="width:32px;height:32px;border-radius:9px;background:#F0F2F4;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M9 3h6a2 2 0 0 1 2 2v0h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1a2 2 0 0 1 2-2zM9 12h6M9 16h4"/></svg>
           </div>
-          <span class="num" style="font-size:11.5px;color:#8A9FAE">03</span>
+          <span class="num" style="font-size:11.5px;color:#8996A1">03</span>
         </div>
-        <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0C1520;margin-top:14px">Envíe las invitaciones</p>
-        <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">Cada trabajador responde desde su teléfono, con consentimiento informado previo.</p>
+        <p style="font-family:'Geist', system-ui, -apple-system, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0B0F14;margin-top:14px">Envíe las invitaciones</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:7px">Cada trabajador responde desde su teléfono, con consentimiento informado previo.</p>
       </div>
-      <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+      <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E8EB">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="width:32px;height:32px;border-radius:9px;background:#E8E5E0;display:flex;align-items:center;justify-content:center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg>
+          <div style="width:32px;height:32px;border-radius:9px;background:#F0F2F4;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg>
           </div>
-          <span class="num" style="font-size:11.5px;color:#8A9FAE">04</span>
+          <span class="num" style="font-size:11.5px;color:#8996A1">04</span>
         </div>
-        <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0C1520;margin-top:14px">Revise la calificación</p>
-        <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">El sistema califica solo. Usted verifica y ajusta la interpretación si hace falta.</p>
+        <p style="font-family:'Geist', system-ui, -apple-system, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0B0F14;margin-top:14px">Revise la calificación</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:7px">El sistema califica solo. Usted verifica y ajusta la interpretación si hace falta.</p>
       </div>
-      <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+      <div style="flex:1;padding:22px 22px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E8EB">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="width:32px;height:32px;border-radius:9px;background:#E8E5E0;display:flex;align-items:center;justify-content:center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5F70" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17c3-6 5 3 8-2s4 2 7-3M4 21h16"/></svg>
+          <div style="width:32px;height:32px;border-radius:9px;background:#F0F2F4;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#55636E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17c3-6 5 3 8-2s4 2 7-3M4 21h16"/></svg>
           </div>
-          <span class="num" style="font-size:11.5px;color:#8A9FAE">05</span>
+          <span class="num" style="font-size:11.5px;color:#8996A1">05</span>
         </div>
-        <p style="font-family:'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0C1520;margin-top:14px">Firme y entregue</p>
-        <p style="font-size:12.5px;line-height:1.6;color:#4A5F70;margin-top:7px">La firma emite el folio verificable. Sin ella el informe no tiene valor probatorio.</p>
+        <p style="font-family:'Geist', system-ui, -apple-system, sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.005em;color:#0B0F14;margin-top:14px">Firme y entregue</p>
+        <p style="font-size:12.5px;line-height:1.6;color:#55636E;margin-top:7px">La firma emite el folio verificable. Sin ella el informe no tiene valor probatorio.</p>
       </div>
   </div>
 
   <div style="display:flex;gap:22px">
-    <div style="flex:1;padding:26px 28px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+    <div style="flex:1;padding:26px 28px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E8EB">
       <p class="rub rub-ink">Las preguntas que más se repiten</p>
       <div style="margin-top:16px">
         <div style="padding:14px 0;">
-          <p style="font-size:13.5px;font-weight:600;color:#0C1520">¿Puedo aplicar la batería a toda la empresa con una sola forma?</p>
+          <p style="font-size:13.5px;font-weight:600;color:#0B0F14">¿Puedo aplicar la batería a toda la empresa con una sola forma?</p>
           <p class="prose" style="font-size:14.5px;margin-top:6px">No. La Forma A es para profesionales, jefaturas y técnicos; la Forma B para auxiliares y operativos. Aplicar la forma equivocada invalida el resultado.</p>
-        </div><div style="padding:14px 0;border-top:1px solid #E2DED8">
-          <p style="font-size:13.5px;font-weight:600;color:#0C1520">¿Cada cuánto debo reaplicarla?</p>
-          <p class="prose" style="font-size:14.5px;margin-top:6px">Cada dos años como regla general, y cada año cuando el riesgo global es alto o muy alto.</p>
-        </div><div style="padding:14px 0;border-top:1px solid #E2DED8">
-          <p style="font-size:13.5px;font-weight:600;color:#0C1520">¿La empresa puede ver los resultados individuales?</p>
+        </div><div style="padding:14px 0;border-top:1px solid #EFF2F4">
+          <p style="font-size:13.5px;font-weight:600;color:#0B0F14">¿Cada cuánto debo reaplicarla?</p>
+          <p class="prose" style="font-size:14.5px;margin-top:6px">El artículo 3 de la Resolución 2764 de 2022 fija cada dos años con riesgo bajo o medio, y cada año con riesgo alto o muy alto.</p>
+        </div><div style="padding:14px 0;border-top:1px solid #EFF2F4">
+          <p style="font-size:13.5px;font-weight:600;color:#0B0F14">¿La empresa puede ver los resultados individuales?</p>
           <p class="prose" style="font-size:14.5px;margin-top:6px">No. El resultado individual es reserva del profesional (Ley 1090 de 2006). La empresa recibe el informe colectivo.</p>
-        </div><div style="padding:14px 0;border-top:1px solid #E2DED8">
-          <p style="font-size:13.5px;font-weight:600;color:#0C1520">¿Qué pasa si un trabajador deja ítems en blanco?</p>
+        </div><div style="padding:14px 0;border-top:1px solid #EFF2F4">
+          <p style="font-size:13.5px;font-weight:600;color:#0B0F14">¿Qué pasa si un trabajador deja ítems en blanco?</p>
           <p class="prose" style="font-size:14.5px;margin-top:6px">El cuestionario se anula: la batería no admite imputación de faltantes. Hay que repetir la aplicación.</p>
         </div>
       </div>
     </div>
 
     <div style="width:376px;flex-shrink:0">
-      <div style="padding:24px 26px;border-radius:12px;background:#FFFFFF;border:1px solid #D4CFC8">
+      <div style="padding:24px 26px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E8EB">
         <p class="rub rub-ink">Marco legal aplicable</p>
         <div style="margin-top:14px">
           <div style="padding:11px 0;">
-            <p style="font-size:13px;font-weight:600;color:#0C1520">Resolución 2646 de 2008</p>
-            <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Define los factores de riesgo psicosocial y obliga a evaluarlos.</p>
-          </div><div style="padding:11px 0;border-top:1px solid #E2DED8">
-            <p style="font-size:13px;font-weight:600;color:#0C1520">Resolución 2764 de 2022</p>
-            <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Actualiza la batería y sus baremos.</p>
-          </div><div style="padding:11px 0;border-top:1px solid #E2DED8">
-            <p style="font-size:13px;font-weight:600;color:#0C1520">Ley 1090 de 2006</p>
-            <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Ejercicio de la psicología y custodia de la historia clínica.</p>
-          </div><div style="padding:11px 0;border-top:1px solid #E2DED8">
-            <p style="font-size:13px;font-weight:600;color:#0C1520">Ley 1581 de 2012</p>
-            <p style="font-size:12px;line-height:1.5;color:#4A5F70;margin-top:3px">Protección de datos personales y habeas data.</p>
+            <p style="font-size:13px;font-weight:600;color:#0B0F14">Resolución 2646 de 2008</p>
+            <p style="font-size:12px;line-height:1.5;color:#55636E;margin-top:3px">Define los factores de riesgo psicosocial y obliga a evaluarlos.</p>
+          </div><div style="padding:11px 0;border-top:1px solid #EFF2F4">
+            <p style="font-size:13px;font-weight:600;color:#0B0F14">Resolución 2764 de 2022</p>
+            <p style="font-size:12px;line-height:1.5;color:#55636E;margin-top:3px">Adopta la batería, la guía técnica y los protocolos, y fija la periodicidad. Derogó la Resolución 2404 de 2019.</p>
+          </div><div style="padding:11px 0;border-top:1px solid #EFF2F4">
+            <p style="font-size:13px;font-weight:600;color:#0B0F14">Ley 1090 de 2006</p>
+            <p style="font-size:12px;line-height:1.5;color:#55636E;margin-top:3px">Ejercicio de la psicología y custodia de la historia clínica.</p>
+          </div><div style="padding:11px 0;border-top:1px solid #EFF2F4">
+            <p style="font-size:13px;font-weight:600;color:#0B0F14">Ley 1581 de 2012</p>
+            <p style="font-size:12px;line-height:1.5;color:#55636E;margin-top:3px">Protección de datos personales y habeas data.</p>
           </div>
         </div>
       </div>
-      <div style="margin-top:18px;padding:20px 22px;border-radius:12px;background:#CCF0E8;border:1px solid #A9E3D6">
+      <div style="margin-top:18px;padding:20px 22px;border-radius:12px;background:#E4F6F1;border:1px solid #A9E3D6">
         <p style="font-size:14px;font-weight:600;color:#007A65">¿Prefiere que lo acompañemos?</p>
         <p style="font-size:12.5px;line-height:1.6;color:#007A65;margin-top:7px;opacity:0.85">
           Agende 30 minutos con nuestro equipo clínico para revisar juntos su primera aplicación.

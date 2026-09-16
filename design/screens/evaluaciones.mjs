@@ -44,7 +44,7 @@ export const evaluaciones = app({
 
 // ── Nueva evaluación por invitación ────────────────────────────────────
 export const invitar = app({
-  w: 1440, h: 1000, activo: 'assess', migas: ['Evaluaciones', 'Nueva', 'Por invitación'],
+  w: 1440, h: 1030, activo: 'assess', migas: ['Evaluaciones', 'Nueva', 'Por invitación'],
   contenido: `
   ${cabecera({
     rubrica: 'Nueva evaluación · Paso <span class="num">2</span> de <span class="num">3</span>',
@@ -66,7 +66,7 @@ export const invitar = app({
       <div style="display:flex;flex-direction:column;gap:9px">
         ${[
           ['Intralaboral Forma A', 'Profesionales, jefaturas y técnicos', 123, true, '1 crédito'],
-          ['Intralaboral Forma B', 'Auxiliares y operativos', 97, false, '1 crédito'],
+          ['Intralaboral Forma B', 'Auxiliares y operativos', 97, true, '1 crédito'],
           ['Extralaboral', 'Todos los trabajadores', 31, true, 'Incluido'],
           ['Cuestionario de estrés', 'Todos los trabajadores', 31, true, 'Incluido'],
         ].map(([n, d, it, on, cr]) => `
@@ -218,7 +218,7 @@ export const digitacion = artboard({
       <aside style="width:292px;flex-shrink:0;background:${T.surface};border-left:1px solid ${T.border};padding:28px 24px">
         <p class="rub rub-ink">Avance por dominio</p>
         <div style="margin-top:16px">
-          ${[['Liderazgo y relaciones', 41, 41], ['Control sobre el trabajo', 21, 21], ['Demandas del trabajo', 50, 18], ['Recompensa', 11, 0]].map(([d, t, hecho]) => `
+          ${[['Demandas del trabajo', 50, 18], ['Liderazgo y relaciones', 41, 0], ['Control sobre el trabajo', 21, 0], ['Recompensa', 11, 0]].map(([d, t, hecho]) => `
             <div style="padding:11px 0;border-bottom:1px solid ${T.borderMuted}">
               <div style="display:flex;justify-content:space-between;align-items:baseline">
                 <span style="font-size:12.5px;color:${T.ink}">${esc(d)}</span>
@@ -251,7 +251,7 @@ export const digitacion = artboard({
 
 // ── Carga masiva ───────────────────────────────────────────────────────
 export const cargaMasiva = app({
-  w: 1440, h: 1060, activo: 'assess', migas: ['Evaluaciones', 'Carga masiva'],
+  w: 1440, h: 1090, activo: 'assess', migas: ['Evaluaciones', 'Carga masiva'],
   contenido: `
   ${cabecera({
     rubrica: 'Evaluaciones · Importación',

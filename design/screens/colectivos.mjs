@@ -22,17 +22,19 @@ const DOM_COL = [
   ['Recompensa', 12.8, 'bajo'],
 ];
 
+// Las seis áreas suman exactamente la distribución de la pantalla:
+// 38 / 79 / 126 / 118 / 51 = 412, con 169 en alto o muy alto (41,0%).
 const AREAS = [
-  ['Operación de vehículos', 198, [8, 24, 41, 78, 47]],
-  ['Mantenimiento', 74, [4, 14, 22, 21, 13]],
-  ['Logística y patios', 61, [6, 17, 20, 12, 6]],
-  ['Administración', 42, [11, 16, 10, 4, 1]],
-  ['Comercial', 22, [4, 8, 7, 2, 1]],
-  ['Dirección', 15, [5, 6, 3, 1, 0]],
+  ['Operación de vehículos', 198, [7, 21, 53, 78, 39]],
+  ['Mantenimiento', 74, [4, 13, 26, 22, 9]],
+  ['Logística y patios', 61, [6, 16, 24, 13, 2]],
+  ['Administración', 42, [11, 17, 10, 3, 1]],
+  ['Comercial', 22, [5, 7, 8, 2, 0]],
+  ['Dirección', 15, [5, 5, 5, 0, 0]],
 ];
 
 export const informeDiagnostico = app({
-  w: 1440, h: 1860, activo: 'reports', migas: ['Empresas', 'Transportes Andinos', 'Diagnóstico'],
+  w: 1440, h: 1930, activo: 'reports', migas: ['Empresas', 'Transportes Andinos', 'Diagnóstico'],
   contenido: `
   ${cabeceraInforme({
     tipo: 'Informe colectivo',
@@ -64,8 +66,8 @@ export const informeDiagnostico = app({
               ${riesgo(r, { size: 'sm' })}
             </div>
           </div>
-          <div style="height:9px;border-radius:0 4px 4px 0;background:${T.surfaceMuted};margin-top:8px;overflow:hidden">
-            <div style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:0 4px 4px 0"></div>
+          <div style="height:9px;border-radius:999px;background:${T.surfaceMuted};margin-top:8px;overflow:hidden">
+            <div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div>
           </div>
         </div>`).join('')}</div>`)}
 
@@ -206,7 +208,7 @@ export const programaSVE = app({
     tipo: 'Programa',
     folio: 'SVE-2026-0011',
     titulo: 'Vigilancia epidemiológica',
-    bajada: 'Constructora Sierra · 203 trabajadores · el sistema de vigilancia es obligatorio cuando hay población en riesgo alto o muy alto (Resolución 2646 de 2008, artículo 14).',
+    bajada: 'Constructora Sierra · 203 trabajadores · la vigilancia epidemiológica de los factores psicosociales es obligatoria cuando hay población en riesgo alto o muy alto (Resolución 2646 de 2008 y Resolución 2764 de 2022).',
     acciones: ACCIONES,
   })}
 
@@ -254,8 +256,8 @@ export const programaSVE = app({
               </div>
               <p style="font-size:12.5px;color:${T.secondary};margin-top:4px">${esc(d)}</p>
               <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
-                <div style="flex:1;height:5px;border-radius:0 3px 3px 0;background:${T.surfaceMuted};overflow:hidden">
-                  <div style="width:${pct}%;height:100%;background:${pct === 100 ? T.success : T.teal};border-radius:0 3px 3px 0"></div>
+                <div style="flex:1;height:5px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
+                  <div style="width:${pct}%;height:100%;background:${pct === 100 ? T.success : T.teal};border-radius:999px"></div>
                 </div>
                 <span class="num" style="font-size:11px;color:${T.muted};width:32px;text-align:right">${pct}%</span>
               </div>

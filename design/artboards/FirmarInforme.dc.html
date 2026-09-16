@@ -8,87 +8,140 @@
 <x-dc>
 <helmet>
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..600;1,8..60,300..600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* Duraciones y curvas del manual de Emil Kowalski: nada por encima de
+     300 ms, sólo transform y opacity, y una curva de salida fuerte. */
+  :root {
+    --sal: cubic-bezier(0.23, 1, 0.32, 1);
+    --ent: cubic-bezier(0.77, 0, 0.175, 1);
+    --t-toque: 130ms;
+    --t-menu:  200ms;
+    --t-capa:  260ms;
+  }
 
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif; background: #F2F0EC; color: #0C1520;
-         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { margin: 0; font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', sans-serif; background: #F7F8F9; color: #0B0F14;
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         font-feature-settings: 'cv11', 'ss01'; }
   a { color: #007A65; text-decoration: none; }
-  a:hover { color: #009A80; text-decoration: underline; }
+  a:hover { color: #009A80; }
   p { margin: 0; }
   h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; }
 
-  /* Rúbrica: la etiqueta condensada en versalitas que ordena cada bloque.
-     Es el gesto que ya existía en el sidebar (10px / 0.22em) elevado a
-     principio de todo el sistema. */
-  .rub { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600;
-         letter-spacing: 0.22em; text-transform: uppercase; color: #8A9FAE; }
-  .rub-ink { color: #4A5F70; }
+  /* Rúbrica. El tracking baja de 0,22em a 0,05em: aquel espaciado de cartel
+     de museo era la mitad del aire formal que sobraba. */
+  .rub { font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+         text-transform: uppercase; color: #8996A1; }
+  .rub-ink { color: #55636E; }
 
-  /* Titular editorial: Barlow Semi Condensed en tamaños de revista. */
-  .display { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;
-             line-height: 0.94; color: #0C1520; }
+  /* Titular. Geist muy apretado en lugar de una condensada de periódico. */
+  .display { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-weight: 600; letter-spacing: -0.035em;
+             line-height: 1.02; color: #0B0F14; }
 
-  /* Todo dato es monoespaciado: puntaje, conteo, fecha, token, hash. */
-  .num { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; }
+  /* Cifra. Misma familia que el resto, cifras tabulares y tracking negativo:
+     alinea en columna sin parecer salida de una máquina de escribir. */
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .cifra { font-variant-numeric: tabular-nums; letter-spacing: -0.045em;
+           font-weight: 600; line-height: 1; color: #0B0F14; }
+  /* Sólo para cadenas que de verdad son de máquina: huellas, tokens, claves. */
+  .maq { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.92em; letter-spacing: -0.01em; }
 
-  /* Narrativa clínica: la interpretación se lee como texto, no como UI. */
-  .prose { font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif; font-size: 16.5px; line-height: 1.62;
-           color: #1D2B38; text-wrap: pretty; }
+  /* Texto corrido. Era Source Serif 4 y ahí estaba el aire de documento. */
+  .prose { font-size: 15.5px; line-height: 1.65; color: #55636E;
+           letter-spacing: -0.006em; text-wrap: pretty; }
+  .prose strong { color: #0B0F14; font-weight: 600; }
+  .prose em { font-style: normal; color: #0B0F14; font-weight: 500; }
 
   /* ── Chrome de aplicación ─────────────────────────────────────────── */
-  .shell { display: flex; height: 100%; background: #F2F0EC; }
-  .side { width: 240px; flex-shrink: 0; background: #FFFFFF;
-          border-right: 1px solid #D4CFC8; display: flex; flex-direction: column; }
-  .side-brand { padding: 26px 24px 22px; }
-  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 22px; }
-  .side-group { display: flex; flex-direction: column; gap: 1px; }
-  .side-group > .rub { padding: 0 12px; margin-bottom: 7px; }
-  .nav { display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 12px;
-         font-size: 13px; color: #4A5F70; border-left: 2px solid transparent;
-         border-radius: 6px; }
-  .nav-on { color: #009A80; font-weight: 600; background: #CCF0E8;
-            border-left-color: #009A80; }
-  .side-foot { padding: 14px 16px; border-top: 1px solid #D4CFC8;
-               display: flex; align-items: center; gap: 10px; }
+  .shell { display: flex; height: 100%; background: #F7F8F9; }
+  .side { width: 244px; flex-shrink: 0; background: #FFFFFF;
+          border-right: 1px solid #E4E8EB; display: flex; flex-direction: column; }
+  .side-brand { padding: 22px 20px 18px; }
+  .side-nav { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 20px; }
+  .side-group { display: flex; flex-direction: column; gap: 2px; }
+  .side-group > .rub { padding: 0 10px; margin-bottom: 6px; font-size: 10.5px; }
+  /* Píldora completa en lugar del filete izquierdo: el borde de 2px era el
+     gesto más anticuado de la barra. */
+  .nav { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px;
+         font-size: 13.5px; color: #55636E; border-radius: 9px;
+         transition: background var(--t-toque) var(--sal), color var(--t-toque) var(--sal); }
+  .nav-on { color: #0B0F14; font-weight: 500; background: #F0F2F4; }
+  .side-foot { padding: 12px; border-top: 1px solid #E4E8EB; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+               border-radius: 10px; background: #F0F2F4; }
 
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .top { height: 52px; flex-shrink: 0; background: #FFFFFF;
-         border-bottom: 1px solid #D4CFC8; display: flex; align-items: center;
-         justify-content: space-between; padding: 0 28px; }
-  .kbd { font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px;
-         background: #E8E5E0; color: #8A9FAE; }
-  .body { flex: 1; padding: 34px 40px 44px; overflow: hidden; }
+  .top { height: 60px; flex-shrink: 0; background: #FFFFFF;
+         border-bottom: 1px solid #E4E8EB; display: flex; align-items: center;
+         justify-content: space-between; padding: 0 24px; }
+  .busca { display: flex; align-items: center; gap: 9px; height: 34px; padding: 0 12px;
+           min-width: 268px; border-radius: 10px; background: #F0F2F4;
+           color: #8996A1; font-size: 13.5px; }
+  .kbd { font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; padding: 2px 5px; border-radius: 5px;
+         background: #FFFFFF; color: #8996A1; border: 1px solid #E4E8EB; }
+  .body { flex: 1; padding: 32px 36px 44px; overflow: hidden; }
 
   /* ── Primitivas ───────────────────────────────────────────────────── */
-  .card { background: #FFFFFF; border: 1px solid #D4CFC8; border-radius: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px;
-         border-radius: 8px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; }
-  .btn-pri { background: #009A80; color: #FFF; }
-  .btn-sec { background: #FFFFFF; color: #0C1520; border: 1px solid #D4CFC8; }
-  .btn-ghost { color: #4A5F70; }
-  .input { height: 40px; border: 1px solid #D4CFC8; border-radius: 8px;
-           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8A9FAE;
+  /* Elevación suave en lugar de «filete y nunca sombra». La regla anterior
+     mantenía todo plano, y plano se lee como impreso. */
+  .card { background: #FFFFFF; border: 1px solid #E4E8EB; border-radius: 16px;
+          box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .card-alto { box-shadow: 0 1px 2px rgba(11,15,20,0.04), 0 12px 32px -18px rgba(11,15,20,0.18); }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px;
+         border-radius: 10px; font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em;
+         transition: transform var(--t-toque) var(--sal), background var(--t-toque) var(--sal); }
+  .btn:active { transform: scale(0.97); }
+  .btn-pri { background: #0B0F14; color: #FFF; }
+  .btn-acc { background: #009A80; color: #FFF; }
+  .btn-sec { background: #FFFFFF; color: #0B0F14; border: 1px solid #E4E8EB;
+             box-shadow: 0 1px 2px rgba(11,15,20,0.04); }
+  .btn-ghost { color: #55636E; }
+
+  .input { height: 40px; border: 1px solid #E4E8EB; border-radius: 10px;
+           background: #FFFFFF; padding: 0 13px; font-size: 14px; color: #8996A1;
            display: flex; align-items: center; }
-  .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: 0.11em;
-         text-transform: uppercase; color: #8A9FAE; }
-  .th { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-        text-transform: uppercase; color: #8A9FAE; text-align: left;
-        padding: 0 0 10px; border-bottom: 1px solid #D4CFC8; }
-  .td { padding: 13px 0; border-bottom: 1px solid #E2DED8; font-size: 13.5px;
-        color: #0C1520; vertical-align: middle; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px;
-          border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .lbl { font-size: 12px; font-weight: 500; letter-spacing: -0.005em; color: #55636E; }
+  .th { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; color: #8996A1;
+        text-align: left; padding: 0 0 11px; border-bottom: 1px solid #E4E8EB;
+        text-transform: none; }
+  .td { padding: 14px 0; border-bottom: 1px solid #EFF2F4; font-size: 13.5px;
+        color: #0B0F14; vertical-align: middle; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px;
+          border-radius: 8px; font-size: 12px; font-weight: 500; letter-spacing: -0.005em; }
+
+  /* ── Movimiento ───────────────────────────────────────────────────── */
+  /* Una entrada escalonada, 30–80 ms entre piezas, sólo transform y opacity.
+     Es lo único que se anima: nada que se vea cien veces al día lleva motion. */
+  @keyframes sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crece { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .anim > * { animation: sube 520ms var(--sal) both; }
+  .anim > *:nth-child(1) { animation-delay: 0ms; }
+  .anim > *:nth-child(2) { animation-delay: 45ms; }
+  .anim > *:nth-child(3) { animation-delay: 90ms; }
+  .anim > *:nth-child(4) { animation-delay: 135ms; }
+  .anim > *:nth-child(5) { animation-delay: 180ms; }
+  .anim > *:nth-child(6) { animation-delay: 225ms; }
+  .anim > *:nth-child(n+7) { animation-delay: 260ms; }
+  .barra-anim { transform-origin: left center; animation: crece 620ms var(--sal) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Se conserva la opacidad y se retira el desplazamiento. */
+    .anim > *, .barra-anim { animation: aparece 200ms linear both; transform: none; }
+    .btn:active { transform: none; }
+  }
 </style>
 </helmet>
-<div style="width:1440px;height:900px;background:#F2F0EC;overflow:hidden">
+<div style="width:1440px;height:900px;background:#F7F8F9;overflow:hidden">
 <div style="width:1440px;height:900px;background:rgba(12,21,32,0.55);display:flex;align-items:center;justify-content:center">
-    <div style="width:620px;background:#FFFFFF;border-radius:16px;border:1px solid #D4CFC8;overflow:hidden">
+    <div style="width:620px;background:#FFFFFF;border-radius:16px;border:1px solid #E4E8EB;overflow:hidden">
       <div style="padding:30px 36px 0">
         <p class="rub">Firma digital · Folio <span class="num">IN-2026-0918</span></p>
         <h2 class="display" style="font-size:32px;margin-top:11px">Firmar cierra el informe</h2>
-        <p style="font-size:13.5px;line-height:1.6;color:#4A5F70;margin-top:10px">
+        <p style="font-size:13.5px;line-height:1.6;color:#55636E;margin-top:10px">
           Al firmar, el contenido queda fijado: ningún puntaje, interpretación ni recomendación
           puede modificarse después. Si aparece un error habrá que emitir un informe de corrección.
         </p>
@@ -96,44 +149,44 @@
 
       <div style="padding:24px 36px">
         <p class="rub rub-ink" style="margin-bottom:10px">Su rúbrica</p>
-        <div style="height:132px;border:1px solid #D4CFC8;border-radius:10px;background:#F2F0EC;display:flex;align-items:center;justify-content:center;position:relative">
+        <div style="height:132px;border:1px solid #E4E8EB;border-radius:10px;background:#F7F8F9;display:flex;align-items:center;justify-content:center;position:relative">
           <svg width="240" height="76" viewBox="0 0 240 76" fill="none">
-            <path d="M12 56c18-34 26 14 42-16s22 20 36-10 26 26 42-4 24 18 40-8 22 14 32 2" stroke="#0C1520" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-            <path d="M104 64c26 2 54 0 78-4" stroke="#0C1520" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <path d="M12 56c18-34 26 14 42-16s22 20 36-10 26 26 42-4 24 18 40-8 22 14 32 2" stroke="#0B0F14" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <path d="M104 64c26 2 54 0 78-4" stroke="#0B0F14" stroke-width="1.6" stroke-linecap="round" fill="none"/>
           </svg>
           <span style="position:absolute;right:12px;bottom:10px;font-size:11.5px;color:#007A65">Volver a trazar</span>
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;margin-top:16px">
           <span style="width:17px;height:17px;border-radius:5px;border:1px solid #009A80;background:#009A80;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <p style="font-size:12.5px;line-height:1.55;color:#4A5F70">
+          <p style="font-size:12.5px;line-height:1.55;color:#55636E">
             Declaro que revisé la calificación y la interpretación, y que asumo la responsabilidad
             profesional del contenido conforme a la Ley 1090 de 2006.
           </p>
         </div>
 
-        <div style="margin-top:18px;padding:15px 17px;border-radius:10px;background:#F2F0EC;border:1px solid #D4CFC8">
+        <div style="margin-top:18px;padding:15px 17px;border-radius:10px;background:#F7F8F9;border:1px solid #E4E8EB">
           <p class="rub" style="margin-bottom:9px">Lo que se emite</p>
           
             <div style="display:flex;justify-content:space-between;gap:14px;padding:4px 0">
-              <span style="font-size:12px;color:#8A9FAE">Folio verificable</span>
-              <span class="num" style="font-size:12px;color:#0C1520">IN-2026-0918</span>
+              <span style="font-size:12px;color:#8996A1">Folio verificable</span>
+              <span class="num" style="font-size:12px;color:#0B0F14">IN-2026-0918</span>
             </div>
             <div style="display:flex;justify-content:space-between;gap:14px;padding:4px 0">
-              <span style="font-size:12px;color:#8A9FAE">Huella SHA-256</span>
-              <span class="num" style="font-size:12px;color:#0C1520">4f7a91c8e2…b7d3</span>
+              <span style="font-size:12px;color:#8996A1">Huella SHA-256</span>
+              <span class="num" style="font-size:12px;color:#0B0F14">4f7a91c8e2…b7d3</span>
             </div>
             <div style="display:flex;justify-content:space-between;gap:14px;padding:4px 0">
-              <span style="font-size:12px;color:#8A9FAE">Sello de tiempo</span>
-              <span class="num" style="font-size:12px;color:#0C1520">2026-09-16 09:04:12 −05</span>
+              <span style="font-size:12px;color:#8996A1">Sello de tiempo</span>
+              <span class="num" style="font-size:12px;color:#0B0F14">2026-09-16 09:04:12 −05</span>
             </div>
             <div style="display:flex;justify-content:space-between;gap:14px;padding:4px 0">
-              <span style="font-size:12px;color:#8A9FAE">Código QR de verificación</span>
-              <span class="num" style="font-size:12px;color:#0C1520">Incluido en la página 1</span>
+              <span style="font-size:12px;color:#8996A1">Código QR de verificación</span>
+              <span class="num" style="font-size:12px;color:#0B0F14">Incluido en la página 1</span>
             </div>
         </div>
       </div>
 
-      <div style="padding:20px 36px;border-top:1px solid #D4CFC8;background:#F2F0EC;display:flex;justify-content:flex-end;gap:10px">
+      <div style="padding:20px 36px;border-top:1px solid #E4E8EB;background:#F7F8F9;display:flex;justify-content:flex-end;gap:10px">
         <span class="btn btn-ghost">Cancelar</span>
         <span class="btn btn-pri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0"><path d="M3 17c3-6 5 3 8-2s4 2 7-3M4 21h16"/></svg>Firmar y emitir</span>
       </div>
