@@ -3,7 +3,7 @@ import { cabecera, filtros, paginacion } from './operacion.mjs';
 
 // ── Lista de informes ──────────────────────────────────────────────────
 export const informes = app({
-  w: 1440, h: 900, activo: 'reports', migas: ['Informes'],
+  w: 1440, h: 900, activo: 'reports', empresa: 'Transportes Andinos S.A.S.', migas: ['Informes'],
   contenido: `
   ${cabecera({
     rubrica: 'Análisis · Entregables',
@@ -55,7 +55,7 @@ const DIMS_INFORME = [
 ];
 
 export const informeIndividual = app({
-  w: 1440, h: 2200, activo: 'reports', migas: ['Informes', 'IN-2026-0918'],
+  w: 1440, h: 2200, activo: 'reports', empresa: 'Transportes Andinos S.A.S.', migas: ['Informes', 'IN-2026-0918'],
   contenido: `
   <div style="display:flex;gap:36px">
     <!-- El documento, compuesto como el PDF que va a salir -->

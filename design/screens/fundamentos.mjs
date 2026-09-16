@@ -290,7 +290,7 @@ const reglas = `
   </div>`;
 
 export const fundamentos = artboard({
-  w: W, h: 4060,
+  w: W, h: 4500,
   cuerpo: `<div style="padding:56px 64px 64px" class="anim">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
       <div>
@@ -310,6 +310,50 @@ export const fundamentos = artboard({
     ${seccion('03', 'Escala de riesgo', 'Mismos cinco niveles, tonos limpios.', escalaRiesgo)}
     ${seccion('04', 'Componentes', 'Las primitivas que se repiten en las 46 pantallas.', comps)}
     ${seccion('05', 'Movimiento', 'Tomado del manual de ingeniería de interfaz de Emil Kowalski.', motion)}
-    ${seccion('06', 'Reglas', 'Lo que evita que el sistema se deshaga al crecer.', reglas)}
+    ${seccion('06', 'Ámbito', 'Qué cifra puede vivir en qué pantalla.', `
+      <div style="display:flex;gap:24px">
+        <div style="flex:1;padding:20px 22px;border-radius:16px;background:${T.surfaceMuted}">
+          <p style="font-size:15px;font-weight:600;letter-spacing:-0.018em;color:${T.ink}">Cartera · recuentos de trabajo</p>
+          <p style="font-size:12.5px;line-height:1.65;color:${T.secondary};margin-top:8px">
+            Vigencias por vencer, informes sin firmar, evaluaciones en curso, medidas vencidas,
+            créditos. Son tareas del psicólogo y sí son transversales a las empresas.
+          </p>
+          <p class="rub" style="margin-top:12px">Nunca aquí</p>
+          <p style="font-size:12.5px;line-height:1.65;color:${T.secondary};margin-top:5px">
+            Ningún puntaje, ninguna distribución de riesgo, ningún ranking por sector.
+          </p>
+        </div>
+        <div style="flex:1;padding:20px 22px;border-radius:16px;background:${T.surfaceMuted}">
+          <p style="font-size:15px;font-weight:600;letter-spacing:-0.018em;color:${T.ink}">Empresa · unidad de análisis</p>
+          <p style="font-size:12.5px;line-height:1.65;color:${T.secondary};margin-top:8px">
+            Todo el riesgo. Los baremos de la batería son nacionales y estratificados por nivel
+            de cargo —no por sector ni por empresa—, así que un puntaje agregado entre empresas
+            mide su composición de cargos antes que su riesgo. La obligación legal también es
+            por empleador.
+          </p>
+          <p class="rub" style="margin-top:12px">Dentro de la empresa</p>
+          <p style="font-size:12.5px;line-height:1.65;color:${T.secondary};margin-top:5px">
+            Forma A y Forma B se reportan por separado: 123 ítems y 19 dimensiones frente a 97
+            y 16, cada una contra su propio baremo.
+          </p>
+        </div>
+      </div>
+      <div style="display:flex;gap:24px;margin-top:20px">
+        <div style="flex:1;padding:18px 20px;border-radius:14px;border:1px solid ${RISK.bajo.border};background:${RISK.bajo.bg}">
+          <p style="font-size:13.5px;font-weight:600;color:${RISK.bajo.text}">Contar personas por nivel: válido</p>
+          <p style="font-size:12.5px;line-height:1.6;color:${RISK.bajo.text};margin-top:6px;opacity:0.9">
+            Aunque haya Forma A y Forma B mezcladas, a cada persona la clasificó el baremo que le
+            corresponde. Sumar cuántas caen en cada nivel no mezcla escalas.
+          </p>
+        </div>
+        <div style="flex:1;padding:18px 20px;border-radius:14px;border:1px solid ${RISK.muyAlto.border};background:${RISK.muyAlto.bg}">
+          <p style="font-size:13.5px;font-weight:600;color:${RISK.muyAlto.text}">Promediar puntajes: inválido</p>
+          <p style="font-size:12.5px;line-height:1.6;color:${RISK.muyAlto.text};margin-top:6px;opacity:0.9">
+            Un «riesgo global» que promedia 123 ítems con 97 produce un número que no corresponde
+            a ningún baremo del manual y que no es defendible ante una inspección.
+          </p>
+        </div>
+      </div>`)}
+    ${seccion('07', 'Reglas', 'Lo que evita que el sistema se deshaga al crecer.', reglas)}
   </div>`,
 });

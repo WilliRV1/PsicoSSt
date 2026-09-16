@@ -13,7 +13,7 @@ const EVAL = [
 ];
 
 export const evaluaciones = app({
-  w: 1440, h: 900, activo: 'assess', migas: ['Evaluaciones'],
+  w: 1440, h: 900, activo: 'assess', empresa: 'Transportes Andinos S.A.S.', migas: ['Evaluaciones'],
   contenido: `
   ${cabecera({
     rubrica: 'Operación · Aplicaciones de la batería',
@@ -44,7 +44,7 @@ export const evaluaciones = app({
 
 // ── Nueva evaluación por invitación ────────────────────────────────────
 export const invitar = app({
-  w: 1440, h: 1030, activo: 'assess', migas: ['Evaluaciones', 'Nueva', 'Por invitación'],
+  w: 1440, h: 1030, activo: 'assess', empresa: 'Transportes Andinos S.A.S.', migas: ['Evaluaciones', 'Nueva', 'Por invitación'],
   contenido: `
   ${cabecera({
     rubrica: 'Nueva evaluación · Paso <span class="num">2</span> de <span class="num">3</span>',
@@ -90,7 +90,7 @@ export const invitar = app({
             <span class="chip" style="height:30px;padding:0 14px;font-size:13px;font-weight:${on ? 600 : 400};background:${on ? T.ink : T.surface};color:${on ? '#FFF' : T.secondary};border:1px solid ${on ? T.ink : T.border}">${esc(t)}</span>`).join('')}
         </div>
         <div style="display:flex;align-items:center;gap:26px;margin-top:18px;padding-top:16px;border-top:1px solid ${T.borderMuted}">
-          ${[['Forma A', 197], ['Forma B', 215], ['Sin correo', 34], ['Ya evaluados', 0]].map(([k, v]) => `
+          ${[['Forma A', 79], ['Forma B', 333], ['Sin correo', 34], ['Ya evaluados', 0]].map(([k, v]) => `
             <div><p class="rub">${esc(k)}</p><p class="num" style="font-size:22px;font-weight:600;margin-top:6px;color:${v === 34 ? T.warning : T.ink}">${v}</p></div>`).join('')}
         </div>
         <div style="display:flex;gap:11px;align-items:flex-start;margin-top:16px;padding:13px 15px;border-radius:8px;background:#FEF3C7;border:1px solid #FDE68A">
@@ -251,7 +251,7 @@ export const digitacion = artboard({
 
 // ── Carga masiva ───────────────────────────────────────────────────────
 export const cargaMasiva = app({
-  w: 1440, h: 1090, activo: 'assess', migas: ['Evaluaciones', 'Carga masiva'],
+  w: 1440, h: 1090, activo: 'assess', empresa: 'Clínica del Norte', migas: ['Evaluaciones', 'Carga masiva'],
   contenido: `
   ${cabecera({
     rubrica: 'Evaluaciones · Importación',
@@ -337,7 +337,7 @@ export const cargaMasiva = app({
 
 // ── Importar trabajadores de una empresa ───────────────────────────────
 export const importarTrabajadores = app({
-  w: 1440, h: 900, activo: 'orgs', migas: ['Empresas', 'Clínica del Norte', 'Importar'],
+  w: 1440, h: 900, activo: 'workers', empresa: 'Clínica del Norte', migas: ['Empresas', 'Clínica del Norte', 'Importar'],
   contenido: `
   ${cabecera({
     rubrica: 'Clínica del Norte · Población',

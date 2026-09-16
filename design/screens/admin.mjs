@@ -4,7 +4,7 @@ import { barras, figura } from './graficos.mjs';
 
 // ── Panel de administración ────────────────────────────────────────────
 export const panelAdmin = app({
-  w: 1440, h: 1060, activo: 'admin', migas: ['Panel admin'],
+  w: 1440, h: 1060, activo: 'admin', empresa: null, migas: ['Panel admin'],
   contenido: `
   ${cabecera({
     rubrica: 'Administración · Plataforma',
@@ -83,7 +83,7 @@ export const panelAdmin = app({
 
 // ── Psicólogos ─────────────────────────────────────────────────────────
 export const psicologos = app({
-  w: 1440, h: 900, activo: 'admin', migas: ['Panel admin', 'Psicólogos'],
+  w: 1440, h: 900, activo: 'admin', empresa: null, migas: ['Panel admin', 'Psicólogos'],
   contenido: `
   ${cabecera({
     rubrica: 'Administración · Profesionales',
@@ -123,7 +123,7 @@ export const psicologos = app({
 
 // ── Verificación de una solicitud ──────────────────────────────────────
 export const solicitudPendiente = app({
-  w: 1440, h: 960, activo: 'admin', migas: ['Panel admin', 'Pendientes', 'Valeria Ochoa Mesa'],
+  w: 1440, h: 960, activo: 'admin', empresa: null, migas: ['Panel admin', 'Pendientes', 'Valeria Ochoa Mesa'],
   contenido: `
   ${cabecera({
     rubrica: 'Solicitud <span class="num">#SR-2026-0418</span> · recibida hace 3 días',
@@ -192,7 +192,7 @@ export const solicitudPendiente = app({
 
 // ── Auditoría ──────────────────────────────────────────────────────────
 export const auditoria = app({
-  w: 1440, h: 900, activo: 'admin', migas: ['Panel admin', 'Auditoría'],
+  w: 1440, h: 900, activo: 'admin', empresa: null, migas: ['Panel admin', 'Auditoría'],
   contenido: `
   ${cabecera({
     rubrica: 'Administración · Trazabilidad',
@@ -229,7 +229,7 @@ export const auditoria = app({
 
 // ── Comentarios de los usuarios ────────────────────────────────────────
 export const feedback = app({
-  w: 1440, h: 1100, activo: 'admin', migas: ['Panel admin', 'Comentarios'],
+  w: 1440, h: 1100, activo: 'admin', empresa: null, migas: ['Panel admin', 'Comentarios'],
   contenido: `
   ${cabecera({
     rubrica: 'Administración · Voz del usuario',

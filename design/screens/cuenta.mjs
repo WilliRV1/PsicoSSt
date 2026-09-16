@@ -4,7 +4,7 @@ import { barras, figura } from './graficos.mjs';
 
 // ── Créditos ───────────────────────────────────────────────────────────
 export const creditos = app({
-  w: 1440, h: 1020, activo: 'credits', migas: ['Créditos'],
+  w: 1440, h: 1020, activo: 'credits', empresa: null, migas: ['Créditos'],
   contenido: `
   ${cabecera({
     rubrica: 'Cuenta · Consumo',
@@ -74,12 +74,12 @@ export const creditos = app({
 const PLANES = [
   ['Starter', '190.000', 50, ['Hasta 3 empresas', 'Los cuatro instrumentos', 'Informes individuales', 'Soporte por correo'], false],
   ['Profesional', '420.000', 150, ['Hasta 15 empresas', 'Informes colectivos y SVE', 'Analítica y tendencias', 'Asistente de redacción', 'Firma digital ilimitada'], true],
-  ['Business', '890.000', 400, ['Empresas ilimitadas', 'Hasta 5 psicólogos en el equipo', 'API de importación', 'Comparación entre carteras', 'Soporte por correo y chat'], false],
+  ['Business', '890.000', 400, ['Empresas ilimitadas', 'Hasta 5 psicólogos en el equipo', 'API de importación', 'Comparación entre aplicaciones', 'Soporte por correo y chat'], false],
   ['Corporativo', 'A convenir', null, ['Todo lo del plan Business', 'Despliegue dedicado', 'Acuerdo de nivel de servicio', 'Soporte 24/7'], false],
 ];
 
 export const planes = app({
-  w: 1440, h: 1050, activo: 'store', migas: ['Planes'],
+  w: 1440, h: 1090, activo: 'store', empresa: null, migas: ['Planes'],
   contenido: `
   ${cabecera({
     rubrica: 'Cuenta · Suscripción',
@@ -142,7 +142,7 @@ export const planes = app({
 
 // ── Equipo ─────────────────────────────────────────────────────────────
 export const equipo = app({
-  w: 1440, h: 1110, activo: 'users', migas: ['Equipo'],
+  w: 1440, h: 1110, activo: 'users', empresa: null, migas: ['Equipo'],
   contenido: `
   ${cabecera({
     rubrica: 'Cuenta · Personas con acceso',
@@ -217,7 +217,7 @@ function interruptor(label, desc, on) {
 }
 
 export const configuracion = app({
-  w: 1440, h: 1500, activo: 'settings', migas: ['Configuración'],
+  w: 1440, h: 1500, activo: 'settings', empresa: null, migas: ['Configuración'],
   contenido: `
   ${cabecera({ rubrica: 'Cuenta · Preferencias', titulo: 'Configuración' })}
 
@@ -267,7 +267,7 @@ export const configuracion = app({
 
 // ── Guía rápida ────────────────────────────────────────────────────────
 export const tutorial = app({
-  w: 1440, h: 1130, activo: 'panel', migas: ['Guía rápida'],
+  w: 1440, h: 1130, activo: 'panel', empresa: null, migas: ['Guía rápida'],
   contenido: `
   ${cabecera({
     rubrica: 'Primeros pasos',

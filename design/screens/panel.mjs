@@ -1,102 +1,79 @@
-import { T, RISK, RISK_ORDER, FONTS, app, icono, riesgo, pasos, estado, esc, n1 } from '../lib.mjs';
-
-// Cifras de muestra, coherentes entre sí: los cinco niveles suman 1.284 y
-// alto+muy alto da exactamente el 24,7% que enuncia el titular.
-const DIST = [
-  ['sin', 214], ['bajo', 389], ['medio', 364], ['alto', 224], ['muyAlto', 93],
-];
-const TOTAL = DIST.reduce((a, [, n]) => a + n, 0);
+import { T, RISK, RISK_ORDER, FONTS, app, icono, estado, esc, n1, mil } from '../lib.mjs';
 
 /**
- * Banda de distribución de riesgo.
+ * Centro de control · ámbito cartera.
  *
- * Es la pieza firma del sistema y sustituye al gráfico de torta: una sola
- * barra a todo el ancho, ordenada de menor a mayor riesgo, con el dato en
- * monoespaciado bajo cada tramo. Se lee de un vistazo, imprime en gris sin
- * perder el orden y no necesita leyenda aparte.
+ * Aquí no hay ni una cifra de riesgo, y es deliberado. Los baremos de la
+ * batería son nacionales y estratificados por nivel de cargo, así que un
+ * puntaje agregado entre empresas mide la composición de cargos de cada una
+ * antes que el riesgo: la propia pantalla de analítica muestra que el riesgo
+ * sube de forma monótona según baja el nivel del cargo. La obligación legal
+ * también es por empleador. El riesgo vive dentro de cada empresa; esta
+ * pantalla es la cola de trabajo del psicólogo, que sí es transversal.
  */
-function banda() {
-  const tramos = DIST.map(([k, n]) => {
-    const pct = (n / TOTAL) * 100;
-    return `<div style="width:${pct.toFixed(2)}%;height:46px;background:${RISK[k].bar};position:relative">
-      ${pct > 9 ? `<span class="num" style="position:absolute;left:11px;top:13px;font-size:15px;font-weight:600;color:${k === 'sin' ? T.ink : '#FFF'}">${n}</span>` : ''}
-    </div>`;
-  }).join('');
 
-  // El último tramo es el más estrecho (7,2%) y su etiqueta es la más larga:
-  // se alinea a la derecha para que «Muy alto» quepa entero en vez de cortarse.
-  const pies = DIST.map(([k, n], i) => {
-    const pct = (n / TOTAL) * 100;
-    const ult = i === DIST.length - 1;
-    return `<div style="width:${pct.toFixed(2)}%;${ult ? 'text-align:right' : 'padding-right:12px'}">
-      <p class="rub" style="color:${RISK[k].text};white-space:nowrap">${esc(RISK[k].label)}</p>
-      <p class="num" style="font-size:11.5px;color:${T.muted};margin-top:4px">${n1(pct)}%</p>
-    </div>`;
-  }).join('');
-
-  return `<div>
-    <div class="barra-anim" style="display:flex;border-radius:10px;overflow:hidden">${tramos}</div>
-    <div style="display:flex;margin-top:9px">${pies}</div>
-  </div>`;
-}
-
-/** Cifras clave sin tarjetas: filetes verticales, como una tabla de revista. */
+/** Recuentos de trabajo. Ninguno es un puntaje: son tareas. */
 function cifras() {
   const items = [
-    ['Empresas activas', '12', null],
-    ['Evaluaciones este mes', '380', '×4 frente a agosto'],
-    ['Informes sin firmar', '9', null],
+    ['Empresas activas', '12', ''],
+    ['Evaluaciones en curso', '186', 'de 412 enviadas'],
+    ['Informes sin firmar', '9', 'el más antiguo, 6 días'],
     ['Vigencias por vencer', '3', 'en 30 días'],
+    ['Medidas vencidas', '6', 'en 2 empresas'],
   ];
   return `<div style="display:flex;border-top:1px solid ${T.border};border-bottom:1px solid ${T.border}">
     ${items.map(([l, v, n], i) => `
-      <div style="flex:1;padding:18px 0 18px ${i ? '26px' : '0'};${i ? `border-left:1px solid ${T.borderMuted}` : ''}">
+      <div style="flex:1;padding:18px 0 18px ${i ? '24px' : '0'};${i ? `border-left:1px solid ${T.borderMuted}` : ''}">
         <p class="rub">${esc(l)}</p>
-        <div style="display:flex;align-items:baseline;gap:9px;margin-top:9px">
-          <span class="num" style="font-size:30px;font-weight:600;line-height:1;color:${T.ink}">${v}</span>
-          ${n ? `<span class="num" style="font-size:11.5px;color:${T.muted}">${esc(n)}</span>` : ''}
-        </div>
+        <p class="cifra" style="font-size:30px;margin-top:9px">${v}</p>
+        ${n ? `<p style="font-size:11.5px;color:${T.muted};margin-top:5px">${esc(n)}</p>` : ''}
       </div>`).join('')}
   </div>`;
 }
 
-/** Empresas que exigen una decisión hoy — el sitio donde arranca el trabajo. */
-function accion() {
+/** La cola: qué exige una decisión, por qué, y desde cuándo. */
+function cola() {
   const filas = [
-    ['Transportes Andinos S.A.S.', 'Vigencia vencida', 'alerta', '412', 'alto'],
-    ['Clínica del Norte', 'Vence en 12 días', 'aviso', '268', 'medio'],
-    ['Agroindustria Valle Ltda.', 'Vence en 27 días', 'aviso', '156', 'muyAlto'],
-    ['Constructora Sierra', '6 informes sin firmar', 'info', '203', 'medio'],
+    ['Transportes Andinos S.A.S.', 'Vigencia vencida', 'alerta', '382 días', 'Programar reaplicación'],
+    ['Transportes Andinos S.A.S.', '4 medidas de intervención vencidas', 'alerta', '47 días', 'Revisar plan'],
+    ['Clínica del Norte', '6 informes sin firmar', 'aviso', '6 días', 'Firmar'],
+    ['Clínica del Norte', 'Vigencia vence el 28 de septiembre', 'aviso', '12 días', 'Programar'],
+    ['Agroindustria Valle Ltda.', 'Vigencia vence el 13 de octubre', 'aviso', '27 días', 'Programar'],
+    ['Constructora Sierra', '3 informes sin firmar', 'aviso', '2 días', 'Firmar'],
+    ['Agroindustria Valle Ltda.', '2 medidas de intervención vencidas', 'alerta', '19 días', 'Revisar plan'],
+    ['Servicios Logísticos Meta', 'Sin evaluar desde el alta', 'neutro', '94 días', 'Invitar'],
   ];
   return `<section style="flex:1;min-width:0">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <p class="rub rub-ink">Requiere una decisión</p>
-      <span style="font-size:12.5px;color:${T.tealDark}">Ver todas</span>
+      <p class="rub-ink">Requiere una decisión</p>
+      <span style="font-size:12.5px;color:${T.tealDark}">Ver las 23</span>
     </div>
     <table>
-      <tr><th class="th">Empresa</th><th class="th">Motivo</th><th class="th" style="text-align:right">Trab.</th><th class="th" style="text-align:right;padding-right:0">Riesgo global</th></tr>
-      ${filas.map(([org, motivo, tono, n, r]) => `
-        <tr>
-          <td class="td" style="font-weight:500">${esc(org)}</td>
-          <td class="td">${estado(motivo, tono)}</td>
-          <td class="td num" style="text-align:right;color:${T.secondary}">${n}</td>
-          <td class="td" style="text-align:right"><div style="display:inline-flex;align-items:center;gap:10px">${pasos(r)}${riesgo(r, { size: 'sm' })}</div></td>
-        </tr>`).join('')}
+      <tr>
+        <th class="th">Empresa</th><th class="th">Motivo</th>
+        <th class="th" style="text-align:right">Antigüedad</th>
+        <th class="th" style="text-align:right;padding-right:0">Acción</th>
+      </tr>
+      ${filas.map(([org, motivo, tono, ant, accion]) => `<tr>
+        <td class="td" style="font-weight:500">${esc(org)}</td>
+        <td class="td">${estado(motivo, tono)}</td>
+        <td class="td num" style="text-align:right;color:${tono === 'alerta' ? T.danger : T.secondary}">${esc(ant)}</td>
+        <td class="td" style="text-align:right;color:${T.tealDark};font-size:13px">${esc(accion)}</td>
+      </tr>`).join('')}
     </table>
   </section>`;
 }
 
-/** Actividad reciente, en un carril estrecho: contexto, no protagonista. */
-function actividad() {
+/** Actividad reciente y el recordatorio de dónde vive el análisis. */
+function carril() {
   const items = [
     ['Forma A · 123 ítems', 'Clínica del Norte', 'Calificado', 'teal', 'hace 8 min'],
     ['Extralaboral · 31 ítems', 'Transportes Andinos', 'Firmado', 'ok', 'hace 41 min'],
     ['Estrés · 31 ítems', 'Constructora Sierra', 'Revisado', 'info', 'hace 2 h'],
     ['Forma B · 97 ítems', 'Agroindustria Valle', 'Calificado', 'teal', 'hace 3 h'],
-    ['Forma A · 123 ítems', 'Clínica del Norte', 'Pendiente', 'neutro', 'ayer'],
   ];
   return `<section style="width:352px;flex-shrink:0">
-    <p class="rub rub-ink" style="margin-bottom:14px">Últimas evaluaciones</p>
+    <p class="rub-ink" style="margin-bottom:14px">Últimas evaluaciones</p>
     <div>
       ${items.map(([inst, org, est, tono, t]) => `
         <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid ${T.borderMuted}">
@@ -107,38 +84,46 @@ function actividad() {
           ${estado(est, tono)}
         </div>`).join('')}
     </div>
+
+    <div style="margin-top:26px;padding:20px 22px;border-radius:16px;background:${T.surfaceMuted}">
+      <p style="font-size:14.5px;font-weight:600;letter-spacing:-0.015em;color:${T.ink}">El riesgo se lee por empresa</p>
+      <p style="font-size:12.5px;line-height:1.65;color:${T.secondary};margin-top:8px">
+        Los baremos de la batería son nacionales y por nivel de cargo, no por sector.
+        Sumar puntajes de empresas distintas mide qué proporción de operativos tiene
+        cada una, no cuánto riesgo hay. El diagnóstico, el plan y la vigilancia se
+        rinden empresa por empresa.
+      </p>
+      <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-radius:10px;background:${T.surface};border:1px solid ${T.border};margin-top:14px">
+        ${icono('empresa', { size: 15, color: T.muted })}
+        <span style="flex:1;font-size:13px;color:${T.muted}">Elija una empresa</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${T.muted}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg>
+      </div>
+    </div>
   </section>`;
 }
 
 export const panel = app({
-  w: 1440, h: 970, activo: 'panel', creditos: 47,
+  w: 1440, h: 970, activo: 'panel', creditos: 47, empresa: null,
   contenido: `
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:30px">
     <div>
-      <h1 class="display" style="font-size:42px;max-width:840px">
-        317 de <span class="cifra">1.284</span> trabajadores están en riesgo alto o muy alto
+      <h1 class="display" style="font-size:42px;max-width:820px">
+        <span class="cifra">9</span> informes sin firmar y <span class="cifra">3</span> vigencias que vencen este mes
       </h1>
       <p style="font-size:13px;color:${T.muted};margin-top:12px">
-        12 empresas · corte al <span class="num">16 de septiembre de 2026</span>
+        12 empresas · <span class="num">23</span> asuntos abiertos · <span class="num">16 de septiembre de 2026</span>
       </p>
     </div>
     <div style="display:flex;gap:10px;flex-shrink:0;padding-bottom:4px">
-      <span class="btn btn-sec">${icono('desc', { size: 14, color: T.secondary })}Exportar cartera</span>
+      <span class="btn btn-sec">${icono('firma', { size: 14, color: T.secondary })}Firmar pendientes</span>
       <span class="btn btn-pri">${icono('mas', { size: 14, color: '#FFF' })}Nueva evaluación</span>
     </div>
   </div>
 
-  <div style="margin-top:26px">${banda()}</div>
-
-  <p class="prose" style="margin-top:22px;max-width:780px">
-    Tres empresas concentran el 71% de esos casos, y en las tres el dominio crítico es
-    <em>Demandas del trabajo</em>. Es el lugar por donde conviene empezar la intervención.
-  </p>
-
-  <div style="margin-top:30px">${cifras()}</div>
+  <div style="margin-top:28px">${cifras()}</div>
 
   <div style="display:flex;gap:44px;margin-top:30px">
-    ${accion()}
-    ${actividad()}
+    ${cola()}
+    ${carril()}
   </div>`,
 });

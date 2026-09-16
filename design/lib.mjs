@@ -350,45 +350,78 @@ export function icono(name, { size = 15, color = 'currentColor', w = 1.6 } = {})
  * son alcanzables salvo escribiendo la URL. Aquí se agrupa el sistema entero
  * en cuatro bloques con el mismo lenguaje de rúbrica que ya usaba el sidebar.
  */
-export const NAV = [
-  ['Operación', [
-    ['panel',   'Centro de control', 'panel'],
-    ['orgs',    'Empresas',          'empresa'],
-    ['workers', 'Trabajadores',      'persona'],
-    ['assess',  'Evaluaciones',      'form'],
-  ]],
-  ['Análisis', [
-    ['reports', 'Informes',       'informe'],
-    ['analyt',  'Analítica',      'grafico'],
-    ['trends',  'Tendencias',     'tend'],
-    ['interv',  'Intervenciones', 'plan'],
-    ['ai',      'Asistente IA',   'ia'],
-  ]],
-  ['Cuenta', [
-    ['credits', 'Créditos',      'credito'],
-    ['store',   'Planes',        'tienda'],
-    ['users',   'Equipo',        'equipo'],
-    ['settings','Configuración', 'ajuste'],
-  ]],
-  ['Administración', [
-    ['admin',   'Panel admin', 'escudo'],
-  ]],
+/**
+ * La navegación tiene dos ámbitos, y no se mezclan.
+ *
+ * CARTERA es el trabajo del psicólogo: qué vence, qué falta firmar, cuántos
+ * créditos quedan. Son recuentos de tareas y sí tiene sentido verlos juntos.
+ *
+ * EMPRESA es la unidad de análisis. Todo lo que es riesgo vive aquí dentro,
+ * porque los baremos de la batería son nacionales y estratificados por nivel
+ * de cargo —no por sector ni por empresa—, de modo que un puntaje agregado
+ * entre empresas mide sobre todo la composición de cargos de cada una, no
+ * el riesgo. La obligación legal también es por empleador: el diagnóstico, el
+ * plan y la periodicidad se rinden empresa por empresa.
+ */
+export const NAV_EMPRESA = [
+  ['resumen',  'Resumen',          'panel'],
+  ['workers',  'Trabajadores',     'persona'],
+  ['assess',   'Evaluaciones',     'form'],
+  ['reports',  'Informes',         'informe'],
+  ['analyt',   'Analítica',        'grafico'],
+  ['trends',   'Tendencias',       'tend'],
+  ['interv',   'Intervenciones',   'plan'],
+  ['sve',      'Vigilancia',       'escudo'],
 ];
 
-export function sidebar(activo, { usuario = 'María Torres Gómez', iniciales = 'MT' } = {}) {
-  const grupos = NAV.map(([sec, items]) => `
-    <div class="side-group">
-      <p class="rub">${esc(sec)}</p>
-      ${items.map(([id, label, ic]) => {
-        const on = id === activo;
-        const col = on ? T.teal : T.muted;
-        return `<div class="nav${on ? ' nav-on' : ''}">${icono(ic, { size: 14.5, color: col })}<span>${esc(label)}</span></div>`;
-      }).join('')}
-    </div>`).join('');
+export const NAV_CARTERA = [
+  ['panel',    'Centro de control', 'panel'],
+  ['orgs',     'Empresas',          'empresa'],
+  ['credits',  'Créditos',          'credito'],
+  ['store',    'Planes',            'tienda'],
+  ['users',    'Equipo',            'equipo'],
+  ['settings', 'Configuración',     'ajuste'],
+  ['ai',       'Asistente IA',      'ia'],
+  ['admin',    'Panel admin',       'escudo'],
+];
+
+/**
+ * Barra lateral.
+ *
+ * `empresa` fija el ámbito: con una empresa seleccionada el bloque de análisis
+ * se activa; sin ella —ámbito cartera— sigue visible pero apagado, con el
+ * selector pidiendo que se elija una. Se deja visible a propósito: enseña que
+ * el análisis existe y dónde vive, en lugar de esconderlo.
+ */
+export function sidebar(activo, { usuario = 'María Torres Gómez', iniciales = 'MT', empresa = null } = {}) {
+  const item = ([id, label, ic], { apagado = false } = {}) => {
+    const on = id === activo;
+    const col = apagado ? T.border : on ? T.ink : T.muted;
+    return `<div class="nav${on ? ' nav-on' : ''}" style="${apagado ? `color:${T.border}` : ''}">${icono(ic, { size: 14.5, color: col })}<span>${esc(label)}</span></div>`;
+  };
+
+  const selector = `<div style="padding:0 12px 14px">
+    <div style="display:flex;align-items:center;gap:9px;height:40px;padding:0 10px;border-radius:10px;background:${empresa ? T.surfaceMuted : 'transparent'};border:1px solid ${empresa ? 'transparent' : T.border}">
+      ${empresa
+        ? `<span style="width:22px;height:22px;border-radius:7px;background:${T.ink};color:#FFF;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${esc(empresa.slice(0, 2).toUpperCase())}</span>`
+        : icono('empresa', { size: 15, color: T.muted })}
+      <span style="flex:1;min-width:0;font-size:13px;font-weight:${empresa ? 500 : 400};color:${empresa ? T.ink : T.muted};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${empresa ? esc(empresa) : 'Elija una empresa'}</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${T.muted}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg>
+    </div>
+  </div>`;
 
   return `<aside class="side">
     <div class="side-brand">${marca({ size: 25 })}</div>
-    <nav class="side-nav">${grupos}</nav>
+    ${selector}
+    <nav class="side-nav">
+      <div class="side-group">
+        ${NAV_EMPRESA.map((n) => item(n, { apagado: !empresa })).join('')}
+      </div>
+      <div class="side-group">
+        <p class="rub" style="font-size:11.5px">Cartera</p>
+        ${NAV_CARTERA.map((n) => item(n)).join('')}
+      </div>
+    </nav>
     <div class="side-foot">
       <div class="side-user">
         <div style="width:28px;height:28px;border-radius:9px;background:${T.ink};color:#FFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0">${esc(iniciales)}</div>
@@ -448,11 +481,11 @@ ${logic ? `<script data-dc-script data-props='{"$preview":{"width":${w},"height"
 }
 
 /** Pantalla de aplicación: barra lateral + cabecera + lienzo de contenido. */
-export function app({ w = 1440, h = 900, activo, migas = [], creditos = 47, contenido, extraCss = '', usuario, iniciales }) {
+export function app({ w = 1440, h = 900, activo, migas = [], creditos = 47, contenido, extraCss = '', usuario, iniciales, empresa = null }) {
   return artboard({
     w, h, extraCss,
     cuerpo: `<div class="shell" style="height:${h}px">
-  ${sidebar(activo, { usuario, iniciales })}
+  ${sidebar(activo, { usuario, iniciales, empresa })}
   <div class="main">
     ${topbar({ creditos, migas })}
     <div class="body">${contenido}</div>

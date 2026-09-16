@@ -15,11 +15,13 @@ function cabeceraInforme({ tipo, titulo, folio, bajada, acciones }) {
 const ACCIONES = `<span class="btn btn-sec">${icono('ojo', { size: 14, color: T.secondary })}Vista de impresión</span><span class="btn btn-pri">${icono('desc', { size: 14, color: '#FFF' })}Descargar PDF</span>`;
 
 // ── Diagnóstico organizacional ─────────────────────────────────────────
+// Los dominios van por forma: la A y la B se califican contra baremos
+// distintos y promediarlas produce una cifra que no está en el manual.
 const DOM_COL = [
-  ['Liderazgo y relaciones sociales', 58.2, 'alto'],
-  ['Control sobre el trabajo', 29.4, 'medio'],
-  ['Demandas del trabajo', 71.6, 'muyAlto'],
-  ['Recompensa', 12.8, 'bajo'],
+  ['Liderazgo y relaciones sociales', 28.8, 'medio', 58.9, 'muyAlto'],
+  ['Control sobre el trabajo',        19.4, 'bajo',  31.7, 'medio'],
+  ['Demandas del trabajo',            44.1, 'alto',  76.4, 'muyAlto'],
+  ['Recompensa',                      10.2, 'bajo',  13.5, 'bajo'],
 ];
 
 // Las seis áreas suman exactamente la distribución de la pantalla:
@@ -34,7 +36,7 @@ const AREAS = [
 ];
 
 export const informeDiagnostico = app({
-  w: 1440, h: 1990, activo: 'reports', migas: ['Empresas', 'Transportes Andinos', 'Diagnóstico'],
+  w: 1440, h: 1990, activo: 'reports', empresa: 'Transportes Andinos S.A.S.', migas: ['Empresas', 'Transportes Andinos', 'Diagnóstico'],
   contenido: `
   ${cabeceraInforme({
     tipo: 'Informe colectivo',
@@ -56,20 +58,28 @@ export const informeDiagnostico = app({
   </div>
 
   <div style="display:flex;gap:22px;margin-bottom:26px">
-    ${figura('Riesgo por dominio', 'Puntaje transformado agregado · 0 a 100',
-      `<div>${DOM_COL.map(([n, p, r]) => `
-        <div style="padding:11px 0;${n !== DOM_COL[0][0] ? `border-top:1px solid ${T.borderMuted}` : ''}">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:14px">
-            <span style="font-size:13px;color:${T.ink}">${esc(n)}</span>
-            <div style="display:flex;align-items:center;gap:11px;flex-shrink:0">
-              <span class="num" style="font-size:14.5px;font-weight:600;color:${RISK[r].text}">${n1(p)}</span>
-              ${riesgo(r, { size: 'sm' })}
+    ${figura('Riesgo por dominio, separado por forma', 'Forma A: 79 personas, 19 dimensiones · Forma B: 333 personas, 16 dimensiones',
+      `<div>
+        <div style="display:flex;gap:14px;padding-bottom:9px;border-bottom:1px solid ${T.border}">
+          <span style="flex:1"></span>
+          <span class="rub" style="width:112px;text-align:right">Forma A</span>
+          <span class="rub" style="width:112px;text-align:right">Forma B</span>
+        </div>
+        ${DOM_COL.map(([n, pa, ra, pb, rb], i) => `
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
+          <span style="flex:1;font-size:13px;color:${T.ink};min-width:0">${esc(n)}</span>
+          ${[[pa, ra], [pb, rb]].map(([p, r]) => `<div style="width:112px;display:flex;align-items:center;gap:9px;flex-shrink:0">
+            <div style="flex:1;height:7px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
+              <div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div>
             </div>
-          </div>
-          <div style="height:9px;border-radius:999px;background:${T.surfaceMuted};margin-top:8px;overflow:hidden">
-            <div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div>
-          </div>
-        </div>`).join('')}</div>`)}
+            <span class="num" style="font-size:12.5px;font-weight:600;color:${RISK[r].text};width:36px;text-align:right">${n1(p)}</span>
+          </div>`).join('')}
+        </div>`).join('')}
+        <p style="font-size:11.5px;line-height:1.6;color:${T.muted};margin-top:14px">
+          Las dos columnas no se comparan entre sí: son instrumentos distintos contra baremos
+          distintos. Cada una se lee contra su propia escala.
+        </p>
+      </div>`)}
 
     ${figura('Distribución de la población', '412 trabajadores · niveles de la Resolución 2646',
       apilada(RISK_ORDER.map((k, i) => [RISK[k].label, [38, 79, 126, 118, 51][i], RISK[k].bar]), { w: 420, alto: 26 })
@@ -145,7 +155,7 @@ export const informeDiagnostico = app({
 
 // ── Perfil sociodemográfico ────────────────────────────────────────────
 export const informeSociodemografico = app({
-  w: 1440, h: 1280, activo: 'reports', migas: ['Empresas', 'Clínica del Norte', 'Sociodemográfico'],
+  w: 1440, h: 1280, activo: 'reports', empresa: 'Clínica del Norte', migas: ['Empresas', 'Clínica del Norte', 'Sociodemográfico'],
   contenido: `
   ${cabeceraInforme({
     tipo: 'Informe colectivo',
@@ -203,7 +213,7 @@ export const informeSociodemografico = app({
 
 // ── Programa de vigilancia epidemiológica ──────────────────────────────
 export const programaSVE = app({
-  w: 1440, h: 1300, activo: 'reports', migas: ['Empresas', 'Constructora Sierra', 'Programa SVE'],
+  w: 1440, h: 1300, activo: 'sve', empresa: 'Constructora Sierra', migas: ['Empresas', 'Constructora Sierra', 'Programa SVE'],
   contenido: `
   ${cabeceraInforme({
     tipo: 'Programa',

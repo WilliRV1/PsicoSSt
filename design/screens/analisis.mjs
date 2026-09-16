@@ -2,158 +2,204 @@ import { T, RISK, RISK_ORDER, CAT, FONTS, app, icono, riesgo, pasos, estado, esc
 import { cabecera, filtros } from './operacion.mjs';
 import { barras, apilada, figura, lineas } from './graficos.mjs';
 
-// ── Analítica ──────────────────────────────────────────────────────────
+// ── Analítica · dentro de una empresa ──────────────────────────────────
+//
+// Las dos formas del intralaboral no se promedian entre sí: la A tiene 123
+// ítems y 19 dimensiones, la B tiene 97 y 16, y cada una se califica contra su
+// propio baremo. Lo que sí se puede juntar es el RECUENTO de personas por
+// nivel, porque a cada una la clasificó el baremo que le corresponde.
+//
+// Transportes Andinos: 412 trabajadores = 79 de Forma A (profesionales,
+// jefaturas y técnicos) + 333 de Forma B (auxiliares y operativos).
+const FORMA_A = {
+  nombre: 'Intralaboral Forma A', sub: 'Profesionales, jefaturas y técnicos',
+  n: 79, items: 123, dims: 19, total: 33.8, nivel: 'medio',
+  dist: [20, 31, 22, 5, 1],
+  top: [
+    ['Demandas de carga mental', 48.2, 'alto'],
+    ['Exigencias de responsabilidad del cargo', 41.7, 'alto'],
+    ['Influencia del trabajo sobre el entorno extralaboral', 37.5, 'medio'],
+    ['Características del liderazgo', 28.8, 'medio'],
+    ['Relación con los colaboradores', 25.0, 'medio'],
+  ],
+};
+const FORMA_B = {
+  nombre: 'Intralaboral Forma B', sub: 'Auxiliares y operativos',
+  n: 333, items: 97, dims: 16, total: 68.2, nivel: 'muyAlto',
+  dist: [18, 48, 104, 113, 50],
+  top: [
+    ['Demandas de la jornada de trabajo', 91.7, 'muyAlto'],
+    ['Demandas cuantitativas', 79.2, 'muyAlto'],
+    ['Influencia del trabajo sobre el entorno extralaboral', 68.8, 'alto'],
+    ['Características del liderazgo', 58.9, 'muyAlto'],
+    ['Control y autonomía sobre el trabajo', 52.3, 'alto'],
+  ],
+};
+
+function bloqueForma(F) {
+  const criticos = F.dist[3] + F.dist[4];
+  const pct = (criticos / F.n) * 100;
+  return `<div style="flex:1;min-width:0">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding-bottom:12px;border-bottom:1.5px solid ${T.ink}">
+      <div>
+        <p style="font-size:16px;font-weight:600;letter-spacing:-0.018em;color:${T.ink}">${esc(F.nombre)}</p>
+        <p style="font-size:12.5px;color:${T.muted};margin-top:3px">${esc(F.sub)}</p>
+      </div>
+      <p class="num" style="font-size:12.5px;color:${T.muted};flex-shrink:0;text-align:right">${F.n} personas<br>${F.items} ítems · ${F.dims} dimensiones</p>
+    </div>
+
+    <div style="display:flex;align-items:flex-end;gap:18px;margin-top:18px">
+      <p class="cifra" style="font-size:44px;color:${RISK[F.nivel].text}">${n1(F.total)}</p>
+      <div style="padding-bottom:7px">${riesgo(F.nivel)}</div>
+      <div style="margin-left:auto;text-align:right;padding-bottom:7px">
+        <p class="cifra" style="font-size:22px;color:${pct > 40 ? RISK.muyAlto.text : T.ink}">${n1(pct)}&thinsp;%</p>
+        <p style="font-size:11.5px;color:${T.muted};margin-top:3px">en alto o muy alto</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      ${apilada(RISK_ORDER.map((k, i) => [RISK[k].label, F.dist[i], RISK[k].bar]), { w: 0, alto: 14, leyenda: false }).replace('width:100%', 'width:100%')}
+      <div style="display:flex;flex-wrap:wrap;gap:13px;margin-top:9px">
+        ${RISK_ORDER.map((k, i) => `<div style="display:flex;align-items:center;gap:5px">
+          <span style="width:8px;height:8px;border-radius:2.5px;background:${RISK[k].bar}"></span>
+          <span class="num" style="font-size:11.5px;color:${T.secondary}">${F.dist[i]}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <p class="rub" style="margin:20px 0 10px">Dimensiones más críticas</p>
+    ${F.top.map(([d, p, r], i) => `
+      <div style="display:flex;align-items:center;gap:14px;padding:9px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
+        <span style="flex:1;font-size:13px;color:${T.ink};min-width:0">${esc(d)}</span>
+        <div style="width:96px;height:7px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden;flex-shrink:0">
+          <div class="barra-anim" style="width:${p}%;height:100%;background:${RISK[r].bar};border-radius:999px"></div>
+        </div>
+        <span class="num" style="font-size:13px;font-weight:600;color:${RISK[r].text};width:44px;text-align:right;flex-shrink:0">${n1(p)}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
 export const analitica = app({
-  w: 1440, h: 1220, activo: 'analyt', migas: ['Analítica'],
+  w: 1440, h: 1240, activo: 'analyt', empresa: 'Transportes Andinos S.A.S.',
+  migas: ['Empresas', 'Transportes Andinos', 'Analítica'],
   contenido: `
   ${cabecera({
-    rubrica: 'Análisis · Toda la cartera',
-    titulo: 'Analítica',
-    bajada: 'Comparaciones entre empresas, sectores y perfiles. Los agregados solo se muestran cuando el grupo tiene al menos cinco personas: por debajo de ese umbral el dato deja de ser anónimo.',
+    titulo: 'El riesgo está en la operación, no en la empresa',
+    rubrica: '412 trabajadores evaluados · corte al <span class="num">16 de septiembre de 2026</span>',
+    bajada: 'El 48,9% de los auxiliares y operativos está en riesgo alto o muy alto, frente al 7,6% de profesionales y jefaturas. Es una diferencia de seis veces dentro de la misma empresa.',
     acciones: `<span class="btn btn-sec">${icono('desc', { size: 14, color: T.secondary })}Exportar datos</span>`,
   })}
-  ${filtros(['Últimos 24 meses', 'Todos los sectores', 'Todas las formas'], { busca: 'Comparar empresas…' })}
 
-  <div style="display:flex;gap:22px">
-    ${figura('Riesgo intralaboral por sector', 'Puntaje agregado · 12 empresas de la cartera',
-      barras([
-        ['Transporte', 71.6], ['Agroindustria', 64.2], ['Construcción', 52.8],
-        ['Salud humana', 48.1], ['Manufactura', 39.5], ['Logística', 36.7], ['Servicios', 28.4],
-      ], { w: 470, color: CAT[0], unidad: '' }))}
-    ${figura('Distribución por nivel del cargo', 'Cada barra suma el 100% de su nivel',
-      // Las columnas suman la banda del centro de control (214/389/364/224/93),
-      // las filas suman 1.284 y alto+muy alto da los 317 que enuncia el panel.
-      `<div>${[
-        ['Operativo', [22, 74, 138, 121, 52]],
-        ['Auxiliar', [18, 61, 79, 54, 21]],
-        ['Técnico', [31, 68, 62, 24, 8]],
-        ['Profesional', [78, 118, 61, 19, 8]],
-        ['Jefatura', [65, 68, 24, 6, 4]],
-      ].map(([n, d], i) => `
-        <div style="display:flex;align-items:center;gap:13px;padding:8px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
-          <span style="width:88px;flex-shrink:0;font-size:12.5px;color:${T.ink}">${esc(n)}</span>
-          <div style="flex:1">${apilada(RISK_ORDER.map((k, j) => [RISK[k].label, d[j], RISK[k].bar]), { w: 0, alto: 11, leyenda: false })}</div>
-          <span class="num" style="width:44px;text-align:right;font-size:11.5px;color:${T.secondary}">${d.reduce((a, b) => a + b, 0)}</span>
-        </div>`).join('')}
-        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:13px">
-          ${RISK_ORDER.map((k) => `<div style="display:flex;align-items:center;gap:6px">
-            <span style="width:9px;height:9px;border-radius:2.5px;background:${RISK[k].bar}"></span>
-            <span style="font-size:11.5px;color:${T.secondary}">${esc(RISK[k].label)}</span></div>`).join('')}
-        </div>
-        <p style="font-size:12px;line-height:1.6;color:${T.secondary};margin-top:14px;padding-top:12px;border-top:1px solid ${T.border}">
-          El riesgo crece de forma monótona al bajar en la escala de cargos. No es un hallazgo de una
-          empresa: se repite en las doce.
-        </p>
-      </div>`)}
+  <div style="display:flex;gap:44px">
+    ${bloqueForma(FORMA_A)}
+    ${bloqueForma(FORMA_B)}
   </div>
 
-  <div style="display:flex;gap:22px;margin-top:22px">
-    ${figura('Los cuatro dominios en el tiempo', 'Puntaje agregado de la cartera por semestre',
-      lineas({
-        w: 660, h: 236, max: 100, hover: 3,
-        etiquetasX: ['2024-I', '2024-II', '2025-I', '2025-II', '2026-I'],
-        series: [
-          { nombre: 'Demandas', color: CAT[1], valores: [48.2, 51.6, 55.9, 58.4, 61.2] },
-          { nombre: 'Liderazgo', color: CAT[0], valores: [41.5, 42.8, 41.2, 43.6, 44.1] },
-          { nombre: 'Control', color: CAT[2], valores: [33.1, 32.4, 31.8, 30.9, 29.6] },
-          { nombre: 'Recompensa', color: CAT[3], valores: [21.4, 20.8, 19.9, 18.7, 17.2] },
-        ],
-      }))}
-    <div style="width:398px;flex-shrink:0">
-      ${figura('Correlación con estrés', 'Coeficiente de Spearman entre dominio y puntaje de estrés',
-        `<div>${[
-          ['Demandas del trabajo', 0.71], ['Liderazgo y relaciones', 0.58],
-          ['Control sobre el trabajo', 0.44], ['Recompensa', 0.31], ['Extralaboral', 0.29],
-        ].map(([n, r], i) => `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
-            <span style="flex:1;font-size:12.5px;color:${T.ink}">${esc(n)}</span>
-            <div style="width:110px;height:8px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
-              <div style="width:${r * 100}%;height:100%;background:${CAT[0]};border-radius:999px"></div>
+  <div style="display:flex;gap:11px;align-items:flex-start;margin-top:26px;padding:15px 18px;border-radius:12px;background:${T.surfaceMuted}">
+    ${icono('escudo', { size: 16, color: T.secondary })}
+    <p style="font-size:12.5px;line-height:1.65;color:${T.secondary};max-width:900px">
+      <strong style="color:${T.ink};font-weight:600">Los dos puntajes no se comparan entre sí.</strong>
+      La Forma A y la Forma B son instrumentos distintos —123 ítems y 19 dimensiones frente a
+      97 y 16— y cada uno se califica contra su propio baremo nacional. Lo que sí es comparable
+      es el nivel de riesgo de cada persona, porque a cada una la clasificó el baremo que le
+      corresponde: por eso el recuento conjunto de abajo sí tiene sentido.
+    </p>
+  </div>
+
+  <div style="margin-top:26px">
+    ${figura('Personas en riesgo alto o muy alto, por área', 'Recuento sobre el total de cada área · las dos formas juntas',
+      `<div style="margin-top:4px">
+        ${[
+          ['Operación de vehículos', 198, 117, 'B'],
+          ['Mantenimiento', 74, 31, 'B'],
+          ['Logística y patios', 61, 15, 'B'],
+          ['Administración', 42, 4, 'A'],
+          ['Comercial', 22, 2, 'A'],
+          ['Dirección', 15, 0, 'A'],
+        ].map(([a, t, c, forma], i) => {
+          const pct = (c / t) * 100;
+          return `<div style="display:flex;align-items:center;gap:16px;padding:11px 0;${i ? `border-top:1px solid ${T.borderMuted}` : `border-top:1.5px solid ${T.ink}`}">
+            <span style="width:180px;flex-shrink:0;font-size:13px;color:${T.ink}">${esc(a)}</span>
+            <span class="chip" style="flex-shrink:0;background:${T.surfaceMuted};color:${T.secondary}">Forma ${forma}</span>
+            <div style="flex:1;height:9px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
+              <div class="barra-anim" style="width:${pct}%;height:100%;background:${pct > 40 ? RISK.muyAlto.bar : pct > 20 ? RISK.alto.bar : RISK.medio.bar};border-radius:999px"></div>
             </div>
-            <span class="num" style="font-size:12.5px;font-weight:600;color:${T.ink};width:36px;text-align:right">${r.toFixed(2).replace('.', ',')}</span>
-          </div>`).join('')}
-          <p style="font-size:11.5px;line-height:1.6;color:${T.muted};margin-top:14px">
-            n = 1.284 · todas las correlaciones significativas con p &lt; 0,01.
-          </p>
-        </div>`, { w: 398 })}
-    </div>
+            <span class="num" style="width:74px;text-align:right;font-size:12.5px;color:${T.secondary};flex-shrink:0">${c} de ${t}</span>
+            <span class="num" style="width:54px;text-align:right;font-size:13.5px;font-weight:600;color:${pct > 40 ? RISK.muyAlto.text : T.ink};flex-shrink:0">${n1(pct)}&thinsp;%</span>
+          </div>`;
+        }).join('')}
+      </div>`)}
   </div>`,
 });
 
-// ── Tendencias ─────────────────────────────────────────────────────────
+// ── Tendencias · la propia serie de la empresa ─────────────────────────
 export const tendencias = app({
-  w: 1440, h: 1080, activo: 'trends', migas: ['Tendencias'],
+  w: 1440, h: 1060, activo: 'trends', empresa: 'Transportes Andinos S.A.S.',
+  migas: ['Empresas', 'Transportes Andinos', 'Tendencias'],
   contenido: `
   ${cabecera({
-    rubrica: 'Análisis · Series históricas',
-    titulo: 'Tendencias',
-    bajada: 'La batería se reaplica cada uno o dos años. Con tres aplicaciones o más empieza a distinguirse una tendencia real de una variación de medición.',
-    acciones: `<span class="btn btn-sec">Comparar empresas</span><span class="btn btn-sec">${icono('desc', { size: 14, color: T.secondary })}Exportar</span>`,
+    titulo: 'Cuatro aplicaciones en seis años, y el riesgo sube en las cuatro',
+    rubrica: 'Transportes Andinos S.A.S. · aplicaciones de <span class="num">2020, 2022, 2024 y 2026</span>',
+    bajada: 'Cada serie compara la empresa consigo misma, que es la única comparación en la que el baremo no cambia. Las dos formas van por separado porque miden instrumentos distintos.',
+    acciones: `<span class="btn btn-sec">${icono('desc', { size: 14, color: T.secondary })}Exportar</span>`,
   })}
 
-  <div style="display:flex;border-top:1px solid ${T.border};border-bottom:1px solid ${T.border};margin-bottom:24px">
-    ${[['Empresas con serie', '9', 'de 12'], ['Aplicaciones acumuladas', '31', ''], ['Empresas que mejoran', '4', ''], ['Empresas que empeoran', '5', '']].map(([k, v, n], i) => `
-      <div style="flex:1;padding:17px 0 17px ${i ? '26px' : '0'};${i ? `border-left:1px solid ${T.borderMuted}` : ''}">
+  <div style="display:flex;border-top:1px solid ${T.border};border-bottom:1px solid ${T.border};margin-bottom:26px">
+    ${[['Aplicaciones', '4', 'desde 2020'], ['Forma B · variación', '+26,1', 'puntos'], ['Forma A · variación', '+2,3', 'puntos'], ['Brecha entre formas', '34,4', 'puntos, de 8,0 en 2020'], ['Medidas cumplidas', '0', 'de 13 asignadas']].map(([k, v, n], i) => `
+      <div style="flex:1;padding:18px 0 18px ${i ? '24px' : '0'};${i ? `border-left:1px solid ${T.borderMuted}` : ''}">
         <p class="rub">${esc(k)}</p>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
-          <span class="num" style="font-size:28px;font-weight:600;color:${i === 3 ? T.danger : i === 2 ? T.success : T.ink}">${v}</span>
-          ${n ? `<span class="num" style="font-size:12px;color:${T.muted}">${esc(n)}</span>` : ''}
-        </div>
+        <p class="cifra" style="font-size:28px;margin-top:9px;color:${i === 1 || i === 4 ? T.danger : T.ink}">${v}</p>
+        <p style="font-size:11.5px;color:${T.muted};margin-top:5px">${esc(n)}</p>
       </div>`).join('')}
   </div>
 
   <div style="display:flex;gap:22px">
-    ${figura('Riesgo intralaboral por empresa', 'Series con al menos tres aplicaciones',
+    ${figura('Puntaje total por forma', 'Cada forma contra su propio baremo · nunca promediadas entre sí',
       lineas({
-        w: 660, h: 260, max: 100, hover: 2,
+        w: 560, h: 240, max: 100, hover: 3,
         etiquetasX: ['2020', '2022', '2024', '2026'],
         series: [
-          { nombre: 'Transportes A.', color: CAT[1], valores: [42.1, 51.8, 63.4, 71.6] },
-          { nombre: 'Agroind. Valle', color: CAT[3], valores: [55.2, 58.9, 61.0, 64.2] },
-          { nombre: 'Constructora S.', color: CAT[2], valores: [61.4, 54.2, 48.8, 41.2] },
-          { nombre: 'Clínica Norte', color: CAT[0], valores: [44.8, 46.1, 47.2, 48.1] },
+          { nombre: 'Forma B', color: CAT[1], valores: [42.1, 51.8, 63.4, 68.2] },
+          { nombre: 'Forma A', color: CAT[0], valores: [31.5, 32.4, 33.1, 33.8] },
         ],
-      }))}
+      })
+      + `<p style="font-size:12px;line-height:1.65;color:${T.secondary};margin-top:14px">
+          La brecha pasa de 10,6 a 34,4 puntos. El deterioro está concentrado en la operación:
+          los profesionales y jefaturas se mueven 2,3 puntos en seis años.</p>`)}
 
-    <div style="width:398px;flex-shrink:0">
-      ${figura('Variación desde la primera aplicación', 'Puntos de diferencia · negativo es mejora',
-        `<div>${[
-          ['Constructora Sierra', -20.2, true], ['Alimentos del Caribe', -8.4, true],
-          ['Textiles Bogotá', -5.1, true], ['Servicios Meta', -1.9, true],
-          ['Clínica del Norte', 3.3, false], ['Agroindustria Valle', 9.0, false],
-          ['Transportes Andinos', 29.5, false],
-        ].map(([n, v, bien], i) => {
-          const max = 30;
-          const ancho = (Math.abs(v) / max) * 50;
-          return `<div style="display:flex;align-items:center;gap:11px;padding:9px 0;${i ? `border-top:1px solid ${T.borderMuted}` : ''}">
-            <span style="flex:1;font-size:12.5px;color:${T.ink}">${esc(n)}</span>
-            <div style="width:140px;display:flex;align-items:center">
-              <div style="width:70px;display:flex;justify-content:flex-end">${bien ? `<div style="width:${ancho}%;height:9px;background:${T.success};border-radius:4px 0 0 4px"></div>` : ''}</div>
-              <div style="width:1px;height:14px;background:${T.border}"></div>
-              <div style="width:70px">${!bien ? `<div style="width:${ancho}%;height:9px;background:${T.danger};border-radius:999px"></div>` : ''}</div>
+    ${figura('Personas en riesgo alto o muy alto', 'Recuento sobre los evaluados de cada aplicación',
+      `<div style="margin-top:4px">
+        ${[['2020', 287, 61], ['2022', 341, 98], ['2024', 398, 142], ['2026', 412, 169]].map(([a, t, c], i) => {
+          const pct = (c / t) * 100;
+          return `<div style="display:flex;align-items:center;gap:16px;padding:14px 0;${i ? `border-top:1px solid ${T.borderMuted}` : `border-top:1.5px solid ${T.ink}`}">
+            <span class="num" style="width:44px;flex-shrink:0;font-size:13px;color:${T.ink}">${a}</span>
+            <div style="flex:1;height:11px;border-radius:999px;background:${T.surfaceMuted};overflow:hidden">
+              <div class="barra-anim" style="width:${pct}%;height:100%;background:${RISK.alto.bar};border-radius:999px"></div>
             </div>
-            <span class="num" style="font-size:12.5px;font-weight:600;color:${bien ? T.success : T.danger};width:46px;text-align:right">${v > 0 ? '+' : '−'}${n1(Math.abs(v))}</span>
+            <span class="num" style="width:80px;text-align:right;font-size:12.5px;color:${T.secondary};flex-shrink:0">${c} de ${t}</span>
+            <span class="num" style="width:52px;text-align:right;font-size:14px;font-weight:600;color:${RISK.alto.text};flex-shrink:0">${n1(pct)}&thinsp;%</span>
           </div>`;
-        }).join('')}</div>`, { w: 398 })}
-    </div>
+        }).join('')}
+        <p style="font-size:12px;line-height:1.65;color:${T.secondary};margin-top:16px;padding-top:14px;border-top:1px solid ${T.border}">
+          La cobertura creció de 287 a 412 personas, así que el recuento sube en parte por eso.
+          La proporción no: pasa del 21,3% al 41,0%, y esa sí es comparable entre aplicaciones.
+        </p>
+      </div>`)}
   </div>
 
-  <div style="margin-top:22px;padding:24px 28px;border-radius:12px;background:${T.surface};border:1px solid ${T.border}">
-    <p class="rub rub-ink">Lo que dice la serie</p>
+  <div style="margin-top:22px;padding:24px 28px;border-radius:16px;background:${T.surface};border:1px solid ${T.border}">
+    <p class="rub-ink">Lo que dice la serie</p>
     <p class="prose" style="margin-top:12px;max-width:1010px">
-      <strong style="font-weight:600">Constructora Sierra es el único caso con mejora sostenida</strong>:
-      baja 20,2 puntos en seis años, con descensos en las tres reaplicaciones. Coincide con la puesta en
-      marcha de su programa de vigilancia epidemiológica en 2021, y es la evidencia más útil que existe
-      en la cartera para sustentar una intervención ante otra empresa.
-      En el extremo opuesto, Transportes Andinos sube 29,5 puntos sin que se haya ejecutado ninguna
-      medida de las recomendadas en 2022.
+      El riesgo de los operativos sube en las cuatro aplicaciones, sin una sola reversión, y
+      en el mismo periodo no se ejecutó ninguna de las 13 medidas asignadas desde 2022.
+      <strong>Es el hallazgo que una inspección del Ministerio buscaría primero</strong>: hay
+      diagnóstico, hay plan, y no hay evidencia de intervención.
     </p>
   </div>`,
 });
 
 // ── Intervenciones ─────────────────────────────────────────────────────
 export const intervenciones = app({
-  w: 1440, h: 1140, activo: 'interv', migas: ['Intervenciones'],
+  w: 1440, h: 1140, activo: 'interv', empresa: 'Transportes Andinos S.A.S.', migas: ['Intervenciones'],
   contenido: `
   ${cabecera({
     rubrica: 'Análisis · Planes de acción',
@@ -229,7 +275,7 @@ export const intervenciones = app({
 
 // ── Asistente IA ───────────────────────────────────────────────────────
 export const asistenteIA = app({
-  w: 1440, h: 1070, activo: 'ai', migas: ['Asistente IA'],
+  w: 1440, h: 1070, activo: 'ai', empresa: null, migas: ['Asistente IA'],
   contenido: `
   ${cabecera({
     rubrica: 'Análisis · Apoyo a la redacción',

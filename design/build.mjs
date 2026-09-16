@@ -27,7 +27,7 @@ const mods = {
 // El orden dentro de cada página es el orden de lectura en el lienzo.
 export const MANIFEST = [
   // ── Fundamentos ────────────────────────────────────────────────────
-  ['Fundamentos',   'fundamentos.fundamentos', 'sistema',  1440, 4060],
+  ['Fundamentos',   'fundamentos.fundamentos', 'sistema',  1440, 4500],
 
   // ── Operación ──────────────────────────────────────────────────────
   ['Main',             'panel.panel',                        'operacion', 1440, 970],
@@ -58,14 +58,14 @@ export const MANIFEST = [
   ['EnRevision',    'acceso.pendiente',        'acceso',    1440, 900],
 
   // ── Análisis ───────────────────────────────────────────────────────
-  ['Analitica',        'analisis.analitica',        'analisis', 1440, 1220],
+  ['Analitica',        'analisis.analitica',        'analisis', 1440, 1240],
   ['Tendencias',       'analisis.tendencias',       'analisis', 1440, 1080],
   ['Intervenciones',   'analisis.intervenciones',   'analisis', 1440, 1140],
   ['AsistenteIA',      'analisis.asistenteIA',      'analisis', 1440, 1070],
 
   // ── Cuenta y sistema ───────────────────────────────────────────────
   ['Creditos',         'cuenta.creditos',           'cuenta',   1440, 1020],
-  ['Planes',           'cuenta.planes',             'cuenta',   1440, 1050],
+  ['Planes',           'cuenta.planes',             'cuenta',   1440, 1090],
   ['Equipo',           'cuenta.equipo',             'cuenta',   1440, 1110],
   ['Configuracion',    'cuenta.configuracion',      'cuenta',   1440, 1500],
   ['GuiaRapida',       'cuenta.tutorial',           'cuenta',   1440, 1130],

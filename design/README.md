@@ -103,6 +103,44 @@ Reglas propias del papel, distintas a las de pantalla:
 paleta de `typst/lib/theme.typ`, que hoy usa tonos de riesgo terrosos
 (`#3E7A63`, `#6F9558`, `#C39A3B`, `#BE7039`, `#A34037`) distintos a los de la aplicación.
 
+## Arquitectura: dos ámbitos que no se mezclan
+
+La decisión que gobierna la navegación y las métricas.
+
+**Cartera** — el trabajo del psicólogo. Vigencias por vencer, informes sin firmar,
+evaluaciones en curso, medidas vencidas, créditos. Son recuentos de tareas y sí son
+transversales a las empresas. **Aquí no hay ni una cifra de riesgo.**
+
+**Empresa** — la unidad de análisis. Todo el riesgo vive dentro de una empresa
+seleccionada, y el selector de la barra lateral fija el ámbito.
+
+Por qué: los baremos de `src/config/battery/baremos.json` son **nacionales y
+estratificados por nivel de cargo** (`jefes_profesionales_tecnicos` /
+`auxiliares_operativos`). No hay estratificación por sector ni por empresa. Un puntaje
+agregado entre empresas mide sobre todo qué proporción de operativos tiene cada una
+—la propia pantalla de analítica muestra que el riesgo sube de forma monótona según
+baja el nivel del cargo—, no cuánto riesgo hay. Y la obligación de la Resolución 2764
+es por empleador: el diagnóstico, el plan y la periodicidad se rinden empresa por empresa.
+
+### La distinción que importa
+
+| Operación | ¿Válida mezclando Forma A y B? | Por qué |
+|---|---|---|
+| **Contar personas por nivel** | Sí | A cada una la clasificó su propio baremo |
+| **Promediar puntajes** | No | 123 ítems y 19 dimensiones contra 97 y 16, baremos distintos |
+
+Por eso el resumen de empresa lleva la distribución de las 412 personas en una sola
+banda, y los dominios en dos columnas separadas por forma.
+
+### Lo que se retiró
+
+- El «24,7 % de la cartera en riesgo alto» del centro de control.
+- El ranking de «riesgo intralaboral por sector», que insinuaba baremos sectoriales
+  que no existen.
+- La correlación con estrés calculada sobre las 1.284 personas de las 12 empresas.
+- La columna «Riesgo global» de la lista de empresas, sustituida por la proporción en
+  riesgo alto o muy alto, que es un recuento.
+
 ## Los skills instalados
 
 Los tres están instalados de verdad en este repositorio, no aplicados de memoria:
