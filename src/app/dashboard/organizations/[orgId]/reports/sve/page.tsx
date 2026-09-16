@@ -135,7 +135,7 @@ export default async function SVEReportPage({ params }: PageProps) {
                 </div>
 
                 <SectionTitle n={1}>Población y cobertura</SectionTitle>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <StatCard value={summary.uniqueWorkers} label="Trabajadores" />
                     <StatCard
                         value={groups.d}

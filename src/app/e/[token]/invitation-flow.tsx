@@ -9,9 +9,17 @@ import { INSTRUMENTS, INSTRUMENT_IDS, sortByOrder } from "@/config/instruments";
 
 const QUESTIONNAIRE_ORDER: QuestionnaireType[] = sortByOrder(INSTRUMENT_IDS);
 
+// shortLabel y no label: la cabecera de progreso del cuestionario comparte
+// una sola línea con el contador «12 / 122» en un móvil de 360px, y
+// «Cuestionario de factores de riesgo psicosocial intralaboral» la parte en
+// tres renglones o la trunca a la mitad.
 const SECTION_LABEL = Object.fromEntries(
-    INSTRUMENT_IDS.map((id) => [id, INSTRUMENTS[id].label])
+    INSTRUMENT_IDS.map((id) => [id, INSTRUMENTS[id].shortLabel])
 ) as Record<QuestionnaireType, string>;
+
+/** Pantalla completa centrada — `svh` en vez de `vh`, que en móvil incluye
+ *  la barra de direcciones y descentra la tarjeta. */
+const SCREEN_CLASS = "min-h-svh flex items-center justify-center px-4 py-8";
 
 interface PublicInvitationView {
     workerFullName: string;
@@ -101,7 +109,7 @@ export default function InvitationFlow({ token }: { token: string }) {
 
     if (screen === "LOADING") {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4">
+            <div className={SCREEN_CLASS}>
                 <div className="w-10 h-10 border-4 border-teal-light border-t-primary rounded-full animate-spin"></div>
             </div>
         );
@@ -109,10 +117,10 @@ export default function InvitationFlow({ token }: { token: string }) {
 
     if (screen === "ERROR") {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4">
+            <div className={SCREEN_CLASS}>
                 <div className="max-w-sm w-full text-center space-y-4">
                     <h1 className="text-xl font-bold text-foreground">Enlace no disponible</h1>
-                    <p className="text-muted-foreground text-sm">{errorMessage}</p>
+                    <p className="text-muted-foreground text-[15px] leading-relaxed">{errorMessage}</p>
                 </div>
             </div>
         );
@@ -120,15 +128,15 @@ export default function InvitationFlow({ token }: { token: string }) {
 
     if (screen === "DONE") {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4">
+            <div className={SCREEN_CLASS}>
                 <div className="max-w-sm w-full text-center space-y-4">
                     <div className="w-16 h-16 bg-teal-light text-teal-dark rounded-full flex items-center justify-center mx-auto shadow-inner border border-primary/20">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <h1 className="text-xl font-bold text-foreground">¡Gracias por diligenciar tu evaluación!</h1>
-                    <p className="text-muted-foreground text-sm">
+                    <h1 className="text-xl font-bold text-foreground leading-snug">¡Gracias por diligenciar tu evaluación!</h1>
+                    <p className="text-muted-foreground text-[15px] leading-relaxed">
                         Tus respuestas fueron enviadas de forma confidencial a tu psicólogo(a). Ya puedes cerrar esta página.
                     </p>
                 </div>
@@ -138,16 +146,16 @@ export default function InvitationFlow({ token }: { token: string }) {
 
     if (screen === "CONSENT" && view) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4 py-8">
-                <div className="max-w-lg w-full bg-card border border-border rounded-2xl shadow-sm p-6 space-y-5">
+            <div className={SCREEN_CLASS}>
+                <div className="max-w-lg w-full bg-card border border-border rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
                     <div>
-                        <h1 className="text-lg font-bold text-foreground">Hola, {view.workerFullName.split(" ")[0]}</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <h1 className="text-xl font-bold text-foreground">Hola, {view.workerFullName.split(" ")[0]}</h1>
+                        <p className="text-[15px] leading-relaxed text-muted-foreground mt-1.5">
                             {view.psychologistFullName} te invita a diligenciar tu evaluación de riesgo psicosocial
                             en {view.organizationName}.
                         </p>
                     </div>
-                    <div className="text-xs text-muted-foreground leading-relaxed bg-muted/40 border border-border rounded-xl p-4 space-y-2">
+                    <div className="text-[15px] text-text-secondary leading-relaxed bg-muted/40 border border-border rounded-xl p-4 space-y-3">
                         <p>
                             Esta evaluación hace parte del Sistema de Gestión de Seguridad y Salud en el Trabajo,
                             conforme a la Resolución 2764 de 2022 del Ministerio del Trabajo.
@@ -167,7 +175,7 @@ export default function InvitationFlow({ token }: { token: string }) {
                         </p>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                        <label className="block text-[15px] font-semibold text-foreground mb-2">
                             Firma de aceptación
                         </label>
                         <SignaturePad onChange={setSignature} />
@@ -175,7 +183,7 @@ export default function InvitationFlow({ token }: { token: string }) {
                     <button
                         disabled={!signature}
                         onClick={() => setScreen(view.sociodemographicsCompleted ? "QUESTIONNAIRE" : "SOCIODEMOGRAPHICS")}
-                        className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
+                        className="w-full min-h-[52px] rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 touch-manipulation select-none"
                     >
                         Acepto y firmo
                     </button>
@@ -190,7 +198,12 @@ export default function InvitationFlow({ token }: { token: string }) {
 
     if (screen === "QUESTIONNAIRE" && view && currentType) {
         return (
-            <div className="min-h-screen flex flex-col overflow-x-hidden">
+            // `overflow-x-clip` y no `overflow-x-hidden`: hidden en un eje
+            // convierte el contenedor en scroller en el otro y rompe el
+            // `position: sticky` de la barra de progreso y la de navegación.
+            // `dvh` para que esa barra inferior quede pegada al borde visible
+            // aunque la barra de direcciones se despliegue.
+            <div className="min-h-dvh flex flex-col overflow-x-clip">
                 <PublicQuestionnaireForm
                     token={token}
                     questionnaireType={currentType}
