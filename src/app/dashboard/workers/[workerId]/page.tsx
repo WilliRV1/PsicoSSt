@@ -29,12 +29,12 @@ const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: Rea
     );
 };
 
-const riskColors: Record<string, string> = {
-    SIN_RIESGO: "bg-green-100 text-green-700 border-green-200",
-    BAJO:       "bg-lime-100 text-lime-700 border-lime-200",
-    MEDIO:      "bg-yellow-100 text-yellow-700 border-yellow-200",
-    ALTO:       "bg-orange-100 text-orange-700 border-orange-200",
-    MUY_ALTO:   "bg-red-100 text-red-700 border-red-200",
+const riskStyle: Record<string, { background: string; color: string; borderColor: string }> = {
+    SIN_RIESGO: { background: "var(--color-risk-none-bg)",     color: "var(--color-risk-none-text)",     borderColor: "var(--color-risk-none-border)" },
+    BAJO:       { background: "var(--color-risk-low-bg)",      color: "var(--color-risk-low-text)",      borderColor: "var(--color-risk-low-border)" },
+    MEDIO:      { background: "var(--color-risk-medium-bg)",   color: "var(--color-risk-medium-text)",   borderColor: "var(--color-risk-medium-border)" },
+    ALTO:       { background: "var(--color-risk-high-bg)",     color: "var(--color-risk-high-text)",     borderColor: "var(--color-risk-high-border)" },
+    MUY_ALTO:   { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", borderColor: "var(--color-risk-veryhigh-border)" },
 };
 
 const riskLabels: Record<string, string> = {
@@ -45,25 +45,17 @@ const riskLabels: Record<string, string> = {
     MUY_ALTO: "Muy Alto",
 };
 
-const riskBarColor: Record<string, string> = {
-    SIN_RIESGO: "bg-green-500",
-    BAJO:       "bg-lime-500",
-    MEDIO:      "bg-yellow-400",
-    ALTO:       "bg-orange-500",
-    MUY_ALTO:   "bg-red-500",
-};
-
 const questionnaireLabels: Record<string, string> = {
     INTRALABORAL: "Intralaboral",
     EXTRALABORAL: "Extralaboral",
     STRESS: "Estrés",
 };
 
-const statusConfig: Record<string, { label: string; class: string }> = {
-    SCORED:    { label: "Calificado", class: "bg-yellow-100 text-yellow-700" },
-    REVIEWED:  { label: "Revisado",   class: "bg-blue-100 text-blue-700" },
-    SIGNED:    { label: "Firmado",    class: "bg-green-100 text-green-700" },
-    COMPLETED: { label: "Completado", class: "bg-gray-100 text-gray-600" },
+const statusStyle: Record<string, { label: string; background: string; color: string }> = {
+    SCORED:    { label: "Calificado", background: "var(--color-risk-medium-bg)", color: "var(--color-risk-medium-text)" },
+    REVIEWED:  { label: "Revisado",   background: "color-mix(in srgb, var(--color-info) 14%, transparent)", color: "var(--color-info)" },
+    SIGNED:    { label: "Firmado",    background: "var(--color-teal-light)", color: "var(--color-teal-dark)" },
+    COMPLETED: { label: "Completado", background: "var(--color-surface-muted)", color: "var(--color-text-secondary)" },
 };
 
 const educationLabels: Record<string, string> = {
@@ -170,18 +162,21 @@ export default async function WorkerDetailPage({ params }: PageProps) {
             {/* Worker header */}
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary font-black text-2xl border border-primary/20">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary font-semibold text-2xl border border-primary/20">
                         {worker.fullName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl font-black text-foreground">{worker.fullName}</h1>
+                        <h1 className="text-2xl font-semibold text-foreground">{worker.fullName}</h1>
                         <p className="text-muted-foreground text-sm mt-0.5">
                             {worker.documentType} {worker.documentId}
                             {age !== null && <span className="ml-3">· {age} años</span>}
                         </p>
                         <div className="flex flex-wrap gap-2 mt-3">
                             {worker.jobTitle && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-semibold ring-1 ring-indigo-600/10">
+                                <span
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold"
+                                    style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+                                >
                                     <Briefcase className="h-3 w-3" />
                                     {worker.jobTitle}
                                 </span>
@@ -225,10 +220,10 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
                         const score = (a.scoredResult?.totalScores as any)?.transformedScore;
                         return (
-                            <div key={type} className={`rounded-xl border p-4 text-center ${riskColors[risk]}`}>
+                            <div key={type} className="rounded-xl border p-4 text-center" style={riskStyle[risk]}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{questionnaireLabels[type]}</p>
                                 <RiskTooltip riskLevel={risk}>
-                                    <span className="text-xl font-black">{riskLabels[risk]}</span>
+                                    <span className="text-xl font-semibold">{riskLabels[risk]}</span>
                                 </RiskTooltip>
                                 {score !== undefined && <p className="text-sm font-semibold opacity-70 mt-0.5">{score.toFixed(1)}%</p>}
                                 <p className="text-xs opacity-60 mt-1">
@@ -242,36 +237,49 @@ export default async function WorkerDetailPage({ params }: PageProps) {
 
             {/* Expiration alert */}
             {expirationStatus === "EXPIRED" && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-3.5 flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                <div
+                    className="rounded-xl border px-5 py-3.5 flex items-start gap-3"
+                    style={{ borderColor: "var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)" }}
+                >
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--color-risk-veryhigh-solid)" }} />
                     <div>
-                        <p className="font-semibold text-red-800 text-sm">Evaluación vencida</p>
-                        <p className="text-red-700 text-xs mt-0.5">
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-risk-veryhigh-text)" }}>Evaluación vencida</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--color-risk-veryhigh-text)" }}>
                             La última evaluación firmada fue el {lastSignedDate!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}. Han pasado más de 2 años — se requiere reevaluación según la Res. 2764/2022.
                         </p>
-                        <a href={`/dashboard/assessments/new/manual?workerId=${worker.id}`} className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-red-700 hover:text-red-900 underline">
+                        <a
+                            href={`/dashboard/assessments/new/manual?workerId=${worker.id}`}
+                            className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold underline"
+                            style={{ color: "var(--color-risk-veryhigh-text)" }}
+                        >
                             <RefreshCw className="h-3 w-3" /> Iniciar reevaluación
                         </a>
                     </div>
                 </div>
             )}
             {expirationStatus === "EXPIRING_SOON" && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-3.5 flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div
+                    className="rounded-xl border px-5 py-3.5 flex items-start gap-3"
+                    style={{ borderColor: "var(--color-risk-medium-border)", background: "var(--color-risk-medium-bg)" }}
+                >
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--color-risk-medium-solid)" }} />
                     <div>
-                        <p className="font-semibold text-amber-800 text-sm">Evaluación próxima a vencer</p>
-                        <p className="text-amber-700 text-xs mt-0.5">
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-risk-medium-text)" }}>Evaluación próxima a vencer</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--color-risk-medium-text)" }}>
                             Vence el {expiresAt!.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })} — en {daysUntilExpiry} días. Planifica la reevaluación con anticipación.
                         </p>
                     </div>
                 </div>
             )}
             {expirationStatus === "NEVER" && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-3.5 flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div
+                    className="rounded-xl border px-5 py-3.5 flex items-start gap-3"
+                    style={{ borderColor: "var(--color-risk-medium-border)", background: "var(--color-risk-medium-bg)" }}
+                >
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "var(--color-risk-medium-solid)" }} />
                     <div>
-                        <p className="font-semibold text-amber-800 text-sm">Sin evaluaciones firmadas</p>
-                        <p className="text-amber-700 text-xs mt-0.5">Este trabajador no tiene evaluaciones firmadas registradas.</p>
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-risk-medium-text)" }}>Sin evaluaciones firmadas</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--color-risk-medium-text)" }}>Este trabajador no tiene evaluaciones firmadas registradas.</p>
                     </div>
                 </div>
             )}
@@ -349,11 +357,14 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                                     {assessments.map(a => {
                                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
                                         const score = (a.scoredResult?.totalScores as any)?.transformedScore;
-                                        const status = statusConfig[a.status] || statusConfig.SCORED;
+                                        const status = statusStyle[a.status] || statusStyle.SCORED;
                                         return (
                                             <tr key={a.id} className="hover:bg-muted/30 transition-colors">
                                                 <td className="px-6 py-3 whitespace-nowrap">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/10">
+                                                    <span
+                                                        className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium"
+                                                        style={{ background: "var(--color-teal-light)", color: "var(--color-teal-dark)" }}
+                                                    >
                                                         {questionnaireLabels[a.questionnaireType] || a.questionnaireType} Forma {a.formType}
                                                     </span>
                                                 </td>
@@ -361,13 +372,19 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                                                     {new Date(a.assessmentDate).toLocaleDateString("es-CO", { year: "numeric", month: "short", day: "numeric" })}
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${riskColors[risk]}`}>
+                                                    <span
+                                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                                                        style={{ background: riskStyle[risk].background, color: riskStyle[risk].color, boxShadow: `inset 0 0 0 1px ${riskStyle[risk].borderColor}` }}
+                                                    >
                                                         {riskLabels[risk]}
                                                         {score !== undefined && <span className="opacity-70">({score.toFixed(1)})</span>}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-3 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.class}`}>
+                                                    <span
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                                                        style={{ background: status.background, color: status.color }}
+                                                    >
                                                         {a.status === "SIGNED" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                                                         {status.label}
                                                     </span>
