@@ -328,7 +328,7 @@ async function main() {
         jobTitle: w.title,
         jobLevel: w.level,
         residenceCity: w.city,
-        socioeconomicStratum: w.stratum,
+        socioeconomicStratum: String(w.stratum),
         housingType: w.housing,
         dependentsCount: w.deps,
         freeTimeUsage: w.freeTime,
@@ -340,7 +340,7 @@ async function main() {
         yearsInPosition: w.yearsPos,
         contractType: w.contract,
         workSchedule: w.schedule,
-        hoursPerWeek: w.hours,
+        hoursPerWeek: String(w.hours),
         organizationId: w.orgId,
       },
     });
@@ -402,7 +402,7 @@ async function main() {
       },
     });
     const rStatus = reportStatuses[i % reportStatuses.length];
-    await prisma.report.create({
+    await prisma.generatedReport.create({
       data: {
         assessmentId: intraA.id,
         psychologistId: spec.psychId,
@@ -447,7 +447,7 @@ async function main() {
           overallRiskCategory: extraScored.overallRiskCategory,
         },
       });
-      await prisma.report.create({
+      await prisma.generatedReport.create({
         data: {
           assessmentId: extraA.id,
           psychologistId: spec.psychId,
@@ -492,7 +492,7 @@ async function main() {
           overallRiskCategory: stressScored.overallRiskCategory,
         },
       });
-      await prisma.report.create({
+      await prisma.generatedReport.create({
         data: {
           assessmentId: stressA.id,
           psychologistId: spec.psychId,
