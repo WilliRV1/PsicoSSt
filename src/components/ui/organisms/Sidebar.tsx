@@ -7,6 +7,8 @@ import { LogOut } from "lucide-react";
 
 interface SidebarProps {
   user?: { fullName: string; email: string; creditBalance: number } | null;
+  open?: boolean;
+  onClose?: () => void;
 }
 
 const NAV = [
@@ -27,7 +29,7 @@ const NAV = [
   },
 ];
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const initials = (user?.fullName ?? "U")
@@ -38,13 +40,22 @@ export function Sidebar({ user }: SidebarProps) {
     .toUpperCase();
 
   return (
-    <aside
-      className="sidebar no-scrollbar w-[220px] h-screen flex-shrink-0 flex flex-col"
-      style={{
-        background: "var(--color-surface)",
-        borderRight: "1px solid var(--color-border)",
-      }}
-    >
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={`sidebar no-scrollbar w-[220px] h-screen flex-shrink-0 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:static md:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          background: "var(--color-surface)",
+          borderRight: "1px solid var(--color-border)",
+        }}
+      >
       {/* Logo */}
       <div className="px-6 pt-7 pb-6 shrink-0">
         <Link href="/dashboard" className="block">
@@ -98,6 +109,7 @@ export function Sidebar({ user }: SidebarProps) {
                     <Link
                       href={item.href}
                       prefetch={false}
+                      onClick={onClose}
                       className="flex items-center h-8 px-3 text-[13px] transition-colors duration-100 outline-none rounded-md"
                       style={{
                         color: isActive ? "var(--color-primary)" : "var(--color-text-secondary)",
@@ -166,6 +178,7 @@ export function Sidebar({ user }: SidebarProps) {
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

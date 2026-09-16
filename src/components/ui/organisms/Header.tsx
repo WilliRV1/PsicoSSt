@@ -1,15 +1,16 @@
 "use client";
 
-import { Search, Sun, Moon } from "lucide-react";
+import { Menu, Search, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 
 interface HeaderProps {
   user?: { fullName: string; email: string; creditBalance: number } | null;
+  onMenuClick?: () => void;
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, onMenuClick }: HeaderProps) {
   const credits = user?.creditBalance ?? 0;
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -30,40 +31,52 @@ export function Header({ user }: HeaderProps) {
 
   return (
     <header
-      className="h-[52px] flex items-center justify-between px-6 shrink-0"
+      className="h-[52px] flex items-center justify-between px-3 sm:px-6 shrink-0"
       style={{
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border)",
       }}
     >
-      {/* Search */}
-      <button
-        onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
-        className="flex items-center gap-2 text-[13px] transition-colors duration-100 outline-none"
-        style={{ color: "var(--color-text-muted)" }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)")
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-        }
-      >
-        <Search className="w-3.5 h-3.5 shrink-0" />
-        <span>Buscar</span>
-        <span
-          className="ml-1 text-[11px] px-1.5 py-0.5 rounded"
-          style={{
-            background: "var(--color-surface-muted)",
-            color: "var(--color-text-muted)",
-            fontFamily: "var(--font-mono)",
-          }}
+      <div className="flex items-center gap-2 min-w-0">
+        {/* Mobile menu toggle */}
+        <button
+          onClick={onMenuClick}
+          className="p-1 -ml-1 shrink-0 md:hidden"
+          style={{ color: "var(--color-text-muted)" }}
+          title="Abrir menú"
         >
-          ⌃K
-        </span>
-      </button>
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Search */}
+        <button
+          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+          className="flex items-center gap-2 text-[13px] transition-colors duration-100 outline-none min-w-0"
+          style={{ color: "var(--color-text-muted)" }}
+          onMouseEnter={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)")
+          }
+          onMouseLeave={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
+          }
+        >
+          <Search className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden sm:inline">Buscar</span>
+          <span
+            className="ml-1 text-[11px] px-1.5 py-0.5 rounded hidden sm:inline"
+            style={{
+              background: "var(--color-surface-muted)",
+              color: "var(--color-text-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            ⌃K
+          </span>
+        </button>
+      </div>
 
       {/* Right */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Credits */}
         <Link
           href="/dashboard/plan"
@@ -79,7 +92,7 @@ export function Header({ user }: HeaderProps) {
           <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>
             {credits}
           </span>
-          <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
+          <span className="hidden sm:inline text-[12px]" style={{ color: "var(--color-text-muted)" }}>
             trabajadores
           </span>
         </Link>
