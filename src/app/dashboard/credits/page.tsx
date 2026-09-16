@@ -42,11 +42,11 @@ function formatCOP(amount: number): string {
 }
 
 const txTypeConfig: Record<string, { label: string; icon: "up" | "down" | "gift"; color: string }> = {
-    PURCHASE: { label: "Compra", icon: "up", color: "text-green-600" },
-    TRIAL_GRANT: { label: "Trial", icon: "gift", color: "text-indigo-600" },
-    ADMIN_GRANT: { label: "Asignacion", icon: "gift", color: "text-blue-600" },
-    CONSUMPTION: { label: "Consumo", icon: "down", color: "text-red-600" },
-    REFUND: { label: "Reembolso", icon: "up", color: "text-emerald-600" },
+    PURCHASE: { label: "Compra", icon: "up", color: "text-teal-dark" },
+    TRIAL_GRANT: { label: "Trial", icon: "gift", color: "text-primary" },
+    ADMIN_GRANT: { label: "Asignacion", icon: "gift", color: "text-info" },
+    CONSUMPTION: { label: "Consumo", icon: "down", color: "text-danger" },
+    REFUND: { label: "Reembolso", icon: "up", color: "text-teal-dark" },
 };
 
 export default function CreditsPage() {
@@ -79,17 +79,18 @@ export default function CreditsPage() {
                     <h2 className="text-xl font-semibold text-foreground">Creditos</h2>
                     <p className="text-sm text-muted-foreground">1 credito = 1 bateria completa (intralaboral + extralaboral + estres + PDF + IA)</p>
                 </div>
-                <div className={`rounded-xl border-2 px-6 py-4 text-center ${
-                    balance !== null && balance <= 0
-                        ? "border-red-300 bg-red-50"
-                        : balance !== null && balance <= 5
-                        ? "border-amber-300 bg-amber-50"
-                        : "border-primary/30 bg-primary/5"
-                }`}>
+                <div
+                    className="rounded-xl border-2 px-6 py-4 text-center"
+                    style={
+                        balance !== null && balance <= 0
+                            ? { borderColor: "var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)" }
+                            : balance !== null && balance <= 5
+                            ? { borderColor: "var(--color-risk-medium-border)", background: "var(--color-risk-medium-bg)" }
+                            : { borderColor: "color-mix(in srgb, var(--color-primary) 30%, transparent)", background: "color-mix(in srgb, var(--color-primary) 5%, transparent)" }
+                    }
+                >
                     <div className="flex items-center gap-2 justify-center">
-                        <Coins className={`h-6 w-6 ${
-                            balance !== null && balance <= 0 ? "text-red-500" : "text-primary"
-                        }`} />
+                        <Coins className="h-6 w-6" style={{ color: balance !== null && balance <= 0 ? "var(--color-risk-veryhigh-solid)" : "var(--color-primary)" }} />
                         <span className="text-3xl font-bold text-foreground">{balance ?? "—"}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">creditos disponibles</p>
@@ -98,15 +99,18 @@ export default function CreditsPage() {
 
             {/* Low balance warning */}
             {balance !== null && balance <= 2 && (
-                <div className={`rounded-xl border px-5 py-3.5 flex items-start gap-3 ${
-                    balance <= 0 ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"
-                }`}>
-                    <AlertTriangle className={`h-5 w-5 shrink-0 mt-0.5 ${balance <= 0 ? "text-red-500" : "text-amber-500"}`} />
+                <div
+                    className="rounded-xl border px-5 py-3.5 flex items-start gap-3"
+                    style={balance <= 0
+                        ? { borderColor: "var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)" }
+                        : { borderColor: "var(--color-risk-medium-border)", background: "var(--color-risk-medium-bg)" }}
+                >
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: balance <= 0 ? "var(--color-risk-veryhigh-solid)" : "var(--color-risk-medium-solid)" }} />
                     <div>
-                        <p className={`font-semibold text-sm ${balance <= 0 ? "text-red-800" : "text-amber-800"}`}>
+                        <p className="font-semibold text-sm" style={{ color: balance <= 0 ? "var(--color-risk-veryhigh-text)" : "var(--color-risk-medium-text)" }}>
                             {balance <= 0 ? "Sin creditos" : `Solo te quedan ${balance} credito${balance > 1 ? "s" : ""}`}
                         </p>
-                        <p className={`text-xs mt-0.5 ${balance <= 0 ? "text-red-700" : "text-amber-700"}`}>
+                        <p className="text-xs mt-0.5" style={{ color: balance <= 0 ? "var(--color-risk-veryhigh-text)" : "var(--color-risk-medium-text)" }}>
                             {balance <= 0
                                 ? "No podras crear nuevas evaluaciones hasta que adquieras un paquete."
                                 : "Adquiere mas creditos para no interrumpir tu flujo de trabajo."}
@@ -117,11 +121,12 @@ export default function CreditsPage() {
 
             {/* Message */}
             {message && (
-                <div className={`rounded-xl border px-5 py-3 text-sm font-medium ${
-                    message.type === "success"
-                        ? "border-green-200 bg-green-50 text-green-800"
-                        : "border-red-200 bg-red-50 text-red-800"
-                }`}>
+                <div
+                    className="rounded-xl border px-5 py-3 text-sm font-medium"
+                    style={message.type === "success"
+                        ? { borderColor: "var(--color-risk-low-border)", background: "var(--color-risk-low-bg)", color: "var(--color-risk-low-text)" }
+                        : { borderColor: "var(--color-risk-veryhigh-border)", background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)" }}
+                >
                     {message.text}
                 </div>
             )}
@@ -156,25 +161,25 @@ export default function CreditsPage() {
 
                             <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Check className="h-4 w-4 text-green-600 shrink-0" />
+                                    <Check className="h-4 w-4 text-teal-dark shrink-0" />
                                     <span className="text-foreground font-medium">{pkg.credits} baterias</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Check className="h-4 w-4 text-green-600 shrink-0" />
+                                    <Check className="h-4 w-4 text-teal-dark shrink-0" />
                                     <span className="text-muted-foreground">PDF incluido</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Check className="h-4 w-4 text-green-600 shrink-0" />
+                                    <Check className="h-4 w-4 text-teal-dark shrink-0" />
                                     <span className="text-muted-foreground">Analisis IA incluido</span>
                                 </div>
                                 {pkg.discount > 0 && (
                                     <div className="flex items-center gap-2 text-sm">
-                                        <Check className="h-4 w-4 text-green-600 shrink-0" />
-                                        <span className="text-green-700 font-medium">{pkg.discount}% de ahorro</span>
+                                        <Check className="h-4 w-4 text-teal-dark shrink-0" />
+                                        <span className="text-teal-dark font-medium">{pkg.discount}% de ahorro</span>
                                     </div>
                                 )}
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Check className="h-4 w-4 text-green-600 shrink-0" />
+                                    <Check className="h-4 w-4 text-teal-dark shrink-0" />
                                     <span className="text-muted-foreground">Sin vencimiento</span>
                                 </div>
                             </div>
@@ -211,7 +216,7 @@ export default function CreditsPage() {
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {transactions.map((tx) => {
-                                        const config = txTypeConfig[tx.type] || { label: tx.type, icon: "up", color: "text-gray-600" };
+                                        const config = txTypeConfig[tx.type] || { label: tx.type, icon: "up" as const, color: "text-text-secondary" };
                                         return (
                                             <tr key={tx.id} className="hover:bg-muted/30 transition-colors">
                                                 <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
@@ -235,7 +240,7 @@ export default function CreditsPage() {
                                                     )}
                                                 </td>
                                                 <td className={`px-5 py-3 whitespace-nowrap text-right font-semibold ${
-                                                    tx.amount > 0 ? "text-green-600" : "text-red-600"
+                                                    tx.amount > 0 ? "text-teal-dark" : "text-danger"
                                                 }`}>
                                                     {tx.amount > 0 ? "+" : ""}{tx.amount}
                                                 </td>

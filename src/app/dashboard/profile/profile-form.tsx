@@ -61,9 +61,12 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
 
             <CardContent>
                 {message && (
-                    <div className={`mb-6 p-4 rounded-xl text-sm font-bold animate-in flex items-center gap-2 ${
-                        message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
-                    }`}>
+                    <div
+                        className="mb-6 p-4 rounded-xl text-sm font-bold flex items-center gap-2"
+                        style={message.type === 'success'
+                            ? { background: "var(--color-risk-low-bg)", color: "var(--color-risk-low-text)", border: "1px solid var(--color-risk-low-border)" }
+                            : { background: "var(--color-risk-veryhigh-bg)", color: "var(--color-risk-veryhigh-text)", border: "1px solid var(--color-risk-veryhigh-border)" }}
+                    >
                         {message.type === 'success' ? '✅' : '❌'} {message.text}
                     </div>
                 )}

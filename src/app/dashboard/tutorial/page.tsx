@@ -15,8 +15,6 @@ const steps = [
         description: "El primer paso es registrar la empresa a la cual le estás prestando el servicio de evaluación. Los datos básicos como NIT y nombre aparecerán luego en los reportes.",
         action: "Ir a Empresas",
         href: "/dashboard/organizations",
-        color: "text-blue-600",
-        bg: "bg-blue-100",
     },
     {
         icon: Users,
@@ -24,8 +22,6 @@ const steps = [
         description: "Dentro del perfil de la empresa, podrás registrar a los trabajadores uno por uno, o usar la plantilla Excel para hacer un cargue masivo de todos los empleados.",
         action: "Ver Trabajadores",
         href: "/dashboard/workers",
-        color: "text-emerald-600",
-        bg: "bg-emerald-100",
     },
     {
         icon: ClipboardList,
@@ -33,8 +29,6 @@ const steps = [
         description: "Si aplicaste la batería en físico (papel), usa la herramienta 'Digitalizar Batería'. Es un formulario optimizado donde puedes tipear las respuestas rápidamente usando tu teclado numérico (0 a 4).",
         action: "Nueva Evaluación",
         href: "/dashboard/assessments/new/manual",
-        color: "text-indigo-600",
-        bg: "bg-indigo-100",
     },
     {
         icon: PenLine,
@@ -42,15 +36,11 @@ const steps = [
         description: "Una vez digitalizadas las respuestas, el sistema calcula automáticamente los puntajes transformados y el riesgo (Intralaboral, Extralaboral, Estrés). Solo te queda añadir tu análisis clínico y firmar digitalmente el reporte.",
         action: "Ir a Reportes",
         href: "/dashboard/reports",
-        color: "text-amber-600",
-        bg: "bg-amber-100",
     },
     {
         icon: FileDown,
         title: "5. Descarga los PDFs",
         description: "Cada informe firmado genera automáticamente un documento PDF con todos los requisitos legales, los puntajes exactos y tu tarjeta profesional / licencia en salud ocupacional incrustada.",
-        color: "text-red-600",
-        bg: "bg-red-100",
     },
     {
         icon: PieChart,
@@ -58,8 +48,6 @@ const steps = [
         description: "Puedes descargar un 'Informe Organizacional' en Excel (CSV) con las métricas agregadas y la distribución de riesgo de todos los evaluados. Es el insumo vital para el programa de vigilancia epidemiológica de la empresa.",
         action: "Ver Empresas",
         href: "/dashboard/organizations",
-        color: "text-purple-600",
-        bg: "bg-purple-100",
     },
 ];
 
@@ -67,7 +55,7 @@ export default function TutorialPage() {
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-12">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Guía Rápida de PsicoSST</h1>
+                <h1 className="text-3xl font-semibold tracking-tight text-foreground">Guía Rápida de PsicoSST</h1>
                 <p className="text-muted-foreground mt-2 text-lg">
                     Sigue estos pasos para llevar a cabo tu primera evaluación de riesgo psicosocial de inicio a fin.
                 </p>
@@ -84,7 +72,7 @@ export default function TutorialPage() {
                             <Card key={index} className="relative overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex flex-col md:flex-row gap-6 p-6">
                                     <div className="flex-shrink-0 z-10">
-                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center border-4 border-background ${step.bg} ${step.color} shadow-sm`}>
+                                        <div className="w-16 h-16 rounded-full flex items-center justify-center border-4 border-background bg-teal-light text-teal-dark shadow-sm">
                                             <Icon className="w-8 h-8" />
                                         </div>
                                     </div>

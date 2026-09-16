@@ -27,23 +27,23 @@ export default async function ProfilePage() {
     if (!psychologist) redirect("/login");
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in">
+        <div className="max-w-5xl mx-auto space-y-8">
             {/* Header Contextual */}
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
                 <div>
-                    <h1 className="text-3xl font-black text-foreground tracking-tight">Mi Perfil Profesional</h1>
+                    <h1 className="text-3xl font-semibold text-foreground tracking-tight">Mi Perfil Profesional</h1>
                     <p className="mt-2 text-sm text-muted-foreground font-medium max-w-lg">
                         Aquí puedes actualizar tus credenciales y gestionar tu firma digital.
                         Toda la información aquí registrada se utiliza para validar legalmente tus informes de riesgo psicosocial.
                     </p>
                 </div>
                 <div className="flex items-center gap-3 bg-card p-3 rounded-2xl border border-border shadow-sm">
-                    <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-black">
+                    <div className="w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center font-semibold">
                         {psychologist.fullName.charAt(0)}
                     </div>
                     <div>
-                        <p className="text-xs font-black text-foreground uppercase tracking-tighter leading-none">{psychologist.fullName}</p>
-                        <p className="text-[10px] font-bold text-emerald-600 mt-1 uppercase tracking-widest">{psychologist.status} ✨</p>
+                        <p className="text-xs font-semibold text-foreground uppercase tracking-tighter leading-none">{psychologist.fullName}</p>
+                        <p className="text-[10px] font-bold text-teal-dark mt-1 uppercase tracking-widest">{psychologist.status} ✨</p>
                     </div>
                 </div>
             </div>
