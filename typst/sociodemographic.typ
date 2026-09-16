@@ -10,6 +10,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { "Perfil sociodemográfico" },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // Una variable: tabla de frecuencias con barra proporcional. La barra se escala

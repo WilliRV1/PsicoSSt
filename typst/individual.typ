@@ -11,6 +11,8 @@
   brand: if D.brand.tradeName != none { D.brand.tradeName } else { "Informe individual" },
   org-name: D.org.name,
   chapters: false,
+  draft: D.isDraft,
+  powered-by: D.brand.poweredBy,
 )
 
 // ─── Componentes propios de este informe ────────────────────

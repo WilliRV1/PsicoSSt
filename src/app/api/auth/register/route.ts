@@ -3,11 +3,28 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, validatePasswordStrength } from "@/lib/auth/password";
 import { logAudit, extractRequestMeta } from "@/lib/auth/audit";
 import { SubscriptionService } from "@/lib/services/subscription-service";
+import { assertLegalIdentityForSignup } from "@/lib/legal-config";
 import { sendEmail } from "@/lib/email/resend";
 import { welcomeEmail } from "@/lib/email/templates";
 
 export async function POST(request: Request) {
     try {
+        // Sin Responsable del Tratamiento identificado no puede abrirse una
+        // cuenta: todo lo que se recoja después carecería de autorización
+        // válida (Ley 1581/2012, arts. 6 y 12).
+        const legal = assertLegalIdentityForSignup();
+        if (!legal.ok) {
+            console.error("[REGISTER] Configuración legal incompleta:", legal.missing.join(", "));
+            return NextResponse.json(
+                {
+                    error: "LEGAL_CONFIG_INCOMPLETE",
+                    message:
+                        "El registro está deshabilitado: falta configurar los datos del Responsable del Tratamiento.",
+                },
+                { status: 503 }
+            );
+        }
+
         const body = await request.json();
         const { email, password, fullName, licenseNumber, professionalCard, sstCredential } = body;
 

@@ -21,7 +21,8 @@
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "org": {
     "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
@@ -296,5 +297,6 @@
       "name": "Situación económica del grupo familiar",
       "definition": "Disponibilidad de medios económicos del grupo familiar para atender los gastos básicos y hacer frente a imprevistos."
     }
-  ]
+  ],
+  "isDraft": false
 }

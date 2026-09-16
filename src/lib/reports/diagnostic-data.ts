@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
 import { loadImage, type ReportImage } from "./images";
+import { reportBranding } from "./branding";
 import {
     DIMENSION_ACTION,
     DIMENSION_DEFINITION,
@@ -102,7 +103,9 @@ export interface DiagnosticData {
         dateEnd: string;
         today: string;
     };
-    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null };
+    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null; poweredBy: boolean };
+    /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+    isDraft: boolean;
     professional: { name: string; license: string; signaturePath: string | null };
     coverage: {
         uniqueWorkers: number;
@@ -251,6 +254,8 @@ export async function buildDiagnosticData(
     // Acceso por la vía administrativa: el lector no es el psicólogo tratante,
     // así que la ruta debe dejarlo registrado en la auditoría.
     const viaAdmin = org.createdByPsychologist !== psychologistId;
+    // La marca del documento sigue al dueño de la empresa, no a quien lo abre.
+    const ownerPsychologistId = org.createdByPsychologist;
 
     const assessments = await prisma.assessment.findMany({
         where: {
@@ -573,9 +578,10 @@ export async function buildDiagnosticData(
         org.psychologist.signatures.find(s => s.signatureType === "drawn") ??
         org.psychologist.signatures.find(s => s.signatureType === "uploaded");
 
-    const [logo, signature] = await Promise.all([
+    const [logo, signature, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         loadImage(sig?.dataUrl ?? sig?.imageUrl ?? org.psychologist.signature),
+        reportBranding(ownerPsychologistId),
     ]);
 
     const dates = assessments.map(a => new Date(a.assessmentDate).getTime());
@@ -611,7 +617,9 @@ export async function buildDiagnosticData(
                 tradeName: settings?.tradeName ?? settings?.consultingRoomName ?? null,
                 contactLine: contactBits.length ? contactBits.join(" · ") : null,
                 logoPath: logo ? `/assets/logo.${logo.ext}` : null,
+                poweredBy: branding.poweredBy,
             },
+            isDraft: branding.isDraft,
             professional: {
                 name: org.psychologist.fullName,
                 license: org.psychologist.licenseNumber,

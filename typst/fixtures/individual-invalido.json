@@ -21,7 +21,8 @@
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "org": {
     "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
@@ -622,5 +623,6 @@
       "name": "Recompensas de la pertenencia a la organización",
       "definition": "Sentimiento de orgullo y percepción de estabilidad laboral, así como la percepción del trabajo como elemento que dignifica a quien lo realiza."
     }
-  ]
+  ],
+  "isDraft": false
 }

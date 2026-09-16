@@ -21,7 +21,8 @@
   "brand": {
     "tradeName": "PsicoSST Consultoría",
     "contactLine": "contacto@psicosst.co · +57 300 000 0000 · Cali",
-    "logoPath": null
+    "logoPath": null,
+    "poweredBy": false
   },
   "org": {
     "name": "MANUFACTURAS DEL PACÍFICO S.A.S.",
@@ -201,5 +202,6 @@
       "name": "Síntomas psicoemocionales",
       "definition": "Manifestaciones afectivas de la respuesta de estrés: ansiedad, irritabilidad, tristeza y sensación de sobrecarga."
     }
-  ]
+  ],
+  "isDraft": false
 }

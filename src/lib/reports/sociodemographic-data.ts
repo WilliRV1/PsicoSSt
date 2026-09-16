@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { loadImage, type ReportImage } from "./images";
+import { reportBranding } from "./branding";
 import { MIN_GROUP_SIZE, meetsMinGroupSize } from "./anonymity";
 
 /**
@@ -45,7 +46,9 @@ export interface SociodemographicData {
         dateEnd: string;
         today: string;
     };
-    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null };
+    brand: { tradeName: string | null; contactLine: string | null; logoPath: string | null; poweredBy: boolean };
+    /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+    isDraft: boolean;
     professional: { name: string; license: string; signaturePath: string | null };
     coverage: {
         /** Trabajadores con al menos una evaluación calificada. */
@@ -243,6 +246,8 @@ export async function buildSociodemographicData(
     if (org.createdByPsychologist !== psychologistId && !isAdmin) return null;
     // Acceso por la vía administrativa: queda para la auditoría de la ruta.
     const viaAdmin = org.createdByPsychologist !== psychologistId;
+    // La marca del documento sigue al dueño de la empresa, no a quien lo abre.
+    const ownerPsychologistId = org.createdByPsychologist;
 
     const scored: Prisma.AssessmentWhereInput = {
         status: { in: ["COMPLETED", "SCORED", "SIGNED", "REVIEWED"] },
@@ -333,9 +338,10 @@ export async function buildSociodemographicData(
         org.psychologist.signatures.find(s => s.signatureType === "drawn") ??
         org.psychologist.signatures.find(s => s.signatureType === "uploaded");
 
-    const [logo, signature] = await Promise.all([
+    const [logo, signature, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         loadImage(sig?.dataUrl ?? sig?.imageUrl ?? org.psychologist.signature),
+        reportBranding(ownerPsychologistId),
     ]);
 
     const contactBits = [settings?.email, settings?.phone, settings?.city].filter(Boolean);
@@ -355,7 +361,9 @@ export async function buildSociodemographicData(
                 tradeName: settings?.tradeName ?? settings?.consultingRoomName ?? null,
                 contactLine: contactBits.length ? contactBits.join(" · ") : null,
                 logoPath: logo ? `/assets/logo.${logo.ext}` : null,
+                poweredBy: branding.poweredBy,
             },
+            isDraft: branding.isDraft,
             professional: {
                 name: org.psychologist.fullName,
                 license: org.psychologist.licenseNumber,

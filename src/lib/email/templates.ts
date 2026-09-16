@@ -160,7 +160,7 @@ export function assessmentInvitationEmail(
             <h2 style="margin:0 0 16px;color:#18181b;font-size:18px">Hola ${workerFullName},</h2>
             <p style="color:#3f3f46;line-height:1.6;margin:0 0 16px">
                 ${psychologistFullName} te invita a diligenciar tu evaluacion de riesgo psicosocial
-                de forma virtual. El proceso toma unos minutos y tus respuestas son
+                mediante este enlace personal. El proceso toma unos minutos y tus respuestas son
                 <strong>confidenciales</strong>: solo tu psicologo(a) las vera.
             </p>
             <div style="text-align:center;margin:24px 0">

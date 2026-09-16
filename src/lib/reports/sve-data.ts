@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getBaremos } from "@/config/battery";
 import { loadImage, type ReportImage } from "./images";
+import { reportBranding } from "./branding";
 import { BATTERY_IDS } from "@/config/instruments";
 
 export const RISK_ORDER = ["SIN_RIESGO", "BAJO", "MEDIO", "ALTO", "MUY_ALTO"] as const;
@@ -22,6 +23,10 @@ export interface DomainBand {
 }
 
 export interface SVEData {
+    /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+    isDraft: boolean;
+    /** Plan Residente: pie «Generado con PsicoSST». */
+    poweredBy: boolean;
     org: {
         name: string;
         nit: string;
@@ -373,12 +378,16 @@ export async function buildSVEData(
 
     // Signatures are usually stored inline as a data URI; imageUrl is the
     // fallback for uploaded files. Matches how the other report routes read it.
-    const [logo, signatureImg] = await Promise.all([
+    const [logo, signatureImg, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         loadImage(signature?.dataUrl ?? signature?.imageUrl),
+        // La marca sigue al dueño de la empresa, no a quien abre el documento.
+        reportBranding(org.psychologist.id),
     ]);
 
     const data: SVEData = {
+        isDraft: branding.isDraft,
+        poweredBy: branding.poweredBy,
         org: {
             name: org.name,
             nit: org.nit,

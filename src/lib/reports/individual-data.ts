@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getBaremos, getFormConfig } from "@/config/battery";
 import { scoreGeneralTotal } from "@/lib/scoring";
 import { getInstrument } from "@/config/instruments";
+import { reportBranding } from "./branding";
 import type { FormType, QuestionnaireType, ScoredResultData, TotalScore } from "@/types/battery";
 import { loadImage, type ReportImage } from "./images";
 import {
@@ -63,6 +64,8 @@ export interface IndividualData {
         isAnonymous: boolean;
         /** Sin fecha de expedición de licencia el informe no es válido. */
         licenseMissing: boolean;
+        /** Plan Residente: marca de agua «BORRADOR · sin valor probatorio». */
+        isDraft: boolean;
         /**
          * `regulated` gobierna el bloque normativo del informe; con
          * `provisionalBaremos` la plantilla advierte que los cortes son de
@@ -86,6 +89,8 @@ export interface IndividualData {
         tradeName: string | null;
         contactLine: string | null;
         logoPath: string | null;
+        /** Plan Residente: el pie del PDF declara que se generó con PsicoSST. */
+        poweredBy: boolean;
     };
     org: { name: string; nit: string; city: string | null; economicSector: string | null };
     worker: { name: string; document: string; ficha: FichaRow[] };
@@ -508,10 +513,12 @@ export async function buildIndividualData(
     const signatureRef =
         signedImage ?? best?.dataUrl ?? best?.imageUrl ?? psychologist.signature ?? null;
 
-    const [logo, signature] = await Promise.all([
+    const [logo, signature, branding] = await Promise.all([
         loadImage(settings?.logoUrl),
         // Sin fecha de expedición de licencia el informe no puede firmarse.
         psychologist.sstLicenseDate ? loadImage(signatureRef) : Promise.resolve(null),
+        // La marca sigue al dueño del informe, no a quien lo abre.
+        reportBranding(assessment.psychologistId),
     ]);
 
     const contactBits = [settings?.email, settings?.phone, settings?.city].filter(Boolean);
@@ -563,6 +570,7 @@ export async function buildIndividualData(
                 isStress,
                 isAnonymous: anonymous,
                 licenseMissing: !psychologist.sstLicenseDate,
+                isDraft: branding.isDraft,
                 instrument: {
                     id: instrument.id,
                     family: instrument.family,
@@ -582,6 +590,7 @@ export async function buildIndividualData(
                 tradeName: settings?.tradeName ?? settings?.consultingRoomName ?? null,
                 contactLine: contactBits.length ? contactBits.join(" · ") : null,
                 logoPath: logo ? `/assets/logo.${logo.ext}` : null,
+                poweredBy: branding.poweredBy,
             },
             org: {
                 name: organization.name,
@@ -613,7 +622,7 @@ export async function buildIndividualData(
                     : "El cuestionario no cuenta con el mínimo de ítems respondidos que exige el manual de la Batería, de modo que no es posible calcular un puntaje ni asignar un nivel de riesgo. Los resultados por dimensión y por dominio quedan igualmente sin validez.",
                 action: overallValid
                     ? instrument.interpretation[overallLevel].action
-                    : "Completar los ítems faltantes o repetir la aplicación del cuestionario. Este informe no puede sustentar decisiones ni presentarse ante la autoridad mientras el resultado no sea calculable.",
+                    : "Completar los ítems faltantes o repetir el cuestionario. Este informe no puede sustentar decisiones ni presentarse ante la autoridad mientras el resultado no sea calculable.",
             },
             generalTotal,
             domains,

@@ -129,7 +129,7 @@ function BatteryBadge({ label, slot, workerId, orgId, type }: {
             <a
                 href={`/dashboard/assessments/new/manual?workerId=${workerId}&orgId=${orgId}&type=${type}`}
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-dashed border-border text-text-muted hover:border-primary hover:text-primary transition-colors"
-                title={`Aplicar ${label}`}
+                title={`Registrar ${label}`}
             >
                 <Plus className="w-2.5 h-2.5" />{label}
             </a>

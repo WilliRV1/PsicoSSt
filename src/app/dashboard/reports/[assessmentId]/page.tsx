@@ -656,7 +656,7 @@ export default async function ReportPage({ params }: PageProps) {
                             <h3>Conclusiones Clínicas</h3>
                             <div style={{ fontSize: "0.86rem", lineHeight: 1.8, color: "#374151" }}>
                                 <p>
-                                    Con base en la aplicación del cuestionario de{" "}
+                                    Con base en la evaluación del cuestionario de{" "}
                                     <strong>{questionnaireLabels[assessment.questionnaireType]}</strong>{" "}
                                     ({formLabel}), el trabajador <strong>{w.fullName}</strong>,
                                     con cargo <strong>{w.jobTitle || "–"}</strong> en <strong>{org.name}</strong>,

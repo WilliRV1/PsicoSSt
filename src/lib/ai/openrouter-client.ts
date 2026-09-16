@@ -115,7 +115,7 @@ export async function generateRecommendations(
           .join('\n')
       : 'No disponible';
 
-  const prompt = `Eres un psicólogo organizacional senior con 15 años de experiencia aplicando la Batería para la Evaluación de Factores de Riesgo Psicosocial del Ministerio de Trabajo de Colombia (Resolución 2764 de 2022).
+  const prompt = `Eres un asistente de redacción para un psicólogo especialista en SST que califica la Batería para la Evaluación de Factores de Riesgo Psicosocial del Ministerio de Trabajo de Colombia (Resolución 2764 de 2022). Redactas un BORRADOR en tercera persona que el profesional revisará y hará suyo.
 
 Acabas de evaluar a este trabajador y debes redactar el plan de intervención individualizado. Este documento será leído por el trabajador, su jefe directo y el área de RR.HH.
 
