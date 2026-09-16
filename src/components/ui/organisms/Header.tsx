@@ -4,6 +4,7 @@ import { Search, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface HeaderProps {
   user?: { fullName: string; email: string; creditBalance: number } | null;
@@ -20,11 +21,11 @@ export function Header({ user }: HeaderProps) {
       ? "var(--color-danger)"
       : credits <= 5
       ? "var(--color-warning)"
-      : "var(--color-text-muted)";
+      : "var(--color-text-secondary)";
 
   return (
     <header
-      className="h-[52px] flex items-center justify-between px-6 shrink-0"
+      className="h-[56px] flex items-center justify-between px-6 shrink-0"
       style={{
         background: "var(--color-surface)",
         borderBottom: "1px solid var(--color-border)",
@@ -33,26 +34,21 @@ export function Header({ user }: HeaderProps) {
       {/* Search */}
       <button
         onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
-        className="flex items-center gap-2 text-[13px] transition-colors duration-100 outline-none"
-        style={{ color: "var(--color-text-muted)" }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)")
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-        }
+        className="press-feedback flex items-center gap-2.5 h-9 pl-3 pr-2.5 rounded-lg text-[13px] outline-none min-w-[220px]"
+        style={{ color: "var(--color-text-muted)", background: "var(--color-surface-muted)" }}
       >
         <Search className="w-3.5 h-3.5 shrink-0" />
-        <span>Buscar</span>
+        <span className="flex-1 text-left">Buscar</span>
         <span
-          className="ml-1 text-[11px] px-1.5 py-0.5 rounded"
+          className="text-[11px] px-1.5 py-0.5 rounded"
           style={{
-            background: "var(--color-surface-muted)",
+            background: "var(--color-surface)",
             color: "var(--color-text-muted)",
+            border: "1px solid var(--color-border)",
             fontFamily: "var(--font-mono)",
           }}
         >
-          ⌃K
+          ⌘K
         </span>
       </button>
 
@@ -61,18 +57,10 @@ export function Header({ user }: HeaderProps) {
         {/* Credits */}
         <Link
           href="/dashboard/store"
-          className="flex items-center gap-1.5 text-[13px] transition-colors duration-100"
-          style={{ color: creditColor }}
-          onMouseEnter={(e) =>
-            ((e.currentTarget as HTMLElement).style.color = "var(--color-primary)")
-          }
-          onMouseLeave={(e) =>
-            ((e.currentTarget as HTMLElement).style.color = creditColor)
-          }
+          className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] transition-colors duration-150"
+          style={{ color: creditColor, background: "var(--color-surface-muted)" }}
         >
-          <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>
-            {credits}
-          </span>
+          <span className="font-mono font-semibold tabular-nums">{credits}</span>
           <span className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>
             créditos
           </span>
@@ -85,20 +73,35 @@ export function Header({ user }: HeaderProps) {
         {mounted && (
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="transition-colors duration-100 outline-none"
+            title={theme === "dark" ? "Cambiar a claro" : "Cambiar a oscuro"}
+            className="press-feedback relative h-8 w-8 flex items-center justify-center rounded-lg outline-none transition-colors duration-150 hover:bg-surface-muted"
             style={{ color: "var(--color-text-muted)" }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-            }
           >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              {theme === "dark" ? (
+                <motion.span
+                  key="sun"
+                  initial={{ opacity: 0, rotate: -60, scale: 0.6 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: 60, scale: 0.6 }}
+                  transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <Sun className="w-4 h-4" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="moon"
+                  initial={{ opacity: 0, rotate: 60, scale: 0.6 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: -60, scale: 0.6 }}
+                  transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <Moon className="w-4 h-4" />
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         )}
       </div>

@@ -28,8 +28,12 @@ export default async function DashboardLayout({
         select: { fullName: true, email: true, creditBalance: true }
     });
 
+    // isAdmin ya viene en la sesión (JWT), no hace falta otra consulta: es lo
+    // que decide si la barra lateral muestra la sección de Administración.
+    const user = psychologist ? { ...psychologist, isAdmin: session.user.isAdmin } : null;
+
     return (
-        <AppShell user={psychologist}>
+        <AppShell user={user}>
             {children}
             <SupportWidget />
         </AppShell>

@@ -96,7 +96,7 @@ export default function MfaVerifyPage() {
                         <div className="mx-auto mb-2">
                             <LockKeyhole className="h-10 w-10 text-primary" />
                         </div>
-                        <CardTitle className="text-xl font-semibold tracking-[-0.01em]" style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}>Verificación MFA</CardTitle>
+                        <CardTitle className="text-xl font-semibold tracking-[-0.01em]" style={{ fontFamily: "var(--font-heading)" }}>Verificación MFA</CardTitle>
                         <CardDescription>
                             {method === "EMAIL"
                                 ? "Ingresa el código de 6 dígitos que te enviamos por correo."

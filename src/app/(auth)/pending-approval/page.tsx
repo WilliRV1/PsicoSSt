@@ -24,7 +24,7 @@ export default function PendingApprovalPage() {
                         <div className="flex flex-col gap-1.5">
                             <h1
                                 className="text-[22px] font-semibold tracking-[-0.01em] text-foreground"
-                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                                style={{ fontFamily: "var(--font-heading)" }}
                             >
                                 Tu cuenta está en revisión
                             </h1>

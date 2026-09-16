@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
                         <div className="space-y-2">
                             <h1
                                 className="text-[24px] font-semibold tracking-[-0.01em] text-foreground"
-                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                                style={{ fontFamily: "var(--font-heading)" }}
                             >Recuperar contraseña</h1>
                             <p className="text-sm text-muted-foreground">
                                 Ingresa tu correo y te enviaremos un código de 6 dígitos.
@@ -150,7 +150,7 @@ export default function ForgotPasswordPage() {
                         <div className="space-y-2">
                             <h1
                                 className="text-[24px] font-semibold tracking-[-0.01em] text-foreground"
-                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                                style={{ fontFamily: "var(--font-heading)" }}
                             >Ingresa el código</h1>
                             <p className="text-sm text-muted-foreground">
                                 Enviamos un código de 6 dígitos a <strong>{email}</strong>. Expira en 10 minutos.
@@ -248,7 +248,7 @@ export default function ForgotPasswordPage() {
                         <div className="space-y-2">
                             <h1
                                 className="text-[24px] font-semibold tracking-[-0.01em] text-foreground"
-                                style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                                style={{ fontFamily: "var(--font-heading)" }}
                             >Contraseña actualizada</h1>
                             <p className="text-sm text-muted-foreground">
                                 Tu contraseña ha sido cambiada exitosamente.

@@ -78,7 +78,7 @@ export default function LoginPage() {
                     <div className="flex flex-col gap-1.5">
                         <h1
                             className="text-[32px] font-semibold leading-[1.12] tracking-[-0.01em] text-foreground"
-                            style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            style={{ fontFamily: "var(--font-heading)" }}
                         >
                             Iniciar sesión
                         </h1>
@@ -221,7 +221,7 @@ export default function LoginPage() {
                     <div className="flex flex-col gap-4">
                         <h2
                             className="max-w-[480px] text-[44px] font-semibold leading-[1.1] tracking-[-0.015em] text-balance text-foreground"
-                            style={{ fontFamily: "var(--font-report-serif), Georgia, serif" }}
+                            style={{ fontFamily: "var(--font-heading)" }}
                         >
                             La Batería, calificada como manda el manual
                         </h2>

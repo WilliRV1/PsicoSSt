@@ -1,7 +1,6 @@
 "use client";
 
 import { DataGrid } from "@/components/ui/organisms/DataGrid";
-import { RiskBadge } from "@/components/ui/atoms/RiskBadge";
 
 interface RecentAssessment {
     id: string;
@@ -14,6 +13,13 @@ interface RecentAssessment {
 interface RecentAssessmentsGridProps {
     data: RecentAssessment[];
 }
+
+const STATUS_CFG: Record<string, { label: string; bg: string; text: string }> = {
+    SIGNED:   { label: "Firmado",   bg: "var(--color-teal-light)",     text: "var(--color-teal-dark)" },
+    REVIEWED: { label: "Revisado",  bg: "color-mix(in srgb, var(--color-info) 14%, transparent)", text: "var(--color-info)" },
+    SCORED:   { label: "Calificado", bg: "var(--color-risk-medium-bg)", text: "var(--color-risk-medium-text)" },
+    default:  { label: "Pendiente", bg: "var(--color-surface-muted)",  text: "var(--color-text-secondary)" },
+};
 
 export function RecentAssessmentsGrid({ data }: RecentAssessmentsGridProps) {
     return (
@@ -46,10 +52,20 @@ export function RecentAssessmentsGrid({ data }: RecentAssessmentsGridProps) {
                     key: 'status',
                     header: 'Estado',
                     render: (row) => {
+                        // Es el estado del flujo de la evaluación, no un nivel de riesgo:
+                        // antes tomaba prestado RiskBadge con niveles falsos ("Sin riesgo"
+                        // para "firmado"), que se leía como si un caso sin riesgo y uno
+                        // firmado fueran lo mismo. Colores semánticos, no de riesgo.
                         const st = row.status;
-                        if (st === 'SIGNED') return <RiskBadge level="NONE" showDot={false} />;
-                        if (st === 'SCORED') return <RiskBadge level="MEDIUM" showDot={false} />;
-                        return <RiskBadge level="LOW" showDot={false} />;
+                        const cfg = STATUS_CFG[st] ?? STATUS_CFG.default;
+                        return (
+                            <span
+                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium"
+                                style={{ background: cfg.bg, color: cfg.text }}
+                            >
+                                {cfg.label}
+                            </span>
+                        );
                     }
                 }
             ]}
