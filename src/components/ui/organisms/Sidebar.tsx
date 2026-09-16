@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 
 interface SidebarProps {
@@ -148,22 +149,21 @@ export function Sidebar({ user }: SidebarProps) {
               {user?.fullName || "Usuario"}
             </p>
           </div>
-          <form action="/api/auth/signout" method="POST">
-            <button
-              type="submit"
-              title="Cerrar sesión"
-              className="p-1 rounded transition-colors duration-100"
-              style={{ color: "var(--color-text-muted)" }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
-              }
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </form>
+          <button
+            type="button"
+            title="Cerrar sesión"
+            className="p-1 rounded transition-colors duration-100"
+            style={{ color: "var(--color-text-muted)" }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "var(--color-danger)")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)")
+            }
+            onClick={() => signOut({ callbackUrl: "/login" })}
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </aside>
