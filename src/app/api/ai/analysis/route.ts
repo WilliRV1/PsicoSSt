@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { extractRequestMeta, logAudit } from '@/lib/auth/audit';
 import { generateClinicalAnalysis } from '@/lib/ai/openrouter-client';
+import type { DimensionScore } from '@/types/battery';
 
 /**
  * Interpretación profesional del informe individual.
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (!owned) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const { assessment, report } = owned;
-    const existing = ((report?.reportData as any) || {}) as Record<string, unknown>;
+    const existing = (report?.reportData as unknown as Record<string, unknown> | null) ?? {};
     const draft = typeof existing.analysisDraft === 'string' ? existing.analysisDraft : null;
     const requestMeta = extractRequestMeta(req);
 
@@ -139,7 +140,7 @@ export async function POST(req: NextRequest) {
     const analysis = await generateClinicalAnalysis({
       overallRiskCategory: scoredResult.overallRiskCategory,
       totalScores: scoredResult.totalScores,
-      dimensionScores: scoredResult.dimensionScores,
+      dimensionScores: scoredResult.dimensionScores as unknown as Record<string, DimensionScore>,
       workerProfile: {
         jobTitle: assessment.worker.jobTitle ?? undefined,
         jobLevel: assessment.worker.jobLevel,

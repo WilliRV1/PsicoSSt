@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractRequestMeta } from "@/lib/auth/audit";
 import { enforcePublicRateLimit } from "@/lib/security/public-guard";
 import { OrganizationInvitationLinkService } from "@/lib/services/organization-invitation-link-service";
+import { getErrorMessage } from "@/lib/utils";
 
 const ERROR_STATUS: Record<string, number> = {
     LINK_NOT_FOUND: 404,
@@ -54,8 +55,8 @@ export async function POST(
         }
 
         return NextResponse.json({ outcome: "RESOLVED", invitationToken: result.invitationToken });
-    } catch (error: any) {
-        const code = error?.message as string;
+    } catch (error: unknown) {
+        const code = getErrorMessage(error);
         const status = ERROR_STATUS[code] ?? 500;
         const message = ERROR_MESSAGE[code] ?? "Error técnico al validar tu documento.";
         if (status === 500) console.error("[PUBLIC_COMPANY_INVITATIONS] identify error:", error);

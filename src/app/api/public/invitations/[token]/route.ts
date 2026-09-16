@@ -19,7 +19,7 @@ export async function GET(
         const { token } = await params;
         const view = await AssessmentInvitationService.getPublicView(token);
         return NextResponse.json(view);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[PUBLIC_INVITATIONS] GET error:", error);
         return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
     }

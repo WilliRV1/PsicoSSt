@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Cliente de Prisma generado por `prisma generate` — nunca se escribe a
+    // mano y ya está fuera de git (ver .gitignore). Lintearlo no aporta nada
+    // y cualquier "arreglo" se pierde en la siguiente generación; sin este
+    // ignore representaba el 75% de los problemas reportados por ESLint.
+    "src/generated/**",
   ]),
 ]);
 

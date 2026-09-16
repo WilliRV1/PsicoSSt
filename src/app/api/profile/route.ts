@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest) {
         const body = await request.json();
 
         // Update only safe fields
-        const updated = await prisma.psychologist.update({
+        await prisma.psychologist.update({
             where: { id: session.user.id },
             data: {
                 fullName: body.fullName,

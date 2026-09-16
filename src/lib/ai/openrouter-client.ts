@@ -3,6 +3,7 @@
  * Provides methods to generate psychosocial recommendations and interpretations
  */
 import { MODEL_ANALYSIS, MODEL_DRAFTING, OPENROUTER_HEADERS, OPENROUTER_URL } from "./models";
+import type { DimensionScore } from "@/types/battery";
 
 interface OpenRouterMessage {
   role: 'user' | 'assistant';
@@ -78,8 +79,8 @@ async function callOpenRouter(request: OpenRouterRequest): Promise<string> {
 
 interface ScoreData {
   overallRiskCategory: string;
-  totalScores?: any;
-  dimensionScores?: any;
+  totalScores?: unknown;
+  dimensionScores?: Record<string, DimensionScore> | null;
   workerProfile?: {
     jobTitle?: string;
     jobLevel?: string;
@@ -96,10 +97,10 @@ export async function generateRecommendations(
   const highRiskDimensions =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .filter(([, val]: [string, any]) =>
+          .filter(([, val]) =>
             ['ALTO', 'MUY_ALTO'].includes(val?.riskCategory ?? '')
           )
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `- ${val?.dimensionName ?? key}: ${val?.transformedScore?.toFixed(1) ?? 'N/D'}% — Riesgo ${val?.riskCategory}`
           )
           .join('\n')
@@ -108,7 +109,7 @@ export async function generateRecommendations(
   const allDimensions =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `- ${val?.dimensionName ?? key}: ${val?.transformedScore?.toFixed(1) ?? 'N/D'}% (${val?.riskCategory ?? 'N/D'})`
           )
           .join('\n')
@@ -164,7 +165,7 @@ export async function generateClinicalAnalysis(
   const dimensionDetails =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `- ${val?.dimensionName ?? key}: puntuación transformada ${val?.transformedScore ?? 'N/D'}, nivel de riesgo "${val?.riskCategory ?? 'N/D'}"`
           )
           .join('\n')
@@ -173,10 +174,10 @@ export async function generateClinicalAnalysis(
   const criticalDimensions =
     scoreData.dimensionScores && typeof scoreData.dimensionScores === 'object'
       ? Object.entries(scoreData.dimensionScores)
-          .filter(([, val]: [string, any]) =>
+          .filter(([, val]) =>
             ['ALTO', 'MUY_ALTO'].includes(val?.riskCategory ?? '')
           )
-          .map(([key, val]: [string, any]) =>
+          .map(([key, val]) =>
             `${val?.dimensionName ?? key} (${val?.transformedScore?.toFixed(1) ?? 'N/D'}% — ${val?.riskCategory})`
           )
           .join(', ')
@@ -260,8 +261,8 @@ export async function listAvailableModels(): Promise<Array<{ id: string; name: s
       throw new Error('Failed to fetch models');
     }
 
-    const data = await response.json();
-    return data.data.map((model: any) => ({
+    const data = (await response.json()) as { data: Array<{ id: string; name?: string }> };
+    return data.data.map((model) => ({
       id: model.id,
       name: model.name || model.id,
     }));
@@ -547,11 +548,19 @@ Genera ÚNICAMENTE el prompt final optimizado para copiar y pegar en ${data.plat
   });
 }
 
+interface OrgReportSummary {
+  executiveSummary?: {
+    criticalPercent: number;
+    totalWorkers: number;
+    predominantRisk: string;
+  };
+}
+
 /**
  * Generate Organizational Recommendations based on the Technical Guide
  */
 export async function generateOrganizationalRecommendations(
-  orgData: any
+  orgData: OrgReportSummary
 ): Promise<string> {
   const prompt = `Eres un psicólogo experto en salud ocupacional en Colombia.
 Basado estrictamente en los protocolos de intervención de la Resolución 2764 de Colombia, 

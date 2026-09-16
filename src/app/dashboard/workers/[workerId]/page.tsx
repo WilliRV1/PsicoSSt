@@ -2,10 +2,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, MapPin, Calendar, AlertTriangle, RefreshCw, Info } from "lucide-react";
+import { ArrowLeft, FileDown, Eye, PenLine, CheckCircle2, Clock, User, Briefcase, Calendar, AlertTriangle, RefreshCw, Info } from "lucide-react";
 import EditWorkerProfileButton from "@/components/workers/EditWorkerProfileButton";
 import WorkerTrendChart from "@/components/workers/worker-trend-chart";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: React.ReactNode }) => {
     const texts: Record<string, string> = {
@@ -29,6 +29,13 @@ const RiskTooltip = ({ riskLevel, children }: { riskLevel: string, children: Rea
     );
 };
 
+/** Forma de `ScoredResult.totalScores`: lo escribimos nosotros mismos desde
+ * el motor de puntuación (ver `TotalScore` en lib/scoring), así que basta con
+ * afirmar el campo que se lee — mismo patrón que en lib/reports/individual-data.ts. */
+interface StoredTotalScore {
+    transformedScore?: number;
+}
+
 const riskColors: Record<string, string> = {
     SIN_RIESGO: "bg-green-100 text-green-700 border-green-200",
     BAJO:       "bg-lime-100 text-lime-700 border-lime-200",
@@ -43,14 +50,6 @@ const riskLabels: Record<string, string> = {
     MEDIO: "Medio",
     ALTO: "Alto",
     MUY_ALTO: "Muy Alto",
-};
-
-const riskBarColor: Record<string, string> = {
-    SIN_RIESGO: "bg-green-500",
-    BAJO:       "bg-lime-500",
-    MEDIO:      "bg-yellow-400",
-    ALTO:       "bg-orange-500",
-    MUY_ALTO:   "bg-red-500",
 };
 
 const questionnaireLabels: Record<string, string> = {
@@ -115,7 +114,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
-    const worker = await (prisma.worker as any).findUnique({
+    const worker = await prisma.worker.findUnique({
         where: { id: workerId },
         include: {
             organization: {
@@ -135,13 +134,13 @@ export default async function WorkerDetailPage({ params }: PageProps) {
         return notFound();
     }
 
-    const assessments = worker.assessments as any[];
+    const assessments = worker.assessments;
     const age = worker.birthYear
         ? new Date().getFullYear() - worker.birthYear
         : null;
 
     // Latest risk per questionnaire type
-    const latestByType: Record<string, any> = {};
+    const latestByType: Record<string, (typeof assessments)[number]> = {};
     for (const a of [...assessments].reverse()) {
         latestByType[a.questionnaireType] = a;
     }
@@ -153,6 +152,9 @@ export default async function WorkerDetailPage({ params }: PageProps) {
         : null;
     const TWO_YEARS_MS = 2 * 365.25 * 24 * 60 * 60 * 1000;
     const expiresAt = lastSignedDate ? new Date(lastSignedDate.getTime() + TWO_YEARS_MS) : null;
+    // Server Component: sin el re-render concurrente que esta regla vigila
+    // en cliente — necesita la hora real del servidor para este cálculo.
+    // eslint-disable-next-line react-hooks/purity
     const daysUntilExpiry = expiresAt ? Math.floor((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
     const expirationStatus = daysUntilExpiry === null ? "NEVER" : daysUntilExpiry <= 0 ? "EXPIRED" : daysUntilExpiry <= 180 ? "EXPIRING_SOON" : "OK";
 
@@ -223,7 +225,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                             </div>
                         );
                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
-                        const score = (a.scoredResult?.totalScores as any)?.transformedScore;
+                        const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
                         return (
                             <div key={type} className={`rounded-xl border p-4 text-center ${riskColors[risk]}`}>
                                 <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-70">{questionnaireLabels[type]}</p>
@@ -286,16 +288,16 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                     {[
                         { label: "Género", value: worker.gender === "M" ? "Masculino" : worker.gender === "F" ? "Femenino" : null },
                         { label: "Estado civil", value: worker.maritalStatus },
-                        { label: "Escolaridad", value: educationLabels[worker.educationLevel] || worker.educationLevel?.replace(/_/g, " ") },
+                        { label: "Escolaridad", value: worker.educationLevel ? (educationLabels[worker.educationLevel] || worker.educationLevel.replace(/_/g, " ")) : null },
                         { label: "Ciudad de residencia", value: worker.residenceCity },
                         { label: "Área / Departamento", value: worker.departmentArea },
-                        { label: "Tipo de contrato", value: contractLabels[worker.contractType] || worker.contractType?.replace(/_/g, " ") },
+                        { label: "Tipo de contrato", value: worker.contractType ? (contractLabels[worker.contractType] || worker.contractType.replace(/_/g, " ")) : null },
                         { label: "Jornada laboral", value: worker.workSchedule },
                         { label: "Horas por semana", value: worker.hoursPerWeek ? `${worker.hoursPerWeek} h` : null },
                         { label: "Antigüedad en empresa", value: worker.lessThanOneYearInCompany ? "Menos de un año" : worker.yearsInCompany !== null ? `${worker.yearsInCompany} años` : null },
                         { label: "Antigüedad en cargo", value: worker.lessThanOneYearInPosition ? "Menos de un año" : worker.yearsInPosition !== null ? `${worker.yearsInPosition} años` : null },
                         { label: "Estrato socioeconómico", value: worker.socioeconomicStratum ? `Estrato ${worker.socioeconomicStratum}` : null },
-                        { label: "Tipo de vivienda", value: housingLabels[worker.housingType] || worker.housingType },
+                        { label: "Tipo de vivienda", value: worker.housingType ? (housingLabels[worker.housingType] || worker.housingType) : null },
                     ].map(({ label, value }) => value ? (
                         <div key={label}>
                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
@@ -348,7 +350,7 @@ export default async function WorkerDetailPage({ params }: PageProps) {
                                 <tbody className="divide-y divide-border">
                                     {assessments.map(a => {
                                         const risk = a.scoredResult?.overallRiskCategory || "SIN_RIESGO";
-                                        const score = (a.scoredResult?.totalScores as any)?.transformedScore;
+                                        const score = (a.scoredResult?.totalScores as StoredTotalScore | null)?.transformedScore;
                                         const status = statusConfig[a.status] || statusConfig.SCORED;
                                         return (
                                             <tr key={a.id} className="hover:bg-muted/30 transition-colors">

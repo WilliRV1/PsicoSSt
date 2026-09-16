@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- recharts/react-resizable-panels: los .d.ts instalados no coinciden con lo que este componente de shadcn/ui espera; ver git blame para el detalle exacto
 // @ts-nocheck
 'use client'
 

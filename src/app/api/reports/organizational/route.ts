@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AssessmentService } from "@/lib/services/assessment-service";
 import { prisma } from "@/lib/prisma";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
     const session = await auth();
@@ -40,12 +41,12 @@ export async function GET(request: NextRequest) {
         const plan = await prisma.interventionPlan.findFirst({ where: { organizationId: orgId }, include: { actions: true } });
         const action = plan?.actions.find(a => a.measure.startsWith('Recomendaciones AI:'));
         if (action && action.notes) {
-            (data as any).recommendations = action.notes;
+            data.recommendations = action.notes;
         }
 
         return NextResponse.json(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error generating organizational report data:", error);
-        return NextResponse.json({ error: error.message || "Error interno" }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) || "Error interno" }, { status: 500 });
     }
 }

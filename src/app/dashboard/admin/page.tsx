@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-    Users, Building2, ClipboardList, FileText, UserCheck, UserX,
+    Users, Building2, ClipboardList, FileText, UserCheck,
     Clock, Shield, ArrowRight, Activity,
     MessageSquare,
 } from "lucide-react";

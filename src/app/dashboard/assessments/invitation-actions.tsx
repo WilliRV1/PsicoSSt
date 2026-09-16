@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Check, X } from "lucide-react";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function InvitationActions({ id }: { id: string }) {
     const [isBusy, setIsBusy] = useState(false);
@@ -18,8 +19,8 @@ export default function InvitationActions({ id }: { id: string }) {
             await navigator.clipboard.writeText(data.url);
             setCopiedUrl(data.url);
             setTimeout(() => setCopiedUrl(null), 3000);
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(getErrorMessage(error));
         } finally {
             setIsBusy(false);
         }
@@ -39,8 +40,8 @@ export default function InvitationActions({ id }: { id: string }) {
                 throw new Error(data.error || "Error al cancelar");
             }
             router.refresh();
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(getErrorMessage(error));
             setIsBusy(false);
         }
     };

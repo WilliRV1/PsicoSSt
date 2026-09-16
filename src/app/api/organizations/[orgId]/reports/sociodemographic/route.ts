@@ -8,6 +8,9 @@ import {
     toSuppressedPercentages,
     type SuppressedDistribution,
 } from "@/lib/reports/anonymity";
+import type { Worker } from "@/generated/prisma";
+
+type StringDistributionField = "gender" | "educationLevel" | "jobLevel" | "housingType" | "socioeconomicStratum";
 
 /**
  * Distribuciones sociodemográficas agregadas de una organización.
@@ -87,7 +90,7 @@ export async function GET(
     }
 }
 
-function calculateAgeDistribution(workers: any[]): SuppressedDistribution {
+function calculateAgeDistribution(workers: Worker[]): SuppressedDistribution {
     const groups: Record<string, number> = {
         "18-25": 0,
         "26-35": 0,
@@ -115,7 +118,7 @@ function calculateAgeDistribution(workers: any[]): SuppressedDistribution {
     return toSuppressedPercentages(groups, workers.length);
 }
 
-function calculateTenureDistribution(workers: any[]): SuppressedDistribution {
+function calculateTenureDistribution(workers: Worker[]): SuppressedDistribution {
     const groups: Record<string, number> = {
         "Menos de 1 año": 0,
         "1-3 años": 0,
@@ -142,7 +145,7 @@ function calculateTenureDistribution(workers: any[]): SuppressedDistribution {
     return toSuppressedPercentages(groups, workers.length);
 }
 
-function calculateGenericDistribution(workers: any[], field: string): SuppressedDistribution {
+function calculateGenericDistribution(workers: Worker[], field: StringDistributionField): SuppressedDistribution {
     const groups: Record<string, number> = {};
 
     workers.forEach(w => {
@@ -153,7 +156,7 @@ function calculateGenericDistribution(workers: any[], field: string): Suppressed
     return toSuppressedPercentages(groups, workers.length);
 }
 
-function calculateFreeTimeDistribution(workers: any[]): SuppressedDistribution {
+function calculateFreeTimeDistribution(workers: Worker[]): SuppressedDistribution {
     const counts: Record<string, number> = {};
 
     workers.forEach(w => {

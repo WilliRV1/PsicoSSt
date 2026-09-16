@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateRecommendations } from '@/lib/ai/openrouter-client';
+import type { DimensionScore } from '@/types/battery';
 
 /** POST /api/ai/recommendations */
 export async function POST(req: NextRequest) {
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
              });
           }
         } else {
-           const newPlan = await prisma.interventionPlan.create({
+           await prisma.interventionPlan.create({
              data: {
                organizationId,
                psychologistId: session.user.id,
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
       if (report) {
         await prisma.generatedReport.update({
           where: { id: report.id },
-          data: { recommendationsAI: overrideText } as any,
+          data: { recommendationsAI: overrideText },
         });
       }
       return NextResponse.json({ success: true, recommendations: overrideText, assessmentId });
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
     const recommendations = await generateRecommendations({
       overallRiskCategory: scoredResult.overallRiskCategory,
       totalScores: scoredResult.totalScores,
-      dimensionScores: scoredResult.dimensionScores,
+      dimensionScores: scoredResult.dimensionScores as unknown as Record<string, DimensionScore>,
       workerProfile: {
         jobTitle: assessment.worker.jobTitle ?? undefined,
         jobLevel: assessment.worker.jobLevel,
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
     if (report) {
       await prisma.generatedReport.update({
         where: { id: report.id },
-        data: { recommendationsAI: recommendations } as any,
+        data: { recommendationsAI: recommendations },
       });
     }
 
@@ -204,7 +205,7 @@ export async function GET(req: NextRequest) {
     const report = await prisma.generatedReport.findFirst({ where: { assessmentId: assessmentId as string } });
     return NextResponse.json({
       success: true,
-      recommendations: (report as any)?.recommendationsAI ?? null,
+      recommendations: report?.recommendationsAI ?? null,
       assessmentId,
     });
   } catch (error) {

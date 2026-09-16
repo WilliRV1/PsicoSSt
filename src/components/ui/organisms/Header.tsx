@@ -13,6 +13,12 @@ export function Header({ user }: HeaderProps) {
   const credits = user?.creditBalance ?? 0;
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  // Guarda de hidratación de next-themes: es el patrón que la propia
+  // librería documenta para saber cuándo ya se puede leer `theme` sin
+  // desajustar el HTML del servidor. No hay "valor anterior" que comparar
+  // durante el render (a diferencia de un cambio de prop): sólo se sabe
+  // que ya se montó una vez ejecutado un efecto en el cliente.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const creditColor =

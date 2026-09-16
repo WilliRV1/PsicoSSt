@@ -42,13 +42,13 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: "Firma guardada correctamente" });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error al guardar firma:", error);
         return NextResponse.json({ error: "Error interno al guardar la firma" }, { status: 500 });
     }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -65,7 +65,7 @@ export async function DELETE(request: NextRequest) {
         });
 
         return NextResponse.json({ success: true, message: "Firma eliminada" });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Error al eliminar la firma" }, { status: 500 });
     }
 }

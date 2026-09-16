@@ -1,3 +1,6 @@
+// Archivo CommonJS (sin "type": "module" en package.json) — convertir a
+// `import` real rompería la ejecución de este script (`node prisma/seed-test-data.js`).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { PrismaClient } = require("@prisma/client");
 
 /**

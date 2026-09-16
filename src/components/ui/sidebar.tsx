@@ -606,10 +606,11 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<'div'> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  // Random width between 50 to 90%. El inicializador de useState corre
+  // exactamente una vez por instancia — la forma correcta de "calcular algo
+  // no determinista sólo al montar", a diferencia de useMemo, cuyo cuerpo
+  // React espera que sea puro.
+  const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)
 
   return (
     <div

@@ -125,7 +125,7 @@ const authConfig: NextAuthConfig = {
         error: "/login",
     },
     callbacks: {
-        async jwt({ token, user, trigger, session }) {
+        async jwt({ token, user, trigger }) {
             // Initial sign in — populate token with user data
             if (user) {
                 token.id = user.id!;

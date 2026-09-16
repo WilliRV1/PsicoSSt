@@ -6,6 +6,7 @@ import { ArrowLeft, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { QuestionnaireType } from "@/types/battery";
+import { getErrorMessage } from "@/lib/utils";
 
 interface Organization {
     id: string;
@@ -67,8 +68,8 @@ export default function CompanyInvitationLinkPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Error al crear el enlace");
             setResult({ url: data.url });
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            toast.error(getErrorMessage(error));
         } finally {
             setIsSubmitting(false);
         }

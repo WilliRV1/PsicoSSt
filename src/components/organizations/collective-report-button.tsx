@@ -24,7 +24,7 @@ export default function CollectiveReportButton({ orgId, orgName }: { orgId: stri
             a.download = `informe-${type}-${orgName.replace(/\s+/g, "-")}.pdf`;
             a.click();
             URL.revokeObjectURL(url);
-        } catch (e) {
+        } catch {
             alert("Error al generar el informe");
         } finally {
             setLoading(null);

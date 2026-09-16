@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { ScoredResultData } from "@/types/battery";
 
 export async function POST(request: NextRequest) {
     const session = await auth();
@@ -9,7 +8,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { scores, demographics } = await request.json();
+        const { scores } = await request.json();
 
         if (!scores) {
             return NextResponse.json({ error: "Missing scores for interpretation" }, { status: 400 });

@@ -4,7 +4,7 @@ import extralaboralConfig from "./extralaboral-config.json";
 import stressConfig from "./stress-config.json";
 import baremos from "./baremos.json";
 
-import { FormConfig, BaremoTable, FormType, QuestionnaireType } from "@/types/battery";
+import { FormConfig, FormType, QuestionnaireType } from "@/types/battery";
 import items from "./items.json";
 
 export const getFormConfig = (formType: FormType, questionnaireType: QuestionnaireType): FormConfig | null => {

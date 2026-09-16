@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { AssessmentStatus, Prisma, QuestionnaireType } from "@/generated/prisma";
 
 /**
  * GET /api/assessments/list
@@ -32,14 +33,14 @@ export async function GET(request: NextRequest) {
         }
 
         // Build where clause
-        const where: any = {
+        const where: Prisma.AssessmentWhereInput = {
             psychologistId: session.user.id,
             status: "COMPLETED"
         };
 
         if (organizationId) where.organizationId = organizationId;
-        if (questionnaireType) where.questionnaireType = questionnaireType;
-        if (status) where.status = status;
+        if (questionnaireType) where.questionnaireType = questionnaireType as QuestionnaireType;
+        if (status) where.status = status as AssessmentStatus;
 
         const [assessments, total] = await Promise.all([
             prisma.assessment.findMany({

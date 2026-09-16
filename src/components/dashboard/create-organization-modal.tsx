@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 const FormTooltip = ({ text }: { text: string }) => (
     <Tooltip>
@@ -60,9 +61,9 @@ export default function CreateOrganizationModal({ isOpen, onClose, onSuccess }: 
             toast.success("Empresa creada exitosamente");
             setForm({ name: "", nit: "", economicSector: "", city: "", department: "", employeeCount: "" });
             onSuccess();
-        } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message || "Error al guardar");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
+            toast.error(getErrorMessage(err) || "Error al guardar");
         } finally {
             setSaving(false);
         }

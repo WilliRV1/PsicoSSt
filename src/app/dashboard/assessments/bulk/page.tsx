@@ -1,15 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Upload, FileText, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/lib/utils";
+
+interface ImportRowError {
+    row: number;
+    column?: string;
+    message: string;
+}
+
+interface ImportResults {
+    totalRows: number;
+    successRows: number;
+    failedRows: number;
+    errors: ImportRowError[];
+}
 
 export default function BulkUploadPage() {
-    const router = useRouter();
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [results, setResults] = useState<any>(null);
+    const [results, setResults] = useState<ImportResults | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,8 +53,8 @@ export default function BulkUploadPage() {
 
             const data = await res.json();
             setResults(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setIsUploading(false);
         }
@@ -140,7 +152,7 @@ export default function BulkUploadPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
-                                        {results.errors.map((err: any, idx: number) => (
+                                        {results.errors.map((err, idx) => (
                                             <tr key={idx} className="hover:bg-muted/30 transition-colors">
                                                 <td className="px-4 py-3 font-medium text-foreground">{err.row}</td>
                                                 <td className="px-4 py-3 text-muted-foreground">{err.column || "General"}</td>

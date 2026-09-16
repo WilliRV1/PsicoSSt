@@ -53,7 +53,7 @@ export async function PUT(
     try {
         const { id } = await params;
 
-        const worker = await (prisma.worker as any).findUnique({
+        const worker = await prisma.worker.findUnique({
             where: { id },
             include: {
                 organization: {
@@ -89,7 +89,7 @@ export async function PUT(
             );
         }
 
-        const updated = await (prisma.worker as any).update({
+        const updated = await prisma.worker.update({
             where: { id },
             data: {
                 fullName,

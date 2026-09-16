@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma";
 
 async function verifyOrgOwnership(orgId: string, psychologistId: string) {
   const org = await prisma.organization.findUnique({
@@ -30,7 +31,7 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const yearParam = searchParams.get("year");
 
-    const whereClause: any = { organizationId: orgId };
+    const whereClause: Prisma.AssessmentReportWhereInput = { organizationId: orgId };
     if (yearParam) {
       whereClause.year = parseInt(yearParam);
     }
@@ -41,7 +42,7 @@ export async function GET(
     });
 
     return NextResponse.json(reports);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching assessment reports:", error);
     return NextResponse.json(
       { error: "Error fetching reports" },
@@ -96,7 +97,7 @@ export async function POST(
     });
 
     return NextResponse.json(report);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error saving assessment report:", error);
     return NextResponse.json(
       { error: "Error saving report" },

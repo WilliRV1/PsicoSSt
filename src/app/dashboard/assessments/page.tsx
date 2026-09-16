@@ -216,7 +216,7 @@ export default async function AssessmentsPage({ searchParams }: PageProps) {
         // ya un Assessment propio (se crea de inmediato al completar esa
         // sección del wizard, aunque la invitación completa siga pendiente).
         const invitationByType = (type: string): SlotInvitation | null => {
-            const found = w.assessmentInvitations.find(inv => inv.plannedTypes.includes(type as any));
+            const found = w.assessmentInvitations.find(inv => inv.plannedTypes.includes(type));
             return found ? { id: found.id, expiresAt: found.expiresAt } : null;
         };
         const complete = ["INTRALABORAL", "EXTRALABORAL", "STRESS"].every(t =>

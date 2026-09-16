@@ -13,10 +13,8 @@
  *   - Informes (Report) con recomendaciones IA de ejemplo
  */
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
 import { PrismaClient } from '../src/generated/prisma/index.js';
+import type { DocumentType, FormType, JobLevel, Prisma, ReportStatus, Worker } from '../src/generated/prisma/index.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
@@ -32,7 +30,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 // Initialize Prisma with pg adapter
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter }) as any;
+const prisma = new PrismaClient({ adapter });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,9 +77,6 @@ function makeScoredResult(val: number, questionnaireType: string, formType: stri
   const pctMap: Record<number, number> = { 0: 5, 1: 25, 2: 50, 3: 75, 4: 92 };
   const pct = pctMap[val] ?? 50;
   const total = buildTotalScore(pct);
-
-  // Create 4 sample dimensions at slightly different percentages
-  const dimPcts = [pct - 8, pct - 3, pct + 3, pct + 8].map(p => Math.max(0, Math.min(100, p)));
 
   const dimensionScores: Record<string, object> = {};
   const domainScores: Record<string, object> = {};
@@ -305,20 +300,20 @@ async function main() {
     },
   ];
 
-  const createdWorkers: { worker: any; spec: typeof workersSpec[0] }[] = [];
+  const createdWorkers: { worker: Worker; spec: typeof workersSpec[0] }[] = [];
 
   for (const w of workersSpec) {
     const worker = await prisma.worker.upsert({
       where: {
         documentType_documentId_organizationId: {
-          documentType: w.docType,
+          documentType: w.docType as DocumentType,
           documentId: w.docId,
           organizationId: w.orgId,
         },
       },
       update: {},
       create: {
-        documentType: w.docType,
+        documentType: w.docType as DocumentType,
         documentId: w.docId,
         fullName: w.name,
         gender: w.gender,
@@ -326,9 +321,9 @@ async function main() {
         maritalStatus: w.marital,
         educationLevel: w.edu,
         jobTitle: w.title,
-        jobLevel: w.level,
+        jobLevel: w.level as JobLevel,
         residenceCity: w.city,
-        socioeconomicStratum: w.stratum,
+        socioeconomicStratum: String(w.stratum),
         housingType: w.housing,
         dependentsCount: w.deps,
         freeTimeUsage: w.freeTime,
@@ -340,7 +335,7 @@ async function main() {
         yearsInPosition: w.yearsPos,
         contractType: w.contract,
         workSchedule: w.schedule,
-        hoursPerWeek: w.hours,
+        hoursPerWeek: String(w.hours),
         organizationId: w.orgId,
       },
     });
@@ -359,7 +354,7 @@ async function main() {
     `Revisar la ergonomía del puesto de trabajo, implementar rotación de tareas, fomentar el apoyo entre compañeros y fortalecer la comunicación con los superiores inmediatos.`,
   ];
 
-  const reportStatuses = ['DRAFT', 'REVIEWED', 'SIGNED', 'DRAFT', 'REVIEWED', 'DRAFT'];
+  const reportStatuses: ReportStatus[] = ['DRAFT', 'REVIEWED', 'SIGNED', 'DRAFT', 'REVIEWED', 'DRAFT'];
   let totalAssessments = 0;
 
   for (let i = 0; i < createdWorkers.length; i++) {
@@ -376,7 +371,7 @@ async function main() {
         workerId: worker.id,
         psychologistId: spec.psychId,
         organizationId: spec.orgId,
-        formType: spec.formType,
+        formType: spec.formType as FormType,
         questionnaireType: 'INTRALABORAL',
         assessmentDate: baseDate,
         status: 'SCORED',
@@ -397,12 +392,12 @@ async function main() {
         assessmentId: intraA.id,
         dimensionScores: intraScored.dimensionScores,
         domainScores: intraScored.domainScores,
-        totalScores: intraScored.totalScores,
+        totalScores: intraScored.totalScores as unknown as Prisma.InputJsonValue,
         overallRiskCategory: intraScored.overallRiskCategory,
       },
     });
     const rStatus = reportStatuses[i % reportStatuses.length];
-    await prisma.report.create({
+    await prisma.generatedReport.create({
       data: {
         assessmentId: intraA.id,
         psychologistId: spec.psychId,
@@ -428,7 +423,7 @@ async function main() {
           workerId: worker.id,
           psychologistId: spec.psychId,
           organizationId: spec.orgId,
-          formType: spec.formType,
+          formType: spec.formType as FormType,
           questionnaireType: 'EXTRALABORAL',
           assessmentDate: extraDate,
           status: 'SCORED',
@@ -443,11 +438,11 @@ async function main() {
           assessmentId: extraA.id,
           dimensionScores: extraScored.dimensionScores,
           domainScores: extraScored.domainScores,
-          totalScores: extraScored.totalScores,
+          totalScores: extraScored.totalScores as unknown as Prisma.InputJsonValue,
           overallRiskCategory: extraScored.overallRiskCategory,
         },
       });
-      await prisma.report.create({
+      await prisma.generatedReport.create({
         data: {
           assessmentId: extraA.id,
           psychologistId: spec.psychId,
@@ -473,7 +468,7 @@ async function main() {
           workerId: worker.id,
           psychologistId: spec.psychId,
           organizationId: spec.orgId,
-          formType: spec.formType,
+          formType: spec.formType as FormType,
           questionnaireType: 'STRESS',
           assessmentDate: stressDate,
           status: 'SCORED',
@@ -488,11 +483,11 @@ async function main() {
           assessmentId: stressA.id,
           dimensionScores: stressScored.dimensionScores,
           domainScores: stressScored.domainScores,
-          totalScores: stressScored.totalScores,
+          totalScores: stressScored.totalScores as unknown as Prisma.InputJsonValue,
           overallRiskCategory: stressScored.overallRiskCategory,
         },
       });
-      await prisma.report.create({
+      await prisma.generatedReport.create({
         data: {
           assessmentId: stressA.id,
           psychologistId: spec.psychId,

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MIN_GROUP_SIZE } from "@/lib/reports/anonymity";
+import { getErrorMessage } from "@/lib/utils";
+import type { Prisma } from "@/generated/prisma";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
             );
         }
 
-        const whereClause: any = {
+        const whereClause: Prisma.WorkerWhereInput = {
             organizationId
         };
 
@@ -249,7 +251,7 @@ export async function GET(request: Request) {
 
         const formatData = (obj: Record<string, number>) => {
             return Object.entries(obj)
-                .filter(([_, v]) => v > 0)
+                .filter(([, v]) => v > 0)
                 .map(([name, value]) => ({ name: mapFriendly(name), value }))
                 .sort((a, b) => b.value - a.value);
         };
@@ -285,8 +287,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json(reportData);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error generating sociodemographic report:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function DeleteAssessmentButton({ id }: { id: string }) {
     const [isDeleting, setIsDeleting] = useState(false);
@@ -25,8 +26,8 @@ export default function DeleteAssessmentButton({ id }: { id: string }) {
             }
 
             router.refresh();
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(getErrorMessage(error));
             setIsDeleting(false);
         }
     };

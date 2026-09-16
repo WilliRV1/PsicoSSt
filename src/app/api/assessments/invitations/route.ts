@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json({ id, url, expiresAt });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[INVITATIONS] POST error:", error);
         return NextResponse.json({ error: "Error técnico al crear la invitación" }, { status: 500 });
     }

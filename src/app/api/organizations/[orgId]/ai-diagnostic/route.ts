@@ -9,6 +9,7 @@ import {
     suppressSmallCounts,
     toSuppressedPercentages,
 } from "@/lib/reports/anonymity";
+import { getErrorMessage } from "@/lib/utils";
 
 export async function POST(
     request: NextRequest,
@@ -45,7 +46,7 @@ export async function POST(
     // sociodemográficos con las evaluaciones firmadas de arriba, y excluir a
     // quien fue evaluado y luego se archivó describiría una población distinta
     // de la que produjo los resultados de riesgo.
-    const workers = await (prisma.worker as any).findMany({
+    const workers = await prisma.worker.findMany({
         where: { organizationId: orgId },
         select: {
             gender: true,
@@ -94,8 +95,9 @@ export async function POST(
     const stressTotal = Object.values(stress).reduce((a, b) => a + b, 0);
 
     // Segmentation by area and job title (sólo grupos que alcanzan MIN_GROUP_SIZE)
-    const areaGroups: Record<string, any[]> = {};
-    const cargoGroups: Record<string, any[]> = {};
+    type ScoredAssessment = (typeof assessments)[number];
+    const areaGroups: Record<string, ScoredAssessment[]> = {};
+    const cargoGroups: Record<string, ScoredAssessment[]> = {};
 
     assessments.filter(a => a.questionnaireType === "INTRALABORAL").forEach(a => {
         const area = a.worker.departmentArea || "Sin área";
@@ -116,7 +118,7 @@ export async function POST(
      * del total de la organización devolvía exactamente el grupo que se quiso
      * ocultar. Se informa cuántos grupos y cuántos trabajadores se omitieron.
      */
-    const buildSeg = (groups: Record<string, any[]>) => {
+    const buildSeg = (groups: Record<string, ScoredAssessment[]>) => {
         const workerCounts: Record<string, number> = {};
         for (const [key, items] of Object.entries(groups)) {
             workerCounts[key] = new Set(items.map(a => a.workerId)).size;
@@ -153,7 +155,7 @@ export async function POST(
     const jobLevelDist: Record<string, number> = {};
     const tenureDist: Record<string, number> = { "< 1 año": 0, "1-3 años": 0, "4-7 años": 0, "8-12 años": 0, "> 12 años": 0, "Sin datos": 0 };
 
-    workers.forEach((w: any) => {
+    workers.forEach((w) => {
         // Gender
         const g = w.gender === "M" ? "Masculino" : w.gender === "F" ? "Femenino" : "Otro/Sin datos";
         genderDist[g] = (genderDist[g] || 0) + 1;
@@ -238,9 +240,9 @@ export async function POST(
         });
 
         return NextResponse.json({ report, suppression, generatedAt: new Date().toISOString() });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[AI DIAGNOSTIC] Error:", err);
-        if (err.message?.includes("OPENROUTER_API_KEY")) {
+        if (getErrorMessage(err)?.includes("OPENROUTER_API_KEY")) {
             return NextResponse.json({ error: "IA no configurada" }, { status: 503 });
         }
         return NextResponse.json({ error: "Error al generar el diagnóstico" }, { status: 500 });

@@ -24,10 +24,60 @@ import {
     type RiskLevel,
 } from "../src/lib/reports/battery-content";
 
-type Entry = Record<string, number[]>;
+/** Banda de riesgo de baremos.json: [límite inferior, límite superior] por categoría. */
+interface BaremoBand {
+    sinRiesgo: number[];
+    bajo: number[];
+    medio: number[];
+    alto: number[];
+    muyAlto: number[];
+}
+
+interface BaremoFormBlock {
+    dimensions: Record<string, BaremoBand>;
+    domains: Record<string, BaremoBand>;
+    total: BaremoBand;
+}
+
+interface BaremoFormBlockNoDomains {
+    dimensions: Record<string, BaremoBand>;
+    total: BaremoBand;
+}
+
+interface BaremosData {
+    intralaboral_a: BaremoFormBlock;
+    intralaboral_b: BaremoFormBlock;
+    extralaboral: {
+        jefes_profesionales_tecnicos: BaremoFormBlockNoDomains;
+        auxiliares_operativos: BaremoFormBlockNoDomains;
+    };
+    stress: {
+        jefes_profesionales_tecnicos: BaremoBand;
+        auxiliares_operativos: BaremoBand;
+    };
+}
+
+const baremosData = baremos as unknown as BaremosData;
+
+interface BatteryDimensionConfig {
+    key: string;
+    name: string;
+}
+
+interface BatteryDomainConfig {
+    key: string;
+    name: string;
+    dimensionKeys: string[];
+}
+
+interface BatteryFormConfigShape {
+    dimensions: BatteryDimensionConfig[];
+    domains?: BatteryDomainConfig[];
+}
+
 const LEVELS: RiskLevel[] = ["SIN_RIESGO", "BAJO", "MEDIO", "ALTO", "MUY_ALTO"];
 
-const toBounds = (e: Entry | undefined): number[] =>
+const toBounds = (e: BaremoBand | undefined): number[] =>
     e?.muyAlto ? [e.sinRiesgo[1], e.bajo[1], e.medio[1], e.alto[1], e.muyAlto[1]] : [];
 
 const levelOf = (score: number, bounds: number[]): RiskLevel => {
@@ -53,19 +103,19 @@ const isStress = variant === "STRESS";
 const isExtra = variant === "EXTRA";
 const label = (l: RiskLevel) => (isStress ? STRESS_LABEL[l] : RISK_LABEL[l]);
 
-const config = isStress ? stressCfg : isExtra ? extraCfg : variant === "B" ? formB : formA;
+const config: BatteryFormConfigShape = isStress ? stressCfg : isExtra ? extraCfg : variant === "B" ? formB : formA;
 const tables = isStress
-    ? { dimensions: {} as Record<string, Entry>, domains: {} as Record<string, Entry>, total: (baremos as any).stress.F.jefes_profesionales_tecnicos }
+    ? { dimensions: {} as Record<string, BaremoBand>, domains: {} as Record<string, BaremoBand>, total: baremosData.stress.jefes_profesionales_tecnicos }
     : isExtra
       ? {
-            dimensions: (baremos as any).extralaboral.jefes_profesionales_tecnicos.dimensions,
-            domains: {} as Record<string, Entry>,
-            total: (baremos as any).extralaboral.jefes_profesionales_tecnicos.total,
+            dimensions: baremosData.extralaboral.jefes_profesionales_tecnicos.dimensions,
+            domains: {} as Record<string, BaremoBand>,
+            total: baremosData.extralaboral.jefes_profesionales_tecnicos.total,
         }
       : {
-            dimensions: (baremos as any)[variant === "B" ? "intralaboral_b" : "intralaboral_a"].dimensions,
-            domains: (baremos as any)[variant === "B" ? "intralaboral_b" : "intralaboral_a"].domains,
-            total: (baremos as any)[variant === "B" ? "intralaboral_b" : "intralaboral_a"].total,
+            dimensions: baremosData[variant === "B" ? "intralaboral_b" : "intralaboral_a"].dimensions,
+            domains: baremosData[variant === "B" ? "intralaboral_b" : "intralaboral_a"].domains,
+            total: baremosData[variant === "B" ? "intralaboral_b" : "intralaboral_a"].total,
         };
 
 const buildDim = (d: { key: string; name: string }) => {
@@ -85,11 +135,13 @@ const buildDim = (d: { key: string; name: string }) => {
     };
 };
 
-const allDims = (config as any).dimensions.map(buildDim);
-const byKey = new Map(allDims.map((d: any) => [d.key, d]));
+const allDims = config.dimensions.map(buildDim);
+const byKey = new Map(allDims.map((d) => [d.key, d]));
 
-const domains = ((config as any).domains ?? []).map((dc: any) => {
-    const dims = dc.dimensionKeys.map((k: string) => byKey.get(k)).filter(Boolean);
+const domains = (config.domains ?? []).map((dc) => {
+    const dims = dc.dimensionKeys
+        .map((k) => byKey.get(k))
+        .filter((x): x is NonNullable<typeof x> => x !== undefined);
     const bounds = toBounds(tables.domains[dc.key]);
     const score = scoreFor(dc.key, bounds.length ? bounds : [100]);
     const level = levelOf(score, bounds);
@@ -107,10 +159,10 @@ const domains = ((config as any).domains ?? []).map((dc: any) => {
     };
 });
 
-const claimed = new Set(domains.flatMap((d: any) => d.dimensions.map((x: any) => x.key)));
-const flat = allDims.filter((d: any) => !claimed.has(d.key)).sort((a: any, b: any) => b.score - a.score);
+const claimed = new Set(domains.flatMap((d) => d.dimensions.map((x) => x.key)));
+const flat = allDims.filter((d) => !claimed.has(d.key)).sort((a, b) => b.score - a.score);
 
-const everyDim = [...domains.flatMap((d: any) => d.dimensions), ...flat];
+const everyDim = [...domains.flatMap((d) => d.dimensions), ...flat];
 const totalBounds = toBounds(tables.total);
 const totalScore = scoreFor("total" + variant, totalBounds.length ? totalBounds : [100]);
 const totalLevel = levelOf(totalScore, totalBounds);
@@ -178,9 +230,9 @@ const data = {
     domains,
     dimensions: flat,
     critical: everyDim
-        .filter((d: any) => d.action)
-        .sort((a: any, b: any) => b.score - a.score)
-        .map((d: any) => ({ name: d.name, levelLabel: d.levelLabel, action: d.action })),
+        .filter((d) => d.action)
+        .sort((a, b) => b.score - a.score)
+        .map((d) => ({ name: d.name, levelLabel: d.levelLabel, action: d.action })),
     narrative: {
         analysis:
             "La trabajadora presenta una configuración de riesgo concentrada en el dominio de demandas del trabajo, coherente con el esquema de turnos rotativos de la planta y con la ampliación de funciones ocurrida tras la reestructuración del área de producción. Las condiciones de liderazgo y de relaciones sociales actúan como factor protector y explican que el puntaje global no alcance un nivel superior. Se observa además una influencia apreciable del trabajo sobre el entorno extralaboral, asociada al tiempo de desplazamiento y a la carga de cuidado en el hogar.",
@@ -196,8 +248,8 @@ const data = {
         signaturePath: null,
     },
     glossary: everyDim
-        .filter((d: any) => d.definition)
-        .map((d: any) => ({ name: d.name, definition: d.definition })),
+        .filter((d) => d.definition)
+        .map((d) => ({ name: d.name, definition: d.definition })),
 };
 
 const out = path.join("typst", "fixtures", `individual-${variant.toLowerCase()}.json`);

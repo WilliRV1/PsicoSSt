@@ -3,6 +3,7 @@ import { extractRequestMeta } from "@/lib/auth/audit";
 import { enforcePublicRateLimit } from "@/lib/security/public-guard";
 import { AssessmentInvitationService } from "@/lib/services/assessment-invitation-service";
 import { QuestionnaireType } from "@/types/battery";
+import { getErrorMessage } from "@/lib/utils";
 
 const ERROR_STATUS: Record<string, number> = {
     INVITATION_NOT_FOUND: 404,
@@ -55,8 +56,8 @@ export async function POST(
         });
 
         return NextResponse.json({ allDone });
-    } catch (error: any) {
-        const code = error?.message as string;
+    } catch (error: unknown) {
+        const code = getErrorMessage(error);
         const status = ERROR_STATUS[code] ?? 500;
         const message = ERROR_MESSAGE[code] ?? "Error técnico al guardar tus respuestas.";
         if (status === 500) console.error("[PUBLIC_INVITATIONS] submit error:", error);

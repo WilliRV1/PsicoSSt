@@ -54,7 +54,7 @@ describe('A. Motor de Cálculo (Precisión Matemática)', () => {
         
         const result = scoreQuestionnaire(responses, 'A', 'STRESS', { jobLevel: 'AUXILIAR' });
         
-        expect((result.total as any).isValid).toBe(false);
+        expect(result.total.isValid).toBe(false);
         expect(result.total.rawScore).toBe(0);
         expect(result.total.transformedScore).toBe(0);
     });

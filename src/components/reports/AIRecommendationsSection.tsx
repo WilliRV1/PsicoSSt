@@ -9,7 +9,7 @@ interface Props {
     isSigned: boolean;
 }
 
-export default function AIRecommendationsSection({ assessmentId, initialRecommendations, isSigned }: Props) {
+export default function AIRecommendationsSection({ assessmentId, initialRecommendations }: Props) {
     const [recommendations, setRecommendations] = useState(initialRecommendations || "");
     const [generating, setGenerating] = useState(false);
     const [saving, setSaving] = useState(false);

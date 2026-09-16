@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ProfileFormProps {
     initialData: {
@@ -44,9 +45,9 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
             toast.success("Perfil actualizado correctamente");
             setMessage({ type: 'success', text: "Información actualizada correctamente" });
             router.refresh(); // Actualiza los datos en el servidor (header, etc)
-        } catch (err: any) {
-            setMessage({ type: 'error', text: err.message || "Ocurrió un error" });
-            toast.error(err.message || "Error al actualizar el perfil");
+        } catch (err: unknown) {
+            setMessage({ type: 'error', text: getErrorMessage(err) || "Ocurrió un error" });
+            toast.error(getErrorMessage(err) || "Error al actualizar el perfil");
         } finally {
             setSaving(false);
         }

@@ -51,7 +51,7 @@ export default async function PendingPsychologistsPage() {
             No hay solicitudes pendientes.
           </div>
         ) : (
-          <PendingPsychologistsTable psychologists={pendingPsychologists as any} />
+          <PendingPsychologistsTable psychologists={pendingPsychologists} />
         )}
       </div>
 

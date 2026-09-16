@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Plus, Eye, AlertTriangle, Clock, CheckCircle2, Users } from "lucide-react";
+import { Plus, Eye, AlertTriangle, Clock, CheckCircle2, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreateOrganizationModal from "@/components/dashboard/create-organization-modal";
 import { TableSkeleton } from "@/components/ui/molecules/TableSkeleton";
@@ -11,7 +11,7 @@ import { es } from "date-fns/locale";
 
 type ComplianceStatus = "vencida" | "por_vencer" | "sin_evaluar" | "vigente";
 
-const complianceCfg: Record<ComplianceStatus, { label: string; cls: string; icon: React.FC<any> }> = {
+const complianceCfg: Record<ComplianceStatus, { label: string; cls: string; icon: LucideIcon }> = {
     vencida:    { label: "Vencida",     cls: "bg-red-100 text-red-700 border-red-200",       icon: AlertTriangle },
     por_vencer: { label: "Por vencer",  cls: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
     sin_evaluar:{ label: "Sin evaluar", cls: "bg-slate-100 text-slate-600 border-slate-200", icon: Users },
