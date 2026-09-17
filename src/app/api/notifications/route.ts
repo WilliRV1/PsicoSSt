@@ -81,7 +81,7 @@ export async function GET() {
                 type: "urgent",
                 title: `${expiredCount} evaluaci${expiredCount > 1 ? "ones vencidas" : "ón vencida"}`,
                 description: "Res. 2764/2022 art. 3: anual con riesgo alto o muy alto, bienal en los demás casos.",
-                href: "/dashboard/workers?risk=",
+                href: "/dashboard/assessments",
             });
         }
 
@@ -91,7 +91,7 @@ export async function GET() {
                 type: "warning",
                 title: `${expiringCount} evaluaci${expiringCount > 1 ? "ones" : "ón"} por vencer`,
                 description: "Trabajadores a menos de 90 días de vencer su vigencia.",
-                href: "/dashboard/workers",
+                href: "/dashboard/assessments",
             });
         }
 

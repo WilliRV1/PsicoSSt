@@ -8,14 +8,12 @@ import { useEffect, useState } from "react";
 import {
   LayoutGrid,
   Building2,
-  Users,
   ClipboardList,
   FileText,
   LineChart,
   TrendingUp,
   Target,
   Sparkles,
-  Coins,
   Store,
   UserCog,
   ShieldCheck,
@@ -44,8 +42,10 @@ const NAV = [
     section: "Operación",
     items: [
       { label: "Centro de control", href: "/dashboard", icon: LayoutGrid },
+      // Sin entrada propia para trabajadores: desde el pivote se gestionan
+      // dentro de su empresa y /dashboard/workers sólo redirige aquí, así que
+      // como opción de menú llevaba al usuario a una pantalla que no pidió.
       { label: "Empresas", href: "/dashboard/organizations", icon: Building2 },
-      { label: "Trabajadores", href: "/dashboard/workers", icon: Users },
       { label: "Evaluaciones", href: "/dashboard/assessments", icon: ClipboardList },
       { label: "Informes", href: "/dashboard/reports", icon: FileText },
     ],
@@ -62,8 +62,9 @@ const NAV = [
   {
     section: "Cuenta",
     items: [
-      { label: "Créditos", href: "/dashboard/credits", icon: Coins },
-      { label: "Planes", href: "/dashboard/plan", icon: Store },
+      // «Créditos» desapareció con el pivote a suscripción: la ruta sólo
+      // sobrevive porque el checkout cuelga de ella, y redirige a Planes.
+      { label: "Mi plan", href: "/dashboard/plan", icon: Store },
       { label: "Equipo", href: "/dashboard/users", icon: UserCog },
       { label: "Roles y permisos", href: "/dashboard/roles", icon: ShieldCheck },
       { label: "Configuración", href: "/dashboard/settings", icon: Settings },

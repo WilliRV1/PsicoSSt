@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Search, Building2, Users, FileText, ClipboardList, Settings, LogOut } from "lucide-react";
+import { Search, Building2, FileText, ClipboardList, Settings, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function CommandPalette() {
@@ -36,10 +36,11 @@ export function CommandPalette() {
   }, []);
 
   const commands = [
+    // Sin comandos de trabajador: se gestionan dentro de su empresa desde el
+    // pivote, y /dashboard/workers sólo redirige allí — el comando prometía
+    // una pantalla de trabajadores que ya no existe.
     { name: "Buscar empresa", icon: <Search className="w-4 h-4" />, action: () => router.push("/dashboard/organizations") },
-    { name: "Buscar trabajador", icon: <Search className="w-4 h-4" />, action: () => router.push("/dashboard/workers") },
     { name: "Nueva evaluación", icon: <ClipboardList className="w-4 h-4" />, action: () => router.push("/dashboard/assessments/new/manual") },
-    { name: "Nuevo trabajador", icon: <Users className="w-4 h-4" />, action: () => router.push("/dashboard/workers?new=true") },
     { name: "Nueva empresa", icon: <Building2 className="w-4 h-4" />, action: () => router.push("/dashboard/organizations?new=true") },
     { name: "Nueva intervención", icon: <FileText className="w-4 h-4" />, action: () => router.push("/dashboard/interventions/new") },
     { name: "Ir a configuración", icon: <Settings className="w-4 h-4" />, action: () => router.push("/dashboard/settings") },

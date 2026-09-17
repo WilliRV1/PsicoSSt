@@ -20,8 +20,8 @@ const steps = [
         icon: Users,
         title: "2. Registra los Trabajadores",
         description: "Dentro del perfil de la empresa, podrás registrar a los trabajadores uno por uno, o usar la plantilla Excel para hacer un cargue masivo de todos los empleados.",
-        action: "Ver Trabajadores",
-        href: "/dashboard/workers",
+        action: "Ver Empresas",
+        href: "/dashboard/organizations",
     },
     {
         icon: ClipboardList,
