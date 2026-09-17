@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
     try {
         const workers = await prisma.worker.findMany({
             where: {
+                // Sin este filtro, autenticarse bastaba para leer el padrón de
+                // TODOS los psicólogos: el buscador acepta fragmentos, así que
+                // iterando letras se barría la base entera. Es el mismo
+                // acotamiento que ya tenían `workers/route.ts` y
+                // `workers/export/route.ts`; aquí faltaba.
+                organization: { createdByPsychologist: session.user.id },
                 // El buscador alimenta la selección de trabajador para una
                 // evaluación nueva; un archivado no debe poder elegirse.
                 archivedAt: null,
@@ -27,12 +33,16 @@ export async function GET(request: NextRequest) {
                 ]
             },
             take: 10,
-            include: {
-                organization: {
-                    select: {
-                        name: true
-                    }
-                }
+            // Sólo lo que el buscador pinta. Devolver la fila entera exponía
+            // fecha de nacimiento, ciudad, contrato y demás sin necesidad.
+            select: {
+                id: true,
+                fullName: true,
+                documentType: true,
+                documentId: true,
+                jobLevel: true,
+                organizationId: true,
+                organization: { select: { name: true } }
             }
         });
 
